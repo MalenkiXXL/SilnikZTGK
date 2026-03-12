@@ -127,6 +127,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="gettingStarted.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -135,6 +136,8 @@
     <ClInclude Include="Shader.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="lightCubeShader.frag" />
+    <None Include="lightCubeShader.vs" />
     <None Include="shader.frag" />
     <None Include="shader.vs" />
   </ItemGroup>

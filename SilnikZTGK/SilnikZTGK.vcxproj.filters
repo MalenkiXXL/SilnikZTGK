@@ -21,6 +21,9 @@
     <ClCompile Include="glad.c">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="gettingStarted.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Shader.h">
@@ -33,5 +36,7 @@
   <ItemGroup>
     <None Include="shader.vs" />
     <None Include="shader.frag" />
+    <None Include="lightCubeShader.vs" />
+    <None Include="lightCubeShader.frag" />
   </ItemGroup>
 </Project>

@@ -1,11 +1,11 @@
 ﻿  main.cpp
-C:\SilnikZTGK\SilnikZTGK\SilnikZTGK\Shader.h(56,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
+C:\SilnikZTGK\SilnikZTGK\SilnikZTGK\Shader.h(59,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
   (kompilowanie pliku źródłowego „main.cpp”)
   
-C:\SilnikZTGK\SilnikZTGK\SilnikZTGK\Shader.h(55,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
+C:\SilnikZTGK\SilnikZTGK\SilnikZTGK\Shader.h(58,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
   (kompilowanie pliku źródłowego „main.cpp”)
   
-C:\SilnikZTGK\SilnikZTGK\SilnikZTGK\main.cpp(345,24): warning C4244: "inicjowanie": konwersja z "double" do "GLfloat", możliwa utrata danych
+C:\SilnikZTGK\SilnikZTGK\SilnikZTGK\main.cpp(142,24): warning C4244: "inicjowanie": konwersja z "double" do "GLfloat", możliwa utrata danych
   SilnikZTGK.vcxproj -> C:\SilnikZTGK\SilnikZTGK\x64\Debug\SilnikZTGK.exe
   'pwsh.exe' is not recognized as an internal or external command,
   operable program or batch file.
