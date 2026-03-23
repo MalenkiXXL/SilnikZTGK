@@ -1,251 +1,150 @@
-#include "glad/glad.h" 
-#include <GLFW/glfw3.h>
 #include <iostream>
+
 #include "Shader.h"
 #include "Camera.h"
-//GLM
+#include "Model.h"
+#include "Window.h"
+
+// GLM do matematyki macierzy
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#define PI 3.14159265
 
+// Mówimy kompilatorowi, ¿eby w tym pliku utworzy³ cia³o biblioteki stb_image
 #define STB_IMAGE_IMPLEMENTATION 
 #include "stb_image.h"
 
+#include "Events/WindowEvent.h"
+#include "Application.h"
+
 using namespace std;
 
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+// Deklaracje funkcji wywo³ywanych przez GLFW (tzw. callbacki)
 void proccessInput(GLFWwindow* window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
+// Ustawienia okna
 const unsigned int screen_width = 800;
 const unsigned int screen_height = 600;
 
-bool firstMouse = true;
-
+// Zmienne kamery i myszki
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-GLfloat fov = 45.0f;
+bool firstMouse = true;
+GLfloat lastX = screen_width / 2.0f;
+GLfloat lastY = screen_height / 2.0f;
+
+// Czas klatki (deltaTime to ró¿nica czasu miêdzy obecn¹ a poprzedni¹ klatk¹)
 GLfloat deltaTime = 0.0f;
 GLfloat lastFrame = 0.0f;
-GLfloat lastX = 800.0f/ 2.0f;
-GLfloat lastY = 600.0f / 2.0f;
+
+glm::vec3 lightPos = glm::vec3(1.2f, 1.0f, 2.0f);
+
 
 
 int main()
 {
-	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	GLFWwindow* window = glfwCreateWindow(screen_width, screen_height, "FirstWindow", NULL, NULL);
-	if (window == NULL)
-	{
-		cout << "Failed to create a window" << endl;
-		glfwTerminate();
-		return -1;
-	}
+    // Informujemy stb_image, ¿eby odwraca³ tekstury na osi Y (OpenGL oczekuje punktu 0.0 na dole, a obrazki maj¹ go na górze)
+    //stbi_set_flip_vertically_on_load(true);
 
-	glfwMakeContextCurrent(window);
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // W³¹czamy testowanie g³êbokoœci (¿eby obiekty z ty³u nie rysowa³y siê na obiektach z przodu)
+    //glEnable(GL_DEPTH_TEST);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-	{
-		cout << "Failed to initilize GLAD" << endl;
-		return -1;
-	}
+    // 5. Budowanie shaderów i wczytanie modelu
+    //Shader ourShader("shader.vs", "shader.frag");
 
-	Shader ourShader("shader.vs", "shader.frag");
-	Shader lightCubeShader("lightCubeShader.vs", "lightCubeShader.frag");
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glEnable(GL_DEPTH_TEST);
+    // Wczytujemy model. Upewnij siê, ¿e plik char.obj le¿y w folderze Twojego projektu!
+    //Model ourModel("BR_Charizard.obj");
 
-	float cube[] = {
-		   -0.5f, -0.5f, -0.5f,
-			0.5f, -0.5f, -0.5f,
-			0.5f,  0.5f, -0.5f,
-			0.5f,  0.5f, -0.5f,
-		   -0.5f,  0.5f, -0.5f,
-		   -0.5f, -0.5f, -0.5f,
+    // Opcjonalnie: odkomentuj, by widzieæ siatkê (tryb wireframe)
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-		   -0.5f, -0.5f,  0.5f,
-			0.5f, -0.5f,  0.5f,
-			0.5f,  0.5f,  0.5f,
-			0.5f,  0.5f,  0.5f,
-		   -0.5f,  0.5f,  0.5f,
-		   -0.5f, -0.5f,  0.5f,
+  /*  myWindow.SetEventCallback(EventReciever);*/
 
-		   -0.5f,  0.5f,  0.5f,
-		   -0.5f,  0.5f, -0.5f,
-		   -0.5f, -0.5f, -0.5f,
-		   -0.5f, -0.5f, -0.5f,
-		   -0.5f, -0.5f,  0.5f,
-		   -0.5f,  0.5f,  0.5f,
+    Application app;
+    app.Run();
+    //// 6. G£ÓWNA PÊTLA GRY
+    //while (!myWindow.ShouldClose())
+    //{
+    //    // Obliczanie czasu klatki (deltaTime) do p³ynnego ruchu
+    //    GLfloat currentFrame = glfwGetTime();
+    //    deltaTime = currentFrame - lastFrame;
+    //    lastFrame = currentFrame;
 
-			0.5f,  0.5f,  0.5f,
-			0.5f,  0.5f, -0.5f,
-			0.5f, -0.5f, -0.5f,
-			0.5f, -0.5f, -0.5f,
-			0.5f, -0.5f,  0.5f,
-			0.5f,  0.5f,  0.5f,
+    //    //// Sprawdzanie klawiatury
+    //    //proccessInput(window);
 
-		   -0.5f, -0.5f, -0.5f,
-			0.5f, -0.5f, -0.5f,
-			0.5f, -0.5f,  0.5f,
-			0.5f, -0.5f,  0.5f,
-		   -0.5f, -0.5f,  0.5f,
-		   -0.5f, -0.5f, -0.5f,
+    //    // Czyszczenie ekranu i bufora g³êbokoœci na podany kolor (ciemnoszary)
+    //    glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+    //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		   -0.5f,  0.5f, -0.5f,
-			0.5f,  0.5f, -0.5f,
-			0.5f,  0.5f,  0.5f,
-			0.5f,  0.5f,  0.5f,
-		   -0.5f,  0.5f,  0.5f,
-		   -0.5f,  0.5f, -0.5f,
-	};
+    //    // Uruchamiamy nasz shader dla modelu
+    //    ourShader.use();
 
-	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
+    //    // Obliczanie i wysy³anie macierzy Widoku i Projekcji
+    //    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
+    //    glm::mat4 view = camera.GetViewMatrix();
+    //    ourShader.setMat4("projection", projection);
+    //    ourShader.setMat4("view", view);
 
-	unsigned int VBO, VAO;
+    //    // Ustawianie macierzy Modelu (Pozycja, Obrót, Skala)
+    //    glm::mat4 model = glm::mat4(1.0f);
+    //    model = glm::translate(model, glm::vec3(0.0f, -1.0f, -3.0f)); // Przesuwamy model lekko w dó³ i w g³¹b ekranu
+    //    model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));       // Dostosuj tê skalê, jeœli twój char.obj jest gigantyczny lub mikroskopijny
+    //    ourShader.setMat4("model", model);
 
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
+    //    // FAKTYCZNE RYSOWANIE MODELU
+    //    ourModel.Draw(ourShader);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube), cube, GL_STATIC_DRAW);
+    //    // Zamiana buforów i przetwarzanie zdarzeñ systemu Windows
+    //    myWindow.OnUpdate();
+    //}
 
-	glBindVertexArray(VAO);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	unsigned int lightVao;
-
-	glGenVertexArrays(1, &lightVao);
-	glBindVertexArray(lightVao);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-
-	//tryb wireframe
-	//glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-
-
-
-	while (!glfwWindowShouldClose(window))
-	{
-		proccessInput(window);
-		GLfloat currentFrame = glfwGetTime();
-		deltaTime = currentFrame - lastFrame;
-		lastFrame = currentFrame;
-
-		glfwSetCursorPosCallback(window, mouse_callback);
-
-		glClearColor(0.5f, 0.6f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-		ourShader.use();
-		ourShader.setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-		ourShader.setVec3("objectLight", glm::vec3(0.5f, 0.8f, 1.0f));
-
-		glm::mat4 view = glm::mat4(1.0f);
-		view = camera.GetViewMatrix();
-		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(camera.Zoom), (float)screen_width / (float)screen_height, 0.1f, 100.0f);
-
-		ourShader.setMat4("projection", projection);
-		ourShader.setMat4("view", view);
-
-		glm::mat4 model = glm::mat4(1.0f);
-		ourShader.setMat4("model", model);
-
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		
-		lightCubeShader.use();
-		lightCubeShader.setMat4("projection", projection);
-		lightCubeShader.setMat4("view", view);
-		
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f));
-		lightCubeShader.setMat4("model", model);
-
-		glBindVertexArray(lightVao);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-
-
-		glfwSetScrollCallback(window, scroll_callback);
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-
-
-	}
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteVertexArrays(1, &lightVao);
-	glDeleteBuffers(1, &VBO);
-	glDeleteProgram(ourShader.ID);
-	glfwTerminate();
-	return 0;
+    return 0;
 }
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	glViewport(0, 0, width, height);
-}
 
+// Odczytywanie wciœniêtych klawiszy i poruszanie kamer¹
 void proccessInput(GLFWwindow* window)
 {
-	float cameraSpeed = 3.0f * deltaTime;
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-	{
-		camera.ProcessKeyboard(FORWARD, deltaTime);
-;	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		camera.ProcessKeyboard(LEFT, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		camera.ProcessKeyboard(RIGHT, deltaTime);
-	}
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
+// Obliczanie przesuniêcia myszy i obracanie kamery
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
-	float xpos = static_cast<float>(xposIn);
-	float ypos = static_cast<float>(yposIn);
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
 
-	if (firstMouse)
-	{
-		lastX = xpos;
-		lastY = ypos;
-		firstMouse = false;
-	}
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos; 
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // odwrócone, bo y roœnie od góry do do³u na monitorze
 
-	lastX = xpos;
-	lastY = ypos;
+    lastX = xpos;
+    lastY = ypos;
 
-	camera.ProcessMouseMovement(xoffset, yoffset);
+    camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
+// Przybli¿anie (Zoom) kó³kiem myszy
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+    camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
