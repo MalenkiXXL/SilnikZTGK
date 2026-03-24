@@ -1,17 +1,13 @@
 ﻿  Application.cpp
-  gettingStarted.cpp
   Input.cpp
   main.cpp
-C:\SilnikZTGK\Repo\SilnikZTGK\SilnikZTGK\Shader.h(59,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
-  (kompilowanie pliku źródłowego „main.cpp”)
+C:\Sem6\SilnikZTGK\SilnikZTGK\Shader.h(59,14): warning C4101: 'infoLog': unreferenced local variable
+  (compiling source file 'main.cpp')
   
-C:\SilnikZTGK\Repo\SilnikZTGK\SilnikZTGK\Shader.h(58,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
-  (kompilowanie pliku źródłowego „main.cpp”)
+C:\Sem6\SilnikZTGK\SilnikZTGK\Shader.h(58,13): warning C4101: 'success': unreferenced local variable
+  (compiling source file 'main.cpp')
   
-  Window.cpp
-  Generowanie kodu...
-  glad.c
-  LINK : nie znaleziono elementu C:\SilnikZTGK\Repo\SilnikZTGK\x64\Debug\SilnikZTGK.exe ani nie został on skompilowany podczas ostatniego konsolidowania przyrostowego; zostanie wykonana pełna konsolidacja
-  SilnikZTGK.vcxproj -> C:\SilnikZTGK\Repo\SilnikZTGK\x64\Debug\SilnikZTGK.exe
+  Generating Code...
+  SilnikZTGK.vcxproj -> C:\Sem6\SilnikZTGK\x64\Debug\SilnikZTGK.exe
   'pwsh.exe' is not recognized as an internal or external command,
   operable program or batch file.

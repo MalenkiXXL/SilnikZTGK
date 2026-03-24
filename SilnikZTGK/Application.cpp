@@ -1,8 +1,11 @@
 #include "Application.h"
 #include <iostream>
 
+Application* Application::s_Instance = nullptr;
+
 Application::Application()
 {
+	s_Instance = this;
 	m_Window = new Window(800, 600, "Silnik");
 	m_Window->Init();
 	m_Window->SetEventCallback([this](Event& e) { OnEvent(e); }); //stworz niewidzialna funkcje ktora zna ten wskaznik i niech wywola OnEvent
@@ -30,6 +33,7 @@ void Application::OnEvent(Event& e)
 	EventDispatcher dispatcher(e);
 	dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(e); });
 	dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { return OnWindowResize(e); });
+	dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& e) { return OnKeyPressed(e); });
 }
 
 bool Application::OnWindowClose(WindowCloseEvent& e)
@@ -45,6 +49,12 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 	int height = e.GetHeight();
 	std::cout << "Zmieniam rozmiar okna " << width << " x " << height << std::endl;
 	glViewport(0, 0, width, height);
+	return true;
+}
+
+bool Application::OnKeyPressed(KeyPressedEvent& e)
+{
+	std::cout << "Wcisnieto klawisz: " << e.GetKeyCode() << std::endl;;
 	return true;
 }
 
