@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="CookingStation\main.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="glad.c">
@@ -24,16 +24,19 @@
     <ClCompile Include="gettingStarted.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
+    <ClCompile Include="CookingStation\Window.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="Input.cpp">
+    <ClCompile Include="CookingStation\Input.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="Application.cpp">
+    <ClCompile Include="CookingStation\Application.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="Layer.cpp">
+    <ClCompile Include="CookingStation\Layer.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\CameraLayer\CameraLayer.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
   </ItemGroup>
@@ -50,35 +53,35 @@
     <ClInclude Include="Mesh.h">
       <Filter>Pliki źródłowe</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
+    <ClInclude Include="CookingStation\Window.h">
       <Filter>Pliki źródłowe</Filter>
     </ClInclude>
-    <ClInclude Include="Input.h">
-      <Filter>Pliki źródłowe</Filter>
-    </ClInclude>
-    <ClInclude Include="Events\Event.h">
+    <ClInclude Include="CookingStation\Events\Event.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="Events\KeyEvent.h">
+    <ClInclude Include="CookingStation\Events\KeyEvent.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="Events\MouseEvent.h">
+    <ClInclude Include="CookingStation\Events\MouseEvent.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="Events\WindowEvent.h">
+    <ClInclude Include="CookingStation\Events\WindowEvent.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="Application.h">
+    <ClInclude Include="CookingStation\Application.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="Layer.h">
+    <ClInclude Include="CookingStation\Layer.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\CameraLayer\CameraLayer.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shader.vs" />
-    <None Include="shader.frag" />
-    <None Include="lightCubeShader.vs" />
-    <None Include="lightCubeShader.frag" />
+    <None Include="Shaders\vsShaders\shader.vs" />
+    <None Include="Shaders\fragShaders\shader.frag" />
+    <None Include="Shaders\vsShaders\lightCubeShader.vs" />
+    <None Include="Shaders\fragShaders\lightCubeShader.frag" />
   </ItemGroup>
 </Project>

@@ -127,33 +127,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Application.cpp" />
+    <ClCompile Include="CookingStation\Application.cpp" />
+    <ClCompile Include="CookingStation\CameraLayer\CameraLayer.cpp" />
     <ClCompile Include="gettingStarted.cpp" />
     <ClCompile Include="glad.c" />
-    <ClCompile Include="Input.cpp" />
-    <ClCompile Include="Layer.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="CookingStation\Input.cpp" />
+    <ClCompile Include="CookingStation\Layer.cpp" />
+    <ClCompile Include="CookingStation\main.cpp" />
+    <ClCompile Include="CookingStation\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application.h" />
+    <ClInclude Include="CookingStation\Application.h" />
     <ClInclude Include="Camera.h" />
-    <ClInclude Include="Events\Event.h" />
-    <ClInclude Include="Events\KeyEvent.h" />
-    <ClInclude Include="Events\MouseEvent.h" />
-    <ClInclude Include="Events\WindowEvent.h" />
-    <ClInclude Include="Input.h" />
-    <ClInclude Include="Layer.h" />
+    <ClInclude Include="CookingStation\CameraLayer\CameraLayer.h" />
+    <ClInclude Include="CookingStation\Events\Event.h" />
+    <ClInclude Include="CookingStation\Events\KeyEvent.h" />
+    <ClInclude Include="CookingStation\Events\MouseEvent.h" />
+    <ClInclude Include="CookingStation\Events\WindowEvent.h" />
+    <ClInclude Include="CookingStation\Layer.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
-    <ClInclude Include="Window.h" />
+    <ClInclude Include="CookingStation\Window.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="lightCubeShader.frag" />
-    <None Include="lightCubeShader.vs" />
-    <None Include="shader.frag" />
-    <None Include="shader.vs" />
+    <None Include="Shaders\fragShaders\lightCubeShader.frag" />
+    <None Include="Shaders\vsShaders\lightCubeShader.vs" />
+    <None Include="Shaders\fragShaders\shader.frag" />
+    <None Include="Shaders\vsShaders\shader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
