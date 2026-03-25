@@ -1,4 +1,5 @@
 #include "Application.h"
+#include "Input.h"
 #include <iostream>
 
 Application* Application::s_Instance = nullptr;
@@ -24,7 +25,19 @@ void Application::Run()
 	{
 		glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		for (Layer* layer : m_LayerStack)
+		{
+			layer->OnUpdate();
+		}
+
+		if (Input::IsKeyPressed(GLFW_KEY_W))
+		{
+			std::cout << "Wciskasz W!" << std::endl;
+		}
+		
 		m_Window->OnUpdate();
+
 	}
 }
 
@@ -34,7 +47,23 @@ void Application::OnEvent(Event& e)
 	dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(e); });
 	dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { return OnWindowResize(e); });
 	dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& e) { return OnKeyPressed(e); });
+
+	for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
+	{
+		if (e.Handled)
+		{
+			break;
+		}
+		(*it)->OnEvent(e);
+	}
 }
+
+void Application::PushLayer(Layer* layer)
+{
+	m_LayerStack.push_back(layer);
+	layer->OnAttach();
+}
+
 
 bool Application::OnWindowClose(WindowCloseEvent& e)
 {

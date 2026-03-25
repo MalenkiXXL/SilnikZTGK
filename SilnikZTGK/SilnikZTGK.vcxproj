@@ -131,6 +131,7 @@
     <ClCompile Include="gettingStarted.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Input.cpp" />
+    <ClCompile Include="Layer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
@@ -142,6 +143,7 @@
     <ClInclude Include="Events\MouseEvent.h" />
     <ClInclude Include="Events\WindowEvent.h" />
     <ClInclude Include="Input.h" />
+    <ClInclude Include="Layer.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />

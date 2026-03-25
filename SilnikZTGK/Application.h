@@ -3,8 +3,10 @@
 #include "Events/KeyEvent.h"
 #include "Events/MouseEvent.h"
 #include "Events/WindowEvent.h"
-
+#include "Layer.h"
 #include "Window.h"
+
+#include <vector>
 
 class Application
 {
@@ -18,6 +20,9 @@ public:
 
 	void Run(); //Glowna petla while
 	void OnEvent(Event& e); //Odbiornik Eventow
+
+	void PushLayer(Layer* layer);
+	std::vector<Layer*> m_LayerStack;
 
 private:
 	bool OnWindowClose(WindowCloseEvent& e);
