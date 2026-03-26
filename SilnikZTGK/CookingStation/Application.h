@@ -5,6 +5,7 @@
 #include "Events/WindowEvent.h"
 #include "Layer.h"
 #include "Window.h"
+#include "CameraLayer/CameraLayer.h"
 
 #include <vector>
 

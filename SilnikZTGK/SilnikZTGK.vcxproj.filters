@@ -44,7 +44,7 @@
     <ClInclude Include="Shader.h">
       <Filter>Pliki źródłowe</Filter>
     </ClInclude>
-    <ClInclude Include="Camera.h">
+    <ClInclude Include="CookingStation\Camera.h">
       <Filter>Pliki źródłowe</Filter>
     </ClInclude>
     <ClInclude Include="Model.h">

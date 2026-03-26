@@ -10,6 +10,7 @@ Application::Application()
 	m_Window = new Window(800, 600, "Silnik");
 	m_Window->Init();
 	m_Window->SetEventCallback([this](Event& e) { OnEvent(e); }); //stworz niewidzialna funkcje ktora zna ten wskaznik i niech wywola OnEvent
+	PushLayer(new CameraLayer);
 }
 
 Application::~Application()
@@ -32,10 +33,10 @@ void Application::Run()
 			layer->OnUpdate();
 		}
 
-		if (Input::IsKeyPressed(GLFW_KEY_W))
+	/*	if (Input::IsKeyPressed(GLFW_KEY_W))
 		{
 			std::cout << "Wciskasz W!" << std::endl;
-		}
+		}*/
 		
 		m_Window->OnUpdate();
 
@@ -84,7 +85,7 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 
 bool Application::OnKeyPressed(KeyPressedEvent& e)
 {
-	std::cout << "Wcisnieto klawisz: " << e.GetKeyCode() << std::endl;;
+//	std::cout << "Wcisnieto klawisz: " << e.GetKeyCode() << std::endl;;
 	return true;
 }
 

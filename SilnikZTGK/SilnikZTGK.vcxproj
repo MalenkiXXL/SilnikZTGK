@@ -138,7 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Application.h" />
-    <ClInclude Include="Camera.h" />
+    <ClInclude Include="CookingStation\Camera.h" />
     <ClInclude Include="CookingStation\CameraLayer\CameraLayer.h" />
     <ClInclude Include="CookingStation\Events\Event.h" />
     <ClInclude Include="CookingStation\Events\KeyEvent.h" />
