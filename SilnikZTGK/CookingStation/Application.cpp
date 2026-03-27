@@ -11,6 +11,7 @@ Application::Application()
 	m_Window->Init();
 	m_Window->SetEventCallback([this](Event& e) { OnEvent(e); }); //stworz niewidzialna funkcje ktora zna ten wskaznik i niech wywola OnEvent
 	PushLayer(new CameraLayer);
+	PushLayer(new AssetLayer);
 }
 
 Application::~Application()

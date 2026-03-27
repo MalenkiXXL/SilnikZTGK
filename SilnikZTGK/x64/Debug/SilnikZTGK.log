@@ -1,1 +1,10 @@
-﻿  SilnikZTGK.vcxproj -> C:\Silnik\SilnikZTGK\x64\Debug\SilnikZTGK.exe
+﻿  Application.cpp
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Shader.h(59,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Shader.h(58,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Application.cpp”)
+  
+  SilnikZTGK.vcxproj -> C:\Silnik\SilnikZTGK\x64\Debug\SilnikZTGK.exe
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.

@@ -6,6 +6,7 @@
 #include "Layer.h"
 #include "Window.h"
 #include "CameraLayer/CameraLayer.h"
+#include "AssetLayer/AssetLayer.h"
 
 #include <vector>
 
