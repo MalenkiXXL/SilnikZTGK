@@ -1,8 +1,8 @@
 #include <iostream>
 
-#include "Application.h"
-#include "Layer.h"
-#include "Input.h"
+#include "CookingStation/Core/Application.h"
+#include "CookingStation/Core/Layer.h"
+#include "CookingStation/Core/Input.h"
 
 class SandboxLayer : public Layer
 {

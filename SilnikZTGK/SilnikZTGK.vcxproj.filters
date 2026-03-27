@@ -24,36 +24,45 @@
     <ClCompile Include="gettingStarted.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="CookingStation\Window.cpp">
+    <ClCompile Include="CookingStation\Core\Window.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="CookingStation\Input.cpp">
+    <ClCompile Include="CookingStation\Core\Input.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="CookingStation\Application.cpp">
+    <ClCompile Include="CookingStation\Core\Application.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="CookingStation\Layer.cpp">
+    <ClCompile Include="CookingStation\Core\Layer.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="CookingStation\CameraLayer\CameraLayer.cpp">
+    <ClCompile Include="CookingStation\Layers\CameraLayer\CameraLayer.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\Layers\AssetLayer\AssetManager.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\Layers\AssetLayer\AssetLayer.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\stb_image_impl.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\Scene\SceneSerializer.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\Scene\Scene.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\Scene\ecs.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Shader.h">
+    <ClInclude Include="CookingStation\Layers\CameraLayer\Camera.h">
       <Filter>Pliki źródłowe</Filter>
     </ClInclude>
-    <ClInclude Include="CookingStation\Camera.h">
-      <Filter>Pliki źródłowe</Filter>
-    </ClInclude>
-    <ClInclude Include="Model.h">
-      <Filter>Pliki źródłowe</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh.h">
-      <Filter>Pliki źródłowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Window.h">
+    <ClInclude Include="CookingStation\Core\Window.h">
       <Filter>Pliki źródłowe</Filter>
     </ClInclude>
     <ClInclude Include="CookingStation\Events\Event.h">
@@ -68,20 +77,42 @@
     <ClInclude Include="CookingStation\Events\WindowEvent.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="CookingStation\Application.h">
+    <ClInclude Include="CookingStation\Core\Application.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="CookingStation\Layer.h">
+    <ClInclude Include="CookingStation\Core\Layer.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="CookingStation\CameraLayer\CameraLayer.h">
+    <ClInclude Include="CookingStation\Layers\CameraLayer\CameraLayer.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Layers\AssetLayer\AssetLayer.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Renderer\Shader.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Scene\SceneSerializer.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Scene\Scene.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Scene\Entity.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Scene\ecs.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Shaders\vsShaders\shader.vs" />
-    <None Include="Shaders\fragShaders\shader.frag" />
-    <None Include="Shaders\vsShaders\lightCubeShader.vs" />
-    <None Include="Shaders\fragShaders\lightCubeShader.frag" />
+    <None Include="CookingStation\packages.config" />
+    <None Include="CookingStation\Shaders\fragShaders\lightCubeShader.frag" />
+    <None Include="CookingStation\Shaders\vsShaders\lightCubeShader.vs" />
+    <None Include="CookingStation\Shaders\fragShaders\shader.frag" />
+    <None Include="CookingStation\Shaders\vsShaders\shader.vs" />
   </ItemGroup>
 </Project>

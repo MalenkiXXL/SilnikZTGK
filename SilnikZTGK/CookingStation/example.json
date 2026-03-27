@@ -1,0 +1,11 @@
+{
+  "scene_name": "Testowa Scena",
+  "entities": [
+    {
+      "name": "Marchewa_z_pliku",
+      "model_path": "CookingStation/Assets/marchewa/marchewa.obj",
+      "position": [2.0, 0.0, -5.0],
+      "scale": [1.5, 1.5, 1.5]
+    }
+  ]
+}

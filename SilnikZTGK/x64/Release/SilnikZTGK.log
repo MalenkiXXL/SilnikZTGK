@@ -1,0 +1,1881 @@
+﻿  Application.cpp
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Core\Application.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2f9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Core\Application.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2fa, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Core\Application.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x300, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x248, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x24d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x294, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3e0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3eb, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3f9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x50f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x51b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x537, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x547, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x61f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x628, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x629, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x633, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x636, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x63a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7a6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7ad, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x86f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x87f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x96a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xadf, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xae1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf40, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1134, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1690, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x16b7, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x104, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x11b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1b8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1dd, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1e1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x298, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x352, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x357, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x398, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x597, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6d5, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa80, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbd3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbe8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbff, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x131, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x186, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x18a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x195, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fc, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fe, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x20d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x461, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x462, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x707, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x942, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x943, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa24, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xaf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xb0b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe53, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5e, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(59,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(58,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+  
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: "APIENTRY": ponowna definicja makra
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\glad\glad.h(32,9):
+      zobacz poprzednią definicję „APIENTRY”
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\Scene.h(6,7): warning C4099: "Entity": nazwa typu najpierw widoczna przy użyciu "struct" teraz widoczna przy użyciu "class"
+  (kompilowanie pliku źródłowego „CookingStation/Core/Application.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\ecs.h(12,8):
+      zobacz deklarację „Entity”
+  
+  Input.cpp
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x248, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x24d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x294, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3e0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3eb, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3f9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x50f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x51b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x537, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x547, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x61f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x628, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x629, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x633, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x636, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x63a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7a6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7ad, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x86f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x87f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x96a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xadf, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xae1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf40, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1134, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1690, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x16b7, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x104, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x11b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1b8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1dd, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1e1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x298, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x352, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x357, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x398, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x597, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6d5, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa80, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbd3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbe8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbff, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x131, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x186, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x18a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x195, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fc, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fe, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x20d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x461, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x462, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x707, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x942, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x943, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa24, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xaf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xb0b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe53, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5e, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(59,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(58,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+  
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: "APIENTRY": ponowna definicja makra
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\glad\glad.h(32,9):
+      zobacz poprzednią definicję „APIENTRY”
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\Scene.h(6,7): warning C4099: "Entity": nazwa typu najpierw widoczna przy użyciu "struct" teraz widoczna przy użyciu "class"
+  (kompilowanie pliku źródłowego „CookingStation/Core/Input.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\ecs.h(12,8):
+      zobacz deklarację „Entity”
+  
+  AssetLayer.cpp
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x131, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x186, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x18a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x195, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fc, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fe, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x20d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x461, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x462, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x707, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x942, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x943, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa24, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xaf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xb0b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe53, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5e, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(59,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(58,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x248, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x24d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x294, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3e0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3eb, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3f9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x50f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x51b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x537, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x547, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x61f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x628, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x629, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x633, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x636, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x63a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7a6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7ad, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x86f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x87f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x96a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xadf, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xae1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf40, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1134, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1690, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x16b7, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x104, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x11b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1b8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1dd, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1e1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x298, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x352, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x357, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x398, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x597, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6d5, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa80, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbd3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbe8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbff, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+  
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: "APIENTRY": ponowna definicja makra
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\glad\glad.h(32,9):
+      zobacz poprzednią definicję „APIENTRY”
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\Scene.h(6,7): warning C4099: "Entity": nazwa typu najpierw widoczna przy użyciu "struct" teraz widoczna przy użyciu "class"
+  (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\ecs.h(12,8):
+      zobacz deklarację „Entity”
+  
+  CameraLayer.cpp
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x248, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x24d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x294, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3e0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3eb, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3f9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x50f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x51b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x537, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x547, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x61f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x628, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x629, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x633, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x636, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x63a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7a6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7ad, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x86f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x87f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x96a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xadf, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xae1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf40, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1134, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1690, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x16b7, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x104, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x11b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1b8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1dd, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1e1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x298, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x352, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x357, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x398, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x597, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6d5, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa80, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbd3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbe8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbff, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x131, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x186, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x18a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x195, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fc, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fe, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x20d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x461, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x462, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x707, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x942, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x943, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa24, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xaf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xb0b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe53, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5e, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(59,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(58,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+  
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: "APIENTRY": ponowna definicja makra
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\glad\glad.h(32,9):
+      zobacz poprzednią definicję „APIENTRY”
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\Scene.h(6,7): warning C4099: "Entity": nazwa typu najpierw widoczna przy użyciu "struct" teraz widoczna przy użyciu "class"
+  (kompilowanie pliku źródłowego „CookingStation/Layers/CameraLayer/CameraLayer.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\ecs.h(12,8):
+      zobacz deklarację „Entity”
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\CameraLayer\CameraLayer.cpp(13,46): warning C4244: "argument": konwersja z "double" do "float", możliwa utrata danych
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\CameraLayer\CameraLayer.cpp(16,47): warning C4244: "argument": konwersja z "double" do "float", możliwa utrata danych
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\CameraLayer\CameraLayer.cpp(19,44): warning C4244: "argument": konwersja z "double" do "float", możliwa utrata danych
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\CameraLayer\CameraLayer.cpp(22,43): warning C4244: "argument": konwersja z "double" do "float", możliwa utrata danych
+  Scene.cpp
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x248, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x24d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x294, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3e0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3eb, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3f9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x50f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x51b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x537, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x547, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x61f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x628, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x629, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x633, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x636, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x63a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7a6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7ad, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x86f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x87f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x96a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xadf, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xae1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf40, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1134, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1690, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x16b7, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x104, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x11b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1b8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1dd, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1e1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x298, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x352, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x357, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x398, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x597, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6d5, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa80, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbd3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbe8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbff, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x131, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x186, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x18a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x195, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fc, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fe, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x20d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x461, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x462, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x707, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x942, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x943, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa24, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xaf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xb0b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe53, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5e, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(59,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(58,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+  
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: "APIENTRY": ponowna definicja makra
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\glad\glad.h(32,9):
+      zobacz poprzednią definicję „APIENTRY”
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\Scene.h(6,7): warning C4099: "Entity": nazwa typu najpierw widoczna przy użyciu "struct" teraz widoczna przy użyciu "class"
+  (kompilowanie pliku źródłowego „CookingStation/Scene/Scene.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\ecs.h(12,8):
+      zobacz deklarację „Entity”
+  
+  SceneSerializer.cpp
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\SceneSerializer.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x370, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\SceneSerializer.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x374, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x248, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x24d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x294, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3e0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3eb, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3f9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x50f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x51b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x537, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x547, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x61f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x628, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x629, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x633, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x636, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x63a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7a6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7ad, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x86f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x87f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x96a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xadf, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xae1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf40, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1134, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1690, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x16b7, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x104, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x11b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1b8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1dd, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1e1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x298, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x352, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x357, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x398, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x597, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6d5, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa80, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbd3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbe8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbff, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x131, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x186, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x18a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x195, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fc, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fe, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x20d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x461, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x462, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x707, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x942, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x943, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa24, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xaf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xb0b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe53, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5e, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(59,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(58,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+  
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: "APIENTRY": ponowna definicja makra
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\glad\glad.h(32,9):
+      zobacz poprzednią definicję „APIENTRY”
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\Scene.h(6,7): warning C4099: "Entity": nazwa typu najpierw widoczna przy użyciu "struct" teraz widoczna przy użyciu "class"
+  (kompilowanie pliku źródłowego „CookingStation/Scene/SceneSerializer.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\ecs.h(12,8):
+      zobacz deklarację „Entity”
+  
+  main.cpp
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x248, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x24d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x294, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3e0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3eb, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3f9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x50f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x51b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x537, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x547, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x61f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x628, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x629, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x633, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x636, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x63a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6c1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7a6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7ad, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x86f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x87f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x96a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xadf, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xae1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xf40, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x106d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1134, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1690, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x16b7, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x104, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x11b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1b8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1dd, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1e1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x298, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x352, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x357, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x35f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x398, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x597, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6d5, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa80, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbd3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbe8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbff, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x131, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x186, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x18a, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x195, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fc, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x1fe, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x20d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2b9, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3a3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x461, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x462, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x707, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x942, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x943, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa24, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa28, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa2d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xaf0, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xb0b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe53, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5e, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xe5f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(59,14): warning C4101: "infoLog": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(58,13): warning C4101: "success": lokalna zmienna, do której nie istnieje odwołanie
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+  
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: "APIENTRY": ponowna definicja makra
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\glad\glad.h(32,9):
+      zobacz poprzednią definicję „APIENTRY”
+  
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\Scene.h(6,7): warning C4099: "Entity": nazwa typu najpierw widoczna przy użyciu "struct" teraz widoczna przy użyciu "class"
+  (kompilowanie pliku źródłowego „CookingStation/main.cpp”)
+      C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\ecs.h(12,8):
+      zobacz deklarację „Entity”
+  
+  Trwa generowanie kodu
+  1 of 6494 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    152 functions had inline decision re-evaluated but remain unchanged
+  Zakończono generowanie kodu
+  SilnikZTGK.vcxproj -> C:\Silnik\SilnikZTGK\x64\Release\SilnikZTGK.exe
+  'pwsh.exe' is not recognized as an internal or external command,
+  operable program or batch file.
+  0 File(s) copied
+  0 File(s) copied
