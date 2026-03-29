@@ -1,6 +1,7 @@
 #include "Application.h"
 #include "Input.h"
 #include "CookingStation/Scene/Scene.h"
+#include "CookingStation/Renderer/RenderCommand.h"
 #include <iostream>
 
 Application* Application::s_Instance = nullptr;
@@ -34,9 +35,10 @@ void Application::Run()
     // 6. G£ÓWNA PÊTLA GRY
 	while (m_Running)
 	{
-		glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+	
+		RenderCommand::SetClearColor(glm::vec4(.05f, 0.05f, 0.05f, 1.0f));
+		RenderCommand::Clear();
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		
 		for (Layer* layer : m_LayerStack)
 		{

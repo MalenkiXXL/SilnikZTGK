@@ -112,8 +112,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /d "C:\Silnik\vcpkg\installed\x64-windows\bin\assimp-vc143-mt.dll" "$(TargetDir)"
-xcopy /y /d "C:\Silnik\vcpkg\installed\x64-windows\bin\glfw3.dll" "$(TargetDir)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -132,11 +132,12 @@ xcopy /y /d "C:\Silnik\vcpkg\installed\x64-windows\bin\glfw3.dll" "$(TargetDir)"
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /d "C:\Silnik\vcpkg\installed\x64-windows\bin\assimp-vc143-mt.dll" "$(TargetDir)"
-xcopy /y /d "C:\Silnik\vcpkg\installed\x64-windows\bin\glfw3.dll" "$(TargetDir)"</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CookingStation\Renderer\Buffer.cpp" />
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetManager.cpp" />
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetLayer.cpp" />
     <ClCompile Include="CookingStation\Core\Application.cpp" />
@@ -151,8 +152,12 @@ xcopy /y /d "C:\Silnik\vcpkg\installed\x64-windows\bin\glfw3.dll" "$(TargetDir)"
     <ClCompile Include="CookingStation\main.cpp" />
     <ClCompile Include="CookingStation\Core\Window.cpp" />
     <ClCompile Include="CookingStation\Scene\Scene.cpp" />
+    <ClCompile Include="CookingStation\Renderer\VertexArray.cpp" />
+    <ClCompile Include="CookingStation\Renderer\RenderCommand.cpp" />
+    <ClCompile Include="CookingStation\Renderer\Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CookingStation\Renderer\Buffer.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetLayer.h" />
     <ClInclude Include="CookingStation\Core\Application.h" />
@@ -169,6 +174,9 @@ xcopy /y /d "C:\Silnik\vcpkg\installed\x64-windows\bin\glfw3.dll" "$(TargetDir)"
     <ClInclude Include="CookingStation\Core\Window.h" />
     <ClInclude Include="CookingStation\Scene\Scene.h" />
     <ClInclude Include="CookingStation\Scene\ecs.h" />
+    <ClInclude Include="CookingStation\Renderer\VertexArray.h" />
+    <ClInclude Include="CookingStation\Renderer\RenderCommand.h" />
+    <ClInclude Include="CookingStation\Renderer\Renderer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />
