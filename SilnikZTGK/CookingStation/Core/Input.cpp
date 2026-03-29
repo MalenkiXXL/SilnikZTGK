@@ -36,4 +36,10 @@ std::pair<float, float> Input::GetMousePosition()
 	return { (float)xpos, (float)ypos };
 }
 
+std::pair<float, float> Input::GetWindowSize() {
+	auto window = Application::Get().GetWindow().GetNativeWindow();
+	int width, height;
+	glfwGetWindowSize(window, &width, &height);
+	return { (float)width, (float)height };
+}
 

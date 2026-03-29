@@ -29,7 +29,7 @@ class Model
 {
 public:
     // Przechowuje ju¿ wczytane tekstury jako optymalizacja (nie ³adujemy dwa razy tego samego obrazka)
-    vector<Texture> textures_loaded;
+    vector<MeshTexture> textures_loaded;
     vector<Mesh>    meshes;
     string directory;
     bool gammaCorrection;
@@ -85,7 +85,7 @@ private:
     {
         vector<Vertex> vertices;
         vector<unsigned int> indices;
-        vector<Texture> textures;
+        vector<MeshTexture> textures;
 
         // Przetwarzanie wierzcho³ków
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
@@ -134,15 +134,15 @@ private:
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
         // Zapisujemy mapy koloru z Assimpa i nazywamy wewnetrznie "texture_diffuse" by shader wiedzia³ o co chodzi
-        vector<Texture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
+        vector<MeshTexture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
         return Mesh(vertices, indices, textures);
     }
 
-    vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName)
+    vector<MeshTexture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName)
     {
-        vector<Texture> textures;
+        vector<MeshTexture> textures;
         for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
         {
             aiString str;
@@ -159,7 +159,7 @@ private:
             }
             if (!skip)
             {
-                Texture texture;
+                MeshTexture texture;
                 texture.id = TextureFromFile(str.C_Str(), this->directory);
                 texture.type = typeName;
                 texture.path = str.C_Str();

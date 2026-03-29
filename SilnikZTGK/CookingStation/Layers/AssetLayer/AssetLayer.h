@@ -8,8 +8,6 @@
 #include "CookingStation/Scene/SceneSerializer.h"
 #include "CookingStation/Scene/Scene.h"
 
-
-
 class AssetLayer : public Layer
 {
 	friend class SceneSerializer;

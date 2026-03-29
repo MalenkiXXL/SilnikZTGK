@@ -137,6 +137,8 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CookingStation\Core\Texture.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp" />
     <ClCompile Include="CookingStation\Renderer\Buffer.cpp" />
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetManager.cpp" />
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetLayer.cpp" />
@@ -155,8 +157,12 @@
     <ClCompile Include="CookingStation\Renderer\VertexArray.cpp" />
     <ClCompile Include="CookingStation\Renderer\RenderCommand.cpp" />
     <ClCompile Include="CookingStation\Renderer\Renderer.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Gui.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Renderer2D.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\GuiLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CookingStation\Core\Texture.h" />
     <ClInclude Include="CookingStation\Renderer\Buffer.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetLayer.h" />
@@ -177,6 +183,10 @@
     <ClInclude Include="CookingStation\Renderer\VertexArray.h" />
     <ClInclude Include="CookingStation\Renderer\RenderCommand.h" />
     <ClInclude Include="CookingStation\Renderer\Renderer.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Gui.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Renderer2D.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Font.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\GuiLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

@@ -6,6 +6,7 @@
 #include "CookingStation/Renderer/Renderer.h"
 #include <nlohmann/json.hpp>
 
+
 using json = nlohmann::json;
 
 AssetLayer::~AssetLayer() {};
@@ -14,10 +15,6 @@ void AssetLayer::OnAttach() {
 
 	m_Shader = std::make_unique<Shader>("CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
 	auto marchewaModel = AssetManager::GetModel("CookingStation/Assets/marchewa/marchewa.obj");
-
-	/*Entity e1 = { "Marchewa_1", marchewaModel, glm::vec3(0,0,0), glm::vec3(1.0) };
-	m_Entities.push_back(e1);
-	std::cout << "Model " << e1.Name << ", pozycja: x: " << e1.Position.x << ", y: " << e1.Position.y << ", z:" << e1.Position.z;*/
 	
 	if (!m_ActiveScene) {
 		m_ActiveScene = std::make_shared<Scene>();
@@ -31,52 +28,63 @@ void AssetLayer::OnAttach() {
 
 	SceneSerializer serializer(m_ActiveScene.get());
 	serializer.Deserialize("CookingStation/example.json");
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 };
 
 
 void AssetLayer::OnUpdate() {
-	float aspectRatio = m_ViewportWidth / (m_ViewportHeight > 0 ? m_ViewportHeight : 1.0f);
+    // 1. Przygotowanie danych i czyszczenie ekranu
+    float aspectRatio = m_ViewportWidth / (m_ViewportHeight > 0 ? m_ViewportHeight : 1.0f);
+    auto& world = m_ActiveScene->GetWorld();
 
-	if (m_ActiveScene && m_ActiveScene->GetCamera()) {
-		//optymalizacja - mnozenie dwoch macierzy w jedna 
-		glm::mat4 view = m_ActiveScene->GetCamera()->GetViewMatrix();
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
-		glm::mat4 viewProjection = projection * view;
+    auto* colorStorage = world.GetComponentVector<ClearColorComponent>();
+    auto* meshStorage = world.GetComponentVector<MeshComponent>();
+    auto* transformStorage = world.GetComponentVector<TransformComponent>();
 
-		//ustawiamy kamere na ten poziom
-		Renderer::BeginScene(viewProjection);
+    glm::vec4 clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
+    if (colorStorage && !colorStorage->dense.empty()) {
+        clearColor = colorStorage->dense[0].bgColor;
+    }
 
+    RenderCommand::SetClearColor(clearColor);
+    RenderCommand::Clear();
 
-		m_Shader->use();
-		m_Shader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-		m_Shader->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
-		m_Shader->setVec3("viewPos", m_ActiveScene->GetCamera()->Position);
+    // 2. Renderowanie Œwiata 3D
+    if (m_ActiveScene && m_ActiveScene->GetCamera()) {
+        glm::mat4 view = m_ActiveScene->GetCamera()->GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+        glm::mat4 viewProjection = projection * view;
 
+        Renderer::BeginScene(viewProjection);
 
-		auto& world = m_ActiveScene->GetWorld();
-		auto* meshStorage = world.GetComponentVector<MeshComponent>();
-		auto* transformStorage = world.GetComponentVector<TransformComponent>();
+        m_Shader->use();
+        m_Shader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        m_Shader->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
+        m_Shader->setVec3("viewPos", m_ActiveScene->GetCamera()->Position);
 
-		//ECS - bierzemy same modele i pozycje
-		for (size_t i = 0; i < meshStorage->dense.size(); i++) {
-			auto& meshComp = meshStorage->dense[i];
-			Entity owner = meshStorage->reverse[i];
-			TransformComponent* transform = transformStorage->Get(owner);
+        if (meshStorage) {
+            for (size_t i = 0; i < meshStorage->dense.size(); i++) {
+                auto& meshComp = meshStorage->dense[i];
+                Entity owner = meshStorage->reverse[i];
+                TransformComponent* transform = transformStorage->Get(owner);
 
-			if (transform && meshComp.ModelPtr) {
-				// Obliczanie pozycji 
-				std::cout << "Rysuje model!" << std::endl;
-				glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), transform->Position);
-				modelMatrix = glm::scale(modelMatrix, transform->Scale);
+                if (transform && meshComp.ModelPtr) {
+                    glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), transform->Position);
+                    modelMatrix = glm::rotate(modelMatrix, glm::radians(transform->Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+                    modelMatrix = glm::rotate(modelMatrix, glm::radians(transform->Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+                    modelMatrix = glm::rotate(modelMatrix, glm::radians(transform->Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+                    modelMatrix = glm::scale(modelMatrix, transform->Scale);
 
-				m_Shader->setMat4("viewProjection", viewProjection);
-				m_Shader->setMat4("model", modelMatrix);
-				meshComp.ModelPtr->Draw(*m_Shader);
-			}
-		}
-		Renderer::EndScene();
-	}
-};
+                    m_Shader->setMat4("viewProjection", viewProjection);
+                    m_Shader->setMat4("model", modelMatrix);
+                    meshComp.ModelPtr->Draw(*m_Shader);
+                }
+            }
+        }
+        Renderer::EndScene();
+    }
+}
 
 void AssetLayer::OnEvent(Event& e) {
 	EventDispatcher dispatcher(e);
@@ -92,46 +100,3 @@ bool AssetLayer::OnWindowResize(WindowResizeEvent& e) {
 	return false;
 }
 
-
-
-//void assetlayer::onupdate() {
-//	float aspectratio = m_viewportwidth / (m_viewportheight > 0 ? m_viewportheight : 1.0f);
-//
-//	m_shader->use();
-//
-//	if (m_activescene && m_activescene->getcamera()) {
-//		glm::mat4 view = m_activescene->getcamera()->getviewmatrix();
-//		m_shader->setmat4("view", view);
-//		m_shader->setvec3("viewpos", m_activescene->getcamera()->position);
-//	}
-//
-//	glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectratio, 0.1f, 100.0f);
-//	m_shader->setmat4("projection", projection);
-//
-//	m_shader->setvec3("lightcolor", glm::vec3(1.0f, 1.0f, 1.0f));
-//	m_shader->setvec3("lightpos", glm::vec3(5.0f, 5.0f, 10.0f));
-//
-//	if (m_activescene) {
-//
-//		auto& world = m_activescene->getworld();
-//
-//		auto* meshstorage = world.getcomponentvector<meshcomponent>();
-//		auto* transformstorage = world.getcomponentvector<transformcomponent>();
-//
-//		for (size_t i = 0; i < meshstorage->dense.size(); i++) {
-//			auto& meshcomp = meshstorage->dense[i];
-//
-//			entity owner = meshstorage->reverse[i];
-//
-//			transformcomponent* transform = transformstorage->get(owner);
-//
-//			if (transform && meshcomp.modelptr) {
-//				glm::mat4 modelmatrix = glm::translate(glm::mat4(1.0f), transform->position);
-//				modelmatrix = glm::scale(modelmatrix, transform->scale);
-//
-//				m_shader->setmat4("model", modelmatrix);
-//				meshcomp.modelptr->draw(*m_shader);
-//			}
-//		}
-//	}
-//};

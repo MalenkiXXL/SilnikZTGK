@@ -25,7 +25,7 @@ public:
 	const std::vector<std::shared_ptr<VertexBuffer>>& GetVertexBuffers() const { return m_VertexBuffers; }
 	//zwraca podpiete indexy
 	const std::shared_ptr<IndexBuffer>& GetIndexBuffers() const { return m_IndexBuffer; }
-
+	inline std::shared_ptr<IndexBuffer> GetIndexBuffer() const { return m_IndexBuffer; }
 private:
 	//numer id tego vao
 	uint32_t m_RenderID;

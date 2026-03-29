@@ -20,6 +20,9 @@ public:
 	bool ShouldClose();
 	void OnUpdate();
 
+	unsigned int GetWidth() const { return screenWidth; }
+	unsigned int GetHeight() const { return screenHeight; }
+
 	void SetEventCallback(const EventCallbackFn& callback);
 
 

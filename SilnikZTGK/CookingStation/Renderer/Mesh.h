@@ -30,7 +30,7 @@ struct Vertex {
 };
 
 // Struktura przechowuj¹ca ID za³adowanej tekstury i jej typ (diffuse/specular)
-struct Texture {
+struct MeshTexture {
     unsigned int id;
     string type;
     string path;
@@ -42,10 +42,10 @@ public:
     // Dane siatki
     vector<Vertex>       vertices;
     vector<unsigned int> indices;
-    vector<Texture>      textures;
+    vector<MeshTexture> textures;
     std::shared_ptr<VertexArray> m_VertexArray;
 
-    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<Texture> textures)
+    Mesh(vector<Vertex> vertices, vector<unsigned int> indices, vector<MeshTexture> textures)
     {
         this->vertices = vertices;
         this->indices = indices;

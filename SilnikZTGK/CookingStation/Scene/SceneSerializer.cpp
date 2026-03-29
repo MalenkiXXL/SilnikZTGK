@@ -20,6 +20,16 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 
 	json data = json::parse(file);
 
+    if (data.contains("settings")) {
+        auto& settings = data["settings"];
+        if (settings.contains("clear_color")) {
+            auto& c = settings["clear_color"];
+            m_Scene->GetWorld().BuildEntity()
+                .With<ClearColorComponent>({ { c[0], c[1], c[2], c[3] } })
+                .Build();
+        }
+    }
+
     for (auto& item : data["entities"]) {
         std::string name = item["name"].get<std::string>();
         std::string modelPath = item["model_path"].get<std::string>();
@@ -31,7 +41,7 @@ bool SceneSerializer::Deserialize(const std::string& path) {
             .With<MeshComponent>({ model })
             .With<TransformComponent>({
                 { item["position"][0], item["position"][1], item["position"][2] }, // Pozycja
-                { 0.0f, 0.0f, 0.0f },                                             // Rotacja
+                { item["rotation"][0], item["rotation"][1], item["rotation"][2]},  // Rotacja
                 { item["scale"][0], item["scale"][1], item["scale"][2] }          // Skala
                 })
             .Build();

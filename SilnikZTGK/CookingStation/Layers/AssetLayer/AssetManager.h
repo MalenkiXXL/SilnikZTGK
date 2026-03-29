@@ -5,13 +5,14 @@
 #include <fstream>
 
 #include "CookingStation/Renderer/Model.h"
-#include <CookingStation/Renderer/Mesh.h>
+#include "CookingStation/Renderer/Mesh.h"
+#include "CookingStation/Core/Texture.h"
+
 
 class AssetManager
 {
 public:
 	static std::shared_ptr<Model> GetModel(const std::string& path);
-
 	static void Clean();
 
 private:

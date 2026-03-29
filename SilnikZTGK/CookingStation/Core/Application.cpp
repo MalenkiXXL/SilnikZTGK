@@ -22,6 +22,10 @@ Application::Application()
 	AssetLayer* astLayer = new AssetLayer();
 	astLayer->SetScene(scene);
 	PushLayer(astLayer);
+
+	GuiLayer* guiLayer = new GuiLayer();
+	guiLayer->SetScene(scene);
+	PushLayer(guiLayer);
 }
 
 Application::~Application()

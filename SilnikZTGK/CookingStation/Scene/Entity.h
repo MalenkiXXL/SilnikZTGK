@@ -17,3 +17,7 @@ struct MeshComponent {
 struct TagComponent {
     std::string Tag;
 };
+
+struct ClearColorComponent {
+    glm::vec4 bgColor = {0.1f, 0.2f, 0.3f,0.1f};
+};

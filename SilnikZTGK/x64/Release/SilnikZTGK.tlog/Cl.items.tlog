@@ -1,3 +1,6 @@
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Core\Texture.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Texture.obj
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Font.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Font.obj
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Buffer.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Buffer.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AssetManager.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\AssetManager.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AssetLayer.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\AssetLayer.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Core\Application.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Application.obj
@@ -12,3 +15,9 @@ C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Core\Layer.cpp;C:\Silnik\SilnikZT
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\main.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\main.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Core\Window.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Window.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\Scene.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Scene.obj
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\VertexArray.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\VertexArray.obj
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\RenderCommand.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\RenderCommand.obj
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Renderer.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Renderer.obj
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Gui.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Gui.obj
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Renderer2D.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Renderer2D.obj
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\GuiLayer.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\GuiLayer.obj

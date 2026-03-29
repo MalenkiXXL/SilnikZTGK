@@ -22,7 +22,7 @@ public:
 
     void OnEvent(Event& event) override 
     {
-        std::cout << GetName() << "odebral zdarzenie!" << std::endl;
+       // std::cout << GetName() << "odebral zdarzenie!" << std::endl;
     }
 };
 

@@ -1,11 +1,29 @@
 {
   "scene_name": "Testowa Scena",
+  "settings":
+    {
+      "clear_color": [
+        0.1,
+        0.2,
+        0.3,
+        0.1
+      ]
+    },
+ 
   "entities": [
     {
-      "name": "Marchewa_z_pliku",
+      "name": "Marchewa1",
       "model_path": "CookingStation/Assets/marchewa/marchewa.obj",
-      "position": [2.0, 0.0, -5.0],
-      "scale": [1.5, 1.5, 1.5]
+      "position": [ 2.0, 0.0, -5.0 ],
+      "rotation": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 1.5, 1.5, 1.5 ]
+    },
+    {
+      "name": "Marchewa2",
+      "model_path": "CookingStation/Assets/marchewa/marchewa.obj",
+      "position": [ -5.0, 0.0, 5.0 ],
+      "rotation": [ 0.0, 45.0, 45.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ]
     }
   ]
 }

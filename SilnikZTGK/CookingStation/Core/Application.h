@@ -7,6 +7,7 @@
 #include "Window.h"
 #include "CookingStation/Layers/CameraLayer/CameraLayer.h"
 #include "CookingStation/Layers/AssetLayer/AssetLayer.h"
+#include "CookingStation/Layers/GuiLayer/GuiLayer.h"
 
 #include <vector>
 
