@@ -17,6 +17,7 @@ struct Entity {
 class ISparseSet {
 public:
     virtual ~ISparseSet() = default;
+    virtual void Remove(Entity entity) = 0;
 };
 
 template <typename T>
@@ -56,23 +57,26 @@ public:
         return nullptr;
     }
 
-    void Remove(Entity entity) {
-        if (this->reverse.empty() || entity.id >= this->sparse.size()) {
-            spdlog::warn("ECS: Tried removing an entity which isn't present in the set");
+    void Remove(Entity entity) override { // Dodaj override
+        if (entity.id >= this->sparse.size() || this->sparse[entity.id] == None) {
             return;
         }
 
-        std::size_t index = this->sparse[entity.id];
-        if (index == None) {
-            spdlog::warn("ECS: Tried removing an entity which isn't present in the set");
-            return;
-        }
+        std::size_t indexToRemove = this->sparse[entity.id];
+        std::size_t lastIndex = this->dense.size() - 1;
 
-        this->dense[index] = std::move(this->dense[dense.size() - 1]);
+        // Pobieramy ostatni¹ encjê w wektorze
+        Entity lastEntity = this->reverse[lastIndex];
+
+        // Przenosimy ostatni element na miejsce usuwanego (Swap & Pop)
+        this->dense[indexToRemove] = std::move(this->dense[lastIndex]);
+        this->reverse[indexToRemove] = lastEntity;
+
+        //Teraz ostatnia encja wskazuje na swój nowy indeks
+        this->sparse[lastEntity.id] = indexToRemove;
+
+        // Sprz¹tamy koñcówkê
         this->dense.pop_back();
-        this->sparse[this->reverse[reverse.size() - 1].id] = index;
-
-        this->reverse[index] = this->reverse[reverse.size() - 1];
         this->reverse.pop_back();
         this->sparse[entity.id] = None;
     }
@@ -85,6 +89,13 @@ private:
     struct Allocator {
         std::vector<std::size_t> free;
         std::vector<std::size_t> generations;
+
+        void Free(Entity entity) {
+            // Zwiêkszamy generacjê, by uniewa¿niæ stare "referencje" do tego ID
+            generations[entity.id]++;
+            // Dodajemy ID do listy wolnych, by CreateEntity mog³o je odzyskaæ
+            free.push_back(entity.id);
+        }
 
         Allocator();
         Entity Allocate();
@@ -140,6 +151,16 @@ public:
         }
 
         return storage->Get(entity);
+    }
+
+    void DestroyEntity(Entity entity) {
+        // Zamiast [type, storage], u¿ywamy pary (iteratora)
+        for (auto& it : components) {
+            it.second->Remove(entity); // it.second to nasz unique_ptr do ISparseSet
+        }
+
+        allocator.Free(entity);
+        spdlog::info("ECS: Usunieto encje o ID: {}", entity.id);
     }
 };
 

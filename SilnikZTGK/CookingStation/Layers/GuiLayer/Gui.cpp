@@ -79,11 +79,33 @@ void Gui::DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const
     }
 }
 
+bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::vec2& pos, const glm::vec2& size) {
+    bool hovered = IsMouseOver(pos, size);
+    static bool active = false;
+
+    if (hovered && Input::IsMouseButtonPressed(0)) active = true;
+    if (!hovered && Input::IsMouseButtonPressed(0)) active = false;
+
+    glm::vec4 bgColor = active ? glm::vec4(0.2f,0.2f,0.2f,1.0f) : glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
+    Renderer2D::DrawQuad(pos, size, bgColor);
+    DrawGuiText(label + ": " + value, { pos.x + 5.0f, pos.y + 5.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+    if (active) {
+        if (Input::IsKeyPressed(259)) { // 
+            if (!value.empty()) {
+                value.pop_back();
+            }
+        }
+    }
+    return active;
+}
+
+
 void Gui::Init(const std::string& fontPath, float fontSize) {
     s_Font = std::make_shared<Font>(fontPath, fontSize);
 }
 
-bool Gui::Button(const std::string & label, glm::vec2 & pos, glm::vec2 & size) {
+bool Gui::Button(const std::string & label, const glm::vec2 & pos, const glm::vec2 & size) {
     bool hovered = IsMouseOver(pos, size);
     bool clicked = false;
 

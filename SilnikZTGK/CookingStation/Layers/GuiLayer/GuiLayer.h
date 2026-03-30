@@ -27,4 +27,6 @@ private:
     Entity m_SelectedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     float m_ViewportWidth = 800.0f;
     float m_ViewportHeight = 600.0f;
+    std::string m_PendingModelPath = "";
+    bool m_IsPlacing = false;
 };

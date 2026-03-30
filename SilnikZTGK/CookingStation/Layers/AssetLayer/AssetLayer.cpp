@@ -11,6 +11,7 @@ using json = nlohmann::json;
 
 AssetLayer::~AssetLayer() {};
 void AssetLayer::OnAttach() {
+    AssetManager::LoadModelLibrary("CookingStation/modelsLib.json");
 	glEnable(GL_DEPTH_TEST);
 
 	m_Shader = std::make_unique<Shader>("CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");

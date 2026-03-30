@@ -1,5 +1,20 @@
 #include "AssetManager.h"
 #include <iostream>
+#include <fstream>
+#include "nlohmann/json.hpp"
+
+std::vector<ModelLibraryEntry> AssetManager::s_Library;
+
+void AssetManager::LoadModelLibrary(const std::string& path){
+	std::ifstream file(path);
+	if (!file.is_open()) return;
+	
+	nlohmann::json data = nlohmann::json::parse(file);
+	s_Library.clear();
+	for (auto& item : data["models"]) {
+		s_Library.push_back({ item["name"], item["path"] });
+	}
+}
 
 std::map<std::string, std::shared_ptr<Model>> AssetManager::m_Models;
 
