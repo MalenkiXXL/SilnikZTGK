@@ -13,6 +13,7 @@
 #include "CookingStation/Renderer/Buffer.h"
 #include "CookingStation/Renderer/Renderer.h"
 #include "CookingStation/Renderer/RenderCommand.h"
+#include "CookingStation/Renderer/Texture.h"
 
 using namespace std;
 
@@ -31,7 +32,7 @@ struct Vertex {
 
 // Struktura przechowuj¹ca ID za³adowanej tekstury i jej typ (diffuse/specular)
 struct Texture {
-    unsigned int id;
+    std::shared_ptr<Texture2D> Texture2DPtr;
     string type;
     string path;
 };
@@ -81,7 +82,7 @@ public:
 
             // Przekazujemy numer gniazda do shadera
             glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
-            glBindTexture(GL_TEXTURE_2D, textures[i].id);
+            textures[i].Texture2DPtr->Bind(i);
         }
 
         // Ostateczne rysowanie siatki z przypiêtymi teksturami
