@@ -7,7 +7,7 @@
 #include "CookingStation/Events/WindowEvent.h"
 #include "CookingStation/Scene/SceneSerializer.h"
 #include "CookingStation/Scene/Scene.h"
-
+#include "CookingStation/Renderer/ShaderLibrary.h"
 
 
 class AssetLayer : public Layer
@@ -27,7 +27,8 @@ protected:
 	std::shared_ptr<Scene> m_ActiveScene;
 
 private:
-	std::unique_ptr<Shader> m_Shader;
+	ShaderLibrary m_ShaderLibrary;
+	std::shared_ptr<Shader> m_Shader;
 	float m_ViewportWidth = 800.0f;
 	float m_ViewportHeight = 600.0f;
 };

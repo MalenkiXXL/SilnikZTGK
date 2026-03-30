@@ -12,7 +12,7 @@ AssetLayer::~AssetLayer() {};
 void AssetLayer::OnAttach() {
 	glEnable(GL_DEPTH_TEST);
 
-	m_Shader = std::make_unique<Shader>("CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
+	m_Shader = m_ShaderLibrary.Load("Standardowy", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
 	auto marchewaModel = AssetManager::GetModel("CookingStation/Assets/marchewa/marchewa.obj");
 
 	/*Entity e1 = { "Marchewa_1", marchewaModel, glm::vec3(0,0,0), glm::vec3(1.0) };
