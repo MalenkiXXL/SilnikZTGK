@@ -14,7 +14,7 @@ void AssetLayer::OnAttach() {
     AssetManager::LoadModelLibrary("CookingStation/modelsLib.json");
 	glEnable(GL_DEPTH_TEST);
 
-	m_Shader = std::make_unique<Shader>("CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
+	m_Shader = m_ShaderLibrary.Load("Standardowy", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
 	auto marchewaModel = AssetManager::GetModel("CookingStation/Assets/marchewa/marchewa.obj");
 	
 	if (!m_ActiveScene) {

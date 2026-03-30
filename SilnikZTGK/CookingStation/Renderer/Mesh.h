@@ -13,30 +13,31 @@
 #include "CookingStation/Renderer/Buffer.h"
 #include "CookingStation/Renderer/Renderer.h"
 #include "CookingStation/Renderer/RenderCommand.h"
+#include "CookingStation/Renderer/Texture.h"
 
 using namespace std;
 
 #define MAX_BONE_INFLUENCE 4
 
-// Struktura opisuj¹ca pojedynczy wierzcho³ek 3D
+// Struktura opisujï¿½ca pojedynczy wierzchoï¿½ek 3D
 struct Vertex {
     glm::vec3 Position;  // Pozycja w przestrzeni
-    glm::vec3 Normal;    // Wektor normalny (kierunek, w którym "patrzy" wierzcho³ek)
-    glm::vec2 TexCoords; // Wspó³rzêdne tekstury (U, V)
+    glm::vec3 Normal;    // Wektor normalny (kierunek, w ktï¿½rym "patrzy" wierzchoï¿½ek)
+    glm::vec2 TexCoords; // Wspï¿½rzï¿½dne tekstury (U, V)
     glm::vec3 Tangent;
     glm::vec3 Bitangent;
     int m_BoneIDs[MAX_BONE_INFLUENCE];
     float m_Weights[MAX_BONE_INFLUENCE];
 };
 
-// Struktura przechowuj¹ca ID za³adowanej tekstury i jej typ (diffuse/specular)
+// Struktura przechowujï¿½ca ID zaï¿½adowanej tekstury i jej typ (diffuse/specular)
 struct MeshTexture {
-    unsigned int id;
+    std::shared_ptr<Texture2D> Texture2DPtr;
     string type;
     string path;
 };
 
-// Klasa Mesh to pojedyncza "siatka". Model mo¿e sk³adaæ siê z wielu takich siatek (np. ludzik: osobna siatka na cia³o, osobna na broñ)
+// Klasa Mesh to pojedyncza "siatka". Model moï¿½e skï¿½adaï¿½ siï¿½ z wielu takich siatek (np. ludzik: osobna siatka na ciaï¿½o, osobna na broï¿½)
 class Mesh {
 public:
     // Dane siatki
@@ -54,7 +55,7 @@ public:
         setupMesh();
     }
 
-    // Funkcja wywo³ywana z g³ównej pêtli. Wi¹¿e tekstury i zleca karcie graficznej rysowanie
+    // Funkcja wywoï¿½ywana z gï¿½ï¿½wnej pï¿½tli. Wiï¿½ï¿½e tekstury i zleca karcie graficznej rysowanie
     void Draw(Shader& shader)
     {
         unsigned int diffuseNr = 1;
@@ -62,7 +63,7 @@ public:
         unsigned int normalNr = 1;
         unsigned int heightNr = 1;
 
-        // Przelatujemy przez wszystkie tekstury przypiête do tej siatki
+        // Przelatujemy przez wszystkie tekstury przypiï¿½te do tej siatki
         for (unsigned int i = 0; i < textures.size(); i++)
         {
             // Aktywujemy odpowiednie gniazdo tekstury
@@ -81,10 +82,10 @@ public:
 
             // Przekazujemy numer gniazda do shadera
             glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
-            glBindTexture(GL_TEXTURE_2D, textures[i].id);
+            textures[i].Texture2DPtr->Bind(i);
         }
 
-        // Ostateczne rysowanie siatki z przypiêtymi teksturami
+        // Ostateczne rysowanie siatki z przypiï¿½tymi teksturami
         // recznie bindujemy vao
         m_VertexArray->Bind();         
         RenderCommand::DrawIndexed(m_VertexArray);
@@ -101,7 +102,7 @@ public:
     }
 
 private:
-    // Tworzenie VAO, VBO, EBO - tak samo jak przy rysowaniu zwyk³ej kostki, tylko z u¿yciem pêtli dla wektorów
+    // Tworzenie VAO, VBO, EBO - tak samo jak przy rysowaniu zwykï¿½ej kostki, tylko z uï¿½yciem pï¿½tli dla wektorï¿½w
     void setupMesh()
     {
         //tworzymy vao

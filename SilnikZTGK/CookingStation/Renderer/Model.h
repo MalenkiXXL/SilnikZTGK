@@ -5,13 +5,13 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "stb_image.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
 #include "Mesh.h"
 #include "Shader.h"
+#include "CookingStation/Renderer/Texture.h"
 
 #include <string>
 #include <fstream>
@@ -22,13 +22,12 @@
 
 using namespace std;
 
-inline unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
 
-// Klasa przeznaczona do wczytywania modeli za pomoc¹ potê¿nej biblioteki Assimp
+// Klasa przeznaczona do wczytywania modeli za pomocï¿½ potï¿½nej biblioteki Assimp
 class Model
 {
 public:
-    // Przechowuje ju¿ wczytane tekstury jako optymalizacja (nie ³adujemy dwa razy tego samego obrazka)
+    // Przechowuje juï¿½ wczytane tekstury jako optymalizacja (nie ï¿½adujemy dwa razy tego samego obrazka)
     vector<MeshTexture> textures_loaded;
     vector<Mesh>    meshes;
     string directory;
@@ -39,7 +38,7 @@ public:
         loadModel(path);
     }
 
-    // Wywo³uje funkcjê Draw() na ka¿dej pod-siatce modelu
+    // Wywoï¿½uje funkcjï¿½ Draw() na kaï¿½dej pod-siatce modelu
     void Draw(Shader& shader)
     {
         for (unsigned int i = 0; i < meshes.size(); i++)
@@ -49,32 +48,32 @@ public:
 private:
     void loadModel(string const& path)
     {
-        // Tworzymy importera Assimp i prosimy go o wyg³adzenie, trójk¹towanie siatki oraz odwrócenie koordynatów UV
+        // Tworzymy importera Assimp i prosimy go o wygï¿½adzenie, trï¿½jkï¿½towanie siatki oraz odwrï¿½cenie koordynatï¿½w UV
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
 
-        // Wy³apanie b³êdów np. z³a œcie¿ka do pliku
+        // Wyï¿½apanie bï¿½ï¿½dï¿½w np. zï¿½a ï¿½cieï¿½ka do pliku
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            cout << "B£¥D ASSIMP:: " << importer.GetErrorString() << endl;
+            cout << "Bï¿½ï¿½D ASSIMP:: " << importer.GetErrorString() << endl;
             return;
         }
 
         directory = path.substr(0, path.find_last_of('/'));
 
-        // Rozpoczynamy rekursywne rozbieranie modelu z drzewa Assimp (zaczynaj¹c od wêz³a macierzystego)
+        // Rozpoczynamy rekursywne rozbieranie modelu z drzewa Assimp (zaczynajï¿½c od wï¿½zï¿½a macierzystego)
         processNode(scene->mRootNode, scene);
     }
 
     void processNode(aiNode* node, const aiScene* scene)
     {
-        // Przetwarza wszystkie siatki (meshes) powi¹zane z danym "wêz³em"
+        // Przetwarza wszystkie siatki (meshes) powiï¿½zane z danym "wï¿½zï¿½em"
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             meshes.push_back(processMesh(mesh, scene));
         }
-        // Rekursja: wywo³aj na dzieciach
+        // Rekursja: wywoï¿½aj na dzieciach
         for (unsigned int i = 0; i < node->mNumChildren; i++)
         {
             processNode(node->mChildren[i], scene);
@@ -87,7 +86,7 @@ private:
         vector<unsigned int> indices;
         vector<MeshTexture> textures;
 
-        // Przetwarzanie wierzcho³ków
+        // Przetwarzanie wierzchoï¿½kï¿½w
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
             Vertex vertex;
@@ -122,7 +121,7 @@ private:
             vertices.push_back(vertex);
         }
 
-        // Przetwarzanie Indeksów dla rysowania Elementów (glDrawElements)
+        // Przetwarzanie Indeksï¿½w dla rysowania Elementï¿½w (glDrawElements)
         for (unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
             aiFace face = mesh->mFaces[i];
@@ -130,10 +129,10 @@ private:
                 indices.push_back(face.mIndices[j]);
         }
 
-        // Przetwarzanie materia³ów (Tekstur z pliku)
+        // Przetwarzanie materiaï¿½ï¿½w (Tekstur z pliku)
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-        // Zapisujemy mapy koloru z Assimpa i nazywamy wewnetrznie "texture_diffuse" by shader wiedzia³ o co chodzi
+        // Zapisujemy mapy koloru z Assimpa i nazywamy wewnetrznie "texture_diffuse" by shader wiedziaï¿½ o co chodzi
         vector<MeshTexture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
 
@@ -159,8 +158,9 @@ private:
             }
             if (!skip)
             {
-                MeshTexture texture;
-                texture.id = TextureFromFile(str.C_Str(), this->directory);
+                MeshTexture texture; // <--- UÅ¼ywamy nazwy Adriana
+                std::string fullPath = this->directory + '/' + str.C_Str();
+                texture.Texture2DPtr = std::make_shared<Texture2D>(fullPath); // <--- UÅ¼ywamy Twojej klasy
                 texture.type = typeName;
                 texture.path = str.C_Str();
                 textures.push_back(texture);
@@ -171,44 +171,63 @@ private:
     }
 };
 
-// Funkcja pomocnicza wczytuj¹ca fizyczny plik .png / .jpg i zwracaj¹ca id dla OpenGL
-unsigned int TextureFromFile(const char* path, const string& directory, bool gamma)
-{
-    string filename = string(path);
-    filename = directory + '/' + filename;
 
-    unsigned int textureID;
-    glGenTextures(1, &textureID);
 
-    int width, height, nrComponents;
-    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
-    if (data)
-    {
-        GLenum format;
-        if (nrComponents == 1)
-            format = GL_RED;
-        else if (nrComponents == 3)
-            format = GL_RGB;
-        else if (nrComponents == 4)
-            format = GL_RGBA;
 
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        stbi_image_free(data);
-    }
-    else
-    {
-        std::cout << "Texture failed to load at path: " << path << std::endl;
-        stbi_image_free(data);
-    }
 
-    return textureID;
-}
+
+
+
+
+
+
+
+
+
+
+
+//inline unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
+
+// Funkcja pomocnicza wczytujï¿½ca fizyczny plik .png / .jpg i zwracajï¿½ca id dla OpenGL
+//unsigned int TextureFromFile(const char* path, const string& directory, bool gamma)
+//{
+//    string filename = string(path);
+//    filename = directory + '/' + filename;
+//
+//    unsigned int textureID;
+//    glGenTextures(1, &textureID);
+//
+//    int width, height, nrComponents;
+//    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
+//    if (data)
+//    {
+//        GLenum format;
+//        if (nrComponents == 1)
+//            format = GL_RED;
+//        else if (nrComponents == 3)
+//            format = GL_RGB;
+//        else if (nrComponents == 4)
+//            format = GL_RGBA;
+//
+//        glBindTexture(GL_TEXTURE_2D, textureID);
+//        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
+//        glGenerateMipmap(GL_TEXTURE_2D);
+//
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+//
+//        stbi_image_free(data);
+//    }
+//    else
+//    {
+//        std::cout << "Texture failed to load at path: " << path << std::endl;
+//        stbi_image_free(data);
+//    }
+//
+//    return textureID;
+//}
 #endif

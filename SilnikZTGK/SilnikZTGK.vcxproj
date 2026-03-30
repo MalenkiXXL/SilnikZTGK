@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -160,6 +160,8 @@
     <ClCompile Include="CookingStation\Layers\GuiLayer\Gui.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Renderer2D.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\GuiLayer.cpp" />
+    <ClCompile Include="CookingStation\Renderer\Texture.cpp" />
+    <ClCompile Include="CookingStation\Renderer\ShaderLibrary.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Core\Texture.h" />
@@ -187,6 +189,8 @@
     <ClInclude Include="CookingStation\Layers\GuiLayer\Renderer2D.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\Font.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\GuiLayer.h" />
+    <ClInclude Include="CookingStation\Renderer\Texture.h" />
+    <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />
