@@ -1,1 +1,15 @@
-/.vs/
+# Visual Studio
+.vs/
+x64/
+x86/
+Debug/
+Release/
+
+# Pliki tymczasowe kompilatora
+*.obj
+*.exe
+*.pdb
+*.idb
+*.tlog
+*.ilk
+*.pch

@@ -137,7 +137,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="CookingStation\Core\Texture.cpp" />
+    <ClCompile Include="CookingStation\Core\Texture_GUI.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp" />
     <ClCompile Include="CookingStation\Renderer\Buffer.cpp" />
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetManager.cpp" />
