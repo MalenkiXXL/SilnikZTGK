@@ -5,6 +5,8 @@
 #include "VertexArray.h"
 #include "Shader.h"
 
+class Model;
+
 class Renderer
 {
 public:
@@ -14,6 +16,8 @@ public:
 	static void EndScene();
 	//przyjmuje obiekt do narysowania, shader oraz pozycje w swiecie
 	static void Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vertexArray, const glm::mat4 transform = glm::mat4(1.0f));
+
+	static void Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<Model>& model, const glm::mat4& transform);
 
 private:
 	//globalne dane dla calej klatki
