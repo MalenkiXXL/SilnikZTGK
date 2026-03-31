@@ -4,7 +4,10 @@
 #include <fstream>
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Renderer/Renderer.h"
+#include "CookingStation/Core/Physics.h"
+#include "CookingStation/Core/Input.h"
 #include <nlohmann/json.hpp>
+#include <glm/glm.hpp>
 
 
 using json = nlohmann::json;
@@ -35,6 +38,28 @@ void AssetLayer::OnAttach() {
 
 
 void AssetLayer::OnUpdate() {
+
+
+    if (Input::IsMouseButtonPressed(0)) { // Jeœli klikniêto Lewy Przycisk Myszy
+        auto mousePos = Input::GetMousePosition();
+
+        // Obliczamy potrzebne nam macierze
+        float orthoSize = 10.0f;
+        float aspectRatio = m_ViewportWidth / (m_ViewportHeight > 0 ? m_ViewportHeight : 1.0f);
+        glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+        glm::mat4 view = m_ActiveScene->GetCamera()->GetViewMatrix();
+
+        // Tworzymy nasz wirtualny laser
+        Ray mouseRay = Physics::CastRayFromMouse(mousePos.first, mousePos.second, m_ViewportWidth, m_ViewportHeight, projection, view);
+
+        // Stwórzmy udawane pude³ko AABB (gdzieœ na œrodku ekranu, rozmiar od -1 do 1)
+        AABB testBox = { glm::vec3(-1.0f, -1.0f, -1.0f), glm::vec3(1.0f, 1.0f, 1.0f) };
+
+        if (Physics::Intersects(mouseRay, testBox)) {
+            std::cout << "TRAFIENIE! Kliknales w srodkowa marchewke!" << std::endl;
+        }
+    }
+
     // 1. Przygotowanie danych i czyszczenie ekranu
     float aspectRatio = m_ViewportWidth / (m_ViewportHeight > 0 ? m_ViewportHeight : 1.0f);
     auto& world = m_ActiveScene->GetWorld();
@@ -54,7 +79,8 @@ void AssetLayer::OnUpdate() {
     // 2. Renderowanie Œwiata 3D
     if (m_ActiveScene && m_ActiveScene->GetCamera()) {
         glm::mat4 view = m_ActiveScene->GetCamera()->GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 100.0f);
+        float orthoSize = 10.0f;
+        glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
         glm::mat4 viewProjection = projection * view;
 
         Renderer::BeginScene(viewProjection);
