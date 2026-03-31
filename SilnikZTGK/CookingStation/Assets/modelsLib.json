@@ -1,0 +1,12 @@
+{
+  "models": [
+    {
+      "name": "Marchewka",
+      "path": "CookingStation/Assets/marchewa/marchewa.obj"
+    },
+    {
+      "name": "Detal_marchew",
+      "path": "CookingStation/Assets/detale/marchewka.obj"
+    }
+  ]
+}

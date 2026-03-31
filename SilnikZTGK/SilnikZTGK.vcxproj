@@ -147,6 +147,7 @@
     <ClCompile Include="CookingStation\Layers\CameraLayer\CameraLayer.cpp" />
     <ClCompile Include="CookingStation\stb_image_impl.cpp" />
     <ClCompile Include="CookingStation\Scene\ecs.cpp" />
+    <ClCompile Include="CookingStation\Layers\EditorLayer\EditorLayer.cpp" />
     <ClCompile Include="gettingStarted.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="CookingStation\Core\Input.cpp" />
@@ -194,6 +195,7 @@
     <ClInclude Include="CookingStation\Renderer\Texture.h" />
     <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h" />
     <ClInclude Include="CookingStation\Layers\RenderLayer\RendererLayer.h" />
+    <ClInclude Include="CookingStation\Layers\EditorLayer\EditorLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

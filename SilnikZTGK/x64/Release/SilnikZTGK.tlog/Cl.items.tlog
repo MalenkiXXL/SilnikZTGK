@@ -8,6 +8,7 @@ C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\SceneSerializer.cpp;C:\Siln
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\CameraLayer\CameraLayer.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\CameraLayer.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\stb_image_impl.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\stb_image_impl.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scene\ecs.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\ecs.obj
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\EditorLayer\EditorLayer.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\EditorLayer.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\gettingStarted.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\gettingStarted.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\glad.c;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\glad.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Core\Input.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Input.obj
@@ -23,3 +24,4 @@ C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Renderer2D.cpp;C:
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\GuiLayer.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\GuiLayer.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Texture.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\Texture.obj
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\ShaderLibrary.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\ShaderLibrary.obj
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\RenderLayer\RendererLayer.cpp;C:\Silnik\SilnikZTGK\SilnikZTGK\x64\Release\RendererLayer.obj

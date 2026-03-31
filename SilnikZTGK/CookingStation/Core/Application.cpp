@@ -31,6 +31,10 @@ Application::Application()
 	GuiLayer* guiLayer = new GuiLayer();
 	guiLayer->SetScene(scene);
 	PushLayer(guiLayer);
+
+	EditorLayer* editorLayer = new EditorLayer();
+	editorLayer->SetScene(scene);
+	PushLayer(editorLayer);
 }
 
 Application::~Application()
@@ -101,13 +105,13 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 	int height = e.GetHeight();
 	std::cout << "Zmieniam rozmiar okna " << width << " x " << height << std::endl;
 	glViewport(0, 0, width, height);
-	return true;
+	return false;
 }
 
 bool Application::OnKeyPressed(KeyPressedEvent& e)
 {
 //	std::cout << "Wcisnieto klawisz: " << e.GetKeyCode() << std::endl;;
-	return true;
+	return false;
 }
 
 

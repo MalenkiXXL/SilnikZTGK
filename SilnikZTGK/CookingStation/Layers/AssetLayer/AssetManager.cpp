@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 #include "nlohmann/json.hpp"
+#include "spdlog/spdlog.h"
 
 std::vector<ModelLibraryEntry> AssetManager::s_Library;
 
@@ -24,7 +25,8 @@ std::shared_ptr<Model> AssetManager::GetModel(const std::string& path) {
 		return it->second;
 	}
 
-	std::cout << "[AssetManager] Laduje: " << path << std::endl;
+	spdlog::info("[AssetManager] Laduje: {}", path);
+
 	auto newModel = std::make_shared<Model>(path);
 	m_Models[path] = newModel;
 	return newModel;

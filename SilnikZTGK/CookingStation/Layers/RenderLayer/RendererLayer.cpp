@@ -93,5 +93,7 @@ void RendererLayer::OnEvent(Event& e) {
 bool RendererLayer::OnWindowResize(WindowResizeEvent& e) {
     m_ViewportWidth = (float)e.GetWidth();
     m_ViewportHeight = (float)e.GetHeight();
+    spdlog::info("Nowy rozmiar okna: {}x{}", m_ViewportWidth, m_ViewportHeight);
+    glViewport(0, 0, e.GetWidth(), e.GetHeight());
     return false;
 }

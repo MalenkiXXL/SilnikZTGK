@@ -28,5 +28,6 @@ private:
     float m_ViewportWidth = 800.0f;
     float m_ViewportHeight = 600.0f;
     std::string m_PendingModelPath = "";
+    std::string m_PendingModelName = "";
     bool m_IsPlacing = false;
 };

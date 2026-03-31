@@ -6,6 +6,7 @@
 class Gui {
 public:
     static void Init(const std::string& fontPath, float fontSize);
+
     // Zwraca true, jeœli wartoœæ zosta³a zmieniona
     static bool SliderFloat(const std::string& label, float* value, float min, float max, const glm::vec2& pos, const glm::vec2& size);
     static void DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const glm::vec4& color);
@@ -14,9 +15,13 @@ public:
     static bool InputGuiText(const std::string& label, std::string& value, const glm::vec2& pos, const glm::vec2& size);
     static glm::vec2 GetMappedMousePos();
     static bool IsMouseOver(const glm::vec2& pos, const glm::vec2& size);
+    static void OnCharTyped(int charcode);
+    static bool AnyItemActive() { return s_AnyActive; }
 
 private:
     static std::shared_ptr<Font> s_Font;
     static float s_ScreenWidth;
     static float s_ScreenHeight;
+    static std::string s_CharacterBuffer;
+    static bool s_AnyActive;
 };

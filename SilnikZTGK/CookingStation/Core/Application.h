@@ -8,6 +8,7 @@
 #include "CookingStation/Layers/CameraLayer/CameraLayer.h"
 #include "CookingStation/Layers/AssetLayer/AssetLayer.h"
 #include "CookingStation/Layers/GuiLayer/GuiLayer.h"
+#include "CookingStation/Layers/EditorLayer/EditorLayer.h"
 
 #include <vector>
 

@@ -40,3 +40,14 @@ public:
 	static EventType GetStaticType() { return EventType::KeyReleased; }
 	virtual EventType GetEventType() const override { return EventType::KeyReleased; }
 };
+
+class KeyTypedEvent : public KeyEvent
+{
+public:
+	KeyTypedEvent(int keycode)
+		: KeyEvent(keycode) {
+	}
+
+	static EventType GetStaticType() { return EventType::KeyTyped; }
+	virtual EventType GetEventType() const override { return EventType::KeyTyped; }
+};

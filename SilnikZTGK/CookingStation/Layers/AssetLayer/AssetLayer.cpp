@@ -14,26 +14,29 @@ using json = nlohmann::json;
 
 AssetLayer::~AssetLayer() {};
 void AssetLayer::OnAttach() {
-    AssetManager::LoadModelLibrary("CookingStation/modelsLib.json");
-	glEnable(GL_DEPTH_TEST);
 
-	m_Shader = m_ShaderLibrary.Load("Standardowy", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
-	auto marchewaModel = AssetManager::GetModel("CookingStation/Assets/marchewa/marchewa.obj");
-	
+	// wczytujemy definicje modeli do biblioteki z pliku
+    AssetManager::LoadModelLibrary("CookingStation/Assets/modelsLib.json");
+
+	// inicjalizacja nowej sceny, jezeli nie zostala przekazana
 	if (!m_ActiveScene) {
-		m_ActiveScene = std::make_shared<Scene>();
+		m_ActiveScene = std::make_shared<Scene>(); 
 	}
 
-	auto& world = m_ActiveScene->GetWorld();
+	// pobieramy dostêp do swiata ECS
+	auto& world = m_ActiveScene->GetWorld(); 
+
+	// rejestrujemy typy komponentow by przygotowac pamiec
 
 	world.RegisterComponent<TagComponent>();
 	world.RegisterComponent<MeshComponent>();
 	world.RegisterComponent<TransformComponent>();
 
+	//////////////////////////////////////////////////////////////////
+
+	// wczytujemy konkretne obiekty i ich stan z pliku zapisu
 	SceneSerializer serializer(m_ActiveScene.get());
-	serializer.Deserialize("CookingStation/example.json");
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	serializer.Deserialize("CookingStation/Assets/example.json");
 };
 
 

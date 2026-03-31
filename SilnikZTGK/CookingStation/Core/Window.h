@@ -44,6 +44,8 @@ public:
 	static void WindowResizeCallback(GLFWwindow* window, int width, int height);
 	void ProcessWindowResize(int width, int height);
 
+	static void CharCallback(GLFWwindow* window, unsigned int keycode);
+	void ProcessCharInput(unsigned int keycode);
 
 	//statyczny dostep do okna dla inputow
 	inline GLFWwindow* GetNativeWindow() const { return window; };

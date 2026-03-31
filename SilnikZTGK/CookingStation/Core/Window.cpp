@@ -41,6 +41,7 @@ void Window::Init()
 
 
     glfwSetKeyCallback(window, KeyCallBack);
+    glfwSetCharCallback(window, CharCallback);
     glfwSetCursorPosCallback(window, MouseMoveCallback);
     glfwSetScrollCallback(window, MouseScrollCallback);
     glfwSetMouseButtonCallback(window, MouseButtonPressedCallback);
@@ -182,3 +183,14 @@ void Window::ProcessWindowResize(int width, int height)
 
 //---------------------------------------------------------------------------------
 
+// Statyczna funkcja poœrednicz¹ca
+void Window::CharCallback(GLFWwindow* window, unsigned int keycode) {
+    Window* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
+    myWindow->ProcessCharInput(keycode);
+}
+
+// Metoda wysy³aj¹ca zdarzenie do silnika
+void Window::ProcessCharInput(unsigned int keycode) {
+    KeyTypedEvent event(keycode); 
+    m_EventCallbackFn(event);
+}
