@@ -37,7 +37,8 @@ void AssetLayer::OnAttach() {
 };
 
 
-void AssetLayer::OnUpdate() {
+void AssetLayer::OnUpdate()
+{
 
 }
 

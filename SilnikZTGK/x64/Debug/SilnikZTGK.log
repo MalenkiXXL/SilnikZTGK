@@ -1,11 +1,4 @@
 ﻿  AssetLayer.cpp
-C:\SilnikZTGK\Repo\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AssetLayer.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x525, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
-C:\SilnikZTGK\Repo\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AssetLayer.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x52f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
-C:\SilnikZTGK\Repo\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AssetLayer.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7c1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
-C:\SilnikZTGK\Repo\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AssetLayer.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7d3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
-C:\SilnikZTGK\Repo\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AssetLayer.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7e2, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
-C:\SilnikZTGK\Repo\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AssetLayer.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x7e7, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
-C:\SilnikZTGK\Repo\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AssetLayer.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xbbc, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
 C:\SilnikZTGK\Repo\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Shader.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x131, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001).
   (kompilowanie pliku źródłowego „CookingStation/Layers/AssetLayer/AssetLayer.cpp”)
   
