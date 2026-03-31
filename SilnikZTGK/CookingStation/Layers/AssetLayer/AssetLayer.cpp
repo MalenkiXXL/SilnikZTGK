@@ -35,31 +35,6 @@ void AssetLayer::OnAttach() {
 
 
 void AssetLayer::OnUpdate() {
-    auto& world = m_ActiveScene->GetWorld();
-    auto* colorStorage = world.GetComponentVector<ClearColorComponent>();
-    auto* meshStorage = world.GetComponentVector<MeshComponent>();
-    auto* transformStorage = world.GetComponentVector<TransformComponent>();
-
-    glm::vec4 clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
-    if (colorStorage && !colorStorage->dense.empty()) {
-        clearColor = colorStorage->dense[0].bgColor;
-    }
-
-    RenderCommand::SetClearColor(clearColor);
-    RenderCommand::Clear();
-	if (meshStorage) {
-		for (size_t i = 0; i < meshStorage->dense.size(); i++) {
-			Entity owner = meshStorage->reverse[i];
-			TransformComponent* transform = transformStorage->Get(owner);
-			auto& meshComp = meshStorage->dense[i];
-
-			if (transform && meshComp.ModelPtr) {
-				// Przekazujemy tylko model i transformacjê do renderera
-				Renderer::Submit(m_Shader, meshComp.ModelPtr, transform->GetTransformMatrix());
-			}
-		}
-
-	}
 }
 
 void AssetLayer::OnEvent(Event& e) {
