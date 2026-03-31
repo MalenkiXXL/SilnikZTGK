@@ -162,6 +162,7 @@
     <ClCompile Include="CookingStation\Layers\GuiLayer\GuiLayer.cpp" />
     <ClCompile Include="CookingStation\Renderer\Texture.cpp" />
     <ClCompile Include="CookingStation\Renderer\ShaderLibrary.cpp" />
+    <ClCompile Include="CookingStation\Layers\RenderLayer\RendererLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Core\Physics.h" />
@@ -192,6 +193,7 @@
     <ClInclude Include="CookingStation\Layers\GuiLayer\GuiLayer.h" />
     <ClInclude Include="CookingStation\Renderer\Texture.h" />
     <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h" />
+    <ClInclude Include="CookingStation\Layers\RenderLayer\RendererLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

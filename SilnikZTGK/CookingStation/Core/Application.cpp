@@ -2,6 +2,7 @@
 #include "Input.h"
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Renderer/RenderCommand.h"
+#include "CookingStation/Layers/RenderLayer/RendererLayer.h"
 #include <iostream>
 
 Application* Application::s_Instance = nullptr;
@@ -22,6 +23,10 @@ Application::Application()
 	AssetLayer* astLayer = new AssetLayer();
 	astLayer->SetScene(scene);
 	PushLayer(astLayer);
+
+	RendererLayer* renderLayer = new RendererLayer();
+	renderLayer->SetScene(scene);
+	PushLayer(renderLayer);
 
 	GuiLayer* guiLayer = new GuiLayer();
 	guiLayer->SetScene(scene);
