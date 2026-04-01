@@ -7,7 +7,6 @@ class Gui {
 public:
     static void Init(const std::string& fontPath, float fontSize);
 
-    // Zwraca true, jeœli wartoœæ zosta³a zmieniona
     static bool SliderFloat(const std::string& label, float* value, float min, float max, const glm::vec2& pos, const glm::vec2& size);
     static void DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const glm::vec4& color);
     static bool Button(const std::string& label, const glm::vec2& pos, const glm::vec2& size);

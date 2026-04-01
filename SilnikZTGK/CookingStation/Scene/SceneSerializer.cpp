@@ -12,9 +12,8 @@
 using json = nlohmann::json;
 
 
-/*
-    Wczytuje dane z pliku do pamiêci i buduje œwiat w silniku
-*/
+
+// Wczytuje dane z pliku do pamiêci i buduje œwiat w silniku
 bool SceneSerializer::Deserialize(const std::string& path) {
 	std::ifstream file(path);
 	if (!file.is_open()) {
@@ -46,16 +45,16 @@ bool SceneSerializer::Deserialize(const std::string& path) {
         //  korzystamy z AssetManager aby sprawdziæ, czy model by³ juz za³adowany
         auto model = AssetManager::GetModel(modelPath);
 
-        // Budujemy encjê w œwiecie ECS
+        // budujemy encjê w œwiecie ECS
         m_Scene->GetWorld().BuildEntity()
             .With<TagComponent>({ name }) // dodajemy tag (nazwa w gui)
             .With<MeshComponent>({ model }) // dodajemy mesh (wizualny model 3d)
 
             // dodajemy transform z pliku json
             .With<TransformComponent>({
-                { item["position"][0], item["position"][1], item["position"][2] }, // Pozycja
-                { item["rotation"][0], item["rotation"][1], item["rotation"][2]},  // Rotacja
-                { item["scale"][0], item["scale"][1], item["scale"][2] }          // Skala
+                { item["position"][0], item["position"][1], item["position"][2] },
+                { item["rotation"][0], item["rotation"][1], item["rotation"][2]}, 
+                { item["scale"][0], item["scale"][1], item["scale"][2] }     
                 })
             .Build(); // finalizacja i zapisanie w encji w world 
 

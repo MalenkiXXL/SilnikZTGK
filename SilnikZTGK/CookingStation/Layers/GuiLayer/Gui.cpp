@@ -1,7 +1,7 @@
 #include "Gui.h"
 #include "Renderer2D.h"
 #include "CookingStation/Core/Input.h" 
-#include <utility> // Dla std::pair
+#include <utility> // dla std::pair
 
 std::shared_ptr<Font> Gui::s_Font = nullptr;
 float Gui::s_ScreenWidth = 800.0f;
@@ -9,10 +9,13 @@ float Gui::s_ScreenHeight = 600.0f;
 bool Gui::s_AnyActive = false;
 std::string Gui::s_CharacterBuffer = "";
 
-/* 
-    Sprawdza czy kursor znajduje siê nad obszarem
-    Przelicza pozycjê myszki na wspó³rzêdne GUI
-*/
+// laduje czcionke i inicjalizuje atlas dla gui
+void Gui::Init(const std::string& fontPath, float fontSize) {
+    s_Font = std::make_shared<Font>(fontPath, fontSize);
+}
+
+// sprawdza czy kursor znajduje siê nad obszarem
+// przelicza pozycjê myszki na wspó³rzêdne GUI
 bool Gui::IsMouseOver(const glm::vec2& pos, const glm::vec2& size) {
     // pobiera przemapowan¹ pozycjê myszki
     glm::vec2 mappedMouse = GetMappedMousePos();
@@ -23,10 +26,7 @@ bool Gui::IsMouseOver(const glm::vec2& pos, const glm::vec2& size) {
 }
 
 
-/*
-    Przelicza pozycje myszki na wspó³rzêdne GUI
-    Pomaga w responsywnosci
-*/
+//przelicza pozycje myszki na wspó³rzêdne GUI
 glm::vec2 Gui::GetMappedMousePos() {
 
     // pobiera pozycje kursora w pikselach
@@ -42,11 +42,8 @@ glm::vec2 Gui::GetMappedMousePos() {
     return { mouseX, mouseY };
 }
 
-
-/*
-    Interaktywny suwak, zmienia wartoœæ z pozycji Value
-    Zwraca true przy poruszaniu w danej klatce
-*/
+// innteraktywny suwak, zmienia wartoœæ z pozycji Value
+// zwraca true przy poruszaniu w danej klatce
 bool Gui::SliderFloat(const std::string& label, float* value, float min, float max, const glm::vec2& pos, const glm::vec2& size) {
     bool changed = false;
 
@@ -60,8 +57,7 @@ bool Gui::SliderFloat(const std::string& label, float* value, float min, float m
             float t = (mappedMouse.x - pos.x) / size.x;
 
             // mapujemy wartoœæ t na zakres min-max
-            // interpolacja ze wzoru:
-            // wartosc = min * (procent_przesuniêcia * dlugosc_zakresu)
+
 
             *value = min + t * (max - min);
 
@@ -73,28 +69,25 @@ bool Gui::SliderFloat(const std::string& label, float* value, float min, float m
         }
     }
 
-
-   // Rysujemy podpis suwaka
+    // rysowanie podpisu suwaka
     DrawGuiText(label, { pos.x, pos.y - 15.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
    
-    // Rysowanie tla
+    // rysowanie tla
     Renderer2D::DrawQuad(pos, size, { 0.2f, 0.2f, 0.2f, 1.0f });
 
-    // Obliczanie pozycji uchwytu
+    // obliczanie pozycji uchwytu
     float handleWidth = 10.0f;
     float handlePos = ((*value - min) / (max - min)) * size.x;
 
-    // Rysowanie uchwytu
+    // rysowanie uchwytu
     Renderer2D::DrawQuad({ pos.x + handlePos - (handleWidth / 2.0f), pos.y }, { handleWidth, size.y }, { 0.8f, 0.8f, 0.8f, 1.0f });
 
     return changed;
 }
 
 
-/*
-    Rysuje tekst na ekranie
-    Korzysta z atlasu tekstur czcionki i wspolrzednych UV dla kazdej litery
-*/
+// rysowanie tekstu na ekranie
+// korzysta z atlasu tekstur czcionki i wspolrzednych UV dla kazdej litery
 void Gui::DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const glm::vec4& color) {
     // iterujemy przez kazda litere w tekscie
     for (char c : text) {
@@ -115,9 +108,8 @@ void Gui::DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const
     }
 }
 
-/*
-    Obs³uguje pola tekstowe, do których mo¿na wpisywaæ dane 
-*/
+
+// obs³uguje pola tekstowe, do których mo¿na wpisywaæ dane 
 bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::vec2& pos, const glm::vec2& size) {
     // detekcja kursora
     bool hovered = IsMouseOver(pos, size);
@@ -125,9 +117,11 @@ bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::
     // zarz¹dzanie stanem pola
     static bool active = false;
 
+    // zmiana stanu
     if (hovered && Input::IsMouseButtonPressed(0)) active = true;
     if (!hovered && Input::IsMouseButtonPressed(0)) active = false;
 
+    // wysylamy to do kamery, zeby wiedziala kiedy ma przestac odbierac input
     if (active) s_AnyActive = true;
     else s_AnyActive = false;
 
@@ -142,51 +136,52 @@ bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::
 
     // jezeli pole jest aktywne, to obsluguje klawiature
     if (active) {
-        // A. OBS£UGA BACKSPACE (usuwanie)
+        // backspace czysci calosc
         if (Input::IsKeyPressed(259)) {
             if (!value.empty()) {
                 value.pop_back();
             }
         }
 
-        // B. OBS£UGA WPISYWANIA (dodawanie)
+        // obsluga znakow
         if (!s_CharacterBuffer.empty()) {
-            value += s_CharacterBuffer; // Dodajemy to, co wpisaliœmy w tej klatce
-            s_CharacterBuffer.clear();  // Czyœcimy bufor po zu¿yciu
+            value += s_CharacterBuffer; 
+            s_CharacterBuffer.clear();  // czyœcimy bufor po zu¿yciu
         }
     }
     else {
-        // Jeœli pole nie jest aktywne, czyœcimy bufor, ¿eby litery nie "wskoczy³y" 
-        // do pola po jego póŸniejszym klikniêciu.
+        // jezeli pole nie jest aktywne to czyscimy bufor
         s_CharacterBuffer.clear();
     }
     return active;
 }
 
-
-void Gui::Init(const std::string& fontPath, float fontSize) {
-    s_Font = std::make_shared<Font>(fontPath, fontSize);
-}
-
+// tworzy przycisk z labelem
 bool Gui::Button(const std::string & label, const glm::vec2 & pos, const glm::vec2 & size) {
+    
+    // sprawdzamy czy kursor znajduje sie nad przyciskiem
     bool hovered = IsMouseOver(pos, size);
     bool clicked = false;
 
+    // jezeli kursor jest nad przyciskiem to zmienia kolor
     glm::vec4 color = hovered ? glm::vec4(0.4f,0.4f,0.4f, 1.0f) : glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
 
+    // wcisniety tez zmienia kolor
     if (hovered && Input::IsMouseButtonPressed(0)) {
         color = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
         clicked = true;
     }
 
+    // rysujemy tlo do niego
     Renderer2D::DrawQuad(pos, size, color);
+
+    // podpisujemy
     DrawGuiText(label, { pos.x + 10.f, pos.y + 5.f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
     
     return clicked;
 }
 
-// dopisuje znak z klawiatury do bufora, 
-// który jest potem wykorzystywany przez pola InputGuiText
+// dopisuje znak z klawiatury do bufora, który jest potem wykorzystywany przez pola InputGuiText
 void Gui::OnCharTyped(int charcode) {
     s_CharacterBuffer += (char)charcode;
 }

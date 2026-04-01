@@ -27,18 +27,14 @@ void AssetLayer::OnAttach() {
 	auto& world = m_ActiveScene->GetWorld(); 
 
 	// rejestrujemy typy komponentow by przygotowac pamiec
-
 	world.RegisterComponent<TagComponent>();
 	world.RegisterComponent<MeshComponent>();
 	world.RegisterComponent<TransformComponent>();
-
-	//////////////////////////////////////////////////////////////////
 
 	// wczytujemy konkretne obiekty i ich stan z pliku zapisu
 	SceneSerializer serializer(m_ActiveScene.get());
 	serializer.Deserialize("CookingStation/Assets/example.json");
 };
-
 
 void AssetLayer::OnUpdate()
 {
