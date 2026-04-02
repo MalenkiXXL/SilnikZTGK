@@ -1,7 +1,7 @@
 Jakby ci nie dzialala jakas biblioteka uzyj sobie vcpkg (poza glad ktory jest zainstalowany w repo w sumie)
 
 cd C:\ścieżka\do\twojego\vcpkg
-.\vcpkg install glfw3:x64-windows glm:x64-windows
+.\vcpkg install glfw3:x64-windows glm:x64-windows assimp:x64-windows stb:x64-windows
 .\vcpkg integrate install
 
 

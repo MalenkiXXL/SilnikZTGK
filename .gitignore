@@ -1,6 +1,7 @@
 # Visual Studio
 .vs/
 x64/
+SilnikZTGK/x64/
 x86/
 Debug/
 Release/
