@@ -6,6 +6,7 @@ class Texture2D
 {
 public:
 	Texture2D(const std::string& path);
+	Texture2D(const unsigned char* data, uint32_t size);
 	~Texture2D();
 
 	inline uint32_t GetWidth() const { return m_Width; }

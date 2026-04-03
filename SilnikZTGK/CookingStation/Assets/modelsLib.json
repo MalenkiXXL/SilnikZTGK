@@ -6,7 +6,11 @@
     },
     {
       "name": "Detal_marchew",
-      "path": "CookingStation/Assets/detale/marchewka.obj"
+      "path": "CookingStation/Assets/detale/marchew.glb"
+    },
+    {
+      "name": "test",
+      "path": "CookingStation/Assets/test/test.gltf"
     }
   ]
 }

@@ -122,6 +122,11 @@ public:
         glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, &mat[0][0]);
     }
 
+    void SetBool(const std::string& name, bool value) const
+    {
+        glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+    }
+
 private:
     // Prywatna funkcja pomocnicza do wy³apywania b³êdów kompilacji
     void checkCompileErrors(unsigned int shader, std::string type)

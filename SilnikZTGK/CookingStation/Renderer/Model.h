@@ -2,13 +2,12 @@
 #define MODEL_H
 
 #include <glad/glad.h> 
-
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
+#include <spdlog/spdlog.h> 
 #include "Mesh.h"
 #include "Shader.h"
 #include "CookingStation/Renderer/Texture.h"
@@ -16,20 +15,16 @@
 #include <string>
 #include <fstream>
 #include <sstream>
-#include <iostream>
 #include <map>
 #include <vector>
 
 using namespace std;
 
-
-// Klasa przeznaczona do wczytywania modeli za pomoc� pot�nej biblioteki Assimp
 class Model
 {
 public:
-    // Przechowuje ju� wczytane tekstury jako optymalizacja (nie �adujemy dwa razy tego samego obrazka)
     vector<MeshTexture> textures_loaded;
-    vector<Mesh>    meshes;
+    vector<Mesh> meshes;
     string FilePath;
     string directory;
     bool gammaCorrection;
@@ -40,7 +35,6 @@ public:
         loadModel(path);
     }
 
-    // Wywo�uje funkcj� Draw() na ka�dej pod-siatce modelu
     void Draw(Shader& shader)
     {
         for (unsigned int i = 0; i < meshes.size(); i++)
@@ -48,34 +42,36 @@ public:
     }
 
 private:
+    const aiScene* m_ScenePtr = nullptr;
+
     void loadModel(string const& path)
     {
-        // Tworzymy importera Assimp i prosimy go o wyg�adzenie, tr�jk�towanie siatki oraz odwr�cenie koordynat�w UV
+        spdlog::info("Wczytywanie modelu: {}", path);
+
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
 
-        // Wy�apanie b��d�w np. z�a �cie�ka do pliku
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
         {
-            cout << "B��D ASSIMP:: " << importer.GetErrorString() << endl;
+            spdlog::error("Blad Assimp: {}", importer.GetErrorString());
             return;
         }
 
+        m_ScenePtr = scene;
         directory = path.substr(0, path.find_last_of('/'));
 
-        // Rozpoczynamy rekursywne rozbieranie modelu z drzewa Assimp (zaczynaj�c od w�z�a macierzystego)
         processNode(scene->mRootNode, scene);
+
+        spdlog::info("Model wczytano poprawnie: {}", path);
     }
 
     void processNode(aiNode* node, const aiScene* scene)
     {
-        // Przetwarza wszystkie siatki (meshes) powi�zane z danym "w�z�em"
         for (unsigned int i = 0; i < node->mNumMeshes; i++)
         {
             aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
             meshes.push_back(processMesh(mesh, scene));
         }
-        // Rekursja: wywo�aj na dzieciach
         for (unsigned int i = 0; i < node->mNumChildren; i++)
         {
             processNode(node->mChildren[i], scene);
@@ -88,42 +84,27 @@ private:
         vector<unsigned int> indices;
         vector<MeshTexture> textures;
 
-        // Przetwarzanie wierzcho�k�w
         for (unsigned int i = 0; i < mesh->mNumVertices; i++)
         {
             Vertex vertex;
-            glm::vec3 vector;
+            vertex.Position = glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
 
-            // Konwertujemy pozycje Assimp -> GLM
-            vector.x = mesh->mVertices[i].x;
-            vector.y = mesh->mVertices[i].y;
-            vector.z = mesh->mVertices[i].z;
-            vertex.Position = vector;
-
-            // Normalne
             if (mesh->HasNormals())
-            {
-                vector.x = mesh->mNormals[i].x;
-                vector.y = mesh->mNormals[i].y;
-                vector.z = mesh->mNormals[i].z;
-                vertex.Normal = vector;
-            }
+                vertex.Normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
 
-            // Tekstury
             if (mesh->mTextureCoords[0])
-            {
-                glm::vec2 vec;
-                vec.x = mesh->mTextureCoords[0][i].x;
-                vec.y = mesh->mTextureCoords[0][i].y;
-                vertex.TexCoords = vec;
-            }
+                vertex.TexCoords = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
             else
                 vertex.TexCoords = glm::vec2(0.0f, 0.0f);
+
+            if (mesh->mTextureCoords[1])
+                vertex.TexCoords2 = glm::vec2(mesh->mTextureCoords[1][i].x, mesh->mTextureCoords[1][i].y);
+            else
+                vertex.TexCoords2 = glm::vec2(0.0f, 0.0f);
 
             vertices.push_back(vertex);
         }
 
-        // Przetwarzanie Indeks�w dla rysowania Element�w (glDrawElements)
         for (unsigned int i = 0; i < mesh->mNumFaces; i++)
         {
             aiFace face = mesh->mFaces[i];
@@ -131,12 +112,15 @@ private:
                 indices.push_back(face.mIndices[j]);
         }
 
-        // Przetwarzanie materia��w (Tekstur z pliku)
         aiMaterial* material = scene->mMaterials[mesh->mMaterialIndex];
 
-        // Zapisujemy mapy koloru z Assimpa i nazywamy wewnetrznie "texture_diffuse" by shader wiedzia� o co chodzi
+        // 1. Ładujemy bazowy kolor (palette.png)
         vector<MeshTexture> diffuseMaps = loadMaterialTextures(material, aiTextureType_DIFFUSE, "texture_diffuse");
         textures.insert(textures.end(), diffuseMaps.begin(), diffuseMaps.end());
+
+        // 2. Ładujemy detal (detal.png), który w glTF siedzi w Emissive
+        vector<MeshTexture> emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "texture_diffuse");
+        textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
 
         return Mesh(vertices, indices, textures);
     }
@@ -144,10 +128,13 @@ private:
     vector<MeshTexture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName)
     {
         vector<MeshTexture> textures;
-        for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
+        unsigned int texCount = mat->GetTextureCount(type);
+
+        for (unsigned int i = 0; i < texCount; i++)
         {
             aiString str;
             mat->GetTexture(type, i, &str);
+
             bool skip = false;
             for (unsigned int j = 0; j < textures_loaded.size(); j++)
             {
@@ -158,11 +145,25 @@ private:
                     break;
                 }
             }
+
             if (!skip)
             {
-                MeshTexture texture; // <--- Używamy nazwy Adriana
-                std::string fullPath = this->directory + '/' + str.C_Str();
-                texture.Texture2DPtr = std::make_shared<Texture2D>(fullPath); // <--- Używamy Twojej klasy
+                MeshTexture texture;
+                const aiTexture* embeddedTex = m_ScenePtr->GetEmbeddedTexture(str.C_Str());
+
+                if (embeddedTex)
+                {
+                    texture.Texture2DPtr = std::make_shared<Texture2D>(
+                        reinterpret_cast<unsigned char*>(embeddedTex->pcData),
+                        embeddedTex->mWidth
+                    );
+                }
+                else
+                {
+                    string fullPath = this->directory + '/' + str.C_Str();
+                    texture.Texture2DPtr = std::make_shared<Texture2D>(fullPath);
+                }
+
                 texture.type = typeName;
                 texture.path = str.C_Str();
                 textures.push_back(texture);
@@ -173,63 +174,4 @@ private:
     }
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//inline unsigned int TextureFromFile(const char* path, const string& directory, bool gamma = false);
-
-// Funkcja pomocnicza wczytuj�ca fizyczny plik .png / .jpg i zwracaj�ca id dla OpenGL
-//unsigned int TextureFromFile(const char* path, const string& directory, bool gamma)
-//{
-//    string filename = string(path);
-//    filename = directory + '/' + filename;
-//
-//    unsigned int textureID;
-//    glGenTextures(1, &textureID);
-//
-//    int width, height, nrComponents;
-//    unsigned char* data = stbi_load(filename.c_str(), &width, &height, &nrComponents, 0);
-//    if (data)
-//    {
-//        GLenum format;
-//        if (nrComponents == 1)
-//            format = GL_RED;
-//        else if (nrComponents == 3)
-//            format = GL_RGB;
-//        else if (nrComponents == 4)
-//            format = GL_RGBA;
-//
-//        glBindTexture(GL_TEXTURE_2D, textureID);
-//        glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
-//        glGenerateMipmap(GL_TEXTURE_2D);
-//
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-//
-//        stbi_image_free(data);
-//    }
-//    else
-//    {
-//        std::cout << "Texture failed to load at path: " << path << std::endl;
-//        stbi_image_free(data);
-//    }
-//
-//    return textureID;
-//}
 #endif

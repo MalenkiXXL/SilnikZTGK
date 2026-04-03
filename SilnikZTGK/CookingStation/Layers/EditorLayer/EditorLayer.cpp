@@ -36,6 +36,9 @@ void EditorLayer::OnUpdate() {
 
     // ustawiamy orto i rysujemy elementy edytora
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
+
+    glDisable(GL_DEPTH_TEST);
+
     Renderer2D::BeginScene(uiProj);
 
     // sprawdzamy, czy jest jakas prosba o postawienie modelu
@@ -154,12 +157,13 @@ void EditorLayer::OnUpdate() {
 
     SceneSerializer serializer(m_ActiveScene.get());
     
-    if (Gui::Button("Save", { 150.f, 100.f }, { 100.f,100.f })) {
+    if (Gui::Button("Save Scene", { m_ViewportWidth - 150.0f, m_ViewportHeight - 100.f }, { 100.f,50.f })) {
         serializer.Serialize("CookingStation/Assets/saved.json");
     }
   
    
     Renderer2D::EndScene();
+    glEnable(GL_DEPTH_TEST);
 }
 
 void EditorLayer::OnEvent(Event& e) {

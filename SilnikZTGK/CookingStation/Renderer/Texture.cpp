@@ -48,6 +48,53 @@ Texture2D::Texture2D(const std::string& path)
 	}
 }
 
+Texture2D::Texture2D(const unsigned char* data, uint32_t size)
+{
+	// glTF/GLB zazwyczaj nie wymagaj¹ flipowania UV, ale jeœli Twoje UV 
+	// s¹ odwrócone, zostawiamy to zgodnie z Twoim projektem.
+	stbi_set_flip_vertically_on_load(1);
+
+	int width, height, channels;
+
+	// ZMIANA: Prosimy stbi o za³adowanie obrazu zawsze jako 4 kana³y (RGBA), 
+	// aby unikn¹æ problemów z czarnym t³em detali.
+	unsigned char* pixels = stbi_load_from_memory(data, size, &width, &height, &channels, 4);
+
+	if (pixels)
+	{
+		m_Width = width;
+		m_Height = height;
+
+		// Skoro wymusiliœmy 4 kana³y w stbi_load_from_memory, 
+		// u¿ywamy formatów wspieraj¹cych przezroczystoœæ (Alpha).
+		GLenum internalFormat = GL_RGBA8;
+		GLenum dataFormat = GL_RGBA;
+
+		glGenTextures(1, &m_RendererID);
+		glBindTexture(GL_TEXTURE_2D, m_RendererID);
+
+		// Ustawienia filtrowania
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+		// Ustawienia zawijania - wa¿ne dla tekstur detali (buŸki)
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_Width, m_Height, 0, dataFormat, GL_UNSIGNED_BYTE, pixels);
+		glGenerateMipmap(GL_TEXTURE_2D);
+
+		stbi_image_free(pixels);
+
+		// Debug: potwierdzenie wczytania w konsoli
+		// std::cout << "Wczytano teksture wbudowana: " << m_Width << "x" << m_Height << std::endl;
+	}
+	else
+	{
+		std::cout << "B£¥D: Nie uda³o siê wczytaæ wbudowanej tekstury z pamiêci! Powód: " << stbi_failure_reason() << std::endl;
+	}
+}
+
 Texture2D::~Texture2D()
 {
 	glDeleteTextures(1, &m_RendererID);

@@ -24,6 +24,7 @@ struct Vertex {
     glm::vec3 Position;  // Pozycja w przestrzeni
     glm::vec3 Normal;    // Wektor normalny (kierunek, w kt�rym "patrzy" wierzcho�ek)
     glm::vec2 TexCoords; // Wsp�rz�dne tekstury (U, V)
+    glm::vec2 TexCoords2; // Wsp�rz�dne tekstury (U, V)
     glm::vec3 Tangent;
     glm::vec3 Bitangent;
     int m_BoneIDs[MAX_BONE_INFLUENCE];
@@ -55,22 +56,38 @@ public:
         setupMesh();
     }
 
-    // Funkcja wywo�ywana z g��wnej p�tli. Wi��e tekstury i zleca karcie graficznej rysowanie
     void Draw(Shader& shader)
     {
+        // 1. Zawsze aktywujemy shader przed ustawieniem jakichkolwiek uniformów
+        shader.use();
+
         unsigned int diffuseNr = 1;
         unsigned int specularNr = 1;
         unsigned int normalNr = 1;
         unsigned int heightNr = 1;
 
-        // Przelatujemy przez wszystkie tekstury przypi�te do tej siatki
+        // 2. Liczymy tekstury typu "texture_diffuse". 
+        // Jeśli w Model.h wczytałeś map_Kd i map_Ks jako "texture_diffuse", tutaj będzie 2.
+        int diffuseCount = 0;
+        for (const auto& t : textures)
+        {
+            if (t.type == "texture_diffuse")
+                diffuseCount++;
+        }
+
+        // 3. Informujemy shader, czy ma użyć drugiej tekstury w obliczeniach [cite: 8, 10]
+        shader.SetBool("useTexture2", diffuseCount > 1);
+
+        // 4. Przelatujemy przez wszystkie tekstury przypięte do tej siatki
         for (unsigned int i = 0; i < textures.size(); i++)
         {
-            // Aktywujemy odpowiednie gniazdo tekstury
+            // Aktywujemy odpowiednie gniazdo tekstury (GL_TEXTURE0 + i)
             glActiveTexture(GL_TEXTURE0 + i);
 
             string number;
             string name = textures[i].type;
+
+            // Logika nadawania nazw: texture_diffuse1, texture_diffuse2 itd. [cite: 7]
             if (name == "texture_diffuse")
                 number = std::to_string(diffuseNr++);
             else if (name == "texture_specular")
@@ -80,25 +97,20 @@ public:
             else if (name == "texture_height")
                 number = std::to_string(heightNr++);
 
-            // Przekazujemy numer gniazda do shadera
+            // Przekazujemy numer slotu (i) do shadera pod wygenerowaną nazwę
             glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
+
+            // Bindujemy teksturę korzystając z Twojej klasy Texture2D
             textures[i].Texture2DPtr->Bind(i);
         }
 
-        // Ostateczne rysowanie siatki z przypi�tymi teksturami
-        // recznie bindujemy vao
-        m_VertexArray->Bind();         
+        // 5. Rysowanie siatki przy użyciu VAO i Twojego Renderera
+        m_VertexArray->Bind();
         RenderCommand::DrawIndexed(m_VertexArray);
         m_VertexArray->Unbind();
 
-        
+        // 6. Resetujemy aktywną jednostkę teksturującą do domyślnej
         glActiveTexture(GL_TEXTURE0);
-
-       /* glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, static_cast<unsigned int>(indices.size()), GL_UNSIGNED_INT, 0);
-        glBindVertexArray(0);
-
-        glActiveTexture(GL_TEXTURE0);*/
     }
 
 private:
@@ -118,6 +130,7 @@ private:
                 {ShaderDataType::Float3, "aPos"},
                 {ShaderDataType::Float3, "aNormal"},
                 {ShaderDataType::Float2, "aTexCoords"},
+                {ShaderDataType::Float2, "aTexCoords2"},
                 //te 4 rzeczy zostawiamy dla Assimpa
                 {ShaderDataType::Float3, "aTangent"},
                 {ShaderDataType::Float3, "aBitangent"},
