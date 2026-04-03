@@ -52,7 +52,7 @@ private:
     {
         // Tworzymy importera Assimp i prosimy go o wyg�adzenie, tr�jk�towanie siatki oraz odwr�cenie koordynat�w UV
         Assimp::Importer importer;
-        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+        const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
 
         // Wy�apanie b��d�w np. z�a �cie�ka do pliku
         if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)

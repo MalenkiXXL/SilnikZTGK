@@ -17,7 +17,7 @@ void main()
 {    
     // Próbujemy pobraæ kolor z tekstury. Jeœli jej nie ma, bêdzie prawie czarny.
     // Dodajemy ma³y szary wektor (0.5), ¿eby model bez tekstury wygl¹da³ jak glina.
-    vec3 texColor = texture(texture_diffuse1, TexCoords).rgb + vec3(0.5);
+    vec3 texColor = texture(texture_diffuse1, TexCoords).rgb;
 
     // 1. Ambient (œwiat³o otoczenia)
     float ambientStrength = 0.2;
