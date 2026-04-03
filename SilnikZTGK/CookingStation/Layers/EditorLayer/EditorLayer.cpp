@@ -4,6 +4,7 @@
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Layers/GuiLayer/Gui.h" 
+#include "CookingStation/Core/Physics.h"
 
 void EditorLayer::OnAttach() {
     auto windowSize = Input::GetWindowSize();
@@ -71,6 +72,50 @@ void EditorLayer::OnUpdate() {
 
         // Anulowanie prawym przyciskiem
         if (Input::IsMouseButtonPressed(1)) m_IsPlacing = false;
+    }
+
+    if (Input::IsMouseButtonPressed(0))
+    {
+        glm::vec2 mPos = Gui::GetMappedMousePos();
+        if (mPos.x > 200)
+        {
+            //kamera ze swiata gry
+            float aspectRatio = m_ViewportWidth / (m_ViewportHeight > 0 ? m_ViewportHeight : 1.0f);
+            float orthoSize = 10.0f;
+            glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+
+            // jesli kamera znie istnieje dajemy bezpieczn¹ macierz bazow¹
+            glm::mat4 view = m_ActiveScene->GetCamera() ? m_ActiveScene->GetCamera()->GetViewMatrix() : glm::mat4(1.0f);
+            Ray ray = Physics::CastRayFromMouse(Input::GetMousePosition().first, Input::GetMousePosition().second, m_ViewportWidth, m_ViewportHeight, projection, view);
+            auto* meshStorage = world.GetComponentVector<MeshComponent>();
+            auto* transformStorage = world.GetComponentVector<TransformComponent>();
+
+            if (meshStorage != nullptr && transformStorage != nullptr)
+            {
+                for (auto it = 0; it < meshStorage->dense.size(); it++)
+                {
+                    //wyciaganie id z encji
+                    Entity entity = meshStorage->reverse[it];
+                    //pozycja
+                    TransformComponent* transform = transformStorage->Get(entity);
+ 
+                    if (transform != nullptr)
+                    {
+                        // tworzymy karton (AABB) woko³ obiektu, odejmujemy i dodajemy skale, zeby karton rosl razem z modelem
+                        AABB box;
+                        box.Min = transform->Position - transform->Scale;
+                        box.Max = transform->Position + transform->Scale;
+
+                        // sprawdzamy trafienie
+                        if (Physics::Intersects(ray, box))
+                        {
+                            m_ActiveScene->SetSelectedEntity(entity);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Entity selected = m_ActiveScene->GetSelectedEntity();
