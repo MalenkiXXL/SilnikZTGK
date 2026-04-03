@@ -24,6 +24,7 @@ struct TransformComponent {
 
 struct MeshComponent {
     std::shared_ptr<Model> ModelPtr;
+    std::string Path;
 };
 
 struct TagComponent {

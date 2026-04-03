@@ -10,7 +10,6 @@ public:
 
     void Bind(uint32_t slot = 0) const;
 
-    // Ta metoda naprawi Twój b³¹d kompilacji
     void SetData(void* data, uint32_t size);
 
     inline uint32_t GetWidth() const { return m_Width; }

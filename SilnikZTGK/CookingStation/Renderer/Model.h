@@ -30,11 +30,13 @@ public:
     // Przechowuje ju� wczytane tekstury jako optymalizacja (nie �adujemy dwa razy tego samego obrazka)
     vector<MeshTexture> textures_loaded;
     vector<Mesh>    meshes;
+    string FilePath;
     string directory;
     bool gammaCorrection;
 
     Model(string const& path, bool gamma = false) : gammaCorrection(gamma)
     {
+        FilePath = path;
         loadModel(path);
     }
 

@@ -5,6 +5,7 @@
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Layers/GuiLayer/Gui.h" 
 #include "CookingStation/Core/Physics.h"
+#include "CookingStation/Scene/SceneSerializer.h"
 
 void EditorLayer::OnAttach() {
     // pobieramy aktualny rozmiar okna
@@ -54,7 +55,7 @@ void EditorLayer::OnUpdate() {
         // pobieramy pozycje myszki zmapowana na ekran gui
         glm::vec2 mPos = Gui::GetMappedMousePos();
 
-        // nad myszk� poka�e si� informacja o tym co stawiamy
+        // nad myszka pokaze sie informacja o tym co stawiamy
         Gui::DrawGuiText("Stawiasz: " + m_PendingModelName, { mPos.x + 10, mPos.y }, 0.35f, { 0.2f, 1.0f, 0.2f, 1.0f });
 
         // jezeli klikniemy LPM (0) to..
@@ -149,8 +150,15 @@ void EditorLayer::OnUpdate() {
             Renderer2D::DrawQuad({ screenX, screenY }, { 50.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
             Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
         }
-    }
+    };
 
+    SceneSerializer serializer(m_ActiveScene.get());
+    
+    if (Gui::Button("Save", { 150.f, 100.f }, { 100.f,100.f })) {
+        serializer.Serialize("CookingStation/Assets/saved.json");
+    }
+  
+   
     Renderer2D::EndScene();
 }
 

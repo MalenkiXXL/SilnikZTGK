@@ -48,7 +48,8 @@ bool SceneSerializer::Deserialize(const std::string& path) {
         // budujemy encjê w œwiecie ECS
         m_Scene->GetWorld().BuildEntity()
             .With<TagComponent>({ name }) // dodajemy tag (nazwa w gui)
-            .With<MeshComponent>({ model }) // dodajemy mesh (wizualny model 3d)
+            .With<MeshComponent>({ model, modelPath }) // dodajemy mesh (wizualny model 3d)
+   
 
             // dodajemy transform z pliku json
             .With<TransformComponent>({
@@ -62,4 +63,70 @@ bool SceneSerializer::Deserialize(const std::string& path) {
     }
 
 	return true; //scena wczytana pomyslnie
+}
+
+
+void SceneSerializer::Serialize(const std::string& filepath) {
+    json data;
+
+    // pobieramy wektory encji z ClearColorComponent
+    auto* clearColorSet = m_Scene->GetWorld().GetComponentVector<ClearColorComponent>();
+    // zak³adamy ¿e tylko jedna encja ma kolor    
+    if (clearColorSet && !clearColorSet->dense.empty()) {
+        auto& c = clearColorSet->dense[0].bgColor;
+        data["settings"]["clear_color"] = { c.r, c.g, c.b };
+    }
+   
+
+    // inicjalizacja tablicy json na obiekty
+    data["entities"] = json::array(); 
+
+    auto* tagSet = m_Scene->GetWorld().GetComponentVector<TagComponent>();
+    if (tagSet) {
+        // reverse to zbior zawieraj¹cy wszystkie encje z dany komponentem
+        for (size_t i = 0; i < tagSet->reverse.size(); ++i) {
+            
+            Entity entity = tagSet->reverse[i];
+            json item;
+
+            // zapisywanie nazwy 
+            item["name"] = tagSet->dense[i].Tag;
+
+            // zapisywanie transformacji
+            auto* transformSet = m_Scene->GetWorld().GetComponent<TransformComponent>(entity);
+            if (transformSet) {
+                item["position"] = { transformSet->Position.x,
+                    transformSet->Position.y,
+                    transformSet->Position.z
+                };
+
+                item["rotation"] = { transformSet->Rotation.x,
+                    transformSet->Rotation.y,
+                    transformSet->Rotation.z
+                };
+
+                item["scale"] = { transformSet->Scale.x,
+                   transformSet->Scale.y,
+                   transformSet->Scale.z
+                };
+            };
+
+            auto* meshSet = m_Scene->GetWorld().GetComponent<MeshComponent>(entity);
+            if (meshSet) {
+                item["model_path"] = meshSet->ModelPtr->FilePath;
+            };
+
+            data["entities"].push_back(item);
+        }
+    }
+    
+    std::ofstream file(filepath);
+    if (file.is_open()) {
+        file << data.dump(4); 
+        spdlog::info("[SceneSerializer] Zapisano scene do: {}", filepath);
+    }
+    else {
+        spdlog::error("[SceneSerializer] Nie udalo sie zapisac pliku {}", filepath);
+    }
+    
 }

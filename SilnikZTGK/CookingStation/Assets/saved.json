@@ -1,0 +1,68 @@
+{
+    "entities": [
+        {
+            "model_path": "CookingStation/Assets/marchewa/marchewa.obj",
+            "name": "Marchewa1",
+            "position": [
+                2.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.5,
+                1.5,
+                1.5
+            ]
+        },
+        {
+            "model_path": "CookingStation/Assets/marchewa/marchewa.obj",
+            "name": "Marchewa2",
+            "position": [
+                -5.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                45.0,
+                45.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "model_path": "CookingStation/Assets/detale/marchewka.obj",
+            "name": "Nowy Obiekt",
+            "position": [
+                5.30000114440918,
+                -3.7333335876464844,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        }
+    ],
+    "settings": {
+        "clear_color": [
+            0.10000000149011612,
+            0.20000000298023224,
+            0.30000001192092896
+        ]
+    }
+}
