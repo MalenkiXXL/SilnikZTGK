@@ -9,8 +9,20 @@
       "path": "CookingStation/Assets/detale/marchew.glb"
     },
     {
-      "name": "test",
+      "name": "marchewka",
       "path": "CookingStation/Assets/test/test.gltf"
+    },
+    {
+      "name": "pomidor",
+      "path": "CookingStation/Assets/pomidor/pomidor.gltf"
+    },
+    {
+      "name": "rzodkiewka",
+      "path": "CookingStation/Assets/rzodkiewka/rzodkiewka-new.gltf"
+    },
+    {
+      "name": "proteza",
+      "path": "CookingStation/Assets/proteza/proteza.gltf"
     }
   ]
 }

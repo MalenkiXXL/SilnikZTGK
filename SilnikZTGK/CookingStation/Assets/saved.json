@@ -39,11 +39,11 @@
             ]
         },
         {
-            "model_path": "CookingStation/Assets/detale/marchewka.obj",
+            "model_path": "CookingStation/Assets/pomidor/pomidor.gltf",
             "name": "Nowy Obiekt",
             "position": [
-                1.4999990463256836,
-                -5.5666656494140625,
+                -1.066666603088379,
+                -4.40000057220459,
                 0.0
             ],
             "rotation": [
@@ -52,47 +52,9 @@
                 0.0
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "model_path": "CookingStation/Assets/detale/marchewka.obj",
-            "name": "Nowy Obiekt",
-            "position": [
-                -4.633334159851074,
-                -3.8999996185302734,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "model_path": "CookingStation/Assets/detale/marchewka.obj",
-            "name": "Nowy Obiekt",
-            "position": [
-                -2.2333335876464844,
-                4.133333683013916,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
+                3.4211111068725586,
+                3.4211111068725586,
+                3.4211111068725586
             ]
         }
     ],
