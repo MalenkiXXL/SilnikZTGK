@@ -3,6 +3,7 @@
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Renderer/RenderCommand.h"
 #include "CookingStation/Layers/RenderLayer/RendererLayer.h"
+#include "CookingStation/Core/Timestep.h"
 #include <iostream>
 
 Application* Application::s_Instance = nullptr;
@@ -49,13 +50,17 @@ void Application::Run()
 	while (m_Running)
 	{
 	
+		float time = (float)glfwGetTime();
+		Timestep timestep = time - m_LastFrameTime;
+		m_LastFrameTime = time;
+
 		RenderCommand::SetClearColor(glm::vec4(.05f, 0.05f, 0.05f, 1.0f));
 		RenderCommand::Clear();
 
 		
 		for (Layer* layer : m_LayerStack)
 		{
-			layer->OnUpdate();
+			layer->OnUpdate(timestep);
 		}
 
 	/*	if (Input::IsKeyPressed(GLFW_KEY_W))

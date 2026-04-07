@@ -188,6 +188,9 @@
     <ClInclude Include="CookingStation\Layers\EditorLayer\EditorLayer.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="CookingStation\Core\Timestep.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

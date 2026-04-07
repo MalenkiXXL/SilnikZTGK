@@ -14,7 +14,7 @@ void EditorLayer::OnAttach() {
     m_ViewportHeight = (float)windowSize.second;
 }
 
-void EditorLayer::OnUpdate() {
+void EditorLayer::OnUpdate(Timestep ts) {
     
     // sprawdzamy czy istnieje jakas aktywna scena
     if (!m_ActiveScene) return;

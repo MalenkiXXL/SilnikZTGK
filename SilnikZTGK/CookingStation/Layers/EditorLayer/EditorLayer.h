@@ -3,6 +3,8 @@
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Events/WindowEvent.h"
 #include "CookingStation/Layers/GuiLayer/Renderer2D.h"
+#include "CookingStation/Core/Timestep.h"
+
 #include <limits>
 
 class EditorLayer : public Layer {
@@ -11,7 +13,7 @@ public:
     ~EditorLayer() = default;
 
     virtual void OnAttach() override;
-    virtual void OnUpdate() override;
+    virtual void OnUpdate(Timestep ts) override;
     virtual void OnEvent(Event& e) override;
 
     // te dwie funkcje sluza do komunikacji z guiLayer przez scene

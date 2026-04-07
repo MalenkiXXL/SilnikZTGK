@@ -10,7 +10,7 @@ void RendererLayer::OnAttach() {
     m_Shader = m_ShaderLibrary.Load("Standardowy", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
 }
 
-void RendererLayer::OnUpdate() {
+void RendererLayer::OnUpdate(Timestep ts) {
     if (!m_ActiveScene) return;
 
     //pobieramy baze danych ecs ze sceny

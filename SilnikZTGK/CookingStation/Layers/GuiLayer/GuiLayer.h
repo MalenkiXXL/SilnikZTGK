@@ -7,6 +7,7 @@
 #include "Gui.h"
 #include "Renderer2D.h"
 
+
 #include <limits>
 
 class GuiLayer : public Layer {
@@ -14,7 +15,7 @@ public:
     GuiLayer() : Layer("GuiLayer") {};
     ~GuiLayer();
     virtual void OnAttach() override;
-    virtual void OnUpdate() override;
+    virtual void OnUpdate(Timestep ts) override;
     virtual void OnEvent(Event& e) override;
     void SetScene(std::shared_ptr<Scene> scene) { m_ActiveScene = scene; }
     bool OnWindowResize(WindowResizeEvent& e);

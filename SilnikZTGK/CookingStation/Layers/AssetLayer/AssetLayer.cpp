@@ -36,7 +36,7 @@ void AssetLayer::OnAttach() {
 	serializer.Deserialize("CookingStation/Assets/example.json");
 };
 
-void AssetLayer::OnUpdate()
+void AssetLayer::OnUpdate(Timestep ts)
 {
 
 }

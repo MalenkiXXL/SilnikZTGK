@@ -9,6 +9,7 @@
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Renderer/ShaderLibrary.h"
 
+#include "CookingStation/Core/Timestep.h"
 
 class AssetLayer : public Layer
 {
@@ -18,7 +19,7 @@ public:
 	AssetLayer() : Layer("AssetLayer") {}
 	~AssetLayer();
 	void OnAttach();
-	void OnUpdate();
+	void OnUpdate(Timestep ts);
 	void OnEvent(Event& e);
 	bool OnWindowResize(WindowResizeEvent& e);
 	void SetScene(std::shared_ptr<Scene> scene) { m_ActiveScene = scene; }

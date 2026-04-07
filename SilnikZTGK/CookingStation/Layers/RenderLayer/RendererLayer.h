@@ -16,7 +16,7 @@ public:
 	~RendererLayer() = default;
 
 	void OnAttach() override;
-	void OnUpdate() override;
+	void OnUpdate(Timestep ts) override;
 	void OnEvent(Event& e) override;
 
 	void SetScene(std::shared_ptr<Scene> scene) { m_ActiveScene = scene; }

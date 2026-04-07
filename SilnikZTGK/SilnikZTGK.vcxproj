@@ -168,6 +168,7 @@
   <ItemGroup>
     <ClInclude Include="CookingStation\Core\Physics.h" />
     <ClInclude Include="CookingStation\Core\Texture.h" />
+    <ClInclude Include="CookingStation\Core\Timestep.h" />
     <ClInclude Include="CookingStation\Renderer\Buffer.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetLayer.h" />

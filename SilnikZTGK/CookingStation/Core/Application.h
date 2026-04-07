@@ -36,5 +36,7 @@ private:
 	Window* m_Window; //wskaznik na okno
 	bool m_Running = true;
 
+	float m_LastFrameTime = 0.0f;
+
 	static Application* s_Instance;
 };

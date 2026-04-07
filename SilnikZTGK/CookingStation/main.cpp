@@ -3,6 +3,7 @@
 #include "CookingStation/Core/Application.h"
 #include "CookingStation/Core/Layer.h"
 #include "CookingStation/Core/Input.h"
+#include "CookingStation/Core/Timestep.h"
 
 class SandboxLayer : public Layer
 {
@@ -12,7 +13,7 @@ public:
         debugName = "SandboxLayer";
     }
 
-    void OnUpdate() override
+    void OnUpdate(Timestep ts) override
     {
         if(Input::IsKeyPressed(GLFW_KEY_SPACE))
         {

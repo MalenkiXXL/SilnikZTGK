@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Events/Event.h"
+#include "CookingStation/Core/Timestep.h"
 #include <sstream>
 class Layer
 {
@@ -10,7 +11,7 @@ public:
 
 	virtual void OnAttach() {}
 	virtual void OnDetach() {}
-	virtual void OnUpdate() {}
+	virtual void OnUpdate(Timestep ts) {}
 	virtual void OnEvent(Event& event) {}
 
 	inline const std::string& GetName() const { return debugName; }

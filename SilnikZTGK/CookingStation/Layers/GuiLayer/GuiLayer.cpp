@@ -27,7 +27,7 @@ void GuiLayer::OnAttach() {
     Gui::Init("CookingStation/Assets/fonts/ARIAL.ttf", 32);
 }
 
-void GuiLayer::OnUpdate() {
+void GuiLayer::OnUpdate(Timestep ts) {
 
     // pobranie aktualnej sceny
     auto& world = m_ActiveScene->GetWorld();
