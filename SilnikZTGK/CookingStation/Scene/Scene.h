@@ -1,5 +1,6 @@
 #pragma once
 #include "Entity.h"
+#include "../Core/Timestep.h"
 #include "ecs.h"
 #include <vector>
 
@@ -18,7 +19,7 @@ public:
 	Scene();
 	~Scene();
 
-	void Update();
+	void Update(Timestep ts);
 
 	World& GetWorld() { return m_ECSWorld;  }
 

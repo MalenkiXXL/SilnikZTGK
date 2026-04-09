@@ -6,6 +6,7 @@
 #include "CookingStation/Layers/GuiLayer/Gui.h" 
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Scene/SceneSerializer.h"
+#include "CookingStation/Scripts/RotationScript.h" 
 
 void EditorLayer::OnAttach() {
     // pobieramy aktualny rozmiar okna
@@ -18,6 +19,7 @@ void EditorLayer::OnUpdate(Timestep ts) {
     
     // sprawdzamy czy istnieje jakas aktywna scena
     if (!m_ActiveScene) return;
+    m_ActiveScene->Update(ts);
 
     // je�eli tak, to pobieramy z niej dane
     auto& world = m_ActiveScene->GetWorld();
@@ -72,6 +74,12 @@ void EditorLayer::OnUpdate(Timestep ts) {
             world.AddComponent<MeshComponent>(newEnt, MeshComponent{ AssetManager::GetModel(m_PendingModelPath) });
             world.AddComponent<TransformComponent>(newEnt, TransformComponent{});
             world.AddComponent<BoxColliderComponent>(newEnt, BoxColliderComponent{});
+            world.AddComponent<NativeScriptComponent>(newEnt, NativeScriptComponent{});
+
+            auto* script = world.GetComponent<NativeScriptComponent>(newEnt);
+            if (script) {
+                script->Bind<RotationScript>();
+            }
 
             // nadajemy jej pozycje
             auto* trans = world.GetComponent<TransformComponent>(newEnt);
@@ -178,9 +186,19 @@ void EditorLayer::OnUpdate(Timestep ts) {
 
                 if (Physics::Intersects(boxA, boxB))
                 {
-                    transB->Rotation += glm::vec3(0.0f, ts*90.0f, 0.0f);
-                    transA->Rotation += glm::vec3(90.0f * ts, 0.0f, 0.0f);
                     spdlog::info("kolizja miedzy ID: {} a ID: {}", entA.id, entB.id);
+
+                    // szukamy skryptu dla obiektu A
+                    auto* scriptA = world.GetComponent<NativeScriptComponent>(entA);
+                    if (scriptA && scriptA->Instance) {
+                        scriptA->Instance->OnCollision(); // Wysyłamy sygnał do skryptu
+                    }
+
+                    // szukamy skryptu dla obiektu B
+                    auto* scriptB = world.GetComponent<NativeScriptComponent>(entB);
+                    if (scriptB && scriptB->Instance) {
+                        scriptB->Instance->OnCollision(); // Wysyłamy sygnał do skryptu
+                    }
                 }
             }
         }

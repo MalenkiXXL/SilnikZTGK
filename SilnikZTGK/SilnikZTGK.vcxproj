@@ -197,6 +197,7 @@
     <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h" />
     <ClInclude Include="CookingStation\Layers\RenderLayer\RendererLayer.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\EditorLayer.h" />
+    <ClInclude Include="CookingStation\Scripts\RotationScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

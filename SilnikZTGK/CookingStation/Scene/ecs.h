@@ -180,11 +180,19 @@ public:
 
     Entity Build();
 };
+// Deklaracja wyprzedzaj¹ca
+class ScriptableEntity;
 
-class ScriptableEntity
+struct NativeScriptComponent
 {
-    struct NativeScriptComponent
+    ScriptableEntity* Instance = nullptr;
+
+    // Zmieniamy typ na funkcjê, która zwraca wskaŸnik na ScriptableEntity
+    std::function<ScriptableEntity* ()> InstantiateScript;
+
+    template<typename T>
+    void Bind()
     {
-        ScriptableEntity* Instance = nullptr;
-    };
+        InstantiateScript = []() { return new T(); };
+    }
 };

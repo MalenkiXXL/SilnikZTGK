@@ -191,6 +191,9 @@
     <ClInclude Include="CookingStation\Core\Timestep.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="CookingStation\Scripts\RotationScript.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

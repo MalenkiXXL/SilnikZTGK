@@ -12,11 +12,11 @@ public:
 	{
 		return m_Scene->GetWorld().GetComponent<T>(m_Entity);
 	}
-	
-protected:
+
 	virtual void OnCreate() {}
 	virtual void OnDestroy() {}
 	virtual void OnUpdate(Timestep ts) {}
+	virtual void OnCollision() {}
 
 private:
 	//encja do ktorej jest przypieta
