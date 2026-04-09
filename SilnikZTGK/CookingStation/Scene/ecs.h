@@ -6,6 +6,7 @@
 #include <unordered_map>
 #include <vector>
 #include <cstddef>
+#include <functional>
 
 #include "spdlog/spdlog.h"
 
@@ -178,4 +179,12 @@ public:
     }
 
     Entity Build();
+};
+
+class ScriptableEntity
+{
+    struct NativeScriptComponent
+    {
+        ScriptableEntity* Instance = nullptr;
+    };
 };
