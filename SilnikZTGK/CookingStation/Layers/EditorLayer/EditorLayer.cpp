@@ -71,6 +71,7 @@ void EditorLayer::OnUpdate(Timestep ts) {
             world.AddComponent<TagComponent>(newEnt, TagComponent{ "Nowy Obiekt" });
             world.AddComponent<MeshComponent>(newEnt, MeshComponent{ AssetManager::GetModel(m_PendingModelPath) });
             world.AddComponent<TransformComponent>(newEnt, TransformComponent{});
+            world.AddComponent<BoxColliderComponent>(newEnt, BoxColliderComponent{});
 
             // nadajemy jej pozycje
             auto* trans = world.GetComponent<TransformComponent>(newEnt);
@@ -134,6 +135,52 @@ void EditorLayer::OnUpdate(Timestep ts) {
                             break;
                         }
                     }
+                }
+            }
+        }
+    }
+
+    //Test BoxCollidera - potem w Scene::OnUpdate()
+    auto* colliderStorage = world.GetComponentVector<BoxColliderComponent>();
+    auto* transformStorage = world.GetComponentVector<TransformComponent>();
+
+    if (colliderStorage && transformStorage && colliderStorage->dense.size() > 1)
+    {
+        //sprawdzenie kazdego z kazdym
+        for (size_t i = 0; i < colliderStorage->dense.size(); i++)
+        {
+            Entity entA = colliderStorage->reverse[i];
+            auto* transA = transformStorage->Get(entA);
+            auto* colA = &colliderStorage->dense[i];
+
+            if (!transA) continue;
+
+            //aabb dla obiektu a
+            AABB boxA;
+            glm::vec3 centerA = transA->Position + colA->Offset;
+            glm::vec3 extensA = transA->Scale * colA->Size;
+            boxA.Min = centerA - extensA;
+            boxA.Max = centerA + extensA;
+
+            for (size_t j = i + 1; j < colliderStorage->dense.size(); j++) {
+                Entity entB = colliderStorage->reverse[j];
+                auto* transB = transformStorage->Get(entB);
+                auto* colB = &colliderStorage->dense[j];
+
+                if (!transB) continue;
+
+                // Obliczamy AABB dla obiektu B
+                AABB boxB;
+                glm::vec3 centerB = transB->Position + colB->Offset;
+                glm::vec3 extentsB = transB->Scale * colB->Size;
+                boxB.Min = centerB - extentsB;
+                boxB.Max = centerB + extentsB;
+
+                if (Physics::Intersects(boxA, boxB))
+                {
+                    transB->Rotation += glm::vec3(0.0f, ts*90.0f, 0.0f);
+                    transA->Rotation += glm::vec3(90.0f * ts, 0.0f, 0.0f);
+                    spdlog::info("kolizja miedzy ID: {} a ID: {}", entA.id, entB.id);
                 }
             }
         }

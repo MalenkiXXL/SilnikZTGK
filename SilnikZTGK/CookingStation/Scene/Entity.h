@@ -34,3 +34,9 @@ struct TagComponent {
 struct ClearColorComponent {
     glm::vec4 bgColor = {0.1f, 0.2f, 0.3f,0.1f};
 };
+
+struct BoxColliderComponent
+{
+    glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
+    glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
+};
