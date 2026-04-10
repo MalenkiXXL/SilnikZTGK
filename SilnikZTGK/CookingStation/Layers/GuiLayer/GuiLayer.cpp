@@ -249,7 +249,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
 		// Przycisk PotwierdŸ
 		if (Gui::Button("Zapisz plik", { dialogPos.x + 10.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) {
-			std::string path = "CookingStation/Assets/" + m_SaveFileName + ".json";
+			std::string path = "CookingStation/Assets/saves/" + m_SaveFileName + ".json";
 			SceneSerializer serializer(activeScene.get());
 			serializer.Serialize(path);
 
@@ -275,10 +275,10 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		Gui::InputGuiText("Nazwa", m_LoadFileName, { dialogPos.x + 10.0f, dialogPos.y + 50.0f }, { 330.0f, 30.0f });
 
 		if (Gui::Button("Wczytaj plik", { dialogPos.x + 10.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) {
-			std::string path = "CookingStation/Assets/" + m_LoadFileName + ".json";
+			std::string path = "CookingStation/Assets/saves/" + m_LoadFileName + ".json";
 
 			// MAGIA SCENE MANAGERA:
-			// Tworzymy now¹, czyst¹ scenê i nadpisujemy star¹!
+			// Tworzymy now¹, czyst¹ scenê i nadpisujemy star¹
 			std::shared_ptr<Scene> newScene = SceneManager::NewScene();
 
 			// Wczytujemy do niej dane
