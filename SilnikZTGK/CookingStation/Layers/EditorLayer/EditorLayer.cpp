@@ -6,6 +6,7 @@
 #include "CookingStation/Layers/GuiLayer/Gui.h" 
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Scene/SceneSerializer.h"
+#include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Scripts/RotationScript.h" 
 
 void EditorLayer::OnAttach() {
@@ -16,14 +17,14 @@ void EditorLayer::OnAttach() {
 }
 
 void EditorLayer::OnUpdate(Timestep ts) {
-    
+    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     // sprawdzamy czy istnieje jakas aktywna scena
-    if (!m_ActiveScene) return;
-    m_ActiveScene->Update(ts);
+    if (!activeScene) return;
+    activeScene->Update(ts);
 
     // je�eli tak, to pobieramy z niej dane
-    auto& world = m_ActiveScene->GetWorld();
-    auto* camera = m_ActiveScene->GetCamera();
+    auto& world = activeScene->GetWorld();
+    auto* camera = activeScene->GetCamera();
 
     // pobieramy pozycje kamery 
     glm::vec3 camPos = camera ? camera->Position : glm::vec3(0.0f);
@@ -44,7 +45,7 @@ void EditorLayer::OnUpdate(Timestep ts) {
     Renderer2D::BeginScene(uiProj);
 
     // sprawdzamy, czy jest jakas prosba o postawienie modelu
-    auto& request = m_ActiveScene->GetPlacementRequest();
+    auto& request = activeScene->GetPlacementRequest();
 
     // jezeli istnieje prosba, pobieramy nazwe i sciezke kladzionego modelu
     if (request.Active) {
@@ -115,7 +116,7 @@ void EditorLayer::OnUpdate(Timestep ts) {
             glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
 
             // jesli kamera znie istnieje dajemy bezpieczn� macierz bazow�
-            glm::mat4 view = m_ActiveScene->GetCamera() ? m_ActiveScene->GetCamera()->GetViewMatrix() : glm::mat4(1.0f);
+            glm::mat4 view = activeScene->GetCamera() ? activeScene->GetCamera()->GetViewMatrix() : glm::mat4(1.0f);
             Ray ray = Physics::CastRayFromMouse(Input::GetMousePosition().first, Input::GetMousePosition().second, m_ViewportWidth, m_ViewportHeight, projection, view);
             auto* meshStorage = world.GetComponentVector<MeshComponent>();
             auto* transformStorage = world.GetComponentVector<TransformComponent>();
@@ -139,7 +140,7 @@ void EditorLayer::OnUpdate(Timestep ts) {
                         // sprawdzamy trafienie
                         if (Physics::Intersects(ray, box))
                         {
-                            m_ActiveScene->SetSelectedEntity(entity);
+                            activeScene->SetSelectedEntity(entity);
                             break;
                         }
                     }
@@ -204,7 +205,7 @@ void EditorLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    Entity selected = m_ActiveScene->GetSelectedEntity();
+    Entity selected = activeScene->GetSelectedEntity();
 
     if (selected.id != std::numeric_limits<std::size_t>::max()) {
         // pobieramy pozycje tego komponentu
@@ -219,13 +220,6 @@ void EditorLayer::OnUpdate(Timestep ts) {
             Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
         }
     };
-
-    SceneSerializer serializer(m_ActiveScene.get());
-    
-    if (Gui::Button("Save Scene", { m_ViewportWidth - 150.0f, m_ViewportHeight - 100.f }, { 100.f,50.f })) {
-        serializer.Serialize("CookingStation/Assets/saved.json");
-    }
-  
    
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);

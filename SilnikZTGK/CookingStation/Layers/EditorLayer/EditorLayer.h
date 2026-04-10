@@ -16,8 +16,6 @@ public:
     virtual void OnUpdate(Timestep ts) override;
     virtual void OnEvent(Event& e) override;
 
-    // te dwie funkcje sluza do komunikacji z guiLayer przez scene
-    void SetScene(std::shared_ptr<Scene> scene) { m_ActiveScene = scene; }
     void StartPlacement(const std::string& name, const std::string& path) {
         m_PendingModelName = name;
         m_PendingModelPath = path;
@@ -29,8 +27,6 @@ public:
 
 private:
     bool OnWindowResize(WindowResizeEvent& e);
-
-    std::shared_ptr<Scene> m_ActiveScene;
 
     // stan zaznaczenia i stawiania
     Entity m_SelectedEntity = { std::numeric_limits<std::size_t>::max(), 0 };

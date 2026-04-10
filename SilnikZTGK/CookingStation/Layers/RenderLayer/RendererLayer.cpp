@@ -11,10 +11,16 @@ void RendererLayer::OnAttach() {
 }
 
 void RendererLayer::OnUpdate(Timestep ts) {
-    if (!m_ActiveScene) return;
+    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+
+    // Zabezpieczenie: jeœli z jakiegoœ powodu nie ma sceny, to przerywamy
+    if (!activeScene) {
+        spdlog::error("AssetLayer: Brak aktywnej sceny!");
+        return;
+    }
 
     //pobieramy baze danych ecs ze sceny
-    auto& world = m_ActiveScene->GetWorld();
+    auto& world = activeScene->GetWorld();
     //proporcje ekranu
     float aspectRatio = m_ViewportWidth / (m_ViewportHeight > 0 ? m_ViewportHeight : 1.0f);
 
@@ -35,9 +41,9 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
     //-------rysowanie 3d----------
     //czy scena ma kamere
-    if (m_ActiveScene->GetCamera()) {
+    if (activeScene->GetCamera()) {
         //macierz widoku z kamery
-        glm::mat4 view = m_ActiveScene->GetCamera()->GetViewMatrix();
+        glm::mat4 view = activeScene->GetCamera()->GetViewMatrix();
 
         //kamera ortograficzna
         float orthoSize = 10.0f;
@@ -51,7 +57,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
         m_Shader->use();
         m_Shader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
         m_Shader->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
-        m_Shader->setVec3("viewPos", m_ActiveScene->GetCamera()->Position);
+        m_Shader->setVec3("viewPos", activeScene->GetCamera()->Position);
 
         if (meshStorage && transformStorage) {
             //przelatujemy przez liste obietkow ktore maja modele

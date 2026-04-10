@@ -3,6 +3,7 @@
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Renderer/RenderCommand.h"
 #include "CookingStation/Layers/RenderLayer/RendererLayer.h"
+#include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Core/Timestep.h"
 #include <iostream>
 
@@ -15,27 +16,15 @@ Application::Application()
 	m_Window->Init();
 	m_Window->SetEventCallback([this](Event& e) { OnEvent(e); }); //stworz niewidzialna funkcje ktora zna ten wskaznik i niech wywola OnEvent
 
-	auto scene = std::make_shared<Scene>();
-	
-	CameraLayer* camLayer = new CameraLayer();
-	camLayer->SetScene(scene);
-	PushLayer(camLayer);
+	// TWORZYMY PIERWSZ¥ SCENÊ PRZEZ MENED¯ERA SCEN
+	SceneManager::NewScene();
 
-	AssetLayer* astLayer = new AssetLayer();
-	astLayer->SetScene(scene);
-	PushLayer(astLayer);
-
-	RendererLayer* renderLayer = new RendererLayer();
-	renderLayer->SetScene(scene);
-	PushLayer(renderLayer);
-
-	GuiLayer* guiLayer = new GuiLayer();
-	guiLayer->SetScene(scene);
-	PushLayer(guiLayer);
-
-	EditorLayer* editorLayer = new EditorLayer();
-	editorLayer->SetScene(scene);
-	PushLayer(editorLayer);
+	// DODAJEMY WARSTWY DO STOSU
+	PushLayer(new CameraLayer());
+	PushLayer(new AssetLayer());
+	PushLayer(new RendererLayer());
+	PushLayer(new GuiLayer());
+	PushLayer(new EditorLayer());
 }
 
 Application::~Application()
@@ -69,7 +58,7 @@ void Application::Run()
 		}*/
 		
 		m_Window->OnUpdate();
-
+		Input::Update();
 	}
 }
 

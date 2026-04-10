@@ -1,7 +1,7 @@
 {
     "entities": [
         {
-            "model_path": "CookingStation/Assets/marchewa/marchewa.obj",
+            "model_path": "CookingStation/Assets/detale/marchew.glb",
             "name": "Marchewa1",
             "position": [
                 2.0,
@@ -18,144 +18,11 @@
                 1.5,
                 1.5
             ]
-        },
-        {
-            "model_path": "CookingStation/Assets/marchewa/marchewa.obj",
-            "name": "Marchewa2",
-            "position": [
-                -5.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                45.0,
-                45.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "model_path": "CookingStation/Assets/marchewa/marchewa.obj",
-            "name": "Nowy Obiekt",
-            "position": [
-                -2.2957935333251953,
-                -2.8793423175811768,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "model_path": "CookingStation/Assets/detale/marchew.glb",
-            "name": "Nowy Obiekt",
-            "position": [
-                -6.929126739501953,
-                3.0206573009490967,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "model_path": "CookingStation/Assets/test/test.gltf",
-            "name": "Nowy Obiekt",
-            "position": [
-                -7.495793342590332,
-                -3.646009683609009,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "model_path": "CookingStation/Assets/proteza/proteza.gltf",
-            "name": "Nowy Obiekt",
-            "position": [
-                -0.4624595642089844,
-                -6.679343223571777,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "model_path": "CookingStation/Assets/rzodkiewka/rzodkiewka-new.gltf",
-            "name": "Nowy Obiekt",
-            "position": [
-                -6.695793151855469,
-                -6.412676811218262,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ]
-        },
-        {
-            "model_path": "CookingStation/Assets/pomidor/pomidor.gltf",
-            "name": "Nowy Obiekt",
-            "position": [
-                -3.362459182739258,
-                -3.379343271255493,
-                0.0
-            ],
-            "rotation": [
-                43.20001220703125,
-                0.0,
-                -9.5999755859375
-            ],
-            "scale": [
-                1.3250000476837158,
-                1.3250000476837158,
-                1.3250000476837158
-            ]
         }
     ],
     "settings": {
         "clear_color": [
-            0.10000000149011612,
+            0.25999999046325684,
             0.20000000298023224,
             0.30000001192092896
         ]

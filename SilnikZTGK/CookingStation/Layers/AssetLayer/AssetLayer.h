@@ -22,10 +22,6 @@ public:
 	void OnUpdate(Timestep ts);
 	void OnEvent(Event& e);
 	bool OnWindowResize(WindowResizeEvent& e);
-	void SetScene(std::shared_ptr<Scene> scene) { m_ActiveScene = scene; }
-
-protected:
-	std::shared_ptr<Scene> m_ActiveScene;
 
 private:
 	ShaderLibrary m_ShaderLibrary;

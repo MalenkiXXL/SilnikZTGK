@@ -3,6 +3,10 @@
 
 #include <GLFW/glfw3.h>
 
+bool Input::s_CurrentMouseStates[8] = { false };
+bool Input::s_PreviousMouseStates[8] = { false };
+
+
 bool Input::IsKeyPressed(int keycode)
 {
 	auto window = Application::Get().GetWindow().GetNativeWindow();
@@ -13,6 +17,27 @@ bool Input::IsKeyPressed(int keycode)
 		return true;
 	}
 	return false;
+}
+
+void Input::Update() {
+	// Kopiujemy obecny stan do tablicy poprzedniej klatki
+	for (int i = 0; i < 8; i++) {
+		s_PreviousMouseStates[i] = s_CurrentMouseStates[i];
+
+		// Pobieramy aktualny stan z GLFW (lub Twojego systemu)
+		// Zak³adam, ¿e Twoja funkcja IsMouseButtonPressed dzia³a i ³¹czy siê z systemem okien
+		s_CurrentMouseStates[i] = IsMouseButtonPressed(i);
+	}
+}
+
+bool Input::IsMouseButtonJustPressed(int button) {
+	// Zwraca true TYLKO jeœli w tej klatce jest wciœniêty, a w poprzedniej nie by³
+	return s_CurrentMouseStates[button] && !s_PreviousMouseStates[button];
+}
+
+bool Input::IsMouseButtonJustReleased(int button) {
+	// Zwraca true TYLKO jeœli w tej klatce jest PUSZCZONY, a w poprzedniej by³ wciœniêty
+	return !s_CurrentMouseStates[button] && s_PreviousMouseStates[button];
 }
 
 bool Input::IsMouseButtonPressed(int button)

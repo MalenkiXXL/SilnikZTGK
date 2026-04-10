@@ -1,16 +1,8 @@
 {
   "models": [
     {
-      "name": "Marchewka",
-      "path": "CookingStation/Assets/marchewa/marchewa.obj"
-    },
-    {
-      "name": "Detal_marchew",
-      "path": "CookingStation/Assets/detale/marchew.glb"
-    },
-    {
       "name": "marchewka",
-      "path": "CookingStation/Assets/test/test.gltf"
+      "path": "CookingStation/Assets/marchewka/test.gltf"
     },
     {
       "name": "pomidor",

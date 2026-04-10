@@ -2,6 +2,7 @@
 #include "CookingStation/Core/Layer.h"
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Scene/SceneSerializer.h"
+#include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Events/WindowEvent.h"
 #include "GuiLayer.h"
 #include "Gui.h"
@@ -17,12 +18,7 @@ public:
     virtual void OnAttach() override;
     virtual void OnUpdate(Timestep ts) override;
     virtual void OnEvent(Event& e) override;
-    void SetScene(std::shared_ptr<Scene> scene) { m_ActiveScene = scene; }
     bool OnWindowResize(WindowResizeEvent& e);
-
-
-protected:
-    std::shared_ptr<Scene> m_ActiveScene;
 
 private:
     Entity m_SelectedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -31,4 +27,14 @@ private:
     std::string m_PendingModelPath = "";
     std::string m_PendingModelName = "";
     bool m_IsPlacing = false;
+    bool m_ShowFileMenu = false;
+    bool m_ShowViewMenu = false;
+    bool m_ShowEnvironmentPanel = false;
+    bool m_ShowHierarchyPanel = false;
+    bool m_ShowLibraryPanel = true;
+    bool m_ShowInspectorPanel = true;
+    bool m_ShowSaveDialog = false;
+    bool m_ShowLoadDialog = false;
+    std::string m_SaveFileName = "moja_scena";
+    std::string m_LoadFileName = "moja_scena";
 };

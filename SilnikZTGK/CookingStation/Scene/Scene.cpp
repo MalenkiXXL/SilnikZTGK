@@ -1,14 +1,16 @@
 #include "CookingStation/Scene/Scene.h"
 #include "ScriptableEntity.h"
+#include "Entity.h" 
 
-Scene::Scene() {
-    m_ECSWorld.RegisterComponent<TransformComponent>();
-    m_ECSWorld.RegisterComponent<MeshComponent>();
+Scene::Scene()
+{
     m_ECSWorld.RegisterComponent<TagComponent>();
-    m_ECSWorld.RegisterComponent<ClearColorComponent>();
+    m_ECSWorld.RegisterComponent<MeshComponent>();
+    m_ECSWorld.RegisterComponent<TransformComponent>();
     m_ECSWorld.RegisterComponent<BoxColliderComponent>();
     m_ECSWorld.RegisterComponent<NativeScriptComponent>();
-};
+    m_ECSWorld.RegisterComponent<ClearColorComponent>();
+}
 Scene::~Scene() {};
 
 void Scene::Update(Timestep ts)

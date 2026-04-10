@@ -96,6 +96,9 @@
     <ClCompile Include="CookingStation\Layers\EditorLayer\EditorLayer.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="CookingStation\Scene\SceneManager.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Layers\CameraLayer\Camera.h">
@@ -192,6 +195,9 @@
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="CookingStation\Scripts\RotationScript.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Scene\SceneManager.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>

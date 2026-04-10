@@ -16,10 +16,6 @@ public:
  	~CameraLayer();
 	void OnUpdate(Timestep ts);
 	virtual void OnEvent(Event& event) {};
-	void SetScene(std::shared_ptr<Scene> scene) { m_ActiveScene = scene; }
-
-protected:
-	std::shared_ptr<Scene> m_ActiveScene;
 
 private:
 	Camera m_Camera;
