@@ -2,19 +2,19 @@
   "models": [
     {
       "name": "marchewka",
-      "path": "CookingStation/Assets/marchewka/test.gltf"
+      "path": "CookingStation/Assets/models/marchewka/test.gltf"
     },
     {
       "name": "pomidor",
-      "path": "CookingStation/Assets/pomidor/pomidor.gltf"
+      "path": "CookingStation/Assets/models/pomidor/pomidor.gltf"
     },
     {
       "name": "rzodkiewka",
-      "path": "CookingStation/Assets/rzodkiewka/rzodkiewka-new.gltf"
+      "path": "CookingStation/Assets/models/rzodkiewka/rzodkiewka-new.gltf"
     },
     {
       "name": "proteza",
-      "path": "CookingStation/Assets/proteza/proteza.gltf"
+      "path": "CookingStation/Assets/models/proteza/proteza.gltf"
     }
   ]
 }
