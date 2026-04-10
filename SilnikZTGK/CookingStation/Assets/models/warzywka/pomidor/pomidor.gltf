@@ -502,7 +502,7 @@
 		{
 			"mimeType":"image/png",
 			"name":"palette",
-			"uri":"palette.png"
+			"uri":"../../../textures/palette.png"
 		}
 	],
 	"skins":[

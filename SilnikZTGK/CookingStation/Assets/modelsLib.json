@@ -2,19 +2,27 @@
   "models": [
     {
       "name": "marchewka",
-      "path": "CookingStation/Assets/models/marchewka/test.gltf"
+      "path": "CookingStation/Assets/models/warzywka/marchewka/test.gltf"
     },
     {
       "name": "pomidor",
-      "path": "CookingStation/Assets/models/pomidor/pomidor.gltf"
+      "path": "CookingStation/Assets/models/warzywka/pomidor/pomidor.gltf"
     },
     {
       "name": "rzodkiewka",
-      "path": "CookingStation/Assets/models/rzodkiewka/rzodkiewka-new.gltf"
+      "path": "CookingStation/Assets/models/warzywka/rzodkiewka/rzodkiewka-new.gltf"
+    },
+    {
+      "name": "grzybek",
+      "path": "CookingStation/Assets/models/warzywka/grzybek/grzybek.gltf"
     },
     {
       "name": "proteza",
-      "path": "CookingStation/Assets/models/proteza/proteza.gltf"
+      "path": "CookingStation/Assets/models/warzywka/proteza/proteza.gltf"
+    },
+    {
+      "name": "big_pot",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/big_pot/bigger_pot.gltf"
     }
   ]
 }
