@@ -1,5 +1,7 @@
 #include "EditorLayer.h"
+#include <GLFW/glfw3.h>
 #include "CookingStation/Core/Input.h"
+#include "CookingStation/Events/KeyEvent.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Scene/ecs.h"
@@ -8,6 +10,11 @@
 #include "CookingStation/Scene/SceneSerializer.h"
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Scripts/RotationScript.h" 
+#include "CreateEntityCommand.h"
+#include "MoveEntityCommand.h"
+#include "CookingStation/Scene/Scene.h"
+#include <functional> 
+#define BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 
 void EditorLayer::OnAttach() {
     // pobieramy aktualny rozmiar okna
@@ -67,38 +74,32 @@ void EditorLayer::OnUpdate(Timestep ts) {
         // jezeli klikniemy LPM (0) to..
         if (Input::IsMouseButtonPressed(0) && mPos.x > 200) {
 
-            // tworzymy now� encj�
-            Entity newEnt = world.CreateEntity();
+            // 1. Najpierw obliczamy docelową pozycję myszki w świecie 3D
+            auto rawMouse = Input::GetMousePosition();
+            float xRatio = rawMouse.first / m_ViewportWidth;
+            float yRatio = rawMouse.second / m_ViewportHeight;
 
-            // dodajemy do niej komponenty
-            world.AddComponent<TagComponent>(newEnt, TagComponent{ "Nowy Obiekt" });
-            world.AddComponent<MeshComponent>(newEnt, MeshComponent{ AssetManager::GetModel(m_PendingModelPath) });
-            world.AddComponent<TransformComponent>(newEnt, TransformComponent{});
-            world.AddComponent<BoxColliderComponent>(newEnt, BoxColliderComponent{});
-            world.AddComponent<NativeScriptComponent>(newEnt, NativeScriptComponent{});
+            glm::vec3 spawnPosition;
+            spawnPosition.x = (xRatio * worldWidth - (worldWidth / 2.0f)) + camPos.x;
+            spawnPosition.y = (-(yRatio * worldHeight - (worldHeight / 2.0f))) + camPos.y;
+            spawnPosition.z = 0.0f;
 
-            auto* script = world.GetComponent<NativeScriptComponent>(newEnt);
-            if (script) {
-                script->Bind<RotationScript>();
-            }
+            // 2. MAGIA: Zamiast tworzyć obiekt ręcznie, generujemy KOMENDĘ!
+            // Przekazujemy świat, nazwę modelu, ścieżkę do pliku i wyliczoną pozycję
+            std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
+                &world,
+                m_PendingModelName,
+                m_PendingModelPath,
+                spawnPosition
+            );
 
-            // nadajemy jej pozycje
-            auto* trans = world.GetComponent<TransformComponent>(newEnt);
-            if (trans) {
-                // tutaj potrzebujemy surowych danych myszki, aby poprawnie rozmiescic modele w 3D
-                auto rawMouse = Input::GetMousePosition();
-                float xRatio = rawMouse.first / m_ViewportWidth;
-                float yRatio = rawMouse.second / m_ViewportHeight;
-
-                trans->Position.x = (xRatio * worldWidth - (worldWidth / 2.0f)) + camPos.x;
-                trans->Position.y = (-(yRatio * worldHeight - (worldHeight / 2.0f))) + camPos.y;
-                trans->Position.z = 0.0f;
-            }
+            // 3. Wrzucamy komendę do historii (co automatycznie wywoła jej Execute() i postawi obiekt)
+            m_CommandHistory.ExecuteCommand(std::move(cmd));
 
             // po polozeniu przestajemy rozmieszczac model
-            m_IsPlacing = false; 
+            m_IsPlacing = false;
 
-            spdlog::info("Editor: Umieszczono model {}", m_PendingModelName);
+            spdlog::info("Editor: Zlecono utworzenie modelu {}", m_PendingModelName);
         }
 
         // prawym przyciskiem anulujemy
@@ -230,10 +231,70 @@ void EditorLayer::OnEvent(Event& e) {
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {
         return OnWindowResize(ev);
         });
+    dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
+    dispatcher.Dispatch<EntityTransformChangedEvent>(BIND_EVENT_FN(EditorLayer::OnEntityTransformChanged));
+    dispatcher.Dispatch<EntityDeletedEvent>(BIND_EVENT_FN(EditorLayer::OnEntityDeleted));
 }
 
 bool EditorLayer::OnWindowResize(WindowResizeEvent& e) {
     m_ViewportWidth = (float)e.GetWidth();
     m_ViewportHeight = (float)e.GetHeight();
     return false;
+}
+
+bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
+    // Sprawdzamy klawisze modyfikujące (Ctrl i Shift)
+    bool control = Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL) || Input::IsKeyPressed(GLFW_KEY_RIGHT_CONTROL);
+    bool shift = Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT) || Input::IsKeyPressed(GLFW_KEY_RIGHT_SHIFT);
+
+    if (control) {
+        if (e.GetKeyCode() == GLFW_KEY_Z) {
+            if (shift) {
+                m_CommandHistory.Redo();
+            } // Ctrl + Shift + Z
+            else {
+                m_CommandHistory.Undo();
+                std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+                if (activeScene) {
+                    // Ustawiamy na "pustą" encję (max ID)
+                    activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
+                }
+            }// Ctrl + Z
+
+            return true;
+        }
+        else if (e.GetKeyCode() == GLFW_KEY_Y) {
+            m_CommandHistory.Redo();     // Ctrl + Y
+            return true;
+        }
+    }
+    return false;
+}
+
+bool EditorLayer::OnEntityTransformChanged(EntityTransformChangedEvent& e) {
+    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+    if (!activeScene) return false;
+
+    // EditorLayer ma dostęp do m_CommandHistory, więc po prostu tworzy i odpala
+    std::unique_ptr<Command> cmd = std::make_unique<MoveEntityCommand>(
+        &activeScene->GetWorld(),
+        e.GetEntity(),
+        e.GetStartPos(),
+        e.GetEndPos()
+    );
+
+    m_CommandHistory.ExecuteCommand(std::move(cmd));
+
+    spdlog::info("Edytor zapisał ruch dla encji ID: {}", e.GetEntity().id);
+    return true;
+}
+
+bool EditorLayer::OnEntityDeleted(EntityDeletedEvent& e) {
+    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+    if (!activeScene) return false;
+
+    auto cmd = std::make_unique<DeleteEntityCommand>(&activeScene->GetWorld(), e.GetEntity());
+
+    m_CommandHistory.ExecuteCommand(std::move(cmd));
+    return true;
 }

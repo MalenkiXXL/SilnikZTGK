@@ -4,7 +4,9 @@
 #include "CookingStation/Events/WindowEvent.h"
 #include "CookingStation/Layers/GuiLayer/Renderer2D.h"
 #include "CookingStation/Core/Timestep.h"
-
+#include "CookingStation/Events/KeyEvent.h"
+#include "CookingStation/Events/EditorEvents.h"
+#include "CommandHistory.h"
 #include <limits>
 
 class EditorLayer : public Layer {
@@ -27,7 +29,12 @@ public:
 
 private:
     bool OnWindowResize(WindowResizeEvent& e);
+    bool OnKeyPressed(KeyPressedEvent& e);
+    bool OnEntityTransformChanged(EntityTransformChangedEvent& e);
+    bool OnEntityDeleted(EntityDeletedEvent& e);
 
+    // menadzer undo/redo
+    CommandHistory m_CommandHistory;
     // stan zaznaczenia i stawiania
     Entity m_SelectedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     bool m_IsPlacing = false;

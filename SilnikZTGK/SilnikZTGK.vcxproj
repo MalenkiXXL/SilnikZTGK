@@ -170,6 +170,11 @@
     <ClInclude Include="CookingStation\Core\Physics.h" />
     <ClInclude Include="CookingStation\Core\Texture.h" />
     <ClInclude Include="CookingStation\Core\Timestep.h" />
+    <ClInclude Include="CookingStation\Events\EditorEvents.h" />
+    <ClInclude Include="CookingStation\Layers\EditorLayer\Command.h" />
+    <ClInclude Include="CookingStation\Layers\EditorLayer\CommandHistory.h" />
+    <ClInclude Include="CookingStation\Layers\EditorLayer\CreateEntityCommand.h" />
+    <ClInclude Include="CookingStation\Layers\EditorLayer\MoveEntityCommand.h" />
     <ClInclude Include="CookingStation\Renderer\Buffer.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetLayer.h" />

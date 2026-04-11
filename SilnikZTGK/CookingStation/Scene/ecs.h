@@ -44,6 +44,16 @@ public:
         this->sparse[entity.id] = index;
     }
 
+    T* GetByID(std::size_t id) {
+        if (id < this->sparse.size()) {
+            std::size_t index = this->sparse[id];
+            if (index != None) {
+                return &this->dense[index];
+            }
+        }
+        return nullptr;
+    }
+
     T* Get(Entity entity) {
         if (entity.id < this->sparse.size()) {
             std::size_t index = this->sparse[entity.id];
@@ -108,6 +118,13 @@ private:
 public:
     Entity CreateEntity(); // Maybe remove, confusing
     EntityBuilder BuildEntity();
+
+    template <typename T>
+    T* GetComponentByID(std::size_t id) {
+        SparseSet<T>* storage = this->GetComponentVector<T>();
+        if (storage == nullptr) return nullptr;
+        return storage->GetByID(id);
+    }
 
     template <typename T>
     void RegisterComponent() {

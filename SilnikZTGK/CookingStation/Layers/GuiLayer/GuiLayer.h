@@ -37,4 +37,6 @@ private:
     bool m_ShowLoadDialog = false;
     std::string m_SaveFileName = "moja_scena";
     std::string m_LoadFileName = "moja_scena";
+    bool m_IsDraggingTransform = false;
+    glm::vec3 m_TransformStartPos = { 0.0f, 0.0f, 0.0f };
 };

@@ -7,6 +7,8 @@ enum class EventType
 	KeyPressed, KeyReleased, KeyTyped,
 	MouseMoved, MouseScrolled, MouseButtonPressed, MouseButtonReleased,
 	WindowResize, WindowClose,
+	EntityTransformChanged,
+	EntityDeleted
 };
 
 class Event

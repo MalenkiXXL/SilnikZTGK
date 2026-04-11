@@ -4,6 +4,8 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Scene/ecs.h"
+#include "CookingStation/Events/EditorEvents.h"
+#include "CookingStation/Core/Application.h"
 
 void GuiLayer::OnAttach() {
 	Renderer2D::Init();
@@ -215,6 +217,9 @@ void GuiLayer::OnUpdate(Timestep ts) {
 			// wyswietlamy komponenty od transformacji jako slidery, zeby dalo sie modyfikowac
 			auto* transform = world.GetComponent<TransformComponent>(selected);
 			if (transform) {
+
+				glm::vec3 posBeforeSliders = transform->Position;
+
 				Gui::SliderFloat("Pos X", &transform->Position.x, -100.0f, 100.0f, { inspPos.x, inspPos.y + 40.0f }, { 150, 15 });
 				Gui::SliderFloat("Pos Y", &transform->Position.y, -100.0f, 100.0f, { inspPos.x, inspPos.y + 80.0f }, { 150, 15 });
 				Gui::SliderFloat("Rot X", &transform->Rotation.x, -360.0f, 360.0f, { inspPos.x, inspPos.y + 120.0f }, { 150, 15 });
@@ -225,11 +230,33 @@ void GuiLayer::OnUpdate(Timestep ts) {
 				// na razie synchronizacja skali, potem sie zrobi ze mozna wszystkie (brakuje miejsca na ekranie xd)
 				transform->Scale.y = transform->Scale.x;
 				transform->Scale.z = transform->Scale.x;
+
+				// LOGIKA WYKRYWANIA RUCHU
+				if (posBeforeSliders != transform->Position && !m_IsDraggingTransform) {
+					m_IsDraggingTransform = true;
+					m_TransformStartPos = posBeforeSliders; // Zapisujemy pozycjê startow¹
+				}
+
+				// JEŒLI PUŒCILIŒMY KLAWISZ MYSZY - WYSY£AMY EVENT
+				if (m_IsDraggingTransform && !Input::IsMouseButtonPressed(0)) {
+
+					EntityTransformChangedEvent e(selected, m_TransformStartPos, transform->Position);
+
+					// Strzelamy eventem w g³ówn¹ szynê aplikacji
+					Application::Get().OnEvent(e);
+
+					m_IsDraggingTransform = false; // reset
+				}
 			}
 
 			// przycisk od usuwania obiektu
 			if (Gui::Button("USUN OBIEKT", { inspPos.x, inspPos.y + 280.0f }, { 200.0f, 30.0f })) {
-				world.DestroyEntity(selected);
+				// Wysy³amy event zamiast niszczyæ œwiat
+				EntityDeletedEvent e(selected);
+				Application::Get().OnEvent(e);
+
+				// mo¿emy tutaj odznaczyæ encjê w GUI, 
+				// ¿eby inspektor nie próbowa³ rysowaæ skasowanych danych
 				activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
 			}
 		}
