@@ -5,6 +5,8 @@
 #include "CookingStation/Layers/RenderLayer/RendererLayer.h"
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Core/Timestep.h"
+#include "CookingStation/Layers/Lab5/Lab5Layer.h"
+
 #include <iostream>
 
 Application* Application::s_Instance = nullptr;
@@ -24,7 +26,8 @@ Application::Application()
 	PushLayer(new AssetLayer());
 	PushLayer(new RendererLayer());
 	PushLayer(new GuiLayer());
-	PushLayer(new EditorLayer());
+	PushLayer(new Lab5Layer());
+	//PushLayer(new EditorLayer());
 }
 
 Application::~Application()

@@ -139,6 +139,7 @@
   <ItemGroup>
     <ClCompile Include="CookingStation\Core\Texture_GUI.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp" />
+    <ClCompile Include="CookingStation\Layers\Lab5\Lab5Layer.cpp" />
     <ClCompile Include="CookingStation\Renderer\Buffer.cpp" />
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetManager.cpp" />
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetLayer.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="CookingStation\Layers\EditorLayer\CommandHistory.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\CreateEntityCommand.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\MoveEntityCommand.h" />
+    <ClInclude Include="CookingStation\Layers\Lab5\Lab5Layer.h" />
     <ClInclude Include="CookingStation\Renderer\Buffer.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetLayer.h" />
