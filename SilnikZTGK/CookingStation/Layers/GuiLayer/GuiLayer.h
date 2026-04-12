@@ -33,6 +33,7 @@ private:
     bool m_ShowHierarchyPanel = false;
     bool m_ShowLibraryPanel = true;
     bool m_ShowInspectorPanel = true;
+    bool m_ShowDiagnosticPanel = false; 
     bool m_ShowSaveDialog = false;
     bool m_ShowLoadDialog = false;
     std::string m_SaveFileName = "moja_scena";

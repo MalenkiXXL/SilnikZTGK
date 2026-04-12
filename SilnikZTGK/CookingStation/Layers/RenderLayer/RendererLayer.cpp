@@ -78,10 +78,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
                     modelMatrix = glm::rotate(modelMatrix, glm::radians(transform->Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
                     modelMatrix = glm::scale(modelMatrix, transform->Scale);
 
-                    m_Shader->setMat4("viewProjection", viewProjection);
-                    m_Shader->setMat4("model", modelMatrix);
-                    //rysujemy uzywajac tego shadera
-                    meshComp.ModelPtr->Draw(*m_Shader);
+                    Renderer::Submit(m_Shader, meshComp.ModelPtr, modelMatrix);
                 }
             }
         }

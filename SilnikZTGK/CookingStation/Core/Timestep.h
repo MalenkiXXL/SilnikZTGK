@@ -12,7 +12,7 @@ public:
 
 	//gettery
 	float GetSeconds() const { return m_Time; }
-	float GetMilliSeconds() const { return m_Time * 1000.0f; }
+	float GetMilliSeconds() const { return m_Time * 1000.0f; } 
 
 
 private:

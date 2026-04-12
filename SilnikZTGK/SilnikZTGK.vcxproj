@@ -179,6 +179,7 @@
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetLayer.h" />
     <ClInclude Include="CookingStation\Core\Application.h" />
+    <ClInclude Include="CookingStation\Core\ProfileTimer.h" />
     <ClInclude Include="CookingStation\Scene\SceneSerializer.h" />
     <ClInclude Include="CookingStation\Layers\CameraLayer\Camera.h" />
     <ClInclude Include="CookingStation\Layers\CameraLayer\CameraLayer.h" />

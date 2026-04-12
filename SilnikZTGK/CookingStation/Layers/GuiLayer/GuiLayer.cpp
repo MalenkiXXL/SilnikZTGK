@@ -87,7 +87,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
 	// 4. Logika rozwiniêtego menu "Widok"
 	if (m_ShowViewMenu) {
-		Renderer2D::DrawQuad({ 100.0f, 30.0f }, { 160.0f, 130.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
+		Renderer2D::DrawQuad({ 100.0f, 30.0f }, { 160.0f, 160.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
 
 		if (Gui::Button("Panel Otoczenia", { 105.0f, 35.0f }, { 150.0f, 25.0f }, m_ShowEnvironmentPanel)) {
 			m_ShowEnvironmentPanel = !m_ShowEnvironmentPanel;
@@ -108,8 +108,70 @@ void GuiLayer::OnUpdate(Timestep ts) {
 			m_ShowInspectorPanel = !m_ShowInspectorPanel;
 			m_ShowViewMenu = false;
 		}
+
+		if (Gui::Button("Diagnostyka", { 105.0f, 155.0f }, { 150.0f, 25.0f }, m_ShowDiagnosticPanel)) {
+			m_ShowDiagnosticPanel = !m_ShowDiagnosticPanel;
+			m_ShowViewMenu = false;
+		}
 	}
 
+
+	if (m_ShowDiagnosticPanel) {
+		// Pobieramy dane
+		auto stats = Renderer::GetStats();
+		float fps = 1.0f / ts.GetSeconds();
+		float frameTime = ts.GetMilliSeconds();
+
+		// Helper (lambda) do ³adnego formatowania liczb zmiennoprzecinkowych
+		auto formatFloat = [](float v) {
+			char buffer[32];
+			snprintf(buffer, sizeof(buffer), "%.2f", v);
+			return std::string(buffer);
+			};
+
+		// 1. T£O PANELU DIAGNOSTYCZNEGO
+		glm::vec2 panelPos(m_ViewportWidth - 300.0f, m_ViewportHeight -  270.0f);
+		glm::vec2 panelSize(300.0f, 270.0f);
+		glm::vec4 panelColor(0.1f, 0.1f, 0.1f, 0.75f);
+
+		Renderer2D::DrawQuad(panelPos, panelSize, panelColor);
+
+		// 2. WYPISYWANIE TEKSTÓW 
+		float textX = panelPos.x + 15.0f;
+		float textY = panelPos.y + 5.0f;
+		float lineOffset = 25.0f;
+		float scale = 0.6f;
+
+		glm::vec4 textColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glm::vec4 titleColor(0.2f, 0.8f, 0.2f, 1.0f);
+		glm::vec4 highlightColor(1.0f, 0.8f, 0.2f, 1.0f);
+
+		Gui::DrawGuiText("Diagnostyka Projektu:", { textX, textY }, scale + 0.1f, titleColor);
+		textY += lineOffset + 5.0f;
+
+		Gui::DrawGuiText("FPS: " + std::to_string((int)fps), { textX, textY }, scale, textColor);
+		textY += lineOffset;
+
+		Gui::DrawGuiText("Frame Time: " + formatFloat(frameTime) + " ms", { textX, textY }, scale, textColor);
+		textY += lineOffset;
+
+		Gui::DrawGuiText("CPU Logika: " + formatFloat(stats.CPULogicTime) + " ms", { textX, textY }, scale, highlightColor);
+		textY += lineOffset;
+
+		Gui::DrawGuiText("GPU Render: " + formatFloat(stats.GPURenderTime) + " ms", { textX, textY }, scale, highlightColor);
+		textY += lineOffset;
+
+		Gui::DrawGuiText("Draw Calls (3D): " + std::to_string(stats.DrawCalls3D), { textX, textY }, scale, textColor);
+		textY += lineOffset;
+
+		Gui::DrawGuiText("Trojkaty (3D): " + std::to_string(stats.TriangleCount3D), { textX, textY }, scale, textColor);
+		textY += lineOffset;
+
+		Gui::DrawGuiText("Draw Calls (UI): " + std::to_string(stats.DrawCallsUI), { textX, textY }, scale, textColor);
+		textY += lineOffset;
+
+		Gui::DrawGuiText("Trojkaty (UI): " + std::to_string(stats.TriangleCountUI), { textX, textY }, scale, textColor);
+	}
 
 	if (m_ShowEnvironmentPanel) {
 		// rysujemy kwadrat bedacy tlem na suwaki od koloru tla

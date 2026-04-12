@@ -2,6 +2,7 @@
 #include "Input.h"
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Renderer/RenderCommand.h"
+#include "ProfileTimer.h"
 #include "CookingStation/Layers/RenderLayer/RendererLayer.h"
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Core/Timestep.h"
@@ -34,11 +35,9 @@ Application::~Application()
 
 void Application::Run()
 {
-
     // 6. G£ÓWNA PÊTLA GRY
 	while (m_Running)
 	{
-	
 		float time = (float)glfwGetTime();
 		Timestep timestep = time - m_LastFrameTime;
 		m_LastFrameTime = time;
@@ -46,16 +45,19 @@ void Application::Run()
 		RenderCommand::SetClearColor(glm::vec4(.05f, 0.05f, 0.05f, 1.0f));
 		RenderCommand::Clear();
 
-		
-		for (Layer* layer : m_LayerStack)
+		// dodajemy dodatkowe klamerki { }, aby stworzyæ nowy zasiêg zmiennych (scope)
 		{
-			layer->OnUpdate(timestep);
-		}
+			// timer startuje w tym momencie (konstruktor)
+			ProfileTimer timer(Renderer::GetStats().CPULogicTime);
 
-	/*	if (Input::IsKeyPressed(GLFW_KEY_W))
-		{
-			std::cout << "Wciskasz W!" << std::endl;
-		}*/
+			for (Layer* layer : m_LayerStack)
+			{
+				layer->OnUpdate(timestep);
+			}
+			
+			// gdy wychodzimy z klamerek { }, timer jest niszczony (destruktor).
+			// oblicza miniony czas i automatycznie wpisuje go do zmiennej CPULogicTime
+		}
 		
 		m_Window->OnUpdate();
 		Input::Update();

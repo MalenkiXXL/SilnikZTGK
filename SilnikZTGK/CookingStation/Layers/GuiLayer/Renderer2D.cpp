@@ -74,6 +74,13 @@ void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, cons
         GL_UNSIGNED_INT,
         nullptr
     );
+
+
+    // podbijamy licznik wywo³añ rysowania dla UI
+    Renderer::GetStats().DrawCallsUI++;
+
+    // ka¿dy Quad to dok³adnie 2 trójk¹ty
+    Renderer::GetStats().TriangleCountUI += 2;
 }
 
 
