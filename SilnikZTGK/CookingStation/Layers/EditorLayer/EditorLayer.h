@@ -26,6 +26,9 @@ public:
 
     void SelectEntity(Entity entity) { m_SelectedEntity = entity; }
     Entity GetSelectedEntity() { return m_SelectedEntity; }
+    void UI_Toolbar();
+    void OnScenePlay();
+    void OnSceneStop();
 
 private:
     bool OnWindowResize(WindowResizeEvent& e);
@@ -44,4 +47,11 @@ private:
     // wymiary viewportu
     float m_ViewportWidth = 800.0f;
     float m_ViewportHeight = 600.0f;
+
+    SceneState m_SceneState = SceneState::Edit;
+    std::shared_ptr<Scene> m_EditorScene;
+    std::shared_ptr<Scene> m_RuntimeScene;
+
+    bool OnScenePlayEvent(ScenePlayEvent& e) { OnScenePlay(); return true; }
+    bool OnSceneStopEvent(SceneStopEvent& e) { OnSceneStop(); return true; }
 };

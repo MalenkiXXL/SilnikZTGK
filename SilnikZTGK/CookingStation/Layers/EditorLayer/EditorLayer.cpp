@@ -5,6 +5,7 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Scene/ecs.h"
+#include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Layers/GuiLayer/Gui.h" 
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Scene/SceneSerializer.h"
@@ -25,203 +26,109 @@ void EditorLayer::OnAttach() {
 
 void EditorLayer::OnUpdate(Timestep ts) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-    // sprawdzamy czy istnieje jakas aktywna scena
     if (!activeScene) return;
-    activeScene->Update(ts);
 
-    // je�eli tak, to pobieramy z niej dane
+    // Pobieramy podstawowe dane dla renderera
     auto& world = activeScene->GetWorld();
     auto* camera = activeScene->GetCamera();
-
-    // pobieramy pozycje kamery 
     glm::vec3 camPos = camera ? camera->Position : glm::vec3(0.0f);
 
-    // obliczamy sobie skal� dla okna, aby dzialalo niezaleznie od rozmiaru
     float aspectRatio = m_ViewportWidth / (m_ViewportHeight > 0 ? m_ViewportHeight : 1.0f);
-    float orthoSize = 10.0f; // orthoSize jest tym samym jakie jest zdefiniowane w RendererLayer
-    
-    // obliczamy wymiary swiata widocznego w oknie
-    float worldHeight = orthoSize * 2.0f; 
+    float orthoSize = 10.0f;
+    float worldHeight = orthoSize * 2.0f;
     float worldWidth = worldHeight * aspectRatio;
-
-    // ustawiamy orto i rysujemy elementy edytora
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
 
     glDisable(GL_DEPTH_TEST);
-
     Renderer2D::BeginScene(uiProj);
 
-    // sprawdzamy, czy jest jakas prosba o postawienie modelu
-    auto& request = activeScene->GetPlacementRequest();
+    // ==========================================================
+    // BRAMKA STANÓW: EDYTOR VS GRA
+    // ==========================================================
+    if (m_SceneState == SceneState::Edit)
+    {
+        // ------------------ TYLKO W TRYBIE EDYCJI ------------------
 
-    // jezeli istnieje prosba, pobieramy nazwe i sciezke kladzionego modelu
-    if (request.Active) {
-        m_PendingModelName = request.Name;
-        m_PendingModelPath = request.Path;
-        m_IsPlacing = true;
-        request.Active = false; // konsumujemy prosbe by wykonala sie tylko raz 
-    }
-
-    // jezeli kladziemy to...
-    if (m_IsPlacing) {
-
-        // pobieramy pozycje myszki zmapowana na ekran gui
-        glm::vec2 mPos = Gui::GetMappedMousePos();
-
-        // nad myszka pokaze sie informacja o tym co stawiamy
-        Gui::DrawGuiText("Stawiasz: " + m_PendingModelName, { mPos.x + 10, mPos.y }, 0.35f, { 0.2f, 1.0f, 0.2f, 1.0f });
-
-        // jezeli klikniemy LPM (0) to..
-        if (Input::IsMouseButtonPressed(0) && mPos.x > 200) {
-
-            // 1. Najpierw obliczamy docelową pozycję myszki w świecie 3D
-            auto rawMouse = Input::GetMousePosition();
-            float xRatio = rawMouse.first / m_ViewportWidth;
-            float yRatio = rawMouse.second / m_ViewportHeight;
-
-            glm::vec3 spawnPosition;
-            spawnPosition.x = (xRatio * worldWidth - (worldWidth / 2.0f)) + camPos.x;
-            spawnPosition.y = (-(yRatio * worldHeight - (worldHeight / 2.0f))) + camPos.y;
-            spawnPosition.z = 0.0f;
-
-            // 2. MAGIA: Zamiast tworzyć obiekt ręcznie, generujemy KOMENDĘ!
-            // Przekazujemy świat, nazwę modelu, ścieżkę do pliku i wyliczoną pozycję
-            std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
-                &world,
-                m_PendingModelName,
-                m_PendingModelPath,
-                spawnPosition
-            );
-
-            // 3. Wrzucamy komendę do historii (co automatycznie wywoła jej Execute() i postawi obiekt)
-            m_CommandHistory.ExecuteCommand(std::move(cmd));
-
-            // po polozeniu przestajemy rozmieszczac model
-            m_IsPlacing = false;
-
-            spdlog::info("Editor: Zlecono utworzenie modelu {}", m_PendingModelName);
+        // 1. KŁADZENIE MODELI (Placement)
+        auto& request = activeScene->GetPlacementRequest();
+        if (request.Active) {
+            m_PendingModelName = request.Name;
+            m_PendingModelPath = request.Path;
+            m_IsPlacing = true;
+            request.Active = false;
         }
 
-        // prawym przyciskiem anulujemy
-        if (Input::IsMouseButtonPressed(1)) m_IsPlacing = false;
-    }
+        if (m_IsPlacing) {
+            glm::vec2 mPos = Gui::GetMappedMousePos();
+            Gui::DrawGuiText("Stawiasz: " + m_PendingModelName, { mPos.x + 10, mPos.y }, 0.35f, { 0.2f, 1.0f, 0.2f, 1.0f });
 
-    if (Input::IsMouseButtonPressed(0))
-    {
-        glm::vec2 mPos = Gui::GetMappedMousePos();
-        if (mPos.x > 200)
-        {
-            //kamera ze swiata gry
-            float aspectRatio = m_ViewportWidth / (m_ViewportHeight > 0 ? m_ViewportHeight : 1.0f);
-            float orthoSize = 10.0f;
-            glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+            if (Input::IsMouseButtonPressed(0) && mPos.x > 200) {
+                auto rawMouse = Input::GetMousePosition();
+                float xRatio = rawMouse.first / m_ViewportWidth;
+                float yRatio = rawMouse.second / m_ViewportHeight;
+                glm::vec3 spawnPosition;
+                spawnPosition.x = (xRatio * worldWidth - (worldWidth / 2.0f)) + camPos.x;
+                spawnPosition.y = (-(yRatio * worldHeight - (worldHeight / 2.0f))) + camPos.y;
+                spawnPosition.z = 0.0f;
 
-            // jesli kamera znie istnieje dajemy bezpieczn� macierz bazow�
-            glm::mat4 view = activeScene->GetCamera() ? activeScene->GetCamera()->GetViewMatrix() : glm::mat4(1.0f);
-            Ray ray = Physics::CastRayFromMouse(Input::GetMousePosition().first, Input::GetMousePosition().second, m_ViewportWidth, m_ViewportHeight, projection, view);
-            auto* meshStorage = world.GetComponentVector<MeshComponent>();
-            auto* transformStorage = world.GetComponentVector<TransformComponent>();
+                std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
+                    &world, m_PendingModelName, m_PendingModelPath, spawnPosition
+                );
+                m_CommandHistory.ExecuteCommand(std::move(cmd));
+                m_IsPlacing = false;
+            }
+            if (Input::IsMouseButtonPressed(1)) m_IsPlacing = false;
+        }
 
-            if (meshStorage != nullptr && transformStorage != nullptr)
-            {
-                for (auto it = 0; it < meshStorage->dense.size(); it++)
-                {
-                    //wyciaganie id z encji
-                    Entity entity = meshStorage->reverse[it];
-                    //pozycja
-                    TransformComponent* transform = transformStorage->Get(entity);
- 
-                    if (transform != nullptr)
-                    {
-                        // tworzymy karton (AABB) woko� obiektu, odejmujemy i dodajemy skale, zeby karton rosl razem z modelem
-                        AABB box;
-                        box.Min = transform->Position - transform->Scale;
-                        box.Max = transform->Position + transform->Scale;
+        // 2. WYBIERANIE MYSZKĄ (Raycasting)
+        if (Input::IsMouseButtonPressed(0)) {
+            glm::vec2 mPos = Gui::GetMappedMousePos();
+            if (mPos.x > 200) {
+                glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+                glm::mat4 view = activeScene->GetCamera() ? activeScene->GetCamera()->GetViewMatrix() : glm::mat4(1.0f);
+                Ray ray = Physics::CastRayFromMouse(Input::GetMousePosition().first, Input::GetMousePosition().second, m_ViewportWidth, m_ViewportHeight, projection, view);
 
-                        // sprawdzamy trafienie
-                        if (Physics::Intersects(ray, box))
-                        {
-                            activeScene->SetSelectedEntity(entity);
-                            break;
+                auto* meshStorage = world.GetComponentVector<MeshComponent>();
+                auto* transformStorage = world.GetComponentVector<TransformComponent>();
+
+                if (meshStorage != nullptr && transformStorage != nullptr) {
+                    for (auto it = 0; it < meshStorage->dense.size(); it++) {
+                        Entity entity = meshStorage->reverse[it];
+                        TransformComponent* transform = transformStorage->Get(entity);
+                        if (transform != nullptr) {
+                            AABB box;
+                            box.Min = transform->Position - transform->Scale;
+                            box.Max = transform->Position + transform->Scale;
+                            if (Physics::Intersects(ray, box)) {
+                                activeScene->SetSelectedEntity(entity);
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    //Test BoxCollidera - potem w Scene::OnUpdate()
-    auto* colliderStorage = world.GetComponentVector<BoxColliderComponent>();
-    auto* transformStorage = world.GetComponentVector<TransformComponent>();
-
-    if (colliderStorage && transformStorage && colliderStorage->dense.size() > 1)
-    {
-        //sprawdzenie kazdego z kazdym
-        for (size_t i = 0; i < colliderStorage->dense.size(); i++)
-        {
-            Entity entA = colliderStorage->reverse[i];
-            auto* transA = transformStorage->Get(entA);
-            auto* colA = &colliderStorage->dense[i];
-
-            if (!transA) continue;
-
-            //aabb dla obiektu a
-            AABB boxA;
-            glm::vec3 centerA = transA->Position + colA->Offset;
-            glm::vec3 extensA = transA->Scale * colA->Size;
-            boxA.Min = centerA - extensA;
-            boxA.Max = centerA + extensA;
-
-            for (size_t j = i + 1; j < colliderStorage->dense.size(); j++) {
-                Entity entB = colliderStorage->reverse[j];
-                auto* transB = transformStorage->Get(entB);
-                auto* colB = &colliderStorage->dense[j];
-
-                if (!transB) continue;
-
-                // Obliczamy AABB dla obiektu B
-                AABB boxB;
-                glm::vec3 centerB = transB->Position + colB->Offset;
-                glm::vec3 extentsB = transB->Scale * colB->Size;
-                boxB.Min = centerB - extentsB;
-                boxB.Max = centerB + extentsB;
-
-                if (Physics::Intersects(boxA, boxB))
-                {
-                    spdlog::info("kolizja miedzy ID: {} a ID: {}", entA.id, entB.id);
-
-                    // szukamy skryptu dla obiektu A
-                    auto* scriptA = world.GetComponent<NativeScriptComponent>(entA);
-                    if (scriptA && scriptA->Instance) {
-                        scriptA->Instance->OnCollision(); // Wysyłamy sygnał do skryptu
-                    }
-
-                    // szukamy skryptu dla obiektu B
-                    auto* scriptB = world.GetComponent<NativeScriptComponent>(entB);
-                    if (scriptB && scriptB->Instance) {
-                        scriptB->Instance->OnCollision(); // Wysyłamy sygnał do skryptu
-                    }
-                }
+        // 3. RYSOWANIE OSI (Gizmo)
+        Entity selected = activeScene->GetSelectedEntity();
+        if (selected.id != std::numeric_limits<std::size_t>::max()) {
+            auto* transform = world.GetComponent<TransformComponent>(selected);
+            if (transform) {
+                float screenX = (((transform->Position.x - camPos.x) + (worldWidth / 2.0f)) / worldWidth) * m_ViewportWidth;
+                float screenY = ((-(transform->Position.y - camPos.y) + (worldHeight / 2.0f)) / worldHeight) * m_ViewportHeight;
+                Renderer2D::DrawQuad({ screenX, screenY }, { 50.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
+                Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
             }
         }
     }
+    else
+    {
+        // ------------------ TYLKO W TRYBIE GRY (PLAY) ------------------
 
-    Entity selected = activeScene->GetSelectedEntity();
+        // Zamiast rysować rzeczy z edytora, wywołujemy właściwą pętlę silnika
+        activeScene->OnUpdateRuntime(ts);
+    }
 
-    if (selected.id != std::numeric_limits<std::size_t>::max()) {
-        // pobieramy pozycje tego komponentu
-        auto* transform = world.GetComponent<TransformComponent>(selected);
-        if (transform) {
-            // obliczamy pozycje �wiata na piksele ekranu, aby w dobrym miejscu ulozylo sie gizmo 
-            float screenX = (((transform->Position.x - camPos.x) + (worldWidth / 2.0f)) / worldWidth) * m_ViewportWidth;
-            float screenY = ((-(transform->Position.y - camPos.y) + (worldHeight / 2.0f)) / worldHeight) * m_ViewportHeight;
-
-            // rysujemy osie x i y  
-            Renderer2D::DrawQuad({ screenX, screenY }, { 50.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
-            Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
-        }
-    };
-   
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);
 }
@@ -234,6 +141,8 @@ void EditorLayer::OnEvent(Event& e) {
     dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
     dispatcher.Dispatch<EntityTransformChangedEvent>(BIND_EVENT_FN(EditorLayer::OnEntityTransformChanged));
     dispatcher.Dispatch<EntityDeletedEvent>(BIND_EVENT_FN(EditorLayer::OnEntityDeleted));
+    dispatcher.Dispatch<ScenePlayEvent>(BIND_EVENT_FN(EditorLayer::OnScenePlayEvent));
+    dispatcher.Dispatch<SceneStopEvent>(BIND_EVENT_FN(EditorLayer::OnSceneStopEvent));
 }
 
 bool EditorLayer::OnWindowResize(WindowResizeEvent& e) {
@@ -297,4 +206,39 @@ bool EditorLayer::OnEntityDeleted(EntityDeletedEvent& e) {
 
     m_CommandHistory.ExecuteCommand(std::move(cmd));
     return true;
+}
+
+void EditorLayer::OnScenePlay() {
+    m_SceneState = SceneState::Play;
+
+    // 1. Robimy kopię zapasową sceny edytora
+    m_EditorScene = SceneManager::GetActiveScene();
+
+    // 2. Tworzymy nową scenę do grania i kopiujemy do niej wszystko
+    m_RuntimeScene = Scene::Copy(m_EditorScene);
+
+    // Mówimy nowej scenie, że jest w trybie gry
+    m_RuntimeScene->SetState(SceneState::Play);
+
+    // 3. Ustawiamy scenę gry jako aktywną w silniku
+    SceneManager::SetActiveScene(m_RuntimeScene);
+
+    // 4. Odpalamy systemy (fizyka, skrypty)
+    m_RuntimeScene->OnRuntimeStart();
+}
+
+void EditorLayer::OnSceneStop() {
+    m_SceneState = SceneState::Edit;
+
+    // 1. Zatrzymujemy systemy gry
+    m_RuntimeScene->OnRuntimeStop();
+
+    //  Upewniamy się, że scena edytora wraca do trybu edycji
+    m_EditorScene->SetState(SceneState::Edit);
+
+    // 2. Przywracamy oryginalną scenę edytora (obiekty wracają na swoje miejsca)
+    SceneManager::SetActiveScene(m_EditorScene);
+
+    // 3. Usuwamy scenę runtime z pamięci
+    m_RuntimeScene = nullptr;
 }

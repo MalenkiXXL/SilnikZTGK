@@ -8,7 +8,9 @@ enum class EventType
 	MouseMoved, MouseScrolled, MouseButtonPressed, MouseButtonReleased,
 	WindowResize, WindowClose,
 	EntityTransformChanged,
-	EntityDeleted
+	EntityDeleted,
+	ScenePlay,
+	SceneStop
 };
 
 class Event

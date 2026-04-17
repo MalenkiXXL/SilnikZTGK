@@ -117,3 +117,17 @@ private:
     BoxColliderComponent m_Collider;
     NativeScriptComponent m_Script;
 };
+
+class ScenePlayEvent : public Event {
+public:
+    ScenePlayEvent() = default;
+    virtual EventType GetEventType() const override { return EventType::ScenePlay; }
+    static EventType GetStaticType() { return EventType::ScenePlay; }
+};
+
+class SceneStopEvent : public Event {
+public:
+    SceneStopEvent() = default;
+    virtual EventType GetEventType() const override { return EventType::SceneStop; }
+    static EventType GetStaticType() { return EventType::SceneStop; }
+};

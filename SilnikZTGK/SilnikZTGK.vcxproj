@@ -148,6 +148,7 @@
     <ClCompile Include="CookingStation\stb_image_impl.cpp" />
     <ClCompile Include="CookingStation\Scene\ecs.cpp" />
     <ClCompile Include="CookingStation\Layers\EditorLayer\EditorLayer.cpp" />
+    <ClCompile Include="CookingStation\Layers\GameLayer\GameLayer.cpp" />
     <ClCompile Include="gettingStarted.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="CookingStation\Core\Input.cpp" />
@@ -206,6 +207,7 @@
     <ClInclude Include="CookingStation\Layers\EditorLayer\EditorLayer.h" />
     <ClInclude Include="CookingStation\Scripts\RotationScript.h" />
     <ClInclude Include="CookingStation\Scene\SceneManager.h" />
+    <ClInclude Include="CookingStation\Layers\GameLayer\GameLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

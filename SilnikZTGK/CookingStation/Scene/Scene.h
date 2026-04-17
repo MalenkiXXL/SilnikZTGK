@@ -13,13 +13,28 @@ struct PlacementRequest {
 	bool Active = false;
 };
 
+enum class SceneState {
+	Edit = 0, Play = 1
+};
+
 class Scene
 {
 public:
 	Scene();
 	~Scene();
 
-	void Update(Timestep ts);
+	SceneState GetState() const { return m_State; };
+	void SetState(SceneState state) { m_State = state; };
+	static std::shared_ptr<Scene> Copy(std::shared_ptr<Scene> other);
+
+	void OnRuntimeStart(); // inicjalizacja silnika fizycznego i skryptow C#
+	void OnRuntimeStop();  // czyszczenie pamiêci z  C# i niszczenie œwiata fizyki
+
+	// Wywo³ywane z Twojego GameLayer::OnUpdate
+	void OnUpdateRuntime(Timestep ts);
+
+	// Wywo³ywane z EditorLayer::OnUpdate (jeœli macie edytor)
+	//void OnUpdateEditor(Timestep ts, EditorCamera& camera);
 
 	World& GetWorld() { return m_ECSWorld;  }
 
@@ -36,5 +51,6 @@ private:
 	Camera* m_MainCamera = nullptr;
 	Entity m_SelectedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 	PlacementRequest m_PlacementRequest;
+	SceneState m_State = SceneState::Edit;
 };
 

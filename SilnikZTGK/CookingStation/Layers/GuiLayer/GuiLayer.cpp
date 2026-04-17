@@ -67,6 +67,24 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		m_ShowFileMenu = false;
 	}
 
+	glm::vec2 playButtonPos = { 190.0f, 5.0f }; 
+	glm::vec2 playButtonSize = { 80.0f, 20.0f };
+
+	if (activeScene->GetState() == SceneState::Edit) {
+		if (Gui::Button("PLAY", playButtonPos, playButtonSize)) {
+			// Zamiast logiki, generujemy zdarzenie
+			ScenePlayEvent e;
+			Application::Get().OnEvent(e);
+		}
+	}
+	else {
+		if (Gui::Button("STOP", playButtonPos, playButtonSize)) {
+			// Zamiast logiki, generujemy zdarzenie
+			SceneStopEvent e;
+			Application::Get().OnEvent(e);
+		}
+	}
+
 	// 3. Logika rozwiniêtego menu "Plik"
 	if (m_ShowFileMenu) {
 		// T³o rozwijanego menu
