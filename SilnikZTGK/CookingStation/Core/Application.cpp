@@ -1,9 +1,11 @@
 #include "Application.h"
 #include "Input.h"
+#include <GLFW/glfw3.h>
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Renderer/RenderCommand.h"
 #include "ProfileTimer.h"
 #include "CookingStation/Layers/RenderLayer/RendererLayer.h"
+#include "CookingStation/Layers/HudLayer/HUDLayer.h"
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Core/Timestep.h"
 #include <iostream>
@@ -24,6 +26,7 @@ Application::Application()
 	PushLayer(new CameraLayer());
 	PushLayer(new AssetLayer());
 	PushLayer(new RendererLayer());
+	PushLayer(new HUDLayer());
 	PushLayer(new GuiLayer());
 	PushLayer(new EditorLayer());
 }
@@ -35,17 +38,29 @@ Application::~Application()
 
 void Application::Run()
 {
-    // 6. G£ÓWNA PÊTLA GRY
+	// ==========================================
+	// 6. G£ÓWNA PÊTLA GRY
+	// ==========================================
 	while (m_Running)
 	{
+		// 1. OBLICZANIE CZASU
 		float time = (float)glfwGetTime();
 		Timestep timestep = time - m_LastFrameTime;
 		m_LastFrameTime = time;
 
-		RenderCommand::SetClearColor(glm::vec4(.05f, 0.05f, 0.05f, 1.0f));
+		// Limitujemy maksymalny czas klatki.
+		// Jeœli gra zatnie siê na chwile fizyka nie "eksploduje" wielkim skokiem.
+		if (timestep > 0.1f)
+			timestep = 0.1f;
+
+		// 2. PRZYGOTOWANIE RENDERERA
+		RenderCommand::SetClearColor(glm::vec4(0.05f, 0.05f, 0.05f, 1.0f));
 		RenderCommand::Clear();
 
-		// dodajemy dodatkowe klamerki { }, aby stworzyæ nowy zasiêg zmiennych (scope)
+		// Czyœcimy liczniki przed rozpoczêciem klatki!
+		Renderer::ResetStats();
+
+		// 3. UPDATE LOGIKI I ECS
 		{
 			// timer startuje w tym momencie (konstruktor)
 			ProfileTimer timer(Renderer::GetStats().CPULogicTime);
@@ -54,13 +69,15 @@ void Application::Run()
 			{
 				layer->OnUpdate(timestep);
 			}
-			
+
 			// gdy wychodzimy z klamerek { }, timer jest niszczony (destruktor).
-			// oblicza miniony czas i automatycznie wpisuje go do zmiennej CPULogicTime
+			// oblicza miniony czas i wpisuje go do zmiennej CPULogicTime
 		}
-		
-		m_Window->OnUpdate();
-		Input::Update();
+
+		// 4. AKTUALIZACJA OKNA I WEJŒCIA
+		m_Window->OnUpdate(); // To wywo³a m.in. glfwSwapBuffers i glfwPollEvents
+
+		Input::Update(); // Czyszczenie stanów wejœcia 
 	}
 }
 
@@ -106,7 +123,7 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 
 bool Application::OnKeyPressed(KeyPressedEvent& e)
 {
-//	std::cout << "Wcisnieto klawisz: " << e.GetKeyCode() << std::endl;;
+	//	std::cout << "Wcisnieto klawisz: " << e.GetKeyCode() << std::endl;;
 	return false;
 }
 

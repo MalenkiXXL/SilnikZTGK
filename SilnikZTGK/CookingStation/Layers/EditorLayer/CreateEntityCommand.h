@@ -1,29 +1,29 @@
-#pragma once
-#include "Command.h"
-#include "CookingStation/Scene/ecs.h"
-#include "CookingStation/Scene/Entity.h"
-#include "CookingStation/Layers/AssetLayer/AssetManager.h"
-#include "CookingStation/Scripts/RotationScript.h"
-#include <string>
-#include <glm/glm.hpp>
-
-
 class CreateEntityCommand : public Command {
 public:
-    CreateEntityCommand(World* world, const std::string& name, const std::string& path, const glm::vec3& position)
-        : m_World(world), m_Name(name), m_ModelPath(path), m_Position(position) {
+    // Dodajemy wskaŸnik na shader do konstruktora komendy (albo mo¿esz go pobraæ z AssetManager'a wewn¹trz)
+    CreateEntityCommand(World* world, const std::string& name, const std::string& path, const glm::vec3& position, std::shared_ptr<Shader> shader)
+        : m_World(world), m_Name(name), m_ModelPath(path), m_Position(position), m_Shader(shader) {
     }
 
     virtual void Execute() override {
         // 1. Tworzymy now¹ encjê
         m_Entity = m_World->CreateEntity();
 
-        // 2. Dodajemy komponenty (dok³adnie to, co mia³eœ w EditorLayer)
+        // 2. Dodajemy komponenty
         m_World->AddComponent<TagComponent>(m_Entity, TagComponent{ m_Name });
-        m_World->AddComponent<MeshComponent>(m_Entity, MeshComponent{ AssetManager::GetModel(m_ModelPath), m_ModelPath });
 
-        // Ustawiamy pozycjê, któr¹ otrzymaliœmy przy klikniêciu myszk¹
-        m_World->AddComponent<TransformComponent>(m_Entity, TransformComponent{ m_Position });
+        // U¿ywamy jawnego wywo³ania, zak³adaj¹c ¿e doda³eœ konstruktor do MeshComponent
+        MeshComponent meshComp;
+        meshComp.ModelPtr = AssetManager::GetModel(m_ModelPath);
+        meshComp.ShaderPtr = m_Shader; // Podpinamy shader!
+        meshComp.Path = m_ModelPath;
+        m_World->AddComponent<MeshComponent>(m_Entity, meshComp);
+
+        TransformComponent transComp;
+        transComp.Position = m_Position;
+        transComp.Rotation = glm::vec3(0.0f);
+        transComp.Scale = glm::vec3(1.0f, 1.0f, 1.0f); // Skala 1, ¿eby obiekt by³ widoczny!
+        m_World->AddComponent<TransformComponent>(m_Entity, transComp);
 
         m_World->AddComponent<BoxColliderComponent>(m_Entity, BoxColliderComponent{});
         m_World->AddComponent<NativeScriptComponent>(m_Entity, NativeScriptComponent{});
@@ -38,16 +38,16 @@ public:
     }
 
     virtual void Undo() override {
-        // Cofanie akcji: po prostu niszczymy tê encjê w œwiecie
         m_World->DestroyEntity(m_Entity);
         spdlog::info("Command: Cofniêto utworzenie obiektu (ID: {})", m_Entity.id);
     }
 
 private:
     World* m_World;
-    Entity m_Entity; // Zapamiêtujemy ID stworzonego obiektu, by móc go potem usun¹æ!
+    Entity m_Entity;
 
     std::string m_Name;
     std::string m_ModelPath;
     glm::vec3 m_Position;
+    std::shared_ptr<Shader> m_Shader; // Zapisujemy shader w komendzie
 };

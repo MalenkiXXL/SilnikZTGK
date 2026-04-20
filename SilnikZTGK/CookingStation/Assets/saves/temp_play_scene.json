@@ -18,25 +18,6 @@
                 1.5,
                 1.5
             ]
-        },
-        {
-            "model_path": "CookingStation/Assets/models/warzywka/marchewka/test.gltf",
-            "name": "marchewka",
-            "position": [
-                -4.133333206176758,
-                -2.3999996185302734,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ]
         }
     ],
     "settings": {

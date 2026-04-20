@@ -49,7 +49,7 @@ void EditorLayer::OnUpdate(Timestep ts) {
     {
         // ------------------ TYLKO W TRYBIE EDYCJI ------------------
 
-        // 1. KŁADZENIE MODELI (Placement)
+      // 1. KŁADZENIE MODELI (Placement)
         auto& request = activeScene->GetPlacementRequest();
         if (request.Active) {
             m_PendingModelName = request.Name;
@@ -58,26 +58,32 @@ void EditorLayer::OnUpdate(Timestep ts) {
             request.Active = false;
         }
 
-        if (m_IsPlacing) {
-            glm::vec2 mPos = Gui::GetMappedMousePos();
-            Gui::DrawGuiText("Stawiasz: " + m_PendingModelName, { mPos.x + 10, mPos.y }, 0.35f, { 0.2f, 1.0f, 0.2f, 1.0f });
+        auto mousePos = Input::GetMousePosition();
+        float mouseX = mousePos.first;
+        float mouseY = mousePos.second;
 
-            if (Input::IsMouseButtonPressed(0) && mPos.x > 200) {
-                auto rawMouse = Input::GetMousePosition();
-                float xRatio = rawMouse.first / m_ViewportWidth;
-                float yRatio = rawMouse.second / m_ViewportHeight;
-                glm::vec3 spawnPosition;
-                spawnPosition.x = (xRatio * worldWidth - (worldWidth / 2.0f)) + camPos.x;
-                spawnPosition.y = (-(yRatio * worldHeight - (worldHeight / 2.0f))) + camPos.y;
-                spawnPosition.z = 0.0f;
+        if (m_IsPlacing && Input::IsMouseButtonPressed(0) && mouseX > 200.0f)
+        {
+            // Obliczanie pozycji
+            float xRatio = mouseX / m_ViewportWidth;
+            float yRatio = mouseY / m_ViewportHeight;
+            glm::vec3 spawnPosition;
+            spawnPosition.x = (xRatio * worldWidth - (worldWidth / 2.0f)) + camPos.x;
+            spawnPosition.y = (-(yRatio * worldHeight - (worldHeight / 2.0f))) + camPos.y;
+            spawnPosition.z = 0.0f;
 
-                std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
-                    &world, m_PendingModelName, m_PendingModelPath, spawnPosition
-                );
-                m_CommandHistory.ExecuteCommand(std::move(cmd));
-                m_IsPlacing = false;
-            }
-            if (Input::IsMouseButtonPressed(1)) m_IsPlacing = false;
+            std::shared_ptr<Shader> modelShader = std::make_shared<Shader>(
+                "CookingStation/Shaders/vsShaders/shader.vs",
+                "CookingStation/Shaders/fragShaders/shader.frag"
+            );
+
+            std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
+                &world, m_PendingModelName, m_PendingModelPath, spawnPosition, modelShader
+            );
+
+            m_CommandHistory.ExecuteCommand(std::move(cmd));
+
+            m_IsPlacing = false;
         }
 
         // 2. WYBIERANIE MYSZKĄ (Raycasting)

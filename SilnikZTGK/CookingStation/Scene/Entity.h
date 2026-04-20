@@ -23,8 +23,17 @@ struct TransformComponent {
 };
 
 struct MeshComponent {
-    std::shared_ptr<Model> ModelPtr;
-    std::string Path;
+    std::shared_ptr<Model> ModelPtr = nullptr;
+    std::shared_ptr<Shader> ShaderPtr = nullptr; 
+    std::string Path = "";
+
+    // Konstruktor domyœlny
+    MeshComponent() = default;
+
+    // Konstruktor z parametrami
+    MeshComponent(std::shared_ptr<Model> model, std::shared_ptr<Shader> shader, const std::string& path = "")
+        : ModelPtr(model), ShaderPtr(shader), Path(path) {
+    }
 };
 
 struct TagComponent {
