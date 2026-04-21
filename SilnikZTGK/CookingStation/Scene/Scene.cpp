@@ -6,6 +6,7 @@
 #include "spdlog/spdlog.h"                  
 #include "CookingStation/Scene/SceneSerializer.h"
 #include <memory>
+#include <algorithm>
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Renderer/Model.h"          
 #include "glm/gtc/matrix_transform.hpp"
@@ -24,6 +25,30 @@ Scene::Scene()
 
 Scene::~Scene() {};
 
+AABB ComputeDynamicAABB(TransformComponent* trans, BoxColliderComponent* col)
+{
+	AABB box;
+	glm::vec3 center = trans->Position + col->Offset;
+	glm::vec3 extents = trans->Scale * col->Size; // odleg³oœæ od œrodka do krawêdzi
+
+	// wyliczamy sam¹ macierz rotacji
+	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.x), { 1, 0, 0 })
+		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.y), { 0, 1, 0 })
+		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.z), { 0, 0, 1 });
+
+	// przekszta³camy rozmiary przez bezwzglêdne wartoœci macierzy rotacji
+	glm::vec3 rotatedExtents(
+		std::abs(rotation[0][0]) * extents.x + std::abs(rotation[1][0]) * extents.y + std::abs(rotation[2][0]) * extents.z,
+		std::abs(rotation[0][1]) * extents.x + std::abs(rotation[1][1]) * extents.y + std::abs(rotation[2][1]) * extents.z,
+		std::abs(rotation[0][2]) * extents.x + std::abs(rotation[1][2]) * extents.y + std::abs(rotation[2][2]) * extents.z
+	);
+
+	box.Min = center - rotatedExtents;
+	box.Max = center + rotatedExtents;
+
+	return box;
+}
+
 
 void Scene::OnRuntimeStart()
 {
@@ -33,7 +58,7 @@ void Scene::OnRuntimeStart()
 void Scene::OnUpdateRuntime(Timestep ts)
 {
 	// ==========================================
-	// 1. UPDATE SKRYPTÓW (Logika gracza i obiektów)
+	// 1. update skrytpow
 	// ==========================================
 	auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
 
@@ -65,49 +90,67 @@ void Scene::OnUpdateRuntime(Timestep ts)
 	// ==========================================
 	// 2. KROK FIZYKI I KOLIZJI 
 	// ==========================================
+
 	auto* colliderStorage = m_ECSWorld.GetComponentVector<BoxColliderComponent>();
 	auto* transformStorage = m_ECSWorld.GetComponentVector<TransformComponent>();
 
 	if (colliderStorage && transformStorage && colliderStorage->dense.size() > 1)
 	{
+		struct ColliderData
+		{
+			Entity ent;
+			AABB box;
+		};
+
+		std::vector<ColliderData> activeColliders;
+		activeColliders.reserve(colliderStorage->dense.size());
+
+		//zbieramy aktualne	pudelka wszystkich encji
 		for (size_t i = 0; i < colliderStorage->dense.size(); i++)
 		{
-			Entity entA = colliderStorage->reverse[i];
-			auto* transA = transformStorage->Get(entA);
-			auto* colA = &colliderStorage->dense[i];
+			Entity ent = colliderStorage->reverse[i];
+			auto* trans = transformStorage->Get(ent);
+			auto* col = &colliderStorage->dense[i];
 
-			if (!transA) continue;
+			if (trans) {
 
-			AABB boxA;
-			glm::vec3 centerA = transA->Position + colA->Offset;
-			glm::vec3 extensA = transA->Scale * colA->Size;
-			boxA.Min = centerA - extensA;
-			boxA.Max = centerA + extensA;
+				activeColliders.push_back({ ent, ComputeDynamicAABB(trans, col) });
+			}
+		} 
 
-			for (size_t j = i + 1; j < colliderStorage->dense.size(); j++)
+		// 2. sortujemy po minimalnej wartoœci osi X
+		std::sort(activeColliders.begin(), activeColliders.end(), [](const ColliderData& a, const ColliderData& b) {
+			return a.box.Min.x < b.box.Min.x;
+			});
+
+		for (size_t i = 0; i < activeColliders.size(); i++)
+		{
+			const auto& dataA = activeColliders[i];
+
+			for (size_t j = i + 1; j < activeColliders.size(); j++)
 			{
-				Entity entB = colliderStorage->reverse[j];
-				auto* transB = transformStorage->Get(entB);
-				auto* colB = &colliderStorage->dense[j];
+				const auto& dataB = activeColliders[j];
 
-				if (!transB) continue;
-
-				AABB boxB;
-				glm::vec3 centerB = transB->Position + colB->Offset;
-				glm::vec3 extentsB = transB->Scale * colB->Size;
-				boxB.Min = centerB - extentsB;
-				boxB.Max = centerB + extentsB;
-
-				if (Physics::Intersects(boxA, boxB))
+				// Jeœli minimalny X obiektu B jest wiêkszy ni¿ maksymalny X obiektu A,
+				// to znaczy, ¿e obiekty B i WSZYSTKIE NASTÊPNE w posortowanej liœcie
+				// s¹ zbyt daleko na prawo, ¿eby kolidowaæ z A.
+				if (dataB.box.Min.x > dataA.box.Max.x)
 				{
-					spdlog::info("kolizja miedzy ID: {} a ID: {}", entA.id, entB.id);
+					break;
+				}
 
-					auto* scriptA = m_ECSWorld.GetComponent<NativeScriptComponent>(entA);
+				// W przeciwnym razie sprawdzamy pe³n¹ kolizjê AABB z Physics.h
+				if (Physics::Intersects(dataA.box, dataB.box))
+				{
+					// Kolizja 
+					spdlog::info("kolizja miedzy ID: {} a ID: {}", dataA.ent.id, dataB.ent.id);
+
+					auto* scriptA = m_ECSWorld.GetComponent<NativeScriptComponent>(dataA.ent);
 					if (scriptA && scriptA->Instance) {
 						scriptA->Instance->OnCollision();
 					}
 
-					auto* scriptB = m_ECSWorld.GetComponent<NativeScriptComponent>(entB);
+					auto* scriptB = m_ECSWorld.GetComponent<NativeScriptComponent>(dataB.ent);
 					if (scriptB && scriptB->Instance) {
 						scriptB->Instance->OnCollision();
 					}
@@ -155,6 +198,21 @@ void Scene::OnUpdateRuntime(Timestep ts)
 void Scene::OnRuntimeStop()
 {
 	std::cout << "[Scene] OnRuntimeStop\n";
+
+	auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
+	if (scriptStorage)
+	{
+		for (size_t i = 0; i < scriptStorage->dense.size(); i++)
+		{
+			auto& scriptComp = scriptStorage->dense[i];
+			if (scriptComp.Instance)
+			{
+				scriptComp.Instance->OnDestroy();
+				delete scriptComp.Instance;       // zwalniamy pamiêæ
+				scriptComp.Instance = nullptr; // zabezpieczenie przed wiszacym pointerem
+			}
+		}
+	}
 }
 
 std::shared_ptr<Scene> Scene::Copy(std::shared_ptr<Scene> other)
@@ -175,4 +233,3 @@ std::shared_ptr<Scene> Scene::Copy(std::shared_ptr<Scene> other)
 	// 4. Zwracamy now¹, gotow¹ do gry scenê, która jest dok³adnym klonem edytora
 	return newScene;
 }
-

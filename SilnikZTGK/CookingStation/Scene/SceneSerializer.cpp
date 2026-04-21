@@ -9,6 +9,8 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
+#include "CookingStation/Scripts/RotationScript.h"
+
 using json = nlohmann::json;
 
 // Wczytuje dane z pliku do pamiêci i buduje œwiat w silniku
@@ -78,6 +80,26 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 			}
 			builder.With<TransformComponent>(transComp);
 
+			if (item.contains("collider")) {
+				BoxColliderComponent bc;
+				bc.Size = { item["collider"]["size"][0], item["collider"]["size"][1], item["collider"]["size"][2] };
+				bc.Offset = { item["collider"]["offset"][0], item["collider"]["offset"][1], item["collider"]["offset"][2] };
+				builder.With<BoxColliderComponent>(bc);
+			}
+
+			// Wczytywanie Skryptów
+			if (item.contains("script")) {
+				NativeScriptComponent nsc;
+				std::string scriptName = item["script"].get<std::string>();
+
+				
+				if (scriptName == "RotationScript") {
+					nsc.Bind<RotationScript>();
+				}
+
+				builder.With<NativeScriptComponent>(nsc);
+			}
+
 			builder.Build(); // Finalizacja
 			spdlog::info("[SceneLoader] Dodano: {}", name);
 		}
@@ -126,6 +148,18 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 			if (meshSet && meshSet->ModelPtr) {
 				item["model_path"] = meshSet->ModelPtr->FilePath;
 			};
+
+			auto* colliderSet = m_Scene->GetWorld().GetComponent<BoxColliderComponent>(entity);
+			if (colliderSet) {
+				item["collider"]["size"] = { colliderSet->Size.x, colliderSet->Size.y, colliderSet->Size.z };
+				item["collider"]["offset"] = { colliderSet->Offset.x, colliderSet->Offset.y, colliderSet->Offset.z };
+			}
+
+			// zapisywanie Skryptu (na ten moment zak³adamy, ¿e jeœli encja go ma, jest to RotationScript)
+			auto* scriptSet = m_Scene->GetWorld().GetComponent<NativeScriptComponent>(entity);
+			if (scriptSet && scriptSet->InstantiateScript) {
+				item["script"] = "RotationScript";
+			}
 
 			data["entities"].push_back(item);
 		}

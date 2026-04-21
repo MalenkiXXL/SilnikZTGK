@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_inverse.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <utility>
+#include <algorithm>
 
 //"laser" z myszki
 struct Ray
@@ -94,5 +95,6 @@ public:
 			(a.Min.y <= b.Max.y && a.Max.y >= b.Min.y) &&
 			(a.Min.z <= b.Max.z && a.Max.z >= b.Min.z);
 	}
+
 };
 
