@@ -135,26 +135,41 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
 
 	if (m_ShowDiagnosticPanel) {
-		// Pobieramy dane
-		auto stats = Renderer::GetStats();
-		float fps = 1.0f / ts.GetSeconds();
-		float frameTime = ts.GetMilliSeconds();
+		// 1. AKTUALIZACJA STATYSTYK (Tylko 4 razy na sekundê!)
+		m_StatsUpdateTimer += ts.GetSeconds();
 
-		// Helper (lambda) do ³adnego formatowania liczb zmiennoprzecinkowych
-		auto formatFloat = [](float v) {
-			char buffer[32];
-			snprintf(buffer, sizeof(buffer), "%.2f", v);
-			return std::string(buffer);
-			};
+		if (m_StatsUpdateTimer >= 0.25f) {
+			auto stats = Renderer::GetStats();
+			float fps = 1.0f / ts.GetSeconds();
+			float frameTime = ts.GetMilliSeconds();
 
-		// 1. T£O PANELU DIAGNOSTYCZNEGO
-		glm::vec2 panelPos(m_ViewportWidth - 300.0f, m_ViewportHeight -  270.0f);
+			auto formatFloat = [](float v) {
+				char buffer[32];
+				snprintf(buffer, sizeof(buffer), "%.2f", v);
+				return std::string(buffer);
+				};
+
+			// Nadpisujemy nasze zbuforowane stringi z GuiLayer.h
+			m_FpsText = "FPS: " + std::to_string((int)fps);
+			m_FrameTimeText = "Frame Time: " + formatFloat(frameTime) + " ms";
+			m_CpuText = "CPU Logika: " + formatFloat(stats.CPULogicTime) + " ms";
+			m_GpuText = "GPU Render: " + formatFloat(stats.GPURenderTime) + " ms";
+
+			m_DrawCalls3DText = "Draw Calls (3D): " + std::to_string(stats.DrawCalls3D);
+			m_Tris3DText = "Trojkaty (3D): " + std::to_string(stats.TriangleCount3D);
+			m_DrawCallsUIText = "Draw Calls (UI): " + std::to_string(stats.DrawCallsUI);
+			m_TrisUIText = "Trojkaty (UI): " + std::to_string(stats.TriangleCountUI);
+
+			m_StatsUpdateTimer = 0.0f; // Reset timera
+		}
+
+		// 2. T£O PANELU DIAGNOSTYCZNEGO
+		glm::vec2 panelPos(m_ViewportWidth - 300.0f, m_ViewportHeight - 270.0f);
 		glm::vec2 panelSize(300.0f, 270.0f);
 		glm::vec4 panelColor(0.1f, 0.1f, 0.1f, 0.75f);
-
 		Renderer2D::DrawQuad(panelPos, panelSize, panelColor);
 
-		// 2. WYPISYWANIE TEKSTÓW 
+		// 3. WYPISYWANIE TEKSTÓW 
 		float textX = panelPos.x + 15.0f;
 		float textY = panelPos.y + 5.0f;
 		float lineOffset = 25.0f;
@@ -167,28 +182,14 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		Gui::DrawGuiText("Diagnostyka Projektu:", { textX, textY }, scale + 0.1f, titleColor);
 		textY += lineOffset + 5.0f;
 
-		Gui::DrawGuiText("FPS: " + std::to_string((int)fps), { textX, textY }, scale, textColor);
-		textY += lineOffset;
-
-		Gui::DrawGuiText("Frame Time: " + formatFloat(frameTime) + " ms", { textX, textY }, scale, textColor);
-		textY += lineOffset;
-
-		Gui::DrawGuiText("CPU Logika: " + formatFloat(stats.CPULogicTime) + " ms", { textX, textY }, scale, highlightColor);
-		textY += lineOffset;
-
-		Gui::DrawGuiText("GPU Render: " + formatFloat(stats.GPURenderTime) + " ms", { textX, textY }, scale, highlightColor);
-		textY += lineOffset;
-
-		Gui::DrawGuiText("Draw Calls (3D): " + std::to_string(stats.DrawCalls3D), { textX, textY }, scale, textColor);
-		textY += lineOffset;
-
-		Gui::DrawGuiText("Trojkaty (3D): " + std::to_string(stats.TriangleCount3D), { textX, textY }, scale, textColor);
-		textY += lineOffset;
-
-		Gui::DrawGuiText("Draw Calls (UI): " + std::to_string(stats.DrawCallsUI), { textX, textY }, scale, textColor);
-		textY += lineOffset;
-
-		Gui::DrawGuiText("Trojkaty (UI): " + std::to_string(stats.TriangleCountUI), { textX, textY }, scale, textColor);
+		Gui::DrawGuiText(m_FpsText, { textX, textY }, scale, textColor); textY += lineOffset;
+		Gui::DrawGuiText(m_FrameTimeText, { textX, textY }, scale, textColor); textY += lineOffset;
+		Gui::DrawGuiText(m_CpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
+		Gui::DrawGuiText(m_GpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
+		Gui::DrawGuiText(m_DrawCalls3DText, { textX, textY }, scale, textColor); textY += lineOffset;
+		Gui::DrawGuiText(m_Tris3DText, { textX, textY }, scale, textColor); textY += lineOffset;
+		Gui::DrawGuiText(m_DrawCallsUIText, { textX, textY }, scale, textColor); textY += lineOffset;
+		Gui::DrawGuiText(m_TrisUIText, { textX, textY }, scale, textColor);
 	}
 
 	if (m_ShowEnvironmentPanel) {

@@ -24,8 +24,20 @@ private:
     Entity m_SelectedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     float m_ViewportWidth = 800.0f;
     float m_ViewportHeight = 600.0f;
+    float m_StatsUpdateTimer = 1.0f;
+
+    // Zbuforowane teksty dla interfejsu
+    std::string m_FpsText = "FPS: 0";
+    std::string m_FrameTimeText = "Frame Time: 0.00 ms";
+    std::string m_CpuText = "CPU Logika: 0.00 ms";
+    std::string m_GpuText = "GPU Render: 0.00 ms";
+    std::string m_DrawCalls3DText = "Draw Calls (3D): 0";
+    std::string m_Tris3DText = "Trojkaty (3D): 0";
+    std::string m_DrawCallsUIText = "Draw Calls (UI): 0";
+    std::string m_TrisUIText = "Trojkaty (UI): 0";
     std::string m_PendingModelPath = "";
     std::string m_PendingModelName = "";
+
     bool m_IsPlacing = false;
     bool m_ShowFileMenu = false;
     bool m_ShowViewMenu = false;

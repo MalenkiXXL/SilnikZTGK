@@ -4,23 +4,37 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 void HUDLayer::OnAttach() {
-	Renderer2D::Init(); 
+    Renderer2D::Init();
+
+    // Liczymy startow¹ macierz 
+    auto windowSize = Input::GetWindowSize();
+    m_ViewportWidth = windowSize.first;
+    m_ViewportHeight = windowSize.second;
+
+    // Zapisujemy policzon¹ macierz do cache
+    m_ProjectionMatrix = glm::ortho(0.0f, m_ViewportWidth, 0.0f, m_ViewportHeight, -1.0f, 1.0f);
 }
 
 void HUDLayer::OnUpdate(Timestep ts) {
-	// 1. Pobieramy rozmiar okna tradycyjn¹ metod¹ 
-	std::pair<float, float> windowSize = Input::GetWindowSize(); 
-	float width = windowSize.first;
-	float height = windowSize.second;
+    // 1. Zaczynamy rysowanie podaj¹c gotow¹, policzon¹ kiedyœ macierz
+    Renderer2D::BeginScene(m_ProjectionMatrix);
 
-	// 2. Tworzymy macierz projekcji z 6 argumentami 
-	glm::mat4 projection = glm::ortho(0.0f, width, 0.0f, height, -1.0f, 1.0f);
+    // Przykladowe tlo na dole ekranu
+    Renderer2D::DrawQuad({ 110.0f, m_ViewportHeight - 50.0f }, { 200.0f, 30.0f }, { 0.1f, 0.1f, 0.1f, 0.8f });
 
-	// 3. Rozpoczêcie rysowania UI
-	Renderer2D::BeginScene(projection); 
+    Renderer2D::EndScene();
+}
 
-	// przykladowe tlo
-	Renderer2D::DrawQuad({ 110.0f, height - 50.0f }, { 200.0f, 30.0f }, { 0.1f, 0.1f, 0.1f, 0.8f });
+void HUDLayer::OnEvent(Event& e) {
+    EventDispatcher dispatcher(e);
+    dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) { return OnWindowResize(ev); });
+}
+bool HUDLayer::OnWindowResize(WindowResizeEvent& e) {
+    m_ViewportWidth = (float)e.GetWidth();
+    m_ViewportHeight = (float)e.GetHeight();
 
-	Renderer2D::EndScene();
+    // Przeliczamy i zapisujemy now¹ macierz do zmiennej klasowej
+    m_ProjectionMatrix = glm::ortho(0.0f, m_ViewportWidth, 0.0f, m_ViewportHeight, -1.0f, 1.0f);
+
+    return false; // nie blokujemy eventu (niech dotrze do edytora i Gui)
 }

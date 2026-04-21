@@ -108,66 +108,74 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 	return true; // scena wczytana pomyslnie
 }
 
-
 void SceneSerializer::Serialize(const std::string& filepath) {
 	json data;
+	auto& world = m_Scene->GetWorld();
 
-	// pobieramy wektory encji z ClearColorComponent
-	auto* clearColorSet = m_Scene->GetWorld().GetComponentVector<ClearColorComponent>();
-	// zak³adamy ¿e tylko jedna encja ma kolor    
-	if (clearColorSet && !clearColorSet->dense.empty()) {
-		auto& c = clearColorSet->dense[0].bgColor;
-		// zapisujemy teraz r, g, b ORAZ a
-		data["settings"]["clear_color"] = { c.r, c.g, c.b, c.a };
-	}
-
-	// inicjalizacja tablicy json na obiekty
 	data["entities"] = json::array();
 
-	auto* tagSet = m_Scene->GetWorld().GetComponentVector<TagComponent>();
-	if (tagSet) {
-		// reverse to zbior zawieraj¹cy wszystkie encje z dany komponentem
-		for (size_t i = 0; i < tagSet->reverse.size(); ++i) {
+	auto* tagStorage = world.GetComponentVector<TagComponent>();
+	if (!tagStorage) return; // Jak nie ma tagów, nie ma czego zapisywaæ
 
-			Entity entity = tagSet->reverse[i];
-			json item;
+	//Pobieramy kontenery pamiêci raz przed wejœciem do pêtli
+	auto* transformStorage = world.GetComponentVector<TransformComponent>();
+	auto* meshStorage = world.GetComponentVector<MeshComponent>();
+	auto* colliderStorage = world.GetComponentVector<BoxColliderComponent>();
+	auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
 
-			// zapisywanie nazwy 
-			item["name"] = tagSet->dense[i].Tag;
+	for (size_t i = 0; i < tagStorage->reverse.size(); ++i) {
+		Entity entity = tagStorage->reverse[i];
+		json item;
 
-			// zapisywanie transformacji
-			auto* transformSet = m_Scene->GetWorld().GetComponent<TransformComponent>(entity);
-			if (transformSet) {
-				item["position"] = { transformSet->Position.x, transformSet->Position.y, transformSet->Position.z };
-				item["rotation"] = { transformSet->Rotation.x, transformSet->Rotation.y, transformSet->Rotation.z };
-				item["scale"] = { transformSet->Scale.x, transformSet->Scale.y, transformSet->Scale.z };
-			};
+		// Tagi
+		item["name"] = tagStorage->dense[i].Tag;
 
-			// Zapisywanie modelu, TYLKO jeœli encja go posiada
-			auto* meshSet = m_Scene->GetWorld().GetComponent<MeshComponent>(entity);
-			if (meshSet && meshSet->ModelPtr) {
-				item["model_path"] = meshSet->ModelPtr->FilePath;
-			};
-
-			auto* colliderSet = m_Scene->GetWorld().GetComponent<BoxColliderComponent>(entity);
-			if (colliderSet) {
-				item["collider"]["size"] = { colliderSet->Size.x, colliderSet->Size.y, colliderSet->Size.z };
-				item["collider"]["offset"] = { colliderSet->Offset.x, colliderSet->Offset.y, colliderSet->Offset.z };
+		// Transformacje 
+		if (transformStorage) {
+			if (auto* transform = transformStorage->Get(entity)) {
+				item["position"] = { transform->Position.x, transform->Position.y, transform->Position.z };
+				item["rotation"] = { transform->Rotation.x, transform->Rotation.y, transform->Rotation.z };
+				item["scale"] = { transform->Scale.x, transform->Scale.y, transform->Scale.z };
 			}
+		}
 
-			// zapisywanie Skryptu (na ten moment zak³adamy, ¿e jeœli encja go ma, jest to RotationScript)
-			auto* scriptSet = m_Scene->GetWorld().GetComponent<NativeScriptComponent>(entity);
-			if (scriptSet && scriptSet->InstantiateScript) {
+		// Modele
+		if (meshStorage) {
+			auto* mesh = meshStorage->Get(entity); 
+			if (mesh && mesh->ModelPtr) {
+				item["model_path"] = mesh->ModelPtr->FilePath;
+			}
+		}
+		// Collidery
+		if (colliderStorage) {
+			if (auto* collider = colliderStorage->Get(entity)) {
+				item["collider"]["size"] = { collider->Size.x, collider->Size.y, collider->Size.z };
+				item["collider"]["offset"] = { collider->Offset.x, collider->Offset.y, collider->Offset.z };
+			}
+		}
+
+		// Skrypty
+		if (scriptStorage) {
+			auto* script = scriptStorage->Get(entity); 
+			if (script && script->InstantiateScript) {
 				item["script"] = "RotationScript";
 			}
-
-			data["entities"].push_back(item);
 		}
+
+		data["entities"].push_back(item);
 	}
 
 	std::ofstream file(filepath);
 	if (file.is_open()) {
+#ifdef _DEBUG // Standardowe makro Visual Studio dla trybu Debug
+		// £adny, czytelny format dla Debug
 		file << data.dump(4);
+#else
+		// b³yskawiczny odczyt/zapis w Release
+		file << data.dump();
+#endif
+		// ----------------------
+
 		spdlog::info("[SceneSerializer] Zapisano scene do: {}", filepath);
 	}
 	else {

@@ -15,7 +15,6 @@
 #include "MoveEntityCommand.h"
 #include "CookingStation/Scene/Scene.h"
 #include <functional> 
-#define BIND_EVENT_FN(fn) std::bind(&fn, this, std::placeholders::_1)
 
 void EditorLayer::OnAttach() {
     // pobieramy aktualny rozmiar okna
@@ -138,14 +137,33 @@ void EditorLayer::OnUpdate(Timestep ts) {
 
 void EditorLayer::OnEvent(Event& e) {
     EventDispatcher dispatcher(e);
+
+    // Przechwytujemy klasę EditorLayer przez wskaźnik [this], 
+    // a następnie wywołujemy odpowiednie funkcje przekazując im event.
+
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {
         return OnWindowResize(ev);
         });
-    dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
-    dispatcher.Dispatch<EntityTransformChangedEvent>(BIND_EVENT_FN(EditorLayer::OnEntityTransformChanged));
-    dispatcher.Dispatch<EntityDeletedEvent>(BIND_EVENT_FN(EditorLayer::OnEntityDeleted));
-    dispatcher.Dispatch<ScenePlayEvent>(BIND_EVENT_FN(EditorLayer::OnScenePlayEvent));
-    dispatcher.Dispatch<SceneStopEvent>(BIND_EVENT_FN(EditorLayer::OnSceneStopEvent));
+
+    dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& ev) {
+        return OnKeyPressed(ev);
+        });
+
+    dispatcher.Dispatch<EntityTransformChangedEvent>([this](EntityTransformChangedEvent& ev) {
+        return OnEntityTransformChanged(ev);
+        });
+
+    dispatcher.Dispatch<EntityDeletedEvent>([this](EntityDeletedEvent& ev) {
+        return OnEntityDeleted(ev);
+        });
+
+    dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) {
+        return OnScenePlayEvent(ev);
+        });
+
+    dispatcher.Dispatch<SceneStopEvent>([this](SceneStopEvent& ev) {
+        return OnSceneStopEvent(ev);
+        });
 }
 
 bool EditorLayer::OnWindowResize(WindowResizeEvent& e) {
