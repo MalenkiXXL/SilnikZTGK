@@ -13,7 +13,6 @@
 #include "CookingStation/Scripts/RotationScript.h" 
 #include "CreateEntityCommand.h"
 #include "MoveEntityCommand.h"
-#include "CookingStation/Scene/Scene.h"
 #include <functional> 
 
 void EditorLayer::OnAttach() {
@@ -26,7 +25,7 @@ void EditorLayer::OnAttach() {
 void EditorLayer::OnUpdate(Timestep ts) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     if (!activeScene) return;
-
+    activeScene->CalculateTransforms();
     // Pobieramy podstawowe dane dla renderera
     auto& world = activeScene->GetWorld();
     auto* camera = activeScene->GetCamera();
@@ -41,9 +40,6 @@ void EditorLayer::OnUpdate(Timestep ts) {
     glDisable(GL_DEPTH_TEST);
     Renderer2D::BeginScene(uiProj);
 
-    // ==========================================================
-    // BRAMKA STANÓW: EDYTOR VS GRA
-    // ==========================================================
     if (m_SceneState == SceneState::Edit)
     {
         // ------------------ TYLKO W TRYBIE EDYCJI ------------------
@@ -98,9 +94,10 @@ void EditorLayer::OnUpdate(Timestep ts) {
                         Entity entity = meshStorage->reverse[it];
                         TransformComponent* transform = transformStorage->Get(entity);
                         if (transform != nullptr) {
+                            glm::vec3 globalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
                             AABB box;
-                            box.Min = transform->Position - transform->Scale;
-                            box.Max = transform->Position + transform->Scale;
+                            box.Min = globalPos - transform->Scale;
+                            box.Max = globalPos + transform->Scale;
                             if (Physics::Intersects(ray, box)) {
                                 activeScene->SetSelectedEntity(entity);
                                 break;
@@ -116,8 +113,9 @@ void EditorLayer::OnUpdate(Timestep ts) {
         if (selected.id != std::numeric_limits<std::size_t>::max()) {
             auto* transform = world.GetComponent<TransformComponent>(selected);
             if (transform) {
-                float screenX = (((transform->Position.x - camPos.x) + (worldWidth / 2.0f)) / worldWidth) * m_ViewportWidth;
-                float screenY = ((-(transform->Position.y - camPos.y) + (worldHeight / 2.0f)) / worldHeight) * m_ViewportHeight;
+                glm::vec3 globalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
+                float screenX = (((globalPos.x - camPos.x) + (worldWidth / 2.0f)) / worldWidth) * m_ViewportWidth;
+                float screenY = ((-(globalPos.y - camPos.y) + (worldHeight / 2.0f)) / worldHeight) * m_ViewportHeight;
                 Renderer2D::DrawQuad({ screenX, screenY }, { 50.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
                 Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
             }
@@ -125,7 +123,7 @@ void EditorLayer::OnUpdate(Timestep ts) {
     }
     else
     {
-        // ------------------ TYLKO W TRYBIE GRY (PLAY) ------------------
+        // ------------------ TYLKO W TRYBIE GRY ------------------
 
         // Zamiast rysować rzeczy z edytora, wywołujemy właściwą pętlę silnika
         activeScene->OnUpdateRuntime(ts);

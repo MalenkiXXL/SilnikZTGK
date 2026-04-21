@@ -21,6 +21,7 @@ Scene::Scene()
 	m_ECSWorld.RegisterComponent<BoxColliderComponent>();
 	m_ECSWorld.RegisterComponent<NativeScriptComponent>();
 	m_ECSWorld.RegisterComponent<ClearColorComponent>();
+	m_ECSWorld.RegisterComponent<RelationshipComponent>();
 }
 
 Scene::~Scene() {};
@@ -28,7 +29,8 @@ Scene::~Scene() {};
 AABB ComputeDynamicAABB(TransformComponent* trans, BoxColliderComponent* col)
 {
 	AABB box;
-	glm::vec3 center = trans->Position + col->Offset;
+	glm::vec3 globalPos = glm::vec3(trans->WorldMatrix[3][0], trans->WorldMatrix[3][1], trans->WorldMatrix[3][2]);
+	glm::vec3 center = globalPos + col->Offset;
 	glm::vec3 extents = trans->Scale * col->Size; // odleg³oœæ od œrodka do krawêdzi
 
 	// wyliczamy sam¹ macierz rotacji
@@ -60,6 +62,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 	// ==========================================
 	// 1. update skrytpow
 	// ==========================================
+	CalculateTransforms();
 	auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
 
 	if (scriptStorage)
@@ -161,15 +164,13 @@ void Scene::OnUpdateRuntime(Timestep ts)
 	// ==========================================
 	// 3. RENDEROWANIE SCENY 
 	// ==========================================
+	// Przeliczamy ca³e drzewo transformacji przed renderowaniem
+
 	if (m_MainCamera)
 	{
-		// 1. Obliczamy macierz projekcji 
 		glm::mat4 projection = glm::perspective(glm::radians(m_MainCamera->Zoom), 16.0f / 9.0f, 0.1f, 100.0f);
-
-		// 2. £¹czymy Projekcjê z Widokiem z Twojej klasy Camera
 		glm::mat4 viewProjection = projection * m_MainCamera->GetViewMatrix();
 
-		// 3. Rozpoczynamy klatkê
 		Renderer::BeginScene(viewProjection);
 
 		auto* meshStorage = m_ECSWorld.GetComponentVector<MeshComponent>();
@@ -183,11 +184,10 @@ void Scene::OnUpdateRuntime(Timestep ts)
 				auto& meshComp = meshStorage->dense[i];
 				auto* trans = transformStorage->Get(entity);
 
-				// U¿ywamy ModelPtr z Twojego MeshComponent i sprawdzamy czy dodano ShaderPtr
 				if (trans && meshComp.ModelPtr && meshComp.ShaderPtr)
 				{
-					// U¿ywamy GetTransformMatrix() z Twojego TransformComponent
-					Renderer::Submit(meshComp.ShaderPtr, meshComp.ModelPtr, trans->GetTransformMatrix());
+					// Wysy³amy do karty graficznej ostateczn¹ pozycjê w œwiecie (WorldMatrix)
+					Renderer::Submit(meshComp.ShaderPtr, meshComp.ModelPtr, trans->WorldMatrix);
 				}
 			}
 		}
@@ -232,4 +232,134 @@ std::shared_ptr<Scene> Scene::Copy(std::shared_ptr<Scene> other)
 
 	// 4. Zwracamy now¹, gotow¹ do gry scenê, która jest dok³adnym klonem edytora
 	return newScene;
+}
+
+// 1. Rekurencyjna funkcja schodz¹ca w g³¹b drzewa
+void UpdateTransformTree(World& world, Entity entity, const glm::mat4& parentGlobalMatrix) {
+	auto* transform = world.GetComponent<TransformComponent>(entity);
+	if (!transform) return;
+
+	// A. Liczymy nasz¹ pozycjê w œwiecie = Rodzic * Nasza Lokalna
+	glm::mat4 localMatrix = transform->GetLocalMatrix();
+	transform->WorldMatrix = parentGlobalMatrix * localMatrix;
+
+	// B. Przekazujemy nasz¹ macierz ni¿ej, do naszych dzieci
+	auto* rel = world.GetComponent<RelationshipComponent>(entity);
+	if (rel && rel->FirstChild != NULL_ENTITY) {
+
+		// Pobieramy pierwsze dziecko
+		Entity currentChild = { rel->FirstChild, 0 }; // Uproszczenie: pomijamy generacjê dla szukania
+
+		while (currentChild.id != NULL_ENTITY) {
+			UpdateTransformTree(world, currentChild, transform->WorldMatrix);
+
+			// Przechodzimy do kolejnego brata
+			auto* childRel = world.GetComponent<RelationshipComponent>(currentChild);
+			if (childRel) {
+				currentChild.id = childRel->NextSibling;
+			}
+			else {
+				break; // zabezpieczenie
+			}
+		}
+	}
+}
+
+// 2. W Twoim Scene::OnUpdateRuntime oraz OnUpdateEditor dodaj to PRZED RENDEROWANIEM:
+void Scene::CalculateTransforms() {
+	auto& world = GetWorld();
+	auto* transformStorage = world.GetComponentVector<TransformComponent>();
+	auto* relStorage = world.GetComponentVector<RelationshipComponent>();
+
+	if (!transformStorage) return;
+
+	// Iterujemy po wszystkich encjach z Transform
+	for (size_t i = 0; i < transformStorage->reverse.size(); i++) {
+		Entity entity = transformStorage->reverse[i];
+
+		bool isRoot = true;
+
+		// Sprawdzamy czy encja ma rodzica
+		if (relStorage) {
+			if (auto* rel = relStorage->Get(entity)) {
+				if (rel->Parent != NULL_ENTITY) {
+					isRoot = false; // Ma rodzica! Zostanie przeliczona, gdy funkcja wywo³a siê dla rodzica.
+				}
+			}
+		}
+
+		// Jeœli to korzeñ grafu (lub samodzielny obiekt), startujemy drzewo
+		if (isRoot) {
+			UpdateTransformTree(world, entity, glm::mat4(1.0f)); // Macierz rodzica dla korzenia to to¿samoœciowa (1.0f)
+		}
+	}
+}
+
+void Scene::SetParent(Entity child, Entity parent) {
+	auto& world = GetWorld();
+
+	// 1. Zabezpieczenie przed zapêtleniem (Cylic Dependency Check)
+	Entity currentAncestor = parent;
+	while (currentAncestor.id != NULL_ENTITY) {
+		if (currentAncestor.id == child.id) {
+			spdlog::warn("Nie mozna podpiac: Cykl w hierarchii! Encja {} jest juz przodkiem {}.", child.id, parent.id);
+			return; // Przerywamy akcjê!
+		}
+		auto* ancestorRel = world.GetComponent<RelationshipComponent>(currentAncestor);
+		if (ancestorRel && ancestorRel->Parent != NULL_ENTITY) {
+			currentAncestor.id = ancestorRel->Parent;
+		}
+		else {
+			break;
+		}
+	}
+
+	// 2. Dodajemy komponenty relacji, jeœli ich nie maj¹
+	if (!world.GetComponent<RelationshipComponent>(child)) {
+		world.AddComponent<RelationshipComponent>(child, {});
+	}
+	if (!world.GetComponent<RelationshipComponent>(parent)) {
+		world.AddComponent<RelationshipComponent>(parent, {});
+	}
+
+	auto* childRel = world.GetComponent<RelationshipComponent>(child);
+	auto* parentRel = world.GetComponent<RelationshipComponent>(parent);
+
+	// 3. ODPIÊCIE OD STAREGO RODZICA (jeœli dziecko ju¿ jakiegoœ mia³o)
+	if (childRel->Parent != NULL_ENTITY) {
+		auto* oldParentRel = world.GetComponent<RelationshipComponent>({ childRel->Parent, 0 });
+		if (oldParentRel) {
+			// Szukamy dziecka na liœcie starego rodzica i je usuwamy (przepinamy wskaŸniki braci)
+			if (oldParentRel->FirstChild == child.id) {
+				oldParentRel->FirstChild = childRel->NextSibling;
+			}
+			if (childRel->PreviousSibling != NULL_ENTITY) {
+				auto* prevRel = world.GetComponent<RelationshipComponent>({ childRel->PreviousSibling, 0 });
+				if (prevRel) prevRel->NextSibling = childRel->NextSibling;
+			}
+			if (childRel->NextSibling != NULL_ENTITY) {
+				auto* nextRel = world.GetComponent<RelationshipComponent>({ childRel->NextSibling, 0 });
+				if (nextRel) nextRel->PreviousSibling = childRel->PreviousSibling;
+			}
+			oldParentRel->ChildrenCount--;
+		}
+	}
+
+	// 4. NOWE PODPIÊCIE
+	childRel->Parent = parent.id;
+	childRel->NextSibling = parentRel->FirstChild;
+	childRel->PreviousSibling = NULL_ENTITY;
+
+	if (parentRel->FirstChild != NULL_ENTITY) {
+		Entity oldFirstChild = { parentRel->FirstChild, 0 };
+		auto* oldFirstChildRel = world.GetComponent<RelationshipComponent>(oldFirstChild);
+		if (oldFirstChildRel) {
+			oldFirstChildRel->PreviousSibling = child.id;
+		}
+	}
+
+	parentRel->FirstChild = child.id;
+	parentRel->ChildrenCount++;
+
+	spdlog::info("Podpieto encje {} do rodzica {}", child.id, parent.id);
 }

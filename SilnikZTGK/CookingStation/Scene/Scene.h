@@ -45,7 +45,8 @@ public:
 	Entity GetSelectedEntity() const { return m_SelectedEntity; }
 
 	PlacementRequest& GetPlacementRequest() { return m_PlacementRequest; }
-
+	void CalculateTransforms();
+	void SetParent(Entity child, Entity parent);
 private:
 	World m_ECSWorld;
 	Camera* m_MainCamera = nullptr;

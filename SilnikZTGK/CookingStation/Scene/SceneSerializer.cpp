@@ -42,31 +42,29 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 		}
 	}
 
-	// Pêtla tworz¹ca obiekty gry
 	if (data.contains("entities")) {
+
+		// NOWE: S³ownik do t³umaczenia "starych" ID z JSONA na "nowe" ID stworzone przez ECS podczas ³adowania
+		std::unordered_map<std::size_t, Entity> oldToNew;
+
+		// NOWE: Lista dzieci i starych ID ich rodziców, do po³¹czenia pod koniec
+		std::vector<std::pair<Entity, std::size_t>> pendingRelationships;
+
 		for (auto& item : data["entities"]) {
 
-			// BEZPIECZNE wyci¹ganie informacji 
 			std::string name = item.contains("name") ? item["name"].get<std::string>() : "Nowy Obiekt";
 			std::string modelPath = item.contains("model_path") ? item["model_path"].get<std::string>() : "";
 
-			// Tworzymy encjê w œwiecie
 			auto builder = m_Scene->GetWorld().BuildEntity();
-
-			// Zawsze dajemy jej nazwê
 			builder.With<TagComponent>({ name });
 
-			// 1. BEZPIECZNE ³adowanie modelu
 			if (!modelPath.empty()) {
 				auto model = AssetManager::GetModel(modelPath);
-
-				// Tworzymy komponent i jawnie przypisujemy mu model
 				MeshComponent meshComp;
 				meshComp.ModelPtr = model;
 				builder.With<MeshComponent>(meshComp);
 			}
 
-			// 2. KULOODPORNE ³adowanie transformacji (Niezale¿nie od kolejnoœci zmiennych w .h!)
 			TransformComponent transComp;
 			if (item.contains("position") && item.contains("rotation") && item.contains("scale")) {
 				transComp.Position = { item["position"][0], item["position"][1], item["position"][2] };
@@ -76,7 +74,7 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 			else {
 				transComp.Position = { 0.0f, 0.0f, 0.0f };
 				transComp.Rotation = { 0.0f, 0.0f, 0.0f };
-				transComp.Scale = { 1.0f, 1.0f, 1.0f }; // Upewniamy siê, ¿e domyœlna skala to 1, a nie 0!
+				transComp.Scale = { 1.0f, 1.0f, 1.0f };
 			}
 			builder.With<TransformComponent>(transComp);
 
@@ -87,21 +85,45 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 				builder.With<BoxColliderComponent>(bc);
 			}
 
-			// Wczytywanie Skryptów
 			if (item.contains("script")) {
 				NativeScriptComponent nsc;
 				std::string scriptName = item["script"].get<std::string>();
 
-				
 				if (scriptName == "RotationScript") {
 					nsc.Bind<RotationScript>();
 				}
-
 				builder.With<NativeScriptComponent>(nsc);
 			}
 
-			builder.Build(); // Finalizacja
+			// FINALIZACJA BUDOWY
+			Entity newEntity = builder.Build();
+
+			// Zapamiêtujemy, jakie ID dosta³ ten obiekt w stosunku do tego w pliku
+			if (item.contains("id")) {
+				std::size_t oldId = item["id"].get<std::size_t>();
+				oldToNew[oldId] = newEntity;
+			}
+
+			// Jeœli encja mia³a w pliku rodzica, dodajemy j¹ do kolejki 
+			if (item.contains("parent_id")) {
+				std::size_t oldParentId = item["parent_id"].get<std::size_t>();
+				pendingRelationships.push_back({ newEntity, oldParentId });
+			}
+
 			spdlog::info("[SceneLoader] Dodano: {}", name);
+		}
+
+		// ODBUDOWA RELACJI
+		// Kiedy wszystkie obiekty s¹ ju¿ na mapie, mo¿emy je popi¹c
+		for (auto& pair : pendingRelationships) {
+			Entity childEntity = pair.first;
+			std::size_t oldParentId = pair.second;
+
+			// Szukamy nowo stworzonego rodzica w s³owniku
+			if (oldToNew.find(oldParentId) != oldToNew.end()) {
+				Entity newParentEntity = oldToNew[oldParentId];
+				m_Scene->SetParent(childEntity, newParentEntity);
+			}
 		}
 	}
 
@@ -115,22 +137,24 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 	data["entities"] = json::array();
 
 	auto* tagStorage = world.GetComponentVector<TagComponent>();
-	if (!tagStorage) return; // Jak nie ma tagów, nie ma czego zapisywaæ
+	if (!tagStorage) return;
 
-	//Pobieramy kontenery pamiêci raz przed wejœciem do pêtli
 	auto* transformStorage = world.GetComponentVector<TransformComponent>();
 	auto* meshStorage = world.GetComponentVector<MeshComponent>();
 	auto* colliderStorage = world.GetComponentVector<BoxColliderComponent>();
 	auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
+	// NOWE: Pobieramy relacje
+	auto* relStorage = world.GetComponentVector<RelationshipComponent>();
 
 	for (size_t i = 0; i < tagStorage->reverse.size(); ++i) {
 		Entity entity = tagStorage->reverse[i];
 		json item;
 
-		// Tagi
+		// NOWE: Zapisujemy stare, oryginalne ID tej encji
+		item["id"] = entity.id;
+
 		item["name"] = tagStorage->dense[i].Tag;
 
-		// Transformacje 
 		if (transformStorage) {
 			if (auto* transform = transformStorage->Get(entity)) {
 				item["position"] = { transform->Position.x, transform->Position.y, transform->Position.z };
@@ -139,14 +163,13 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 			}
 		}
 
-		// Modele
 		if (meshStorage) {
-			auto* mesh = meshStorage->Get(entity); 
+			auto* mesh = meshStorage->Get(entity);
 			if (mesh && mesh->ModelPtr) {
 				item["model_path"] = mesh->ModelPtr->FilePath;
 			}
 		}
-		// Collidery
+
 		if (colliderStorage) {
 			if (auto* collider = colliderStorage->Get(entity)) {
 				item["collider"]["size"] = { collider->Size.x, collider->Size.y, collider->Size.z };
@@ -154,11 +177,19 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 			}
 		}
 
-		// Skrypty
 		if (scriptStorage) {
-			auto* script = scriptStorage->Get(entity); 
+			auto* script = scriptStorage->Get(entity);
 			if (script && script->InstantiateScript) {
 				item["script"] = "RotationScript";
+			}
+		}
+
+		// NOWE: Zapisywanie informacji o rodzicu
+		if (relStorage) {
+			if (auto* rel = relStorage->Get(entity)) {
+				if (rel->Parent != NULL_ENTITY) {
+					item["parent_id"] = rel->Parent; // Zapisujemy tylko ID rodzica
+				}
 			}
 		}
 
@@ -167,15 +198,11 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 
 	std::ofstream file(filepath);
 	if (file.is_open()) {
-#ifdef _DEBUG // Standardowe makro Visual Studio dla trybu Debug
-		// £adny, czytelny format dla Debug
+#ifdef _DEBUG
 		file << data.dump(4);
 #else
-		// b³yskawiczny odczyt/zapis w Release
 		file << data.dump();
 #endif
-		// ----------------------
-
 		spdlog::info("[SceneSerializer] Zapisano scene do: {}", filepath);
 	}
 	else {

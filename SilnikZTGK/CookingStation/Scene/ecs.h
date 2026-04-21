@@ -60,15 +60,19 @@ public:
             if (index != None) {
                 Entity reverseEntity = this->reverse[index];
                 if (reverseEntity.generation == entity.generation) {
-                    return &this->dense[index];
+                    return &this->dense[index]; 
+                }
+                else {
+                    
+                    spdlog::warn("ECS: Entity generation mismatch (entity destroyed)! ID: {}", entity.id);
+                    return nullptr;
                 }
             }
         }
-        spdlog::warn("ECS: Failed to retrieve an entity from a set");
         return nullptr;
     }
 
-    void Remove(Entity entity) override { // Dodaj override
+    void Remove(Entity entity) override { 
         if (entity.id >= this->sparse.size() || this->sparse[entity.id] == None) {
             return;
         }
