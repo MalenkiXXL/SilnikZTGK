@@ -35,8 +35,8 @@
             "model_path": "CookingStation/Assets/models/warzywka/marchewka/test.gltf",
             "name": "marchewka",
             "position": [
-                -5.566667079925537,
-                -1.9000005722045898,
+                2.3333330154418945,
+                0.7666664123535156,
                 0.0
             ],
             "rotation": [
@@ -64,75 +64,11 @@
                     1.0
                 ]
             },
-            "model_path": "CookingStation/Assets/models/warzywka/marchewka/test.gltf",
-            "name": "marchewka",
+            "model_path": "CookingStation/Assets/models/warzywka/pomidor/pomidor.gltf",
+            "name": "pomidor",
             "position": [
-                -5.333335876464844,
-                -0.9333333969116211,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "script": "RotationScript"
-        },
-        {
-            "collider": {
-                "offset": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "size": [
-                    1.0,
-                    1.0,
-                    1.0
-                ]
-            },
-            "model_path": "CookingStation/Assets/models/warzywka/grzybek/grzybek.gltf",
-            "name": "grzybek",
-            "position": [
-                -1.0333328247070313,
-                -4.6666669845581055,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "script": "RotationScript"
-        },
-        {
-            "collider": {
-                "offset": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "size": [
-                    1.0,
-                    1.0,
-                    1.0
-                ]
-            },
-            "model_path": "CookingStation/Assets/models/warzywka/grzybek/grzybek.gltf",
-            "name": "grzybek",
-            "position": [
-                -1.3333282470703125,
-                -4.233332633972168,
+                1.9666671752929688,
+                2.366666793823242,
                 0.0
             ],
             "rotation": [

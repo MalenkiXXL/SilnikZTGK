@@ -6,6 +6,7 @@
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Events/KeyEvent.h"
 #include "CookingStation/Events/EditorEvents.h"
+#include "CookingStation/Renderer/ShaderLibrary.h"
 #include "CommandHistory.h"
 #include <limits>
 
@@ -51,6 +52,7 @@ private:
     SceneState m_SceneState = SceneState::Edit;
     std::shared_ptr<Scene> m_EditorScene;
     std::shared_ptr<Scene> m_RuntimeScene;
+    ShaderLibrary m_ShaderLibrary;
 
     bool OnScenePlayEvent(ScenePlayEvent& e) { OnScenePlay(); return true; }
     bool OnSceneStopEvent(SceneStopEvent& e) { OnSceneStop(); return true; }

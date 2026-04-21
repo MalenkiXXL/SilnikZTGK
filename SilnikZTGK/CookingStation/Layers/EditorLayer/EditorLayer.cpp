@@ -72,10 +72,7 @@ void EditorLayer::OnUpdate(Timestep ts) {
             spawnPosition.y = (-(yRatio * worldHeight - (worldHeight / 2.0f))) + camPos.y;
             spawnPosition.z = 0.0f;
 
-            std::shared_ptr<Shader> modelShader = std::make_shared<Shader>(
-                "CookingStation/Shaders/vsShaders/shader.vs",
-                "CookingStation/Shaders/fragShaders/shader.frag"
-            );
+            std::shared_ptr<Shader> modelShader = AssetManager::GetShaders().Get("ModelShader");
 
             std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
                 &world, m_PendingModelName, m_PendingModelPath, spawnPosition, modelShader

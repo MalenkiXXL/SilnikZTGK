@@ -19,6 +19,7 @@ void AssetLayer::OnAttach() {
 
 	// wczytujemy definicje modeli do biblioteki z pliku
     AssetManager::LoadModelLibrary("CookingStation/Assets/modelsLib.json");
+	AssetManager::InitCoreAssets();
 
 	// 2. Pobieramy aktualn¹ scenê utworzon¹ w Application.cpp przez SceneManagera
 	std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
@@ -55,4 +56,5 @@ bool AssetLayer::OnWindowResize(WindowResizeEvent& e) {
 
 	return false;
 }
+
 
