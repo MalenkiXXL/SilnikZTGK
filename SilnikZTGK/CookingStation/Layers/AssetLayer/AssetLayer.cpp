@@ -21,10 +21,10 @@ void AssetLayer::OnAttach() {
     AssetManager::LoadModelLibrary("CookingStation/Assets/modelsLib.json");
 	AssetManager::InitCoreAssets();
 
-	// 2. Pobieramy aktualn¹ scenê utworzon¹ w Application.cpp przez SceneManagera
+	// pobieramy aktualn¹ scenê utworzon¹ w Application.cpp przez SceneManagera
 	std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
 
-	// Zabezpieczenie: jeœli z jakiegoœ powodu nie ma sceny, to przerywamy
+	// jeœli z jakiegoœ powodu nie ma sceny, to przerywamy
 	if (!activeScene) {
 		spdlog::error("AssetLayer: Brak aktywnej sceny!");
 		return;

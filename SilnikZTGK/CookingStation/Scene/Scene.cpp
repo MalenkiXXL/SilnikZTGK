@@ -21,37 +21,31 @@ Scene::Scene()
 	m_ECSWorld.RegisterComponent<BoxColliderComponent>();
 	m_ECSWorld.RegisterComponent<NativeScriptComponent>();
 	m_ECSWorld.RegisterComponent<ClearColorComponent>();
+	m_ECSWorld.RegisterComponent<RelationshipComponent>();
 }
 
 Scene::~Scene() {};
 
-// funkcja bierze pozycje, skale, rotacje obiektu i statyczne parametry kolidera a zwraca zaktualizowane pude³ko na obecn¹ klatkê gry.
 AABB ComputeDynamicAABB(TransformComponent* trans, BoxColliderComponent* col)
 {
 	AABB box;
+	glm::vec3 globalPos = glm::vec3(trans->WorldMatrix[3][0], trans->WorldMatrix[3][1], trans->WorldMatrix[3][2]);
+	glm::vec3 center = globalPos + col->Offset;
+	glm::vec3 extents = trans->Scale * col->Size; // odleg³oœæ od œrodka do krawêdzi
 
-	// obliczamy fizyczny œrodek pude³ka w œwiecie
-	glm::vec3 center = trans->Position + col->Offset;
-
-	// obliczamy rozpiêtoœæ (odleg³oœæ od œrodka do œcianek w ka¿dej osi)
-	glm::vec3 extents = trans->Scale * col->Size; 
-
-	// wyliczamy sam¹ macierz rotacji i sk³adamy j¹
+	// wyliczamy sam¹ macierz rotacji
 	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.x), { 1, 0, 0 })
 		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.y), { 0, 1, 0 })
 		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.z), { 0, 0, 1 });
 
-	// zachowanie wyrównania pude³ka wzglêdem obrotu. Pude³ko AABB nie mo¿e byæ obrocone - jego œciany zawsze id¹ wzd³u¿ osi X,Y,Z œwiata.
+	// przekszta³camy rozmiary przez bezwzglêdne wartoœci macierzy rotacji
 	glm::vec3 rotatedExtents(
-		std::abs(rotation[0][0]) * extents.x + std::abs(rotation[1][0]) * extents.y + std::abs(rotation[2][0]) * extents.z, // Oœ X
-		std::abs(rotation[0][1]) * extents.x + std::abs(rotation[1][1]) * extents.y + std::abs(rotation[2][1]) * extents.z, // Oœ Y
-		std::abs(rotation[0][2]) * extents.x + std::abs(rotation[1][2]) * extents.y + std::abs(rotation[2][2]) * extents.z  // Oœ Z
+		std::abs(rotation[0][0]) * extents.x + std::abs(rotation[1][0]) * extents.y + std::abs(rotation[2][0]) * extents.z,
+		std::abs(rotation[0][1]) * extents.x + std::abs(rotation[1][1]) * extents.y + std::abs(rotation[2][1]) * extents.z,
+		std::abs(rotation[0][2]) * extents.x + std::abs(rotation[1][2]) * extents.y + std::abs(rotation[2][2]) * extents.z
 	);
 
-	// maj¹c wyliczony œrodek oraz powiêkszon¹ rozpiêtoœæ obróconego pude³ka - obliczamy jego fizyczne wierzcho³ki:
-	// Min - najmniejszy wierzcho³ek (lewy dolny tylny)
 	box.Min = center - rotatedExtents;
-	// Max - najwiêkszy wierzcho³ek (prawy górny przedni)
 	box.Max = center + rotatedExtents;
 
 	return box;
@@ -68,6 +62,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 	// ==========================================
 	// 1. update skrytpow
 	// ==========================================
+	CalculateTransforms();
 	auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
 
 	if (scriptStorage)
@@ -96,36 +91,28 @@ void Scene::OnUpdateRuntime(Timestep ts)
 	}
 
 	// ==========================================
-	// 2 kolizja
+	// 2. KROK FIZYKI I KOLIZJI 
 	// ==========================================
 
-	// pobieramy dostêp do wszystkich komponentow kolizji
 	auto* colliderStorage = m_ECSWorld.GetComponentVector<BoxColliderComponent>();
-	// pobieramy dostêp do wszystkich komponentow transformacji
 	auto* transformStorage = m_ECSWorld.GetComponentVector<TransformComponent>();
 
 	if (colliderStorage && transformStorage && colliderStorage->dense.size() > 1)
 	{
-		// tworzymy tymczasowa strukture zeby trzymac encje razem z jej wyliczonym aktualnym pudelkiem 3D
 		struct ColliderData
 		{
 			Entity ent;
 			AABB box;
 		};
 
-		// tworzymy liste do ktorej wrzucimy wszystkie aktywne kolidery
 		std::vector<ColliderData> activeColliders;
-		// rezerwujemy pamiec z gory na dokladna liczbe koliderow
 		activeColliders.reserve(colliderStorage->dense.size());
 
 		//zbieramy aktualne	pudelka wszystkich encji
 		for (size_t i = 0; i < colliderStorage->dense.size(); i++)
 		{
-			// odczytujemy ID encji na podstawie jej indeksu
 			Entity ent = colliderStorage->reverse[i];
-			// probujemy pobrac transformacje dla tej konkretnej encji
 			auto* trans = transformStorage->Get(ent);
-			// pobieramy dane samego komponentu kolizji
 			auto* col = &colliderStorage->dense[i];
 
 			if (trans) {
@@ -134,18 +121,15 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			}
 		} 
 
-		// sortujemy po minimalnej wartoœci osi X
-		// optymalizacja - ustawiamy obiekty od lewej do prawej
+		// 2. sortujemy po minimalnej wartoœci osi X
 		std::sort(activeColliders.begin(), activeColliders.end(), [](const ColliderData& a, const ColliderData& b) {
-			return a.box.Min.x < b.box.Min.x; // obiekty z mniejszym minimalnym X beda pierwsze w liscie.
+			return a.box.Min.x < b.box.Min.x;
 			});
 
-		//sprawdzanie potencjalnych kolizji
 		for (size_t i = 0; i < activeColliders.size(); i++)
 		{
 			const auto& dataA = activeColliders[i];
 
-			// i sprawdzamy z kazdym nastepnym obiektem na liœcie (B)
 			for (size_t j = i + 1; j < activeColliders.size(); j++)
 			{
 				const auto& dataB = activeColliders[j];
@@ -164,12 +148,11 @@ void Scene::OnUpdateRuntime(Timestep ts)
 					// Kolizja 
 					spdlog::info("kolizja miedzy ID: {} a ID: {}", dataA.ent.id, dataB.ent.id);
 
-					// Reakcja na kolizjê dla obiektu
 					auto* scriptA = m_ECSWorld.GetComponent<NativeScriptComponent>(dataA.ent);
 					if (scriptA && scriptA->Instance) {
 						scriptA->Instance->OnCollision();
 					}
-					// Reakcja na kolizjê dla obiektu
+
 					auto* scriptB = m_ECSWorld.GetComponent<NativeScriptComponent>(dataB.ent);
 					if (scriptB && scriptB->Instance) {
 						scriptB->Instance->OnCollision();
@@ -181,15 +164,13 @@ void Scene::OnUpdateRuntime(Timestep ts)
 	// ==========================================
 	// 3. RENDEROWANIE SCENY 
 	// ==========================================
+	// Przeliczamy ca³e drzewo transformacji przed renderowaniem
+
 	if (m_MainCamera)
 	{
-		// 1. Obliczamy macierz projekcji 
 		glm::mat4 projection = glm::perspective(glm::radians(m_MainCamera->Zoom), 16.0f / 9.0f, 0.1f, 100.0f);
-
-		// 2. £¹czymy Projekcjê z Widokiem z Twojej klasy Camera
 		glm::mat4 viewProjection = projection * m_MainCamera->GetViewMatrix();
 
-		// 3. Rozpoczynamy klatkê
 		Renderer::BeginScene(viewProjection);
 
 		auto* meshStorage = m_ECSWorld.GetComponentVector<MeshComponent>();
@@ -203,11 +184,10 @@ void Scene::OnUpdateRuntime(Timestep ts)
 				auto& meshComp = meshStorage->dense[i];
 				auto* trans = transformStorage->Get(entity);
 
-				// U¿ywamy ModelPtr z Twojego MeshComponent i sprawdzamy czy dodano ShaderPtr
 				if (trans && meshComp.ModelPtr && meshComp.ShaderPtr)
 				{
-					// U¿ywamy GetTransformMatrix() z Twojego TransformComponent
-					Renderer::Submit(meshComp.ShaderPtr, meshComp.ModelPtr, trans->GetTransformMatrix());
+					// Wysy³amy do karty graficznej ostateczn¹ pozycjê w œwiecie (WorldMatrix)
+					Renderer::Submit(meshComp.ShaderPtr, meshComp.ModelPtr, trans->WorldMatrix);
 				}
 			}
 		}
@@ -252,4 +232,134 @@ std::shared_ptr<Scene> Scene::Copy(std::shared_ptr<Scene> other)
 
 	// 4. Zwracamy now¹, gotow¹ do gry scenê, która jest dok³adnym klonem edytora
 	return newScene;
+}
+
+// 1. Rekurencyjna funkcja schodz¹ca w g³¹b drzewa
+void UpdateTransformTree(World& world, std::size_t entityId, const glm::mat4& parentGlobalMatrix) {
+	// U¿ywamy GetComponentByID, by omin¹æ sztywn¹ generacjê 0
+	auto* transform = world.GetComponentByID<TransformComponent>(entityId);
+	if (!transform) return;
+
+	// A. Liczymy nasz¹ pozycjê w œwiecie = Rodzic * Nasza Lokalna
+	glm::mat4 localMatrix = transform->GetLocalMatrix();
+	transform->WorldMatrix = parentGlobalMatrix * localMatrix;
+
+	// B. Przekazujemy nasz¹ macierz ni¿ej, do naszych dzieci
+	auto* rel = world.GetComponentByID<RelationshipComponent>(entityId);
+	if (rel && rel->FirstChild != NULL_ENTITY) {
+
+		std::size_t currentChildId = rel->FirstChild;
+
+		while (currentChildId != NULL_ENTITY) {
+			// Wywo³anie rekurencyjne
+			UpdateTransformTree(world, currentChildId, transform->WorldMatrix);
+
+			// Przechodzimy do kolejnego brata
+			auto* childRel = world.GetComponentByID<RelationshipComponent>(currentChildId);
+			if (childRel) {
+				currentChildId = childRel->NextSibling;
+			}
+			else {
+				break; // zabezpieczenie
+			}
+		}
+	}
+}
+
+void Scene::CalculateTransforms() {
+	auto& world = GetWorld();
+	auto* transformStorage = world.GetComponentVector<TransformComponent>();
+	auto* relStorage = world.GetComponentVector<RelationshipComponent>();
+
+	if (!transformStorage) return;
+
+	// Iterujemy po wszystkich encjach z Transform
+	for (size_t i = 0; i < transformStorage->reverse.size(); i++) {
+		Entity entity = transformStorage->reverse[i];
+
+		bool isRoot = true;
+
+		// Sprawdzamy czy encja ma rodzica
+		if (relStorage) {
+			// U¿ywamy GetByID, aby omin¹æ weryfikacjê generacji i oprzeæ siê na czystym indeksie
+			if (auto* rel = relStorage->GetByID(entity.id)) {
+				if (rel->Parent != NULL_ENTITY) {
+					isRoot = false; // Ma rodzica! Zostanie przeliczona, gdy funkcja wywo³a siê dla rodzica.
+				}
+			}
+		}
+
+		// Jeœli to korzeñ grafu (lub samodzielny obiekt), startujemy drzewo
+		if (isRoot) {
+			UpdateTransformTree(world, entity.id, glm::mat4(1.0f));
+		}
+	}
+}
+
+void Scene::SetParent(Entity child, Entity parent) {
+	auto& world = GetWorld();
+
+	// 1. Zabezpieczenie przed zapêtleniem (Cylic Dependency Check)
+	Entity currentAncestor = parent;
+	while (currentAncestor.id != NULL_ENTITY) {
+		if (currentAncestor.id == child.id) {
+			spdlog::warn("Nie mozna podpiac: Cykl w hierarchii! Encja {} jest juz przodkiem {}.", child.id, parent.id);
+			return; // Przerywamy akcjê!
+		}
+		auto* ancestorRel = world.GetComponent<RelationshipComponent>(currentAncestor);
+		if (ancestorRel && ancestorRel->Parent != NULL_ENTITY) {
+			currentAncestor.id = ancestorRel->Parent;
+		}
+		else {
+			break;
+		}
+	}
+
+	// 2. Dodajemy komponenty relacji, jeœli ich nie maj¹
+	if (!world.GetComponent<RelationshipComponent>(child)) {
+		world.AddComponent<RelationshipComponent>(child, {});
+	}
+	if (!world.GetComponent<RelationshipComponent>(parent)) {
+		world.AddComponent<RelationshipComponent>(parent, {});
+	}
+
+	auto* childRel = world.GetComponent<RelationshipComponent>(child);
+	auto* parentRel = world.GetComponent<RelationshipComponent>(parent);
+
+	// 3. ODPIÊCIE OD STAREGO RODZICA (jeœli dziecko ju¿ jakiegoœ mia³o)
+	if (childRel->Parent != NULL_ENTITY) {
+		auto* oldParentRel = world.GetComponent<RelationshipComponent>({ childRel->Parent, 0 });
+		if (oldParentRel) {
+			// Szukamy dziecka na liœcie starego rodzica i je usuwamy (przepinamy wskaŸniki braci)
+			if (oldParentRel->FirstChild == child.id) {
+				oldParentRel->FirstChild = childRel->NextSibling;
+			}
+			if (childRel->PreviousSibling != NULL_ENTITY) {
+				auto* prevRel = world.GetComponent<RelationshipComponent>({ childRel->PreviousSibling, 0 });
+				if (prevRel) prevRel->NextSibling = childRel->NextSibling;
+			}
+			if (childRel->NextSibling != NULL_ENTITY) {
+				auto* nextRel = world.GetComponent<RelationshipComponent>({ childRel->NextSibling, 0 });
+				if (nextRel) nextRel->PreviousSibling = childRel->PreviousSibling;
+			}
+			oldParentRel->ChildrenCount--;
+		}
+	}
+
+	// 4. NOWE PODPIÊCIE
+	childRel->Parent = parent.id;
+	childRel->NextSibling = parentRel->FirstChild;
+	childRel->PreviousSibling = NULL_ENTITY;
+
+	if (parentRel->FirstChild != NULL_ENTITY) {
+		auto* oldFirstChildRel = world.GetComponentByID<RelationshipComponent>(parentRel->FirstChild);
+		if (oldFirstChildRel) {
+			oldFirstChildRel->PreviousSibling = child.id;
+		}
+	}
+
+	parentRel->FirstChild = child.id;
+	parentRel->ChildrenCount++;
+
+	spdlog::info("Podpieto encje {} do rodzica {}", child.id, parent.id);
 }

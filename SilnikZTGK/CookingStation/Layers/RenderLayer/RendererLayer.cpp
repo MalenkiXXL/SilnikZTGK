@@ -69,16 +69,8 @@ void RendererLayer::OnUpdate(Timestep ts) {
                 //jak wiemy czyje to to bierzemy pozycje tego konkretnego wlasciciela
                 TransformComponent* transform = transformStorage->Get(owner);
 
-                //jesli obiekt ma i model i pozycje
                 if (transform && meshComp.ModelPtr) {
-                    //budujemy macierz widoku
-                    glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), transform->Position);
-                    modelMatrix = glm::rotate(modelMatrix, glm::radians(transform->Rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-                    modelMatrix = glm::rotate(modelMatrix, glm::radians(transform->Rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-                    modelMatrix = glm::rotate(modelMatrix, glm::radians(transform->Rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-                    modelMatrix = glm::scale(modelMatrix, transform->Scale);
-
-                    Renderer::Submit(m_Shader, meshComp.ModelPtr, modelMatrix);
+                    Renderer::Submit(m_Shader, meshComp.ModelPtr, transform->WorldMatrix);
                 }
             }
         }

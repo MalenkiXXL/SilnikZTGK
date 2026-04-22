@@ -1,22 +1,30 @@
 {
   "scene_name": "Testowa Scena",
-  "settings":
-    {
-      "clear_color": [
-        0.1,
-        0.2,
-        0.3,
-        0.1
-      ]
-    },
- 
+  "settings": {
+    "clear_color": [
+      0.1,
+      0.2,
+      0.3,
+      0.1
+    ]
+  },
   "entities": [
     {
+      "id": 10,
       "name": "Marchewa1",
       "model_path": "CookingStation/Assets/models/warzywka/marchewka/test.gltf",
       "position": [ 2.0, 0.0, 0.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.5, 1.5, 1.5 ]
+    },
+    {
+      "id": 11,
+      "parent_id": 10,
+      "name": "Grzybek_Dziecko",
+      "model_path": "CookingStation/Assets/models/warzywka/grzybek/grzybek.gltf",
+      "position": [ 0.0, 3.0, 0.0 ],
+      "rotation": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 0.5, 0.5, 0.5 ]
     }
   ]
 }

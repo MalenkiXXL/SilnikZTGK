@@ -320,7 +320,6 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
 				// JEŒLI PUŒCILIŒMY KLAWISZ MYSZY - WYSY£AMY EVENT
 				if (m_IsDraggingTransform && !Input::IsMouseButtonPressed(0)) {
-
 					EntityTransformChangedEvent e(selected, m_TransformStartPos, transform->Position);
 
 					// Strzelamy eventem w g³ówn¹ szynê aplikacji
@@ -328,6 +327,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
 					m_IsDraggingTransform = false; // reset
 				}
+
 			}
 
 			// przycisk od usuwania obiektu

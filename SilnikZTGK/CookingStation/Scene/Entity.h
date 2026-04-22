@@ -4,21 +4,34 @@
 #include <memory>
 #include "CookingStation/Renderer/Model.h"
 
+constexpr std::size_t NULL_ENTITY = std::numeric_limits<std::size_t>::max();
+
+struct RelationshipComponent {
+    std::size_t Parent = NULL_ENTITY;
+    std::size_t FirstChild = NULL_ENTITY;
+    std::size_t NextSibling = NULL_ENTITY;
+    std::size_t PreviousSibling = NULL_ENTITY;
+
+    // do szybkiego sprawdzenia iloœci dzieci
+    int ChildrenCount = 0;
+};
+
 struct TransformComponent {
+    // lokalna pozycja wzgledem rodzica
     glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
     glm::vec3 Rotation = { 0.0f, 0.0f, 0.0f };
     glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
 
-    glm::mat4 GetTransformMatrix() {
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), Position);
+    // ostateczna macierz przekazywana do renderera
+    glm::mat4 WorldMatrix = glm::mat4(1.0f);
 
-        transform = glm::rotate(transform, glm::radians(Rotation.x), { 1, 0, 0 });
-        transform = glm::rotate(transform, glm::radians(Rotation.y), { 0, 1, 0 });
-        transform = glm::rotate(transform, glm::radians(Rotation.z), { 0, 0, 1 });
+    // funkcja licz¹ca lokaln¹ macierz (Translation * Rotation * Scale)
+    glm::mat4 GetLocalMatrix() const {
+        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(Rotation.x), { 1, 0, 0 })
+            * glm::rotate(glm::mat4(1.0f), glm::radians(Rotation.y), { 0, 1, 0 })
+            * glm::rotate(glm::mat4(1.0f), glm::radians(Rotation.z), { 0, 0, 1 });
 
-        transform = glm::scale(transform, Scale);
-
-        return transform;
+        return glm::translate(glm::mat4(1.0f), Position) * rotation * glm::scale(glm::mat4(1.0f), Scale);
     }
 };
 
