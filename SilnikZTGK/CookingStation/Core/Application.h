@@ -9,7 +9,8 @@
 #include "CookingStation/Layers/AssetLayer/AssetLayer.h"
 #include "CookingStation/Layers/GuiLayer/GuiLayer.h"
 #include "CookingStation/Layers/EditorLayer/EditorLayer.h"
-
+#include "CookingStation/Renderer/Framebuffer.h" 
+#include <memory>
 #include <vector>
 
 class Application
@@ -28,6 +29,8 @@ public:
 	void PushLayer(Layer* layer);
 	std::vector<Layer*> m_LayerStack;
 
+	std::shared_ptr<Framebuffer> GetViewportFBO() { return m_ViewportFBO; }
+
 private:
 	bool OnWindowClose(WindowCloseEvent& e);
 	bool OnWindowResize(WindowResizeEvent& e);
@@ -37,6 +40,6 @@ private:
 	bool m_Running = true;
 
 	float m_LastFrameTime = 0.0f;
-
+	std::shared_ptr<Framebuffer> m_ViewportFBO;
 	static Application* s_Instance;
 };

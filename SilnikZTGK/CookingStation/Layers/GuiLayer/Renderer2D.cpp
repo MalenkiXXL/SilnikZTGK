@@ -54,6 +54,7 @@ void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, cons
     DrawQuad(position, size, s_Data->WhiteTexture, color, { 0.0f, 0.0f }, { 1.0f, 1.0f });
 }
 
+
 // Wersja 2: Pe³na (u¿ywana do tekstu, ikon, marchewek)
 void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<Texture>& texture, const glm::vec4& color, const glm::vec2& uvMin, const glm::vec2& uvMax) {
     texture->Bind();
@@ -83,6 +84,32 @@ void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, cons
     Renderer::GetStats().TriangleCountUI += 2;
 }
 
+void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, uint32_t textureID, const glm::vec4& color, const glm::vec2& uvMin, const glm::vec2& uvMax) {
+
+    // Zamiast texture->Bind() u¿ywamy bezpoœredniego podpiêcia ID z OpenGL
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
+        * glm::scale(glm::mat4(1.0f), glm::vec3(size, 1.0f));
+
+    s_Data->UI_Shader->setMat4("u_Transform", transform);
+    s_Data->UI_Shader->setVec4("u_Color", color);
+    s_Data->UI_Shader->setVec2("u_UVMin", uvMin);
+    s_Data->UI_Shader->setVec2("u_UVMax", uvMax);
+
+    s_Data->QuadVAO->Bind();
+
+    glDrawElements(
+        GL_TRIANGLES,
+        s_Data->QuadVAO->GetIndexBuffer()->GetCount(),
+        GL_UNSIGNED_INT,
+        nullptr
+    );
+
+    // podbijamy licznik wywo³añ rysowania dla UI
+    Renderer::GetStats().DrawCallsUI++;
+    Renderer::GetStats().TriangleCountUI += 2;
+}
 
 void Renderer2D::EndScene() {}
 

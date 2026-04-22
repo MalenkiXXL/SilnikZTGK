@@ -27,6 +27,7 @@ const float ZOOM = 45.0f;
 class Camera
 {
 public:
+    float AspectRatio = 1.7777f;
     // camera Attributes
     glm::vec3 Position;
     glm::vec3 Front;
