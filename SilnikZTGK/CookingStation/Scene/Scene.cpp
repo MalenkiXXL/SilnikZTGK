@@ -235,8 +235,9 @@ std::shared_ptr<Scene> Scene::Copy(std::shared_ptr<Scene> other)
 }
 
 // 1. Rekurencyjna funkcja schodz¹ca w g³¹b drzewa
-void UpdateTransformTree(World& world, Entity entity, const glm::mat4& parentGlobalMatrix) {
-	auto* transform = world.GetComponent<TransformComponent>(entity);
+void UpdateTransformTree(World& world, std::size_t entityId, const glm::mat4& parentGlobalMatrix) {
+	// U¿ywamy GetComponentByID, by omin¹æ sztywn¹ generacjê 0
+	auto* transform = world.GetComponentByID<TransformComponent>(entityId);
 	if (!transform) return;
 
 	// A. Liczymy nasz¹ pozycjê w œwiecie = Rodzic * Nasza Lokalna
@@ -244,19 +245,19 @@ void UpdateTransformTree(World& world, Entity entity, const glm::mat4& parentGlo
 	transform->WorldMatrix = parentGlobalMatrix * localMatrix;
 
 	// B. Przekazujemy nasz¹ macierz ni¿ej, do naszych dzieci
-	auto* rel = world.GetComponent<RelationshipComponent>(entity);
+	auto* rel = world.GetComponentByID<RelationshipComponent>(entityId);
 	if (rel && rel->FirstChild != NULL_ENTITY) {
 
-		// Pobieramy pierwsze dziecko
-		Entity currentChild = { rel->FirstChild, 0 }; // Uproszczenie: pomijamy generacjê dla szukania
+		std::size_t currentChildId = rel->FirstChild;
 
-		while (currentChild.id != NULL_ENTITY) {
-			UpdateTransformTree(world, currentChild, transform->WorldMatrix);
+		while (currentChildId != NULL_ENTITY) {
+			// Wywo³anie rekurencyjne
+			UpdateTransformTree(world, currentChildId, transform->WorldMatrix);
 
 			// Przechodzimy do kolejnego brata
-			auto* childRel = world.GetComponent<RelationshipComponent>(currentChild);
+			auto* childRel = world.GetComponentByID<RelationshipComponent>(currentChildId);
 			if (childRel) {
-				currentChild.id = childRel->NextSibling;
+				currentChildId = childRel->NextSibling;
 			}
 			else {
 				break; // zabezpieczenie
@@ -265,7 +266,6 @@ void UpdateTransformTree(World& world, Entity entity, const glm::mat4& parentGlo
 	}
 }
 
-// 2. W Twoim Scene::OnUpdateRuntime oraz OnUpdateEditor dodaj to PRZED RENDEROWANIEM:
 void Scene::CalculateTransforms() {
 	auto& world = GetWorld();
 	auto* transformStorage = world.GetComponentVector<TransformComponent>();
@@ -281,7 +281,8 @@ void Scene::CalculateTransforms() {
 
 		// Sprawdzamy czy encja ma rodzica
 		if (relStorage) {
-			if (auto* rel = relStorage->Get(entity)) {
+			// U¿ywamy GetByID, aby omin¹æ weryfikacjê generacji i oprzeæ siê na czystym indeksie
+			if (auto* rel = relStorage->GetByID(entity.id)) {
 				if (rel->Parent != NULL_ENTITY) {
 					isRoot = false; // Ma rodzica! Zostanie przeliczona, gdy funkcja wywo³a siê dla rodzica.
 				}
@@ -290,7 +291,7 @@ void Scene::CalculateTransforms() {
 
 		// Jeœli to korzeñ grafu (lub samodzielny obiekt), startujemy drzewo
 		if (isRoot) {
-			UpdateTransformTree(world, entity, glm::mat4(1.0f)); // Macierz rodzica dla korzenia to to¿samoœciowa (1.0f)
+			UpdateTransformTree(world, entity.id, glm::mat4(1.0f));
 		}
 	}
 }
@@ -351,8 +352,7 @@ void Scene::SetParent(Entity child, Entity parent) {
 	childRel->PreviousSibling = NULL_ENTITY;
 
 	if (parentRel->FirstChild != NULL_ENTITY) {
-		Entity oldFirstChild = { parentRel->FirstChild, 0 };
-		auto* oldFirstChildRel = world.GetComponent<RelationshipComponent>(oldFirstChild);
+		auto* oldFirstChildRel = world.GetComponentByID<RelationshipComponent>(parentRel->FirstChild);
 		if (oldFirstChildRel) {
 			oldFirstChildRel->PreviousSibling = child.id;
 		}

@@ -22,7 +22,7 @@
       "parent_id": 10,
       "name": "Grzybek_Dziecko",
       "model_path": "CookingStation/Assets/models/warzywka/grzybek/grzybek.gltf",
-      "position": [ 0.0, 1.0, 0.0 ],
+      "position": [ 0.0, 3.0, 0.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 0.5, 0.5, 0.5 ]
     }
