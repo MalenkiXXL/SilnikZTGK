@@ -25,25 +25,33 @@ Scene::Scene()
 
 Scene::~Scene() {};
 
+// funkcja bierze pozycje, skale, rotacje obiektu i statyczne parametry kolidera a zwraca zaktualizowane pude³ko na obecn¹ klatkê gry.
 AABB ComputeDynamicAABB(TransformComponent* trans, BoxColliderComponent* col)
 {
 	AABB box;
-	glm::vec3 center = trans->Position + col->Offset;
-	glm::vec3 extents = trans->Scale * col->Size; // odleg³oœæ od œrodka do krawêdzi
 
-	// wyliczamy sam¹ macierz rotacji
+	// obliczamy fizyczny œrodek pude³ka w œwiecie
+	glm::vec3 center = trans->Position + col->Offset;
+
+	// obliczamy rozpiêtoœæ (odleg³oœæ od œrodka do œcianek w ka¿dej osi)
+	glm::vec3 extents = trans->Scale * col->Size; 
+
+	// wyliczamy sam¹ macierz rotacji i sk³adamy j¹
 	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.x), { 1, 0, 0 })
 		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.y), { 0, 1, 0 })
 		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.z), { 0, 0, 1 });
 
-	// przekszta³camy rozmiary przez bezwzglêdne wartoœci macierzy rotacji
+	// zachowanie wyrównania pude³ka wzglêdem obrotu. Pude³ko AABB nie mo¿e byæ obrocone - jego œciany zawsze id¹ wzd³u¿ osi X,Y,Z œwiata.
 	glm::vec3 rotatedExtents(
-		std::abs(rotation[0][0]) * extents.x + std::abs(rotation[1][0]) * extents.y + std::abs(rotation[2][0]) * extents.z,
-		std::abs(rotation[0][1]) * extents.x + std::abs(rotation[1][1]) * extents.y + std::abs(rotation[2][1]) * extents.z,
-		std::abs(rotation[0][2]) * extents.x + std::abs(rotation[1][2]) * extents.y + std::abs(rotation[2][2]) * extents.z
+		std::abs(rotation[0][0]) * extents.x + std::abs(rotation[1][0]) * extents.y + std::abs(rotation[2][0]) * extents.z, // Oœ X
+		std::abs(rotation[0][1]) * extents.x + std::abs(rotation[1][1]) * extents.y + std::abs(rotation[2][1]) * extents.z, // Oœ Y
+		std::abs(rotation[0][2]) * extents.x + std::abs(rotation[1][2]) * extents.y + std::abs(rotation[2][2]) * extents.z  // Oœ Z
 	);
 
+	// maj¹c wyliczony œrodek oraz powiêkszon¹ rozpiêtoœæ obróconego pude³ka - obliczamy jego fizyczne wierzcho³ki:
+	// Min - najmniejszy wierzcho³ek (lewy dolny tylny)
 	box.Min = center - rotatedExtents;
+	// Max - najwiêkszy wierzcho³ek (prawy górny przedni)
 	box.Max = center + rotatedExtents;
 
 	return box;
@@ -88,28 +96,36 @@ void Scene::OnUpdateRuntime(Timestep ts)
 	}
 
 	// ==========================================
-	// 2. KROK FIZYKI I KOLIZJI 
+	// 2 kolizja
 	// ==========================================
 
+	// pobieramy dostêp do wszystkich komponentow kolizji
 	auto* colliderStorage = m_ECSWorld.GetComponentVector<BoxColliderComponent>();
+	// pobieramy dostêp do wszystkich komponentow transformacji
 	auto* transformStorage = m_ECSWorld.GetComponentVector<TransformComponent>();
 
 	if (colliderStorage && transformStorage && colliderStorage->dense.size() > 1)
 	{
+		// tworzymy tymczasowa strukture zeby trzymac encje razem z jej wyliczonym aktualnym pudelkiem 3D
 		struct ColliderData
 		{
 			Entity ent;
 			AABB box;
 		};
 
+		// tworzymy liste do ktorej wrzucimy wszystkie aktywne kolidery
 		std::vector<ColliderData> activeColliders;
+		// rezerwujemy pamiec z gory na dokladna liczbe koliderow
 		activeColliders.reserve(colliderStorage->dense.size());
 
 		//zbieramy aktualne	pudelka wszystkich encji
 		for (size_t i = 0; i < colliderStorage->dense.size(); i++)
 		{
+			// odczytujemy ID encji na podstawie jej indeksu
 			Entity ent = colliderStorage->reverse[i];
+			// probujemy pobrac transformacje dla tej konkretnej encji
 			auto* trans = transformStorage->Get(ent);
+			// pobieramy dane samego komponentu kolizji
 			auto* col = &colliderStorage->dense[i];
 
 			if (trans) {
@@ -118,15 +134,18 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			}
 		} 
 
-		// 2. sortujemy po minimalnej wartoœci osi X
+		// sortujemy po minimalnej wartoœci osi X
+		// optymalizacja - ustawiamy obiekty od lewej do prawej
 		std::sort(activeColliders.begin(), activeColliders.end(), [](const ColliderData& a, const ColliderData& b) {
-			return a.box.Min.x < b.box.Min.x;
+			return a.box.Min.x < b.box.Min.x; // obiekty z mniejszym minimalnym X beda pierwsze w liscie.
 			});
 
+		//sprawdzanie potencjalnych kolizji
 		for (size_t i = 0; i < activeColliders.size(); i++)
 		{
 			const auto& dataA = activeColliders[i];
 
+			// i sprawdzamy z kazdym nastepnym obiektem na liœcie (B)
 			for (size_t j = i + 1; j < activeColliders.size(); j++)
 			{
 				const auto& dataB = activeColliders[j];
@@ -145,11 +164,12 @@ void Scene::OnUpdateRuntime(Timestep ts)
 					// Kolizja 
 					spdlog::info("kolizja miedzy ID: {} a ID: {}", dataA.ent.id, dataB.ent.id);
 
+					// Reakcja na kolizjê dla obiektu
 					auto* scriptA = m_ECSWorld.GetComponent<NativeScriptComponent>(dataA.ent);
 					if (scriptA && scriptA->Instance) {
 						scriptA->Instance->OnCollision();
 					}
-
+					// Reakcja na kolizjê dla obiektu
 					auto* scriptB = m_ECSWorld.GetComponent<NativeScriptComponent>(dataB.ent);
 					if (scriptB && scriptB->Instance) {
 						scriptB->Instance->OnCollision();
