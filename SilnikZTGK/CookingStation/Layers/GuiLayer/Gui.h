@@ -17,6 +17,7 @@ public:
     static void OnCharTyped(int charcode);
     static bool AnyItemActive() { return s_AnyActive; }
     static void EndFrame() { s_CharacterBuffer.clear(); }
+    static bool DragFloat(const std::string& label, float* value, float dragSpeed, const glm::vec2& pos, const glm::vec2& size);
 
 private:
     static std::shared_ptr<Font> s_Font;

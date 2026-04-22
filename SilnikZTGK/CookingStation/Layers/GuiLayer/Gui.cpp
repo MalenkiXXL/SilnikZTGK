@@ -9,6 +9,11 @@ float Gui::s_ScreenHeight = 600.0f;
 bool Gui::s_AnyActive = false;
 std::string Gui::s_ActiveWidgetID = ""; 
 std::string Gui::s_CharacterBuffer = "";
+static std::string s_FloatEditBuffer = "";
+static float s_DragFloatStartMouseX = 0.0f;
+static float s_DragFloatStartValue = 0.0f;
+static bool s_IsDraggingFloat = false;
+static bool s_IsInTextMode = false;
 
 // laduje czcionke i inicjalizuje atlas dla gui
 void Gui::Init(const std::string& fontPath, float fontSize) {
@@ -121,24 +126,19 @@ bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::
 	// Jesli kliknieto lewym przyciskiem myszy...
 	if (Input::IsMouseButtonPressed(0)) {
 		if (hovered) {
-			// Kliknelismy w TO pole! Zostaje aktywne.
 			s_ActiveWidgetID = widgetID;
 		}
 		else {
-			// Kliknelismy GDZIES INDZIEJ na ekranie. Jesli to pole bylo aktywne, traci focus.
 			if (s_ActiveWidgetID == widgetID) {
 				s_ActiveWidgetID = "";
 			}
 		}
 	}
 
-	// Czy to konkretne pole ma teraz "uwagê" klawiatury?
 	bool isActive = (s_ActiveWidgetID == widgetID);
 
 	// wysylamy to do kamery, zeby wiedziala kiedy ma przestac odbierac input
 	if (isActive) s_AnyActive = true;
-	// Wa¿ne: NIE usuwamy flagi s_AnyActive na false, bo inne pole moze byc aktywne! 
-	// Odswiezanie AnyActive powinnismy robic co klatke gdzies indziej, ale na razie to zostawmy.
 
 	// zmiana koloru tla w zaleznosci od stanu
 	glm::vec4 bgColor = isActive ? glm::vec4(0.2f, 0.2f, 0.2f, 1.0f) : glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
@@ -151,8 +151,7 @@ bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::
 
 	// jezeli pole jest aktywne, to obsluguje klawiature
 	if (isActive) {
-		// backspace czysci calosc (kasujemy po jednym znaku, nie wszystko!)
-		// Twoj stary kod byl okej, ale dodajmy lekkie opoznienie zeby nie kasowalo 10 znakow w 1 klatke (na razie pomiñmy)
+		// backspace czysci calosc 
 		if (Input::IsKeyPressed(259)) {
 			if (!value.empty()) {
 				value.pop_back();
@@ -206,4 +205,109 @@ bool Gui::Button(const std::string& label, const glm::vec2& pos, const glm::vec2
 // dopisuje znak z klawiatury do bufora, który jest potem wykorzystywany przez pola InputGuiText
 void Gui::OnCharTyped(int charcode) {
 	s_CharacterBuffer += (char)charcode;
+}
+
+bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, const glm::vec2& pos, const glm::vec2& size) {
+	std::string widgetID = label + std::to_string(pos.x) + std::to_string(pos.y);
+	bool hovered = IsMouseOver(pos, size);
+	bool changed = false;
+	glm::vec2 mousePos = GetMappedMousePos();
+
+	// 1. Wyjœcie z trybu edycji, jeœli klikniêto gdzieœ indziej
+	if (Input::IsMouseButtonJustPressed(0) && !hovered && s_ActiveWidgetID == widgetID) {
+		if (s_IsInTextMode) {
+			try { *value = std::stof(s_FloatEditBuffer); changed = true; }
+			catch (...) {}
+		}
+		s_ActiveWidgetID = "";
+		s_IsInTextMode = false;
+	}
+
+	// 2. Klikniêcie w nasz widget
+	if (Input::IsMouseButtonJustPressed(0) && hovered) {
+		s_ActiveWidgetID = widgetID;
+		s_IsDraggingFloat = false;
+		s_IsInTextMode = false;
+		s_DragFloatStartMouseX = mousePos.x;
+		s_DragFloatStartValue = *value;
+	}
+
+	bool isActive = (s_ActiveWidgetID == widgetID);
+
+	// 3. Obs³uga wciœniêtego przycisku (Drag)
+	if (isActive && Input::IsMouseButtonPressed(0) && !s_IsInTextMode) {
+		float delta = mousePos.x - s_DragFloatStartMouseX;
+		// Jeœli przesunêliœmy choæ trochê myszkê - to jest przeci¹ganie
+		if (std::abs(delta) > 2.0f) {
+			s_IsDraggingFloat = true;
+			*value = s_DragFloatStartValue + (delta * dragSpeed);
+			changed = true;
+		}
+	}
+
+	// 4. Puszczenie przycisku (Wejœcie w tryb tekstowy, jeœli nie by³o przeci¹gania)
+	if (isActive && !Input::IsMouseButtonPressed(0)) {
+		if (!s_IsDraggingFloat && !s_IsInTextMode) {
+			// Zwyk³e, krótkie klikniêcie! W³¹czamy wpisywanie
+			s_IsInTextMode = true;
+			char buffer[32];
+			snprintf(buffer, sizeof(buffer), "%.2f", *value);
+			s_FloatEditBuffer = buffer;
+		}
+		else if (s_IsDraggingFloat) {
+			// Koniec przeci¹gania myszk¹
+			s_ActiveWidgetID = "";
+			s_IsDraggingFloat = false;
+		}
+	}
+
+	// 5. Tryb tekstowy (Wpisywanie z klawiatury)
+	if (isActive && s_IsInTextMode) {
+		s_AnyActive = true; // Zatrzymuje kamerê z gry
+
+		// Backspace
+		if (Input::IsKeyPressed(259) && !s_FloatEditBuffer.empty()) {
+			s_FloatEditBuffer.pop_back();
+		}
+
+		// Enter - Zatwierdzenie wartoœci
+		if (Input::IsKeyPressed(257)) {
+			try { *value = std::stof(s_FloatEditBuffer); changed = true; }
+			catch (...) {}
+			s_ActiveWidgetID = "";
+			s_IsInTextMode = false;
+		}
+
+		// Przyjmowanie znaków (tylko cyfry, kropka i minus)
+		if (!s_CharacterBuffer.empty()) {
+			for (char c : s_CharacterBuffer) {
+				if (std::isdigit(c) || c == '.' || c == '-') {
+					s_FloatEditBuffer += c;
+				}
+			}
+			s_CharacterBuffer.clear();
+		}
+	}
+
+	// --- RYSOWANIE WIDGETU ---
+	// Kolor t³a zale¿ny od stanu
+	glm::vec4 bgColor = (isActive && s_IsInTextMode) ? glm::vec4(0.1f, 0.1f, 0.1f, 1.0f) :
+		(hovered ? glm::vec4(0.3f, 0.3f, 0.3f, 1.0f) : glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
+
+	Renderer2D::DrawQuad(pos, size, bgColor);
+
+	// Wyœwietlany tekst
+	std::string displayStr;
+	if (isActive && s_IsInTextMode) {
+		displayStr = s_FloatEditBuffer; // Tryb pisania (pokazujemy bufor w czasie rzeczywistym)
+	}
+	else {
+		char buffer[32];
+		snprintf(buffer, sizeof(buffer), "%.2f", *value); // Tryb normalny (zaokr¹glone do 2 miejsc po przecinku)
+		displayStr = buffer;
+	}
+
+	DrawGuiText(label + ": " + displayStr, { pos.x + 5.0f, pos.y + 5.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+	return changed;
 }

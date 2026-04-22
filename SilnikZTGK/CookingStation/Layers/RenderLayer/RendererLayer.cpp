@@ -12,7 +12,9 @@ void RendererLayer::OnAttach() {
 
 void RendererLayer::OnUpdate(Timestep ts) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-
+    if (m_TargetFBO) {
+        m_TargetFBO->Bind();
+    }
     // Zabezpieczenie: jeœli z jakiegoœ powodu nie ma sceny, to przerywamy
     if (!activeScene) {
         spdlog::error("AssetLayer: Brak aktywnej sceny!");
@@ -22,7 +24,9 @@ void RendererLayer::OnUpdate(Timestep ts) {
     //pobieramy baze danych ecs ze sceny
     auto& world = activeScene->GetWorld();
     //proporcje ekranu
-    float aspectRatio = m_ViewportWidth / (m_ViewportHeight > 0 ? m_ViewportHeight : 1.0f);
+    float fboWidth = m_TargetFBO ? (float)m_TargetFBO->GetSpecification().Width : m_ViewportWidth;
+    float fboHeight = m_TargetFBO ? (float)m_TargetFBO->GetSpecification().Height : m_ViewportHeight;
+    float aspectRatio = fboWidth / (fboHeight > 0 ? fboHeight : 1.0f);
 
     //skrzynki z komponentami ze œwiata
     auto* colorStorage = world.GetComponentVector<ClearColorComponent>();

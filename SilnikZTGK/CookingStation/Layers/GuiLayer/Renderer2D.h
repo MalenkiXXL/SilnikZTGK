@@ -25,6 +25,13 @@ public:
 		const glm::vec2& uvMin = { 0.0f, 0.0f }, 
 		const glm::vec2& uvMax = { 1.0f, 1.0f });
 
+	static void DrawQuad(const glm::vec2& position, 
+		const glm::vec2& size, 
+		uint32_t textureID, 
+		const glm::vec4& tintColor = glm::vec4(1.0f), 
+		const glm::vec2& uv0 = glm::vec2(0.0f, 1.0f), 
+		const glm::vec2& uv1 = glm::vec2(1.0f, 0.0f));
+
 private:
 	struct Renderer2DData {
 		std::unique_ptr<Shader> UI_Shader;

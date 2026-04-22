@@ -105,6 +105,9 @@
     <ClCompile Include="CookingStation\Layers\HudLayer\HUDLayer.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="CookingStation\Renderer\Framebuffer.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Layers\CameraLayer\Camera.h">
@@ -228,6 +231,9 @@
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="CookingStation\Layers\HudLayer\HUDLayer.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Renderer\Framebuffer.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>

@@ -8,6 +8,8 @@
 #include "CookingStation/Events/EditorEvents.h"
 #include "CookingStation/Renderer/ShaderLibrary.h"
 #include "CommandHistory.h"
+#include "CookingStation/Renderer/Framebuffer.h"
+#include <memory>
 #include <limits>
 
 class EditorLayer : public Layer {
@@ -30,7 +32,7 @@ public:
     void UI_Toolbar();
     void OnScenePlay();
     void OnSceneStop();
-
+    void SetTargetFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_TargetFBO = fbo; }
 private:
     bool OnWindowResize(WindowResizeEvent& e);
     bool OnKeyPressed(KeyPressedEvent& e);
@@ -53,7 +55,7 @@ private:
     std::shared_ptr<Scene> m_EditorScene;
     std::shared_ptr<Scene> m_RuntimeScene;
     ShaderLibrary m_ShaderLibrary;
-
+    std::shared_ptr<Framebuffer> m_TargetFBO;
     bool OnScenePlayEvent(ScenePlayEvent& e) { OnScenePlay(); return true; }
     bool OnSceneStopEvent(SceneStopEvent& e) { OnSceneStop(); return true; }
 };

@@ -26,16 +26,26 @@ void EditorLayer::OnUpdate(Timestep ts) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     if (!activeScene) return;
     activeScene->CalculateTransforms();
+
     // Pobieramy podstawowe dane dla renderera
     auto& world = activeScene->GetWorld();
     auto* camera = activeScene->GetCamera();
     glm::vec3 camPos = camera ? camera->Position : glm::vec3(0.0f);
 
-    float aspectRatio = m_ViewportWidth / (m_ViewportHeight > 0 ? m_ViewportHeight : 1.0f);
+    float fboWidth = m_TargetFBO ? (float)m_TargetFBO->GetSpecification().Width : m_ViewportWidth;
+    float fboHeight = m_TargetFBO ? (float)m_TargetFBO->GetSpecification().Height : m_ViewportHeight;
+    float aspectRatio = fboWidth / (fboHeight > 0 ? fboHeight : 1.0f);
+
+    if (camera) {
+        camera->AspectRatio = aspectRatio;
+    }
+
     float orthoSize = 10.0f;
     float worldHeight = orthoSize * 2.0f;
     float worldWidth = worldHeight * aspectRatio;
-    glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
+
+    // Używamy wymiarów FBO dla rysowania Gizmo, ponieważ renderujemy je wewnątrz tekstury gry
+    glm::mat4 uiProj = glm::ortho(0.0f, fboWidth, fboHeight, 0.0f);
 
     glDisable(GL_DEPTH_TEST);
     Renderer2D::BeginScene(uiProj);
@@ -44,7 +54,23 @@ void EditorLayer::OnUpdate(Timestep ts) {
     {
         // ------------------ TYLKO W TRYBIE EDYCJI ------------------
 
-      // 1. KŁADZENIE MODELI (Placement)
+        // Granice okna gry (Viewport) dokładnie takie jak w GuiLayer
+        glm::vec2 viewportPos = { 200.0f, 30.0f };
+        glm::vec2 viewportSize = { m_ViewportWidth - 500.0f, m_ViewportHeight - 230.0f };
+
+        auto mousePos = Input::GetMousePosition();
+        float mouseX = mousePos.first;
+        float mouseY = mousePos.second;
+
+        // BARIERA UI: Sprawdzamy, czy kursor jest wewnątrz okienka gry
+        bool isMouseInViewport = (mouseX >= viewportPos.x && mouseX <= (viewportPos.x + viewportSize.x) &&
+            mouseY >= viewportPos.y && mouseY <= (viewportPos.y + viewportSize.y));
+
+        // Przeliczamy globalną pozycję myszy na pozycję lokalną wewnątrz okienka gry (gdzie lewy górny róg gry to 0,0)
+        float localMouseX = mouseX - viewportPos.x;
+        float localMouseY = mouseY - viewportPos.y;
+
+        // 1. KŁADZENIE MODELI (Placement)
         auto& request = activeScene->GetPlacementRequest();
         if (request.Active) {
             m_PendingModelName = request.Name;
@@ -53,15 +79,13 @@ void EditorLayer::OnUpdate(Timestep ts) {
             request.Active = false;
         }
 
-        auto mousePos = Input::GetMousePosition();
-        float mouseX = mousePos.first;
-        float mouseY = mousePos.second;
-
-        if (m_IsPlacing && Input::IsMouseButtonPressed(0) && mouseX > 200.0f)
+        // Stawiamy obiekt TYLKO jeśli myszka jest nad grą (isMouseInViewport)
+        if (m_IsPlacing && Input::IsMouseButtonPressed(0) && isMouseInViewport)
         {
-            // Obliczanie pozycji
-            float xRatio = mouseX / m_ViewportWidth;
-            float yRatio = mouseY / m_ViewportHeight;
+            // Obliczanie pozycji z użyciem lokalnych współrzędnych okienka gry
+            float xRatio = localMouseX / viewportSize.x;
+            float yRatio = localMouseY / viewportSize.y;
+
             glm::vec3 spawnPosition;
             spawnPosition.x = (xRatio * worldWidth - (worldWidth / 2.0f)) + camPos.x;
             spawnPosition.y = (-(yRatio * worldHeight - (worldHeight / 2.0f))) + camPos.y;
@@ -79,29 +103,30 @@ void EditorLayer::OnUpdate(Timestep ts) {
         }
 
         // 2. WYBIERANIE MYSZKĄ (Raycasting)
-        if (Input::IsMouseButtonPressed(0)) {
-            glm::vec2 mPos = Gui::GetMappedMousePos();
-            if (mPos.x > 200) {
-                glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
-                glm::mat4 view = activeScene->GetCamera() ? activeScene->GetCamera()->GetViewMatrix() : glm::mat4(1.0f);
-                Ray ray = Physics::CastRayFromMouse(Input::GetMousePosition().first, Input::GetMousePosition().second, m_ViewportWidth, m_ViewportHeight, projection, view);
+        // Ignorujemy kliknięcia podczas stawiania obiektów oraz poza obszarem gry
+        if (Input::IsMouseButtonPressed(0) && isMouseInViewport && !m_IsPlacing) {
 
-                auto* meshStorage = world.GetComponentVector<MeshComponent>();
-                auto* transformStorage = world.GetComponentVector<TransformComponent>();
+            glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+            glm::mat4 view = activeScene->GetCamera() ? activeScene->GetCamera()->GetViewMatrix() : glm::mat4(1.0f);
 
-                if (meshStorage != nullptr && transformStorage != nullptr) {
-                    for (auto it = 0; it < meshStorage->dense.size(); it++) {
-                        Entity entity = meshStorage->reverse[it];
-                        TransformComponent* transform = transformStorage->Get(entity);
-                        if (transform != nullptr) {
-                            glm::vec3 globalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
-                            AABB box;
-                            box.Min = globalPos - transform->Scale;
-                            box.Max = globalPos + transform->Scale;
-                            if (Physics::Intersects(ray, box)) {
-                                activeScene->SetSelectedEntity(entity);
-                                break;
-                            }
+            // Wysyłamy do promienia lokalne współrzędne i rozmiary FBO, a nie całego ekranu
+            Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, projection, view);
+
+            auto* meshStorage = world.GetComponentVector<MeshComponent>();
+            auto* transformStorage = world.GetComponentVector<TransformComponent>();
+
+            if (meshStorage != nullptr && transformStorage != nullptr) {
+                for (auto it = 0; it < meshStorage->dense.size(); it++) {
+                    Entity entity = meshStorage->reverse[it];
+                    TransformComponent* transform = transformStorage->Get(entity);
+                    if (transform != nullptr) {
+                        glm::vec3 globalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
+                        AABB box;
+                        box.Min = globalPos - transform->Scale;
+                        box.Max = globalPos + transform->Scale;
+                        if (Physics::Intersects(ray, box)) {
+                            activeScene->SetSelectedEntity(entity);
+                            break;
                         }
                     }
                 }
@@ -114,8 +139,11 @@ void EditorLayer::OnUpdate(Timestep ts) {
             auto* transform = world.GetComponent<TransformComponent>(selected);
             if (transform) {
                 glm::vec3 globalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
-                float screenX = (((globalPos.x - camPos.x) + (worldWidth / 2.0f)) / worldWidth) * m_ViewportWidth;
-                float screenY = ((-(globalPos.y - camPos.y) + (worldHeight / 2.0f)) / worldHeight) * m_ViewportHeight;
+
+                // Rysowanie względem FBO, nie całego ekranu
+                float screenX = (((globalPos.x - camPos.x) + (worldWidth / 2.0f)) / worldWidth) * fboWidth;
+                float screenY = ((-(globalPos.y - camPos.y) + (worldHeight / 2.0f)) / worldHeight) * fboHeight;
+
                 Renderer2D::DrawQuad({ screenX, screenY }, { 50.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
                 Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
             }
@@ -124,13 +152,18 @@ void EditorLayer::OnUpdate(Timestep ts) {
     else
     {
         // ------------------ TYLKO W TRYBIE GRY ------------------
-
-        // Zamiast rysować rzeczy z edytora, wywołujemy właściwą pętlę silnika
         activeScene->OnUpdateRuntime(ts);
     }
 
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);
+
+    if (m_TargetFBO) {
+        m_TargetFBO->Unbind();
+    }
+
+    auto windowSize = Input::GetWindowSize();
+    glViewport(0, 0, windowSize.first, windowSize.second);
 }
 
 void EditorLayer::OnEvent(Event& e) {

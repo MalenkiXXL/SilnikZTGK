@@ -17,18 +17,29 @@ Application::Application()
 	s_Instance = this;
 	m_Window = new Window(800, 600, "Silnik");
 	m_Window->Init();
-	m_Window->SetEventCallback([this](Event& e) { OnEvent(e); }); //stworz niewidzialna funkcje ktora zna ten wskaznik i niech wywola OnEvent
+	m_Window->SetEventCallback([this](Event& e) { OnEvent(e); }); 
 
-	// TWORZYMY PIERWSZ¥ SCENÊ PRZEZ MENED¯ERA SCEN
+	FramebufferSpecification fbSpec;
+	fbSpec.Width = m_Window->GetWidth();
+	fbSpec.Height = m_Window->GetHeight();
+	m_ViewportFBO = std::make_shared<Framebuffer>(fbSpec);
 	SceneManager::NewScene();
 
 	// DODAJEMY WARSTWY DO STOSU
 	PushLayer(new CameraLayer());
 	PushLayer(new AssetLayer());
-	PushLayer(new RendererLayer());
+	auto renderLayer = new RendererLayer();
+	renderLayer->SetTargetFramebuffer(m_ViewportFBO);
+	PushLayer(renderLayer);
+	auto editorLayer = new EditorLayer();
+	editorLayer->SetTargetFramebuffer(m_ViewportFBO);
+	PushLayer(editorLayer);
+	auto hudLayer = new HUDLayer();
+	PushLayer(hudLayer);
 	PushLayer(new HUDLayer());
-	PushLayer(new GuiLayer());
-	PushLayer(new EditorLayer());
+	auto guiLayer = new GuiLayer();
+	guiLayer->SetViewportFramebuffer(m_ViewportFBO);
+	PushLayer(guiLayer);
 }
 
 Application::~Application()

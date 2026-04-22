@@ -33,7 +33,6 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
 	std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
 
-	// Zabezpieczenie: jeœli z jakiegoœ powodu nie ma sceny, to przerywamy
 	if (!activeScene) {
 		spdlog::error("AssetLayer: Brak aktywnej sceny!");
 		return;
@@ -50,6 +49,24 @@ void GuiLayer::OnUpdate(Timestep ts) {
 	glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
 
 	Renderer2D::BeginScene(uiProj);
+
+	if (m_ViewportFBO) {
+		// Odsuwamy o 200px od lewej (na Hierarchiê) i 30px z góry (Pasek menu)
+		glm::vec2 viewportPos = { 200.0f, 30.0f };
+		// Zostawiamy 300px z prawej (na Inspektor) i 200px z do³u (na Bibliotekê)
+		glm::vec2 viewportSize = { m_ViewportWidth - 500.0f, m_ViewportHeight - 230.0f };
+
+		if (viewportSize.x > 0.0f && viewportSize.y > 0.0f) {
+			if (m_ViewportFBO->GetSpecification().Width != (uint32_t)viewportSize.x ||
+				m_ViewportFBO->GetSpecification().Height != (uint32_t)viewportSize.y)
+			{
+				m_ViewportFBO->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+			}
+
+			uint32_t textureID = m_ViewportFBO->GetColorAttachmentRendererID();
+			Renderer2D::DrawQuad(viewportPos, viewportSize, textureID, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+		}
+	}
 
 	// --- G£ÓWNY PASEK ZADAÑ (MAIN MENU BAR) ---
 
@@ -164,9 +181,9 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		}
 
 		// 2. T£O PANELU DIAGNOSTYCZNEGO
-		glm::vec2 panelPos(m_ViewportWidth - 300.0f, m_ViewportHeight - 270.0f);
-		glm::vec2 panelSize(300.0f, 270.0f);
-		glm::vec4 panelColor(0.1f, 0.1f, 0.1f, 0.75f);
+		glm::vec2 panelPos(m_ViewportWidth - 290.0f, m_ViewportHeight - 260.0f);
+		glm::vec2 panelSize(280.0f, 250.0f);
+		glm::vec4 panelColor(0.12f, 0.12f, 0.12f, 0.85f);
 		Renderer2D::DrawQuad(panelPos, panelSize, panelColor);
 
 		// 3. WYPISYWANIE TEKSTÓW 
@@ -193,22 +210,20 @@ void GuiLayer::OnUpdate(Timestep ts) {
 	}
 
 	if (m_ShowEnvironmentPanel) {
-		// rysujemy kwadrat bedacy tlem na suwaki od koloru tla
-		Renderer2D::DrawQuad({ 10.f, 20.f }, { 110.f, 165.f }, { 0.5f, 0.5f, 0.2f, 0.1f });
+		// T³o panelu na dole po lewej
+		Renderer2D::DrawQuad({ 10.f, m_ViewportHeight - 160.f }, { 180.f, 150.f }, { 0.15f, 0.15f, 0.15f, 0.9f });
+		Gui::DrawGuiText("Kolor tla:", { 15.f, m_ViewportHeight - 145.f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-		// pobieramy komponent odpowiedzialny za kolor tla
 		auto* colorStorage = world.GetComponentVector<ClearColorComponent>();
-
-		// jezeli komponent nie jest pusty to pobieramy z niego konkretne kolory rgb
 		if (colorStorage && !colorStorage->dense.empty()) {
 			float* r = &colorStorage->dense[0].bgColor.r;
 			float* g = &colorStorage->dense[0].bgColor.g;
 			float* b = &colorStorage->dense[0].bgColor.b;
 
-			// tworzymy slidery dla konkretnych kolorow
-			Gui::SliderFloat("R", r, 0.0f, 1.0f, { 15, 50 }, { 100, 20 });
-			Gui::SliderFloat("G", g, 0.0f, 1.0f, { 15, 100 }, { 100, 20 });
-			Gui::SliderFloat("B", b, 0.0f, 1.0f, { 15, 150 }, { 100, 20 });
+			// Suwaki lub DragFloaty ustawione relatywnie do do³u ekranu
+			Gui::SliderFloat("R", r, 0.0f, 1.0f, { 15.f, m_ViewportHeight - 110.f }, { 150.f, 20.f });
+			Gui::SliderFloat("G", g, 0.0f, 1.0f, { 15.f, m_ViewportHeight - 75.f }, { 150.f, 20.f });
+			Gui::SliderFloat("B", b, 0.0f, 1.0f, { 15.f, m_ViewportHeight - 40.f }, { 150.f, 20.f });
 		}
 	}
 
@@ -221,10 +236,10 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		if (tagStorage) {
 
 			// pozycja startowa bardziej z lewej strony ekranu
-			glm::vec2 startPos = { m_ViewportWidth - 220.0f, 70.0f };
+			glm::vec2 startPos = { 10.0f, 80.0f };
 
 			// rozmiar jednej pozycji
-			glm::vec2 itemSize = { 200.0f, 30.0f };
+			glm::vec2 itemSize = { 180.0f, 25.0f };
 
 			// przestrzeñ pomiêdzy
 			float spacing = 5.0f;
@@ -256,26 +271,34 @@ void GuiLayer::OnUpdate(Timestep ts) {
 	// BIBLIOTEKA MODELI
 
 	if (m_ShowLibraryPanel) {
-		// rysujemy tlo
-		Renderer2D::DrawQuad({ 10, 200 }, { 120, 400 }, { 0.1f, 0.1f, 0.1f, 0.7f });
+		// Szerokie t³o na dole ekranu, pod gr¹ (szerokoœæ Viewportu, wysokoœæ 200px)
+		glm::vec2 libPos = { 200.0f, m_ViewportHeight - 200.0f };
+		glm::vec2 libSize = { m_ViewportWidth - 500.0f, 200.0f };
+		Renderer2D::DrawQuad(libPos, libSize, { 0.14f, 0.14f, 0.14f, 0.95f });
 
-		// rysujemy opis
-		Gui::DrawGuiText("Biblioteka:", { 20, 225 }, 0.45f, { 1, 1, 1, 1 });
+		Gui::DrawGuiText("Zasoby:", { libPos.x + 10.0f, libPos.y + 15.0f }, 0.45f, { 1, 1, 1, 1 });
 
-		float yOffset = 260.0f;
+		// Ustawienie pocz¹tkowe przycisków
+		float xOffset = libPos.x + 10.0f;
+		float yOffset = libPos.y + 50.0f;
 
-		// przechodzimy po wszystkich pozycjach z pliku otwieranego w AssetLayer
 		for (const auto& entry : AssetManager::GetLibrary()) {
-			if (Gui::Button(entry.Name, { 20, yOffset }, { 100, 25 })) {
-
-				// wysylamy proœbê o umiejscowienie modelu
+			// Rysujemy przycisk
+			if (Gui::Button(entry.Name, { xOffset, yOffset }, { 120, 30 })) {
 				auto& request = activeScene->GetPlacementRequest();
 				request.Name = entry.Name;
 				request.Path = entry.Path;
-				request.Active = true; // ustawiamy prosbe na aktywna aby EditorLayer mogl odebrac
+				request.Active = true;
 			}
 
-			yOffset += 35.0f;
+			// Przesuwamy siê w prawo o szerokoœæ przycisku + margines
+			xOffset += 130.0f;
+
+			// Zawijanie wierszy (Jeœli wyjdziemy poza praw¹ krawêdŸ panelu, schodzimy ni¿ej)
+			if (xOffset + 120.0f > libPos.x + libSize.x) {
+				xOffset = libPos.x + 10.0f;
+				yOffset += 40.0f;
+			}
 		}
 	}
 
@@ -286,13 +309,11 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		// pobieramy wybran¹ encjê ze sceny (przeslana przez EditorLayer)
 		Entity selected = activeScene->GetSelectedEntity();
 		if (selected.id != std::numeric_limits<std::size_t>::max()) {
-			glm::vec2 inspPos = { m_ViewportWidth - 175.0f, 250.0f };
+			glm::vec2 inspPos = { m_ViewportWidth - 280.0f, 70.0f };
 
-			// pobieramy tag
 			auto* tag = world.GetComponent<TagComponent>(selected);
 			if (tag) {
-				// wyswietlamy nazwe 
-				Gui::InputGuiText("Nazwa", tag->Tag, { inspPos.x, inspPos.y - 20.0f }, { 200, 25 });
+				Gui::InputGuiText("Nazwa", tag->Tag, { inspPos.x, inspPos.y }, { 260.0f, 25.0f });
 			}
 
 			// wyswietlamy komponenty od transformacji jako slidery, zeby dalo sie modyfikowac
@@ -301,16 +322,18 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
 				glm::vec3 posBeforeSliders = transform->Position;
 
-				Gui::SliderFloat("Pos X", &transform->Position.x, -100.0f, 100.0f, { inspPos.x, inspPos.y + 40.0f }, { 150, 15 });
-				Gui::SliderFloat("Pos Y", &transform->Position.y, -100.0f, 100.0f, { inspPos.x, inspPos.y + 80.0f }, { 150, 15 });
-				Gui::SliderFloat("Rot X", &transform->Rotation.x, -360.0f, 360.0f, { inspPos.x, inspPos.y + 120.0f }, { 150, 15 });
-				Gui::SliderFloat("Rot Z", &transform->Rotation.z, -360.0f, 360.0f, { inspPos.x, inspPos.y + 160.0f }, { 150, 15 });
-				Gui::SliderFloat("Rot Y", &transform->Rotation.y, -360.0f, 360.0f, { inspPos.x, inspPos.y + 200.0f }, { 150, 15 });
-				Gui::SliderFloat("Skala", &transform->Scale.x, 0.1f, 5.0f, { inspPos.x, inspPos.y + 240.0f }, { 180, 15 });
+				float dragSpeed = 0.05f;
+				float rotSpeed = 0.5f;
 
-				// na razie synchronizacja skali, potem sie zrobi ze mozna wszystkie (brakuje miejsca na ekranie xd)
-				transform->Scale.y = transform->Scale.x;
-				transform->Scale.z = transform->Scale.x;
+				Gui::DragFloat("Pos X", &transform->Position.x, dragSpeed, { inspPos.x, inspPos.y + 40.0f }, { 300, 30 });
+				Gui::DragFloat("Pos Y", &transform->Position.y, dragSpeed, { inspPos.x, inspPos.y + 80.0f }, { 300, 30 });
+
+				Gui::DragFloat("Rot X", &transform->Rotation.x, rotSpeed, { inspPos.x, inspPos.y + 120.0f }, { 300, 30 });
+				Gui::DragFloat("Rot Y", &transform->Rotation.y, rotSpeed, { inspPos.x, inspPos.y + 160.0f }, { 300, 30 });
+				Gui::DragFloat("Rot Z", &transform->Rotation.z, rotSpeed, { inspPos.x, inspPos.y + 200.0f }, { 300, 30 });
+
+				Gui::DragFloat("Skala X", &transform->Scale.x, dragSpeed, { inspPos.x, inspPos.y + 240.0f }, { 300, 30 });
+				Gui::DragFloat("Skala Y", &transform->Scale.y, dragSpeed, { inspPos.x, inspPos.y + 280.0f }, { 300, 30 });
 
 				// LOGIKA WYKRYWANIA RUCHU
 				if (posBeforeSliders != transform->Position && !m_IsDraggingTransform) {
@@ -331,7 +354,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 			}
 
 			// przycisk od usuwania obiektu
-			if (Gui::Button("USUN OBIEKT", { inspPos.x, inspPos.y + 280.0f }, { 200.0f, 30.0f })) {
+			if (Gui::Button("USUN OBIEKT", { inspPos.x, inspPos.y + 320.0f }, { 300.0f, 40.0f })) {
 				// Wysy³amy event zamiast niszczyæ œwiat
 				EntityDeletedEvent e(selected);
 				Application::Get().OnEvent(e);

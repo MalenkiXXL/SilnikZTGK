@@ -168,7 +168,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 
 	if (m_MainCamera)
 	{
-		glm::mat4 projection = glm::perspective(glm::radians(m_MainCamera->Zoom), 16.0f / 9.0f, 0.1f, 100.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(m_MainCamera->Zoom), m_MainCamera->AspectRatio, 0.1f, 100.0f);
 		glm::mat4 viewProjection = projection * m_MainCamera->GetViewMatrix();
 
 		Renderer::BeginScene(viewProjection);

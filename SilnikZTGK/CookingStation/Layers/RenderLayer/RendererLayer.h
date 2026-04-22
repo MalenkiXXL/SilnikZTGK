@@ -5,7 +5,7 @@
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Renderer/ShaderLibrary.h"
 #include "CookingStation/Events/WindowEvent.h"
-
+#include "CookingStation/Renderer/Framebuffer.h"
 #include <memory>
 
 
@@ -19,13 +19,14 @@ public:
 	void OnAttach() override;
 	void OnUpdate(Timestep ts) override;
 	void OnEvent(Event& e) override;
+	void SetTargetFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_TargetFBO = fbo; }
 
 private:
 	bool OnWindowResize(WindowResizeEvent& e);
 
 	ShaderLibrary m_ShaderLibrary;
 	std::shared_ptr<Shader> m_Shader;
-
+	std::shared_ptr<Framebuffer> m_TargetFBO;
 	float m_ViewportWidth = 800.0f;
 	float m_ViewportHeight = 600.0f;
 };
