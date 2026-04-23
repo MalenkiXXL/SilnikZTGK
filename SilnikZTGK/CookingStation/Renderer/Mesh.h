@@ -109,9 +109,16 @@ public:
         RenderCommand::DrawIndexed(m_VertexArray);
         m_VertexArray->Unbind();
 
+        for (unsigned int i = 0; i < textures.size(); i++)
+        {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, 0); // "0" oznacza brak tekstury
+        }
+        // ------------------------------------------
+
         // 6. Resetujemy aktywną jednostkę teksturującą do domyślnej
         glActiveTexture(GL_TEXTURE0);
-    }
+    } // koniec funkcji Draw
 
 private:
     // Tworzenie VAO, VBO, EBO - tak samo jak przy rysowaniu zwyk�ej kostki, tylko z u�yciem p�tli dla wektor�w

@@ -13,6 +13,7 @@ Texture::Texture(const std::string& path) : m_FilePath(path) {
         m_DataFormat = GL_RGBA;
 
         glGenTextures(1, &m_RendererID);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
@@ -30,6 +31,7 @@ Texture::Texture(uint32_t width, uint32_t height)
     m_DataFormat = GL_RGBA;
 
     glGenTextures(1, &m_RendererID);
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_RendererID);
 
     // Ustawianie arametrow, ¿eby tekstura nie by³a rozmyta

@@ -1,7 +1,7 @@
 #include "Renderer.h"
 #include "RenderCommand.h"
 #include "Model.h"
-
+#include <chrono>
 
 Renderer::SceneData* Renderer::s_SceneData = new Renderer::SceneData;
 RendererStatistics Renderer::s_Stats;
@@ -48,7 +48,7 @@ void Renderer::Submit(const std::shared_ptr<Shader>& shader, const std::shared_p
 	shader->setMat4("model", transform);
 	//mowimy vao zeby przygotowal buffory i instrukcje
 	vertexArray->Bind();
-	//rysuje#include <chrono>
+	//rysuje
 
 	class ProfileTimer {
 	public:

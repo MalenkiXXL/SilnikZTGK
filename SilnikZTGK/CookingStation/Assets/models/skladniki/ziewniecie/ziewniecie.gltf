@@ -92,9 +92,9 @@
 			"uri":"Material.png"
 		},
 		{
-			"mimeType":"image/png",
-			"name":"palette",
-			"uri":"palette.png"
+			"mimeType": "image/png",
+			"name": "palette",
+			"uri": "../../../textures/palette.png"
 		}
 	],
 	"accessors":[

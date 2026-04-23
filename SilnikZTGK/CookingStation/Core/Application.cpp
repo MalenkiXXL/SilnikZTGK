@@ -36,7 +36,6 @@ Application::Application()
 	PushLayer(editorLayer);
 	auto hudLayer = new HUDLayer();
 	PushLayer(hudLayer);
-	PushLayer(new HUDLayer());
 	auto guiLayer = new GuiLayer();
 	guiLayer->SetViewportFramebuffer(m_ViewportFBO);
 	PushLayer(guiLayer);

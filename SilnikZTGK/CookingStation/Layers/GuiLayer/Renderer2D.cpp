@@ -87,6 +87,7 @@ void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, cons
 void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, uint32_t textureID, const glm::vec4& color, const glm::vec2& uvMin, const glm::vec2& uvMax) {
 
     // Zamiast texture->Bind() u¿ywamy bezpoœredniego podpiêcia ID z OpenGL
+    glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))

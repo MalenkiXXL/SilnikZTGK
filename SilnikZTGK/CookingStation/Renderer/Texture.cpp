@@ -28,6 +28,7 @@ Texture2D::Texture2D(const std::string& path)
 		}
 
 		glGenTextures(1, &m_RendererID);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_RendererID);
 
 		// Ustawienia filtrowania i powtarzania
@@ -71,6 +72,7 @@ Texture2D::Texture2D(const unsigned char* data, uint32_t size)
 		GLenum dataFormat = GL_RGBA;
 
 		glGenTextures(1, &m_RendererID);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, m_RendererID);
 
 		// Ustawienia filtrowania
