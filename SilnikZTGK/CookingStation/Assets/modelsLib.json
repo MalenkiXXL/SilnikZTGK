@@ -23,6 +23,83 @@
     {
       "name": "big_pot",
       "path": "CookingStation/Assets/models/przybory_kuchenne/big_pot/bigger_pot.gltf"
+    },
+    {
+      "name": "chleb",
+      "path": "CookingStation/Assets/models/skladniki/chleb/chleb2.gltf"
+    },
+    {
+      "name": "pyl",
+      "path": "CookingStation/Assets/models/skladniki/pyl/pyl.gltf"
+    },
+    {
+      "name": "ziewniecie",
+      "path": "CookingStation/Assets/models/skladniki/ziewniecie/ziewniecie.gltf"
+    },
+    {
+      "name": "maka",
+      "path": "CookingStation/Assets/models/skladniki/maka/maka.gltf"
+    },
+    {
+      "name": "klient",
+      "path": "CookingStation/Assets/models/klienci/klient.gltf"
+    },
+    {
+      "name": "klient2",
+      "path": "CookingStation/Assets/models/klienci/klient2.gltf"
+    },
+    {
+      "name": "klient3",
+      "path": "CookingStation/Assets/models/klienci/klient3.gltf"
+    },
+    {
+      "name": "klientka1",
+      "path": "CookingStation/Assets/models/klienci/klientka1.gltf"
+    },
+    {
+      "name": "klientka2",
+      "path": "CookingStation/Assets/models/klienci/klientka2.gltf"
+    },
+    {
+      "name": "klientka3",
+      "path": "CookingStation/Assets/models/klienci/klientka3.gltf"
+    },
+    {
+      "name": "tasma",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf"
+    },
+    {
+      "name": "talerz",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/naczynia/plate-done.gltf"
+    },
+    {
+      "name": "talerz-gleboki",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/naczynia/deep_plate.gltf"
+    },
+    {
+      "name": "miska",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/naczynia/bowl.gltf"
+    },
+    {
+      "name": "patelka",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/patelka/pan.gltf"
+    },
+    {
+      "name": "noz",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/noz/knife.gltf"
+    },
+    {
+      "name": "small_pot",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/small_pot/small_pot.gltf"
+    },
+    {
+      "name": "deska",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/deska/board.gltf"
+    },
+    {
+      "name": "deska+noz",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/deska/cutting.gltf"
     }
+
   ]
 }
