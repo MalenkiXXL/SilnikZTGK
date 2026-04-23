@@ -99,7 +99,40 @@
     {
       "name": "deska+noz",
       "path": "CookingStation/Assets/models/przybory_kuchenne/deska/cutting.gltf"
+    },
+    {
+      "name": "paczka",
+      "path": "CookingStation/Assets/models/dostawa/paczka.gltf"
+    },
+    {
+      "name": "dostawczak",
+      "path": "CookingStation/Assets/models/dostawa/dostawczak.gltf"
+    },
+    {
+      "name": "podloga",
+      "path": "CookingStation/Assets/models/wystroj/podloga.gltf"
+    },
+    {
+      "name": "stolik",
+      "path": "CookingStation/Assets/models/wystroj/stolik.gltf"
+    },
+    {
+      "name": "chmura",
+      "path": "CookingStation/Assets/models/wystroj/chmura.gltf"
+    },
+    {
+      "name": "anim-grzybek",
+      "path": "CookingStation/Assets/models/animacje/grzybek/grzybek.gltf"
+    },
+    {
+      "name": "piekarnik",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/piekarnik/piekarnik.gltf"
+    },
+    {
+      "name": "kosz",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/kosz/kosz.gltf"
     }
+
 
   ]
 }
