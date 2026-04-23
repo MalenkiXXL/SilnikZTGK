@@ -334,6 +334,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
 				Gui::DragFloat("Skala X", &transform->Scale.x, dragSpeed, { inspPos.x, inspPos.y + 240.0f }, { 300, 30 });
 				Gui::DragFloat("Skala Y", &transform->Scale.y, dragSpeed, { inspPos.x, inspPos.y + 280.0f }, { 300, 30 });
+				Gui::DragFloat("Skala Z", &transform->Scale.z, dragSpeed, { inspPos.x, inspPos.y + 320.0f }, { 300, 30 });
 
 				// LOGIKA WYKRYWANIA RUCHU
 				if (posBeforeSliders != transform->Position && !m_IsDraggingTransform) {
@@ -354,7 +355,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 			}
 
 			// przycisk od usuwania obiektu
-			if (Gui::Button("USUN OBIEKT", { inspPos.x, inspPos.y + 320.0f }, { 300.0f, 40.0f })) {
+			if (Gui::Button("USUN OBIEKT", { inspPos.x, inspPos.y + 360.0f }, { 300.0f, 40.0f })) {
 				// Wysy³amy event zamiast niszczyæ œwiat
 				EntityDeletedEvent e(selected);
 				Application::Get().OnEvent(e);

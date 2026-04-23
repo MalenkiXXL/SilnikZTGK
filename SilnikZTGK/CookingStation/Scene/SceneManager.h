@@ -12,7 +12,7 @@ public:
 	// Tworzy czyst¹, now¹ scenê i ustawia j¹ jako aktywn¹
 	static std::shared_ptr<Scene> NewScene();
 
-	// Opcjonalnie: Zastêpuje obecn¹ scenê inn¹ (przydatne przy ³adowaniu)
+	// Zastêpuje obecn¹ scenê inn¹ 
 	static void SetActiveScene(std::shared_ptr<Scene> scene);
 
 private:
