@@ -117,3 +117,17 @@ void Renderer2D::EndScene() {}
 void Renderer2D::Shutdown() {
     delete s_Data;
 }
+
+void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color) {
+    s_Data->WhiteTexture->Bind();
+    s_Data->UI_Shader->setMat4("u_Transform", transform);
+    s_Data->UI_Shader->setVec4("u_Color", color);
+    s_Data->UI_Shader->setVec2("u_UVMin", { 0.0f, 0.0f });
+    s_Data->UI_Shader->setVec2("u_UVMax", { 1.0f, 1.0f });
+    s_Data->QuadVAO->Bind();
+    glDrawElements(GL_TRIANGLES,
+        s_Data->QuadVAO->GetIndexBuffer()->GetCount(),
+        GL_UNSIGNED_INT, nullptr);
+    Renderer::GetStats().DrawCallsUI++;
+    Renderer::GetStats().TriangleCountUI += 2;
+}

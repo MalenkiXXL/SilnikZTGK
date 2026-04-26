@@ -102,6 +102,14 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		}
 	}
 
+	auto& gridReq = activeScene->GetGridRequest();
+	glm::vec2 gridBtnPos = { 280.0f, 5.0f };
+	std::string gridText = gridReq.Active ? "SIATKA: WL" : "SIATKA: WYL";
+
+	if (Gui::Button(gridText, gridBtnPos, { 100.0f, 20.0f }, gridReq.Active)) {
+		gridReq.Active = !gridReq.Active;
+	}
+
 	// 3. Logika rozwiniêtego menu "Plik"
 	if (m_ShowFileMenu) {
 		// T³o rozwijanego menu

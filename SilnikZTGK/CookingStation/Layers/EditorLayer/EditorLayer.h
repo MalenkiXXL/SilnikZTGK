@@ -39,6 +39,12 @@ private:
     bool OnEntityTransformChanged(EntityTransformChangedEvent& e);
     bool OnEntityDeleted(EntityDeletedEvent& e);
 
+    void DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, float range);
+    void UpdateGridPlacement(float localMouseX, float localMouseY,
+        const glm::vec2& viewportSize,
+        const glm::mat4& projection3D,
+        const glm::mat4& view3D);
+
     // menadzer undo/redo
     CommandHistory m_CommandHistory;
     // stan zaznaczenia i stawiania
@@ -56,6 +62,11 @@ private:
     std::shared_ptr<Scene> m_RuntimeScene;
     ShaderLibrary m_ShaderLibrary;
     std::shared_ptr<Framebuffer> m_TargetFBO;
+    
+
+    glm::vec3 m_GridHoverPos = glm::vec3(0.0f);
+    glm::vec3 m_GridEntityStartPos = glm::vec3(0.0f);
+
     bool OnScenePlayEvent(ScenePlayEvent& e) { OnScenePlay(); return true; }
     bool OnSceneStopEvent(SceneStopEvent& e) { OnSceneStop(); return true; }
 };

@@ -168,7 +168,8 @@ void Scene::OnUpdateRuntime(Timestep ts)
 
 	if (m_MainCamera)
 	{
-		glm::mat4 projection = glm::perspective(glm::radians(m_MainCamera->Zoom), m_MainCamera->AspectRatio, 0.1f, 100.0f);
+		float orthoSize = 10.0f * (m_MainCamera->Zoom / 45.0f);
+		glm::mat4 projection = glm::ortho(-m_MainCamera->AspectRatio * orthoSize, m_MainCamera->AspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
 		glm::mat4 viewProjection = projection * m_MainCamera->GetViewMatrix();
 
 		Renderer::BeginScene(viewProjection);

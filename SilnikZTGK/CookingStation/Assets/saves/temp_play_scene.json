@@ -5,9 +5,9 @@
             "model_path": "CookingStation/Assets/models/warzywka/marchewka/test.gltf",
             "name": "Marchewa1",
             "position": [
-                2.0,
+                -3.0,
                 0.0,
-                0.0
+                -1.0
             ],
             "rotation": [
                 0.0,
@@ -55,15 +55,48 @@
                 ]
             },
             "id": 3,
-            "model_path": "CookingStation/Assets/models/przybory_kuchenne/kosz/kosz.gltf",
-            "name": "kosz",
+            "model_path": "CookingStation/Assets/models/warzywka/pomidor/pomidor.gltf",
+            "name": "pomidor",
             "position": [
-                -6.752245903015137,
-                -2.220796585083008,
-                0.0
+                -3.0,
+                0.0,
+                -1.0
             ],
             "rotation": [
-                6.5,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "script": "RotationScript"
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "id": 4,
+            "model_path": "CookingStation/Assets/models/warzywka/rzodkiewka/rzodkiewka-new.gltf",
+            "name": "rzodkiewka",
+            "position": [
+                -3.0,
+                0.0,
+                -1.0
+            ],
+            "rotation": [
+                0.0,
                 0.0,
                 0.0
             ],

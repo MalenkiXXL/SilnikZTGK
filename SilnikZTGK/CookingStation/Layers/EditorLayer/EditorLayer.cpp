@@ -14,37 +14,119 @@
 #include "CreateEntityCommand.h"
 #include "MoveEntityCommand.h"
 #include <functional> 
+#include "CookingStation/Core/GridSystem.h"
+
+float GridSystem::CELL_SIZE = 2.0f;
+
+//Helper: quad leżący płasko na podłodze(płaszczyzna XZ), środek w 'center'.
+static glm::mat4 FlatQuadTransform(const glm::vec3& center, float sizeX, float sizeZ)
+{
+    return glm::translate(glm::mat4(1.0f), center)
+        * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 1.0f, 0.0f, 0.0f })
+        * glm::scale(glm::mat4(1.0f), { sizeX, sizeZ, 1.0f })       
+        * glm::translate(glm::mat4(1.0f), { -0.5f, -0.5f, 0.0f }); 
+}
 
 void EditorLayer::OnAttach() {
-    // pobieramy aktualny rozmiar okna
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
 }
 
-void EditorLayer::OnUpdate(Timestep ts) {
+void EditorLayer::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, float range)
+{
+    const float cell = GridSystem::CELL_SIZE;
+    const float t = 0.06f; // Zwiększyłem lekko grubość linii
+
+    glm::vec4 borderColor = { 0.6f, 0.6f, 0.6f, 0.55f };
+    glm::vec4 hoverColor = { 0.2f, 0.9f, 0.4f, 0.50f };
+
+    int startX = (int)std::floor((camPos.x - range) / cell);
+    int endX = (int)std::ceil((camPos.x + range) / cell);
+    int startZ = (int)std::floor((camPos.z - range) / cell);
+    int endZ = (int)std::ceil((camPos.z + range) / cell);
+
+    float gridMinX = startX * cell;
+    float gridMaxX = endX * cell;
+    float gridMinZ = startZ * cell;
+    float gridMaxZ = endZ * cell;
+    float gridLenX = gridMaxX - gridMinX;
+    float gridLenZ = gridMaxZ - gridMinZ;
+    float centerX = (gridMinX + gridMaxX) * 0.5f;
+    float centerZ = (gridMinZ + gridMaxZ) * 0.5f;
+
+    glm::ivec2 hoverCell = GridSystem::WorldToCell(m_GridHoverPos);
+
+    Renderer2D::EndScene();
+    Renderer2D::BeginScene(viewProj3D);
+
+    // WYMUSZAMY PRZEZROCZYSTOŚĆ I WIDOCZNOŚĆ!
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // 1. Podświetlenie hover kafelka
+    glm::vec3 hoverCenter = { (hoverCell.x + 0.5f) * cell, 0.0f, (hoverCell.y + 0.5f) * cell };
+    Renderer2D::DrawQuad(FlatQuadTransform(hoverCenter, cell, cell), hoverColor);
+
+    // 2. Linie poziome 
+    for (int cz = startZ; cz <= endZ; cz++) {
+        float z = cz * cell;
+        Renderer2D::DrawQuad(FlatQuadTransform({ centerX, 0.0f, z }, gridLenX, t), borderColor);
+    }
+
+    // 3. Linie pionowe 
+    for (int cx = startX; cx <= endX; cx++) {
+        float x = cx * cell;
+        Renderer2D::DrawQuad(FlatQuadTransform({ x, 0.0f, centerZ }, t, gridLenZ), borderColor);
+    }
+
+    Renderer2D::EndScene();
+    glEnable(GL_DEPTH_TEST);
+}
+
+void EditorLayer::UpdateGridPlacement(float localMouseX, float localMouseY, const glm::vec2& viewportSize, const glm::mat4& projection3D, const glm::mat4& view3D)
+{
+    // Używamy Waszego solidnego raycastingu z Physics.h!
+    Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, projection3D, view3D);
+
+    // Przecięcie promienia z płaszczyzną podłogi (Y = 0)
+    if (std::abs(ray.Direction.y) > 1e-6f)
+    {
+        float t = -ray.Origin.y / ray.Direction.y;
+        if (t > 0.0f)
+        {
+            glm::vec3 hitPoint = ray.Origin + t * ray.Direction;
+            m_GridHoverPos = GridSystem::SnapToGrid(hitPoint);
+        }
+    }
+}
+
+void EditorLayer::OnUpdate(Timestep ts)
+{
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     if (!activeScene) return;
+
     activeScene->CalculateTransforms();
 
-    // Pobieramy podstawowe dane dla renderera
     auto& world = activeScene->GetWorld();
     auto* camera = activeScene->GetCamera();
     glm::vec3 camPos = camera ? camera->Position : glm::vec3(0.0f);
 
     float fboWidth = m_TargetFBO ? (float)m_TargetFBO->GetSpecification().Width : m_ViewportWidth;
     float fboHeight = m_TargetFBO ? (float)m_TargetFBO->GetSpecification().Height : m_ViewportHeight;
-    float aspectRatio = fboWidth / (fboHeight > 0 ? fboHeight : 1.0f);
+    float aspectRatio = fboWidth / (fboHeight > 0.0f ? fboHeight : 1.0f);
 
-    if (camera) {
-        camera->AspectRatio = aspectRatio;
-    }
+    if (camera) camera->AspectRatio = aspectRatio;
 
-    float orthoSize = 10.0f;
+    float orthoSize = camera ? (10.0f * (camera->Zoom / 45.0f)) : 10.0f;
     float worldHeight = orthoSize * 2.0f;
     float worldWidth = worldHeight * aspectRatio;
 
-    // Używamy wymiarów FBO dla rysowania Gizmo, ponieważ renderujemy je wewnątrz tekstury gry
+    // NAPRAWA MACIERZY: To gra izometryczna, używamy glm::ortho dla 3D, a nie perspective!
+    glm::mat4 proj3D = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+    glm::mat4 view3D = camera ? camera->GetViewMatrix() : glm::mat4(1.0f);
+
     glm::mat4 uiProj = glm::ortho(0.0f, fboWidth, fboHeight, 0.0f);
 
     glDisable(GL_DEPTH_TEST);
@@ -52,9 +134,6 @@ void EditorLayer::OnUpdate(Timestep ts) {
 
     if (m_SceneState == SceneState::Edit)
     {
-        // ------------------ TYLKO W TRYBIE EDYCJI ------------------
-
-        // Granice okna gry (Viewport) dokładnie takie jak w GuiLayer
         glm::vec2 viewportPos = { 200.0f, 30.0f };
         glm::vec2 viewportSize = { m_ViewportWidth - 500.0f, m_ViewportHeight - 230.0f };
 
@@ -62,69 +141,107 @@ void EditorLayer::OnUpdate(Timestep ts) {
         float mouseX = mousePos.first;
         float mouseY = mousePos.second;
 
-        // BARIERA UI: Sprawdzamy, czy kursor jest wewnątrz okienka gry
-        bool isMouseInViewport = (mouseX >= viewportPos.x && mouseX <= (viewportPos.x + viewportSize.x) &&
+        bool isMouseInViewport = (
+            mouseX >= viewportPos.x && mouseX <= (viewportPos.x + viewportSize.x) &&
             mouseY >= viewportPos.y && mouseY <= (viewportPos.y + viewportSize.y));
 
-        // Przeliczamy globalną pozycję myszy na pozycję lokalną wewnątrz okienka gry (gdzie lewy górny róg gry to 0,0)
         float localMouseX = mouseX - viewportPos.x;
         float localMouseY = mouseY - viewportPos.y;
 
-        // 1. KŁADZENIE MODELI (Placement)
+        auto& gridReq = activeScene->GetGridRequest(); // Pobranie stanu siatki
+
+        // ── 1. ZWYKŁE KŁADZENIE MODELI ────────────────────────────────────────
         auto& request = activeScene->GetPlacementRequest();
-        if (request.Active) {
+        if (request.Active)
+        {
             m_PendingModelName = request.Name;
             m_PendingModelPath = request.Path;
             m_IsPlacing = true;
             request.Active = false;
         }
 
-        // Stawiamy obiekt TYLKO jeśli myszka jest nad grą (isMouseInViewport)
         if (m_IsPlacing && Input::IsMouseButtonPressed(0) && isMouseInViewport)
         {
-            // Obliczanie pozycji z użyciem lokalnych współrzędnych okienka gry
-            float xRatio = localMouseX / viewportSize.x;
-            float yRatio = localMouseY / viewportSize.y;
+            // ZMIANA: Strzelamy promieniem w świat 3D z myszki!
+            Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
+            glm::vec3 spawnPosition = glm::vec3(0.0f);
 
-            glm::vec3 spawnPosition;
-            spawnPosition.x = (xRatio * worldWidth - (worldWidth / 2.0f)) + camPos.x;
-            spawnPosition.y = (-(yRatio * worldHeight - (worldHeight / 2.0f))) + camPos.y;
-            spawnPosition.z = 0.0f;
+            // Sprawdzamy w którym miejscu promień uderza w podłogę (oś Y = 0)
+            if (std::abs(ray.Direction.y) > 1e-6f) {
+                float t = -ray.Origin.y / ray.Direction.y;
+                if (t > 0.0f) {
+                    spawnPosition = ray.Origin + t * ray.Direction;
+                }
+            }
+
+            // Jeśli siatka jest aktywna przyceluj do równych kratek
+            if (gridReq.Active) {
+                spawnPosition = GridSystem::SnapToGrid(spawnPosition);
+            }
 
             std::shared_ptr<Shader> modelShader = AssetManager::GetShaders().Get("ModelShader");
-
             std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
-                &world, m_PendingModelName, m_PendingModelPath, spawnPosition, modelShader
-            );
-
+                &world, m_PendingModelName, m_PendingModelPath, spawnPosition, modelShader);
             m_CommandHistory.ExecuteCommand(std::move(cmd));
-
             m_IsPlacing = false;
         }
 
-        // 2. WYBIERANIE MYSZKĄ (Raycasting)
-        // Ignorujemy kliknięcia podczas stawiania obiektów oraz poza obszarem gry
-        if (Input::IsMouseButtonPressed(0) && isMouseInViewport && !m_IsPlacing) {
+        // ── 2. TRYB SIATKI DLA ZAZNACZONEGO OBIEKTU ───────────────────────────
+        Entity selected = activeScene->GetSelectedEntity();
+        bool validEntity = (selected.id != std::numeric_limits<std::size_t>::max());
 
-            glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
-            glm::mat4 view = activeScene->GetCamera() ? activeScene->GetCamera()->GetViewMatrix() : glm::mat4(1.0f);
+        if (gridReq.Active && validEntity)
+        {
+            if (isMouseInViewport)
+            {
+                UpdateGridPlacement(localMouseX, localMouseY, viewportSize, proj3D, view3D);
+            }
 
-            // Wysyłamy do promienia lokalne współrzędne i rozmiary FBO, a nie całego ekranu
-            Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, projection, view);
+            DrawGrid(proj3D * view3D, camPos, 40.0f);
+
+            // Po powrocie wznawiamy 2D UI
+            Renderer2D::BeginScene(uiProj);
+
+            if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport)
+            {
+                auto* transform = world.GetComponent<TransformComponent>(selected);
+                if (transform)
+                {
+                    glm::vec3 oldPos = transform->Position;
+                    glm::vec3 newPos = { m_GridHoverPos.x, transform->Position.y, m_GridHoverPos.z };
+
+                    std::unique_ptr<Command> cmd = std::make_unique<MoveEntityCommand>(
+                        &world, selected, oldPos, newPos);
+                    m_CommandHistory.ExecuteCommand(std::move(cmd));
+
+                    spdlog::info("Grid: Przeniesiono encje ID:{} na kafelek", selected.id);
+                }
+                gridReq.Active = false; // wyłącza tryb po kliknięciu
+            }
+        }
+
+        // ── 3. WYBIERANIE MYSZKĄ (Nie działa, gdy siatka przejmuje klik) ──────
+        if (Input::IsMouseButtonPressed(0) && isMouseInViewport && !m_IsPlacing && !gridReq.Active)
+        {
+            Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
 
             auto* meshStorage = world.GetComponentVector<MeshComponent>();
             auto* transformStorage = world.GetComponentVector<TransformComponent>();
 
-            if (meshStorage != nullptr && transformStorage != nullptr) {
-                for (auto it = 0; it < meshStorage->dense.size(); it++) {
+            if (meshStorage && transformStorage)
+            {
+                for (size_t it = 0; it < meshStorage->dense.size(); it++)
+                {
                     Entity entity = meshStorage->reverse[it];
                     TransformComponent* transform = transformStorage->Get(entity);
-                    if (transform != nullptr) {
-                        glm::vec3 globalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
+                    if (transform)
+                    {
+                        glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                         AABB box;
                         box.Min = globalPos - transform->Scale;
                         box.Max = globalPos + transform->Scale;
-                        if (Physics::Intersects(ray, box)) {
+                        if (Physics::Intersects(ray, box))
+                        {
                             activeScene->SetSelectedEntity(entity);
                             break;
                         }
@@ -133,68 +250,53 @@ void EditorLayer::OnUpdate(Timestep ts) {
             }
         }
 
-        // 3. RYSOWANIE OSI (Gizmo)
-        Entity selected = activeScene->GetSelectedEntity();
-        if (selected.id != std::numeric_limits<std::size_t>::max()) {
+        // ── 4. GIZMO ─────────────────────────────────────────────────────────
+        if (validEntity)
+        {
             auto* transform = world.GetComponent<TransformComponent>(selected);
-            if (transform) {
-                glm::vec3 globalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
+            if (transform)
+            {
+                glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
 
-                // Rysowanie względem FBO, nie całego ekranu
-                float screenX = (((globalPos.x - camPos.x) + (worldWidth / 2.0f)) / worldWidth) * fboWidth;
-                float screenY = ((-(globalPos.y - camPos.y) + (worldHeight / 2.0f)) / worldHeight) * fboHeight;
+                // ZMIANA: Prawdziwe rzutowanie matematyczne punktu 3D do okna 2D!
+                glm::vec4 clipSpacePos = proj3D * view3D * glm::vec4(globalPos, 1.0f);
 
-                Renderer2D::DrawQuad({ screenX, screenY }, { 50.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
-                Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
+                if (clipSpacePos.w != 0.0f) {
+                    glm::vec3 ndcSpacePos = glm::vec3(clipSpacePos) / clipSpacePos.w;
+                    float screenX = (ndcSpacePos.x + 1.0f) * 0.5f * fboWidth;
+                    float screenY = (1.0f - ndcSpacePos.y) * 0.5f * fboHeight;
+
+                    // Oś X (Czerwona) i Oś Y (Zielona) rysowane na ekranie
+                    Renderer2D::DrawQuad({ screenX, screenY }, { 50.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
+                    Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
+                }
             }
         }
     }
     else
     {
-        // ------------------ TYLKO W TRYBIE GRY ------------------
         activeScene->OnUpdateRuntime(ts);
     }
 
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);
 
-    if (m_TargetFBO) {
+    if (m_TargetFBO)
         m_TargetFBO->Unbind();
-    }
 
     auto windowSize = Input::GetWindowSize();
     glViewport(0, 0, windowSize.first, windowSize.second);
 }
 
+
 void EditorLayer::OnEvent(Event& e) {
     EventDispatcher dispatcher(e);
-
-    // Przechwytujemy klasę EditorLayer przez wskaźnik [this], 
-    // a następnie wywołujemy odpowiednie funkcje przekazując im event.
-
-    dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {
-        return OnWindowResize(ev);
-        });
-
-    dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& ev) {
-        return OnKeyPressed(ev);
-        });
-
-    dispatcher.Dispatch<EntityTransformChangedEvent>([this](EntityTransformChangedEvent& ev) {
-        return OnEntityTransformChanged(ev);
-        });
-
-    dispatcher.Dispatch<EntityDeletedEvent>([this](EntityDeletedEvent& ev) {
-        return OnEntityDeleted(ev);
-        });
-
-    dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) {
-        return OnScenePlayEvent(ev);
-        });
-
-    dispatcher.Dispatch<SceneStopEvent>([this](SceneStopEvent& ev) {
-        return OnSceneStopEvent(ev);
-        });
+    dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) { return OnWindowResize(ev); });
+    dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& ev) { return OnKeyPressed(ev); });
+    dispatcher.Dispatch<EntityTransformChangedEvent>([this](EntityTransformChangedEvent& ev) { return OnEntityTransformChanged(ev); });
+    dispatcher.Dispatch<EntityDeletedEvent>([this](EntityDeletedEvent& ev) { return OnEntityDeleted(ev); });
+    dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) { return OnScenePlayEvent(ev); });
+    dispatcher.Dispatch<SceneStopEvent>([this](SceneStopEvent& ev) { return OnSceneStopEvent(ev); });
 }
 
 bool EditorLayer::OnWindowResize(WindowResizeEvent& e) {
@@ -204,28 +306,57 @@ bool EditorLayer::OnWindowResize(WindowResizeEvent& e) {
 }
 
 bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
-    // Sprawdzamy klawisze modyfikujące (Ctrl i Shift)
     bool control = Input::IsKeyPressed(GLFW_KEY_LEFT_CONTROL) || Input::IsKeyPressed(GLFW_KEY_RIGHT_CONTROL);
     bool shift = Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT) || Input::IsKeyPressed(GLFW_KEY_RIGHT_SHIFT);
 
+    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+
+    // KLAWISZ G - SIATKA
+    if (e.GetKeyCode() == GLFW_KEY_G && m_SceneState == SceneState::Edit && activeScene)
+    {
+        Entity selected = activeScene->GetSelectedEntity();
+        if (selected.id != std::numeric_limits<std::size_t>::max())
+        {
+            auto& gridReq = activeScene->GetGridRequest();
+            gridReq.Active = !gridReq.Active;
+
+            if (gridReq.Active) {
+                auto* transform = activeScene->GetWorld().GetComponent<TransformComponent>(selected);
+                if (transform) {
+                    m_GridEntityStartPos = transform->Position;
+                    m_GridHoverPos = GridSystem::SnapToGrid(transform->Position);
+                }
+                spdlog::info("Grid Mode: ON (encja ID:{})", selected.id);
+            }
+            else {
+                spdlog::info("Grid Mode: OFF");
+            }
+            return true;
+        }
+    }
+
+    // ESCAPE - ANULOWANIE SIATKI
+    if (e.GetKeyCode() == GLFW_KEY_ESCAPE && activeScene)
+    {
+        auto& gridReq = activeScene->GetGridRequest();
+        if (gridReq.Active) {
+            gridReq.Active = false;
+            spdlog::info("Grid Mode: Anulowano");
+            return true;
+        }
+    }
+
     if (control) {
         if (e.GetKeyCode() == GLFW_KEY_Z) {
-            if (shift) {
-                m_CommandHistory.Redo();
-            } // Ctrl + Shift + Z
+            if (shift) m_CommandHistory.Redo();
             else {
                 m_CommandHistory.Undo();
-                std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-                if (activeScene) {
-                    // Ustawiamy na "pustą" encję (max ID)
-                    activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
-                }
-            }// Ctrl + Z
-
+                if (activeScene) activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
+            }
             return true;
         }
         else if (e.GetKeyCode() == GLFW_KEY_Y) {
-            m_CommandHistory.Redo();     // Ctrl + Y
+            m_CommandHistory.Redo();
             return true;
         }
     }
@@ -236,17 +367,10 @@ bool EditorLayer::OnEntityTransformChanged(EntityTransformChangedEvent& e) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     if (!activeScene) return false;
 
-    // EditorLayer ma dostęp do m_CommandHistory, więc po prostu tworzy i odpala
     std::unique_ptr<Command> cmd = std::make_unique<MoveEntityCommand>(
-        &activeScene->GetWorld(),
-        e.GetEntity(),
-        e.GetStartPos(),
-        e.GetEndPos()
+        &activeScene->GetWorld(), e.GetEntity(), e.GetStartPos(), e.GetEndPos()
     );
-
     m_CommandHistory.ExecuteCommand(std::move(cmd));
-
-    spdlog::info("Edytor zapisał ruch dla encji ID: {}", e.GetEntity().id);
     return true;
 }
 
@@ -255,42 +379,23 @@ bool EditorLayer::OnEntityDeleted(EntityDeletedEvent& e) {
     if (!activeScene) return false;
 
     auto cmd = std::make_unique<DeleteEntityCommand>(&activeScene->GetWorld(), e.GetEntity());
-
     m_CommandHistory.ExecuteCommand(std::move(cmd));
     return true;
 }
 
 void EditorLayer::OnScenePlay() {
     m_SceneState = SceneState::Play;
-
-    // 1. Robimy kopię zapasową sceny edytora
     m_EditorScene = SceneManager::GetActiveScene();
-
-    // 2. Tworzymy nową scenę do grania i kopiujemy do niej wszystko
     m_RuntimeScene = Scene::Copy(m_EditorScene);
-
-    // Mówimy nowej scenie, że jest w trybie gry
     m_RuntimeScene->SetState(SceneState::Play);
-
-    // 3. Ustawiamy scenę gry jako aktywną w silniku
     SceneManager::SetActiveScene(m_RuntimeScene);
-
-    // 4. Odpalamy systemy (fizyka, skrypty)
     m_RuntimeScene->OnRuntimeStart();
 }
 
 void EditorLayer::OnSceneStop() {
     m_SceneState = SceneState::Edit;
-
-    // 1. Zatrzymujemy systemy gry
     m_RuntimeScene->OnRuntimeStop();
-
-    //  Upewniamy się, że scena edytora wraca do trybu edycji
     m_EditorScene->SetState(SceneState::Edit);
-
-    // 2. Przywracamy oryginalną scenę edytora (obiekty wracają na swoje miejsca)
     SceneManager::SetActiveScene(m_EditorScene);
-
-    // 3. Usuwamy scenę runtime z pamięci
     m_RuntimeScene = nullptr;
 }

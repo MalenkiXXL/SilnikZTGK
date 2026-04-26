@@ -13,9 +13,15 @@ struct PlacementRequest {
 	bool Active = false;
 };
 
+struct GridRequest {
+	bool Active = false;
+};
+
 enum class SceneState {
 	Edit = 0, Play = 1
 };
+
+
 
 class Scene
 {
@@ -47,11 +53,14 @@ public:
 	PlacementRequest& GetPlacementRequest() { return m_PlacementRequest; }
 	void CalculateTransforms();
 	void SetParent(Entity child, Entity parent);
+
+	GridRequest& GetGridRequest() { return m_GridRequest; }
 private:
 	World m_ECSWorld;
 	Camera* m_MainCamera = nullptr;
 	Entity m_SelectedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 	PlacementRequest m_PlacementRequest;
+	GridRequest m_GridRequest;
 	SceneState m_State = SceneState::Edit;
 };
 

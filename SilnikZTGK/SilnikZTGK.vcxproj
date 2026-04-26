@@ -170,6 +170,7 @@
     <ClCompile Include="CookingStation\Layers\HudLayer\HUDLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CookingStation\Core\GridSystem.h" />
     <ClInclude Include="CookingStation\Core\Physics.h" />
     <ClInclude Include="CookingStation\Core\Texture.h" />
     <ClInclude Include="CookingStation\Core\Timestep.h" />

@@ -32,6 +32,8 @@ public:
 		const glm::vec2& uv0 = glm::vec2(0.0f, 1.0f), 
 		const glm::vec2& uv1 = glm::vec2(1.0f, 0.0f));
 
+	static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
+
 private:
 	struct Renderer2DData {
 		std::unique_ptr<Shader> UI_Shader;
