@@ -1,7 +1,7 @@
 {
     "entities": [
         {
-            "id": 0,
+            "id": 1,
             "model_path": "CookingStation/Assets/models/wystroj/podloga.gltf",
             "name": "Wielka_Podloga",
             "position": [
@@ -21,7 +21,7 @@
             ]
         },
         {
-            "id": 1,
+            "id": 2,
             "model_path": "CookingStation/Assets/models/wystroj/stolik.gltf",
             "name": "Blat 2",
             "position": [
@@ -41,7 +41,7 @@
             ]
         },
         {
-            "id": 2,
+            "id": 3,
             "model_path": "CookingStation/Assets/models/wystroj/stolik.gltf",
             "name": "Blat 3",
             "position": [
@@ -61,7 +61,7 @@
             ]
         },
         {
-            "id": 3,
+            "id": 4,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 4",
             "position": [
@@ -81,7 +81,7 @@
             ]
         },
         {
-            "id": 4,
+            "id": 5,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 5",
             "position": [
@@ -101,7 +101,7 @@
             ]
         },
         {
-            "id": 5,
+            "id": 6,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 6",
             "position": [
@@ -121,7 +121,7 @@
             ]
         },
         {
-            "id": 6,
+            "id": 7,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 7",
             "position": [
@@ -141,7 +141,7 @@
             ]
         },
         {
-            "id": 7,
+            "id": 8,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 8",
             "position": [
@@ -161,7 +161,7 @@
             ]
         },
         {
-            "id": 8,
+            "id": 9,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 9",
             "position": [
@@ -181,7 +181,7 @@
             ]
         },
         {
-            "id": 9,
+            "id": 10,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 10",
             "position": [
@@ -201,7 +201,7 @@
             ]
         },
         {
-            "id": 10,
+            "id": 11,
             "model_path": "CookingStation/Assets/models/wystroj/chmura.gltf",
             "name": "Chmura 11",
             "position": [
@@ -211,7 +211,7 @@
             ],
             "rotation": [
                 0.0,
-                90.0,
+                0.0,
                 0.0
             ],
             "scale": [
@@ -221,7 +221,7 @@
             ]
         },
         {
-            "id": 11,
+            "id": 12,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 12",
             "position": [
@@ -241,7 +241,7 @@
             ]
         },
         {
-            "id": 12,
+            "id": 13,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 13",
             "position": [
@@ -261,7 +261,7 @@
             ]
         },
         {
-            "id": 13,
+            "id": 14,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 14",
             "position": [
@@ -281,7 +281,7 @@
             ]
         },
         {
-            "id": 14,
+            "id": 15,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 15",
             "position": [
@@ -301,7 +301,7 @@
             ]
         },
         {
-            "id": 15,
+            "id": 16,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 16",
             "position": [
@@ -321,7 +321,7 @@
             ]
         },
         {
-            "id": 16,
+            "id": 17,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 17",
             "position": [
@@ -341,7 +341,7 @@
             ]
         },
         {
-            "id": 17,
+            "id": 18,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 18",
             "position": [
@@ -361,7 +361,7 @@
             ]
         },
         {
-            "id": 18,
+            "id": 19,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 19",
             "position": [
@@ -381,7 +381,7 @@
             ]
         },
         {
-            "id": 19,
+            "id": 20,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 20",
             "position": [
@@ -401,7 +401,7 @@
             ]
         },
         {
-            "id": 20,
+            "id": 21,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 21",
             "position": [
@@ -421,7 +421,7 @@
             ]
         },
         {
-            "id": 21,
+            "id": 22,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 22",
             "position": [
@@ -441,11 +441,11 @@
             ]
         },
         {
-            "id": 22,
+            "id": 23,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 23",
             "position": [
-                -6.150000095367432,
+                0.0,
                 0.5,
                 3.0
             ],
@@ -461,7 +461,7 @@
             ]
         },
         {
-            "id": 23,
+            "id": 24,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 24",
             "position": [
@@ -481,7 +481,7 @@
             ]
         },
         {
-            "id": 24,
+            "id": 25,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 25",
             "position": [
@@ -501,7 +501,7 @@
             ]
         },
         {
-            "id": 25,
+            "id": 26,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 26",
             "position": [
@@ -521,7 +521,7 @@
             ]
         },
         {
-            "id": 26,
+            "id": 27,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 27",
             "position": [
@@ -541,7 +541,7 @@
             ]
         },
         {
-            "id": 27,
+            "id": 28,
             "model_path": "CookingStation/Assets/models/dostawa/dostawczak.gltf",
             "name": "Dostawczak 28",
             "position": [
@@ -561,7 +561,7 @@
             ]
         },
         {
-            "id": 28,
+            "id": 29,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 29",
             "position": [
@@ -581,7 +581,7 @@
             ]
         },
         {
-            "id": 29,
+            "id": 30,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 30",
             "position": [
@@ -601,7 +601,7 @@
             ]
         },
         {
-            "id": 30,
+            "id": 31,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 31",
             "position": [
@@ -621,7 +621,7 @@
             ]
         },
         {
-            "id": 31,
+            "id": 32,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 32",
             "position": [
@@ -641,7 +641,7 @@
             ]
         },
         {
-            "id": 32,
+            "id": 33,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 33",
             "position": [
@@ -661,7 +661,7 @@
             ]
         },
         {
-            "id": 33,
+            "id": 34,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 34",
             "position": [
@@ -681,7 +681,7 @@
             ]
         },
         {
-            "id": 34,
+            "id": 35,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 35",
             "position": [
@@ -701,7 +701,7 @@
             ]
         },
         {
-            "id": 35,
+            "id": 36,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 36",
             "position": [
@@ -721,7 +721,7 @@
             ]
         },
         {
-            "id": 36,
+            "id": 37,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 37",
             "position": [
@@ -741,7 +741,7 @@
             ]
         },
         {
-            "id": 37,
+            "id": 38,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 38",
             "position": [
@@ -761,7 +761,7 @@
             ]
         },
         {
-            "id": 38,
+            "id": 39,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 39",
             "position": [
@@ -781,7 +781,7 @@
             ]
         },
         {
-            "id": 39,
+            "id": 40,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 40",
             "position": [
