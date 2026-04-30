@@ -1,0 +1,37 @@
+[
+  {
+    "title": "Phillies Wyrzucili Sosiera!",
+    "description": "Po fatalnym sezonie, szefowie Phillies zwolnili głównego sosiera i potrzebują 15 porcji \"Mattingly's Mega-Gulaszu\", by ratować kibiców przed głodem!",
+    "portions": 15,
+    "frequency": 8,
+    "reward": "300 Monet, nowa łyżka cedzakowa"
+  },
+  {
+    "title": "Żołnierz Postawił Na Hotdoga!",
+    "description": "Tajny agent wygrał fortunę, obstawiając, czy prezydent Maduro zje ostre papryczki, teraz żąda 12 porcji 'Zwycięskiego Chile con Carne', by świętować!",
+    "portions": 12,
+    "frequency": 7,
+    "reward": "400 Monet, tajny przepis na sos"
+  },
+  {
+    "title": "Giełda Spadła przez Chipsy!",
+    "description": "Kryzys na giełdzie! Analitycy twierdzą, że spadek spowodowany jest brakiem chrupiących chipsów cebulowych, pilnie potrzebujemy 18 porcji 'Kryzysowych Chipsów Giełdowych'!",
+    "portions": 18,
+    "frequency": 9,
+    "reward": "600 Monet, darmowe akcje buraczane"
+  },
+  {
+    "title": "FCC Kontra Muffiny Kimmela!",
+    "description": "Rząd oskarża Jimmy'ego Kimmela o ukrywanie przepisu na tajemnicze muffiny i żąda 20 porcji \"Licencyjnych Muffinek Wolności\", by sprawdzić ich skład!",
+    "portions": 20,
+    "frequency": 10,
+    "reward": "550 Monet, licencja na pieczenie"
+  },
+  {
+    "title": "Fauci Ukrywał Ciastka COVID!",
+    "description": "Były współpracownik Fauciego podejrzany o ukrywanie maili z przepisem na niebezpieczne ciastka COVID, musimy upiec 10 porcji \"Prawdziwych Ciastek Anty-COVID\" by ratować świat!",
+    "portions": 10,
+    "frequency": 6,
+    "reward": "450 Monet, maska ochronna na nos"
+  }
+]

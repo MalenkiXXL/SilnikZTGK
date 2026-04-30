@@ -1,0 +1,123 @@
+{
+    "status": "ok",
+    "totalResults": 33,
+    "articles": [
+        {
+            "source": {
+                "id": null,
+                "name": "MLB Trade Rumors"
+            },
+            "author": "Anthony Franco",
+            "title": "Phillies Fire Rob Thomson, Name Don Mattingly Interim Manager - MLB Trade Rumors",
+            "description": "The Phillies become the second underperforming playoff hopeful to fire their manager. MLB Trade Rumors has the latest out of Philadelphia.",
+            "url": "https://www.mlbtraderumors.com/2026/04/phillies-fire-rob-thomson-name-don-mattingly-interim-manager.html",
+            "urlToImage": "https://cdn.mlbtraderumors.com/files/2026/04/USATSI_28819964-1024x683.jpg",
+            "publishedAt": "2026-04-28T17:54:42Z",
+            "content": "There’s a major shakeup in Philadelphia. The Phillies fired manager Rob Thomson on Tuesday morning. Don Mattingly is the interim skipper, with the team’s press release saying he’ll hold that position… [+7129 chars]"
+        },
+        {
+            "source": {
+                "id": "cnn",
+                "name": "CNN"
+            },
+            "author": "Kara Scannell",
+            "title": "Soldier accused of betting on Maduro raid, winning $400,000, pleads not guilty - CNN",
+            "description": "A special forces soldier involved in the capture of Venezuelan President Nicolás Maduro pleaded not guilty Tuesday to misusing classified information about the operation to make over $400,000 in illegal profits.",
+            "url": "https://www.cnn.com/2026/04/28/politics/soldier-polymarket-maduro-arraignment",
+            "urlToImage": "https://media.cnn.com/api/v1/images/stellar/prod/ap26118593272277.jpg?c=16x9&q=w_800,c_fill",
+            "publishedAt": "2026-04-28T17:22:11Z",
+            "content": "A special forces soldier involved in the capture of Venezuelan President Nicolás Maduro pleaded not guilty Tuesday to misusing classified information about the operation to make over $400,000 in ille… [+2507 chars]"
+        },
+        {
+            "source": {
+                "id": null,
+                "name": "Minnesota Public Radio News"
+            },
+            "author": "MPR News Staff",
+            "title": "Federal, state officials execute search warrants at daycare providers in Twin Cities - MPR News",
+            "description": "The Department of Homeland Security announced Tuesday that it executed search warrants in the Twin Cities as part of an ongoing criminal investigation related to fraud. The state Department of Children, Youth, and Families confirmed the operation — and said s…",
+            "url": "https://www.mprnews.org/story/2026/04/28/federal-search-warrants-criminal-investigation-minneapolis-daycare-providers",
+            "urlToImage": "https://img.apmcdn.org/1173df6d1703de1d3d16bca6c6c1394e6c2d24a4/widescreen/198fbd-20260428-dhs-search-warrant-fraud-09-2000.jpg",
+            "publishedAt": "2026-04-28T17:15:00Z",
+            "content": "When it comes to staying informed in Minnesota, our newsletters overdeliver. Sign-up now for headlines, breaking news, hometown stories, weather and much more. Delivered weekday mornings."
+        },
+        {
+            "source": {
+                "id": null,
+                "name": "CNBC"
+            },
+            "author": "Sarah Min, Sean Conlon, Lisa Kailai Han",
+            "title": "S&P 500 slips from record, Nasdaq falls as OpenAI report knocks chip stocks: Live updates - CNBC",
+            "description": "The S&P 500 and Nasdaq Composite fell on Tuesday, weighed down by a report that pointed to weakness in OpenAI as well as a rise in oil prices.",
+            "url": "https://www.cnbc.com/2026/04/27/stock-market-today-live-updates.html",
+            "urlToImage": "https://image.cnbcfm.com/api/v1/image/108297656-1777301356480-Traders-Photo-20260427-KK-PRESS-007.jpg?v=1777301466&w=1920&h=1080",
+            "publishedAt": "2026-04-28T17:08:00Z",
+            "content": "The S&amp;P 500 and Nasdaq Composite fell on Tuesday, weighed down by a report that pointed to weakness in OpenAI as well as a rise in oil prices.\r\nThe broad market index fell 0.5%, while the tech-he… [+2256 chars]"
+        },
+        {
+            "source": {
+                "id": "nbc-news",
+                "name": "NBC News"
+            },
+            "author": "Mirna Alsharif",
+            "title": "Friends of USF victims remember them as family away from home, say they're 'shocked' by killings - NBC News",
+            "description": "Friends of University of South Florida victims Nahida Bristy and Zamil Limon remembered the doctoral students as their family away from home and say they are \"shocked\" by their deaths.",
+            "url": "https://www.nbcnews.com/news/us-news/friends-usf-victims-remember-family-away-home-say-shocked-killings-rcna342459",
+            "urlToImage": "https://media-cldnry.s-nbcnews.com/image/upload/t_nbcnews-fp-1200-630,f_auto,q_auto:best/rockcms/2026-04/260428-Hisham-Abugharbieh-rs-7eb491.jpg",
+            "publishedAt": "2026-04-28T16:54:35Z",
+            "content": "Friends of University of South Florida victims Nahida Bristy and Zamil Limon remembered the doctoral students on Tuesday as their family away from home and said they were \"shocked\" by their deaths.\r\n… [+3536 chars]"
+        },
+        {
+            "source": {
+                "id": "the-washington-post",
+                "name": "The Washington Post"
+            },
+            "author": "Mohamad El Chamaa",
+            "title": "UAE to leave OPEC amid Hormuz oil crisis, a blow to Saudi Arabia - The Washington Post",
+            "description": "The departure weakens the Organization of the Petroleum Exporting Countries, long criticized by Trump, as the global economy reels from the Iran war energy shock.",
+            "url": "https://www.washingtonpost.com/world/2026/04/28/uae-opec-iran-hormuz-trump-saudi/",
+            "urlToImage": "https://www.washingtonpost.com/wp-apps/imrs.php?src=https://cloudfront-us-east-1.images.arcpublishing.com/wapo/YTGHQBPIZRZFMLW7GQWM6IEGBI.jpg&w=1440",
+            "publishedAt": "2026-04-28T16:39:30Z",
+            "content": "BEIRUT The United Arab Emirates announced Tuesday that it would exit the Organization of the Petroleum Exporting Countries, or OPEC, along with the wider group of partners known as OPEC+, effective M… [+103 chars]"
+        },
+        {
+            "source": {
+                "id": "cnn",
+                "name": "CNN"
+            },
+            "author": "Brian Stelter",
+            "title": "FCC plans to challenge ABC station licenses amid Kimmel controversy - CNN",
+            "description": "At the same time the Trump administration is pressuring ABC to fire Jimmy Kimmel, the Trump-aligned FCC is planning to challenge ABC’s station licenses.",
+            "url": "https://www.cnn.com/2026/04/28/media/fcc-kimmel-disney-abc-trump-licenses",
+            "urlToImage": "https://media.cnn.com/api/v1/images/stellar/prod/gettyimages-2262365204-20260428154705299.jpg?c=16x9&q=w_800,c_fill",
+            "publishedAt": "2026-04-28T16:23:03Z",
+            "content": "As the Trump administration pressures ABC to fire Jimmy Kimmel, the Trump-aligned FCC is challenging the networks station licenses, setting up a legal battle with ABCs parent company Disney.\r\nDisneys… [+6463 chars]"
+        },
+        {
+            "source": {
+                "id": "politico",
+                "name": "Politico"
+            },
+            "author": "Josh Gerstein, Carmen Paun",
+            "title": "Former Fauci aide charged with conspiring to evade Covid-related records requests - Politico",
+            "description": "Ex-NIH official David Morens is accused of concealing emails about potentially risky virus research.",
+            "url": "https://www.politico.com/news/2026/04/28/fauci-aide-covid-research-indictment-00895447",
+            "urlToImage": "https://www.politico.com/dims4/default/resize/1200/quality/90/format/jpg?url=https%3A%2F%2Fstatic.politico.com%2F20%2F15%2F71d61c994c53b010f1ab63ffef2c%2Fhttps-delivery-gettyimages.com%2Fdownloads%2F2153586821",
+            "publishedAt": "2026-04-28T16:18:58Z",
+            "content": "After the outbreak of the Covid pandemic, at least eight FOIA requests were submitted for such records by organizations including Science Magazine, Judicial Watch and the Heritage Foundation, the ind… [+2483 chars]"
+        },
+        {
+            "source": {
+                "id": null,
+                "name": "Abcnews.com"
+            },
+            "author": "ABC News - Breaking News, Latest News and Videos",
+            "title": "US gasoline prices hit highest level in 4 years - ABC News - Breaking News, Latest News and Videos",
+            "description": null,
+            "url": "https://abcnews.com/Business/us-gasoline-prices-hit-highest-level-4-years/story?id\\\\u003d132459162",
+            "urlToImage": null,
+            "publishedAt": "2026-04-28T16:18:45Z",
+            "content": null
+        }
+    ]
+}

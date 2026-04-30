@@ -108,6 +108,9 @@
     <ClCompile Include="CookingStation\Renderer\Framebuffer.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
+    <ClCompile Include="CookingStation\Tools\QuestGenerator\QuestManager.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Layers\CameraLayer\Camera.h">
