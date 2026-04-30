@@ -204,16 +204,48 @@ public:
 // Deklaracja wyprzedzaj¹ca
 class ScriptableEntity;
 
+//struct NativeScriptComponent
+//{
+//    ScriptableEntity* Instance = nullptr;
+//
+//    ScriptableEntity* (*InstantiateScript)();
+//    void (*DestroyScript)(NativeScriptComponent*);
+//
+//    std::string ScriptName = "";
+//
+//    // Zmieniamy typ na funkcjê, która zwraca wskaŸnik na ScriptableEntity
+//    std::function<ScriptableEntity* ()> InstantiateScript;
+//
+//    template<typename T>
+//    void Bind(const std::string& name)
+//    {
+//        //InstantiateScript = []() { return new T(); };
+//        InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
+//        DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
+//        ScriptName = name;
+//    }
+//};
+
 struct NativeScriptComponent
 {
     ScriptableEntity* Instance = nullptr;
 
-    // Zmieniamy typ na funkcjê, która zwraca wskaŸnik na ScriptableEntity
-    std::function<ScriptableEntity* ()> InstantiateScript;
+    // WskaŸniki na funkcje tworz¹ce i niszcz¹ce skrypt
+    ScriptableEntity* (*InstantiateScript)() = nullptr;
+    void (*DestroyScript)(NativeScriptComponent*) = nullptr;
 
+    // Nasza nowa zmienna przechowuj¹ca nazwê skryptu (np. "ItemScript")
+    std::string ScriptName = "";
+
+    // Funkcja Bind, która teraz przyjmuje te¿ nazwê skryptu
     template<typename T>
-    void Bind()
+    void Bind(const std::string& name)
     {
-        InstantiateScript = []() { return new T(); };
+        InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
+        DestroyScript = [](NativeScriptComponent* nsc) {
+            delete nsc->Instance;
+            nsc->Instance = nullptr;
+            };
+        ScriptName = name;
     }
 };

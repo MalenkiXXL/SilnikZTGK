@@ -3,7 +3,9 @@
 #include "../Core/Timestep.h"
 #include "ecs.h"
 #include <vector>
+#include <unordered_map>
 
+class ConveyorScript;
 class Entity;
 class Camera;
 
@@ -22,6 +24,16 @@ enum class SceneState {
 };
 
 
+struct GridPos {
+	int x, z;
+	bool operator==(const GridPos& o) const { return x == o.x && z == o.z; }
+};
+
+struct GridPosHash {
+	size_t operator()(const GridPos& p) const {
+		return std::hash<int>()(p.x) ^ (std::hash<int>()(p.z) << 16);
+	}
+};
 
 class Scene
 {
@@ -44,6 +56,9 @@ public:
 
 	World& GetWorld() { return m_ECSWorld;  }
 
+	ConveyorScript* GetConveyorAt(float worldX, float worldZ);
+	std::unordered_map<GridPos, ConveyorScript*, GridPosHash>& GetConveyorMap() { return ConveyorMap; }
+
 	void SetCamera(Camera* camera) { m_MainCamera = camera; }
 	Camera* GetCamera() { return m_MainCamera; }
 
@@ -55,6 +70,7 @@ public:
 	void SetParent(Entity child, Entity parent);
 
 	GridRequest& GetGridRequest() { return m_GridRequest; }
+	void RebuildConveyorCache();
 private:
 	World m_ECSWorld;
 	Camera* m_MainCamera = nullptr;
@@ -62,5 +78,8 @@ private:
 	PlacementRequest m_PlacementRequest;
 	GridRequest m_GridRequest;
 	SceneState m_State = SceneState::Edit;
+
+	std::unordered_map<GridPos, ConveyorScript*, GridPosHash> ConveyorMap;
+	bool m_ConveyorCacheReady = false;
 };
 

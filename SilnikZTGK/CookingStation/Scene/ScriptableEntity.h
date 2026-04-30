@@ -7,6 +7,8 @@ class ScriptableEntity
 public:
 	virtual ~ScriptableEntity() {}
 
+	Scene* GetScene() { return m_Scene; }
+
 	//funkcja ktora wywoluje GetComponent z ecs dla m_Entity
 	template<typename T> T* GetComponent()
 	{
@@ -17,6 +19,7 @@ public:
 	virtual void OnDestroy() {}
 	virtual void OnUpdate(Timestep ts) {}
 	virtual void OnCollision() {}
+	virtual void OnClick() {}
 
 private:
 	//encja do ktorej jest przypieta

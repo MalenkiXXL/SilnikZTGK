@@ -31,7 +31,7 @@ public:
         // 3. Podpinamy skrypt
         auto* script = m_World->GetComponent<NativeScriptComponent>(m_Entity);
         if (script) {
-            script->Bind<RotationScript>();
+            script->Bind<RotationScript>("RotationScript");
         }
 
         spdlog::info("Command: Utworzono obiekt '{}' (ID: {})", m_Name, m_Entity.id);
