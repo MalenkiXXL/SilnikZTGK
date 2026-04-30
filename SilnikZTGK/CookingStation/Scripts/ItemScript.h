@@ -5,6 +5,8 @@
 
 class ItemScript : public ScriptableEntity
 {
+    ConveyorScript* m_CurrentConveyor = nullptr;
+
 public:
     void OnCreate() override {}
 
@@ -13,54 +15,66 @@ public:
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        auto& conveyors = GetScene()->GetConveyors();
+        // Szukamy taœmy tylko dok³adnym lookupem
+        ConveyorScript* found = GetScene()->GetConveyorAt(
+            transform->Position.x,
+            transform->Position.z
+        );
 
-        ConveyorScript* closestConveyor = nullptr;
-        float minDistance = 1.0f;
-
-        for (ConveyorScript* conveyor : conveyors)
+        // Prze³¹cz na now¹ taœmê tylko jeœli talerz jest wystarczaj¹co blisko jej centrum
+        if (found && found != m_CurrentConveyor)
         {
-            auto* conveyorTransform = conveyor->GetComponent<TransformComponent>();
-            if (!conveyorTransform) continue;
-
-            float distX = transform->Position.x - conveyorTransform->Position.x;
-            float distZ = transform->Position.z - conveyorTransform->Position.z;
-            float dist = std::sqrt(distX * distX + distZ * distZ);
-
-            if (dist < minDistance)
+            auto* foundTransform = found->GetComponent<TransformComponent>();
+            if (foundTransform)
             {
-                minDistance = dist;
-                closestConveyor = conveyor;
+                float dx = transform->Position.x - foundTransform->Position.x;
+                float dz = transform->Position.z - foundTransform->Position.z;
+                float dist = std::sqrt(dx * dx + dz * dz);
+
+                if (dist < 0.5f) // próg – dopiero wtedy prze³¹cz
+                    m_CurrentConveyor = found;
             }
         }
-
-        if (closestConveyor)
+        else if (found)
         {
-            auto* conveyorTransform = closestConveyor->GetComponent<TransformComponent>();
-            float speed = closestConveyor->Speed * ts.GetSeconds();
+            m_CurrentConveyor = found;
+        }
+
+        // Jeœli zupe³nie nie ma taœmy pod talerzem, jedŸ dalej star¹
+        if (!m_CurrentConveyor) return;
+
+        auto* conveyorTransform = m_CurrentConveyor->GetComponent<TransformComponent>();
+        float speed = m_CurrentConveyor->Speed * ts.GetSeconds();
+        float diffX = conveyorTransform->Position.x - transform->Position.x;
+        float diffZ = conveyorTransform->Position.z - transform->Position.z;
+
+        if (m_CurrentConveyor)
+        {
+            auto* conveyorTransform = m_CurrentConveyor->GetComponent<TransformComponent>();
+            float speed = m_CurrentConveyor->Speed * ts.GetSeconds();
 
             float diffX = conveyorTransform->Position.x - transform->Position.x;
             float diffZ = conveyorTransform->Position.z - transform->Position.z;
 
-            if (std::abs(closestConveyor->PushDirection.x) > 0.1f)
+            if (std::abs(m_CurrentConveyor->PushDirection.x) > 0.1f)
             {
                 if (std::abs(diffZ) > 0.01f) {
                     if (std::abs(diffZ) <= speed) transform->Position.z = conveyorTransform->Position.z;
                     else transform->Position.z += std::copysign(speed, diffZ);
                 }
                 else {
-                    transform->Position.x += closestConveyor->PushDirection.x * speed;
+                    transform->Position.x += m_CurrentConveyor->PushDirection.x * speed;
                     transform->Position.z = conveyorTransform->Position.z;
                 }
             }
-            else if (std::abs(closestConveyor->PushDirection.z) > 0.1f)
+            else if (std::abs(m_CurrentConveyor->PushDirection.z) > 0.1f)
             {
                 if (std::abs(diffX) > 0.01f) {
                     if (std::abs(diffX) <= speed) transform->Position.x = conveyorTransform->Position.x;
                     else transform->Position.x += std::copysign(speed, diffX);
                 }
                 else {
-                    transform->Position.z += closestConveyor->PushDirection.z * speed;
+                    transform->Position.z += m_CurrentConveyor->PushDirection.z * speed;
                     transform->Position.x = conveyorTransform->Position.x;
                 }
             }

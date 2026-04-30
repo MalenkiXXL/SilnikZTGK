@@ -3,7 +3,7 @@
 #include "../Core/Timestep.h"
 #include "ecs.h"
 #include <vector>
-
+#include <unordered_map>
 
 class ConveyorScript;
 class Entity;
@@ -24,6 +24,16 @@ enum class SceneState {
 };
 
 
+struct GridPos {
+	int x, z;
+	bool operator==(const GridPos& o) const { return x == o.x && z == o.z; }
+};
+
+struct GridPosHash {
+	size_t operator()(const GridPos& p) const {
+		return std::hash<int>()(p.x) ^ (std::hash<int>()(p.z) << 16);
+	}
+};
 
 class Scene
 {
@@ -46,7 +56,7 @@ public:
 
 	World& GetWorld() { return m_ECSWorld;  }
 
-	std::vector<ConveyorScript*>& GetConveyors() { return Conveyors;  }
+	ConveyorScript* GetConveyorAt(float worldX, float worldZ);
 
 	void SetCamera(Camera* camera) { m_MainCamera = camera; }
 	Camera* GetCamera() { return m_MainCamera; }
@@ -68,7 +78,7 @@ private:
 	GridRequest m_GridRequest;
 	SceneState m_State = SceneState::Edit;
 
-	std::vector<ConveyorScript*> Conveyors;
+	std::unordered_map<GridPos, ConveyorScript*, GridPosHash> ConveyorMap;
 	bool m_ConveyorCacheReady = false;
 };
 

@@ -377,20 +377,35 @@ void Scene::SetParent(Entity child, Entity parent) {
 
 void Scene::RebuildConveyorCache()
 {
-	Conveyors.clear();
+	ConveyorMap.clear();
 
 	auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
 	if (!scriptStorage) return;
 
 	for (auto& scriptComp : scriptStorage->dense)
 	{
-		if (scriptComp.Instance)
-		{
-			ConveyorScript* conveyor = dynamic_cast<ConveyorScript*>(scriptComp.Instance);
-			if (conveyor)
-				Conveyors.push_back(conveyor);
-		}
+		if (!scriptComp.Instance) continue;
+
+		ConveyorScript* conveyor = dynamic_cast<ConveyorScript*>(scriptComp.Instance);
+		if (!conveyor) continue;
+
+		auto* t = conveyor->GetComponent<TransformComponent>();
+		if (!t) continue;
+
+		GridPos key{ (int)std::round(t->Position.x / 2.0f),
+					  (int)std::round(t->Position.z / 2.0f) };
+
+		ConveyorMap[key] = conveyor;
 	}
 
-	spdlog::info("Znaleziono {} tasmy na scenie.", Conveyors.size());
+	spdlog::info("Zbudowano mape {} tasm.", ConveyorMap.size());
+}
+
+ConveyorScript* Scene::GetConveyorAt(float worldX, float worldZ)
+{
+	GridPos key{ (int)std::round(worldX / 2.0f),
+				  (int)std::round(worldZ / 2.0f) };
+
+	auto it = ConveyorMap.find(key);
+	return (it != ConveyorMap.end()) ? it->second : nullptr;
 }
