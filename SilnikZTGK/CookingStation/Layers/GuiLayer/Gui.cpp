@@ -94,20 +94,26 @@ bool Gui::SliderFloat(const std::string& label, float* value, float min, float m
 // rysowanie tekstu na ekranie
 // korzysta z atlasu tekstur czcionki i wspolrzednych UV dla kazdej litery
 void Gui::DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const glm::vec4& color) {
-	// iterujemy przez kazda litere w tekscie
-	for (char c : text) {
-		// sprawdzamy czy czionka ma definicje dla tego znaku
-		if (s_Font->GetCharacters().find(c) != s_Font->GetCharacters().end()) {
-			// pobieramy dane dla danego znaku (wymiar, pozycja w atlasie, odstêp)
-			auto& ch = s_Font->GetChar(c);
+	// Obliczamy przesuniêcie linii bazowej w dó³. 
+	// czcionka ma rozmiar bazowy 32px, a baseline to ok. 80% jej wysokoœci.
+	float baselineOffset = 32.0f * 0.8f * scale;
 
-			// skalujemy rozmiar litery na ekranie
+	// iterujemy przez ka¿d¹ literê w tekœcie
+	for (char c : text) {
+		if (s_Font->GetCharacters().find(c) != s_Font->GetCharacters().end()) {
+			auto& ch = s_Font->GetChar(c);
 			glm::vec2 size = { ch.Size.x * scale, ch.Size.y * scale };
 
-			// u¿ywamy rozbudowanego DrawQuad z UV
-			Renderer2D::DrawQuad(pos, size, s_Font->GetTexture(), color, ch.UV_Min, ch.UV_Max);
+			// Do pos.y dodajemy baselineOffset, aby opuœciæ w dó³
+			glm::vec2 charPos = {
+				pos.x + (ch.Offset.x * scale),
+				pos.y + baselineOffset + (ch.Offset.y * scale)
+			};
 
-			// przesuniêcie pozycji w prawo, ch.Advance to szerokoœæ znaku w linii
+			// Rysujemy quada w obliczonej pozycji
+			Renderer2D::DrawQuad(charPos, size, s_Font->GetTexture(), color, ch.UV_Min, ch.UV_Max);
+
+			// Przesuniêcie pozycji X dla nastêpnego znaku pozostaje bez zmian
 			pos.x += ch.Advance * scale;
 		}
 	}

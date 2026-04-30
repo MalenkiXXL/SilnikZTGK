@@ -40,15 +40,16 @@ Font::Font(const std::string& fontPath, float fontSize) {
     for (int i = 0; i < 96; i++) {
         char c = (char)(32 + i);
         stbtt_bakedchar b = chardata[i];
-
         Character ch;
         // skalujemy wspó³rzêdne pikselowe na zakres 0.0 - 1.0 (UV)
         ch.UV_Min = { (float)b.x0 / atlasWidth, (float)b.y0 / atlasHeight };
         ch.UV_Max = { (float)b.x1 / atlasWidth, (float)b.y1 / atlasHeight };
-
         ch.Size = { (float)(b.x1 - b.x0), (float)(b.y1 - b.y0) };
-        ch.Advance = b.xadvance;
 
+        // zapisujemy offset wygenerowany przez stb_truetype
+        ch.Offset = { (float)b.xoff, (float)b.yoff };
+
+        ch.Advance = b.xadvance;
         m_Characters[c] = ch;
     }
 }
