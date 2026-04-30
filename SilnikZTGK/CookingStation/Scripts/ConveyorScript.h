@@ -43,12 +43,10 @@ public:
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        auto& conveyorMap = GetScene()->GetConveyorMap(); // potrzebujesz gettera w Scene.h
-
-        // --- 1. SKANER S¥SIADÓW - zamiast pêtli po wszystkich skryptach ---
+        auto& conveyorMap = GetScene()->GetConveyorMap(); 
         int neighborCount = 0;
 
-        float directions[4][2] = { {0,1}, {1,0}, {0,-1}, {-1,0} }; // N, E, S, W
+        float directions[4][2] = { {0,1}, {1,0}, {0,-1}, {-1,0} };
 
         for (auto& dir : directions)
         {
@@ -67,7 +65,6 @@ public:
             return;
         }
 
-        // --- 2. ZBIERAMY BEZPIECZNE WYJŒCIA - zamiast drugiej pêtli ---
         float validAngles[4];
         int validCount = 0;
 
@@ -85,10 +82,9 @@ public:
             };
 
             auto it = conveyorMap.find(neighborKey);
-            if (it == conveyorMap.end()) continue; // brak taœmy w tym kierunku
+            if (it == conveyorMap.end()) continue;
 
             ConveyorScript* neighbor = it->second;
-            // Anty-kolizja - bez dynamic_cast!
             bool isHeadOnCollision = (
                 std::abs(neighbor->PushDirection.x + testDir.x) < 0.1f &&
                 std::abs(neighbor->PushDirection.z + testDir.z) < 0.1f
@@ -101,7 +97,6 @@ public:
             }
         }
 
-        // --- 3. PRZE£¥CZ NA NASTÊPNE WYJŒCIE - bez zmian ---
         if (validCount > 0)
         {
             float currentRot = transform->Rotation.y;

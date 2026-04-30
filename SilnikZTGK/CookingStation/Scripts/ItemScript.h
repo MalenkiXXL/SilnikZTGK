@@ -15,13 +15,11 @@ public:
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        // Szukamy taœmy tylko dok³adnym lookupem
         ConveyorScript* found = GetScene()->GetConveyorAt(
             transform->Position.x,
             transform->Position.z
         );
 
-        // Prze³¹cz na now¹ taœmê tylko jeœli talerz jest wystarczaj¹co blisko jej centrum
         if (found && found != m_CurrentConveyor)
         {
             auto* foundTransform = found->GetComponent<TransformComponent>();
@@ -39,7 +37,6 @@ public:
             m_CurrentConveyor = found;
         }
 
-        // Jeœli zupe³nie nie ma taœmy pod talerzem, jedŸ dalej star¹
         if (!m_CurrentConveyor) return;
 
         auto* conveyorTransform = m_CurrentConveyor->GetComponent<TransformComponent>();
