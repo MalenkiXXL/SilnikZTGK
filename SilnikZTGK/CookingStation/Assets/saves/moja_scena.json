@@ -79,7 +79,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 5,
@@ -100,7 +100,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 6,
@@ -121,7 +121,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 7,
@@ -142,7 +142,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 8,
@@ -163,7 +163,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 9,
@@ -184,7 +184,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 10,
@@ -205,7 +205,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 11,
@@ -218,7 +218,7 @@
             ],
             "rotation": [
                 0.0,
-                270.0,
+                0.0,
                 0.0
             ],
             "scale": [
@@ -246,7 +246,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 13,
@@ -267,7 +267,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 14,
@@ -288,7 +288,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 15,
@@ -309,7 +309,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 16,
@@ -330,7 +330,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 17,
@@ -351,7 +351,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 18,
@@ -372,7 +372,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 19,
@@ -393,7 +393,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 20,
@@ -414,7 +414,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 21,
@@ -435,7 +435,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 22,
@@ -456,14 +456,14 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 23,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 23",
             "position": [
-                0.0,
+                -0.8500000238418579,
                 0.5,
                 3.0
             ],
@@ -477,14 +477,14 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 24,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 24",
             "position": [
-                2.0,
+                1.0,
                 0.5,
                 3.0
             ],
@@ -498,7 +498,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 25,
@@ -519,7 +519,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 26,
@@ -540,7 +540,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 27,
@@ -561,7 +561,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 28,
@@ -588,7 +588,7 @@
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 29",
             "position": [
-                0.0,
+                -1.0,
                 0.5,
                 5.0
             ],
@@ -602,7 +602,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 30,
@@ -623,7 +623,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 31,
@@ -644,7 +644,7 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 32,
@@ -665,14 +665,14 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 33,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 33",
             "position": [
-                -6.0,
+                -7.0,
                 0.5,
                 9.0
             ],
@@ -686,35 +686,35 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 34,
-            "model_path": "CookingStation/Assets/models/przybory_kuchenne/naczynia/plate-done.gltf",
-            "name": "Talerz 34",
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
+            "name": "Tasma 34",
             "position": [
-                -6.0,
-                1.100000023841858,
+                -5.0,
+                0.5,
                 9.0
             ],
             "rotation": [
                 0.0,
-                0.0,
+                90.0,
                 0.0
             ],
             "scale": [
                 1.0,
-                1.0,
+                0.5,
                 1.0
             ],
-            "script": "ItemScript"
+            "script": "RotationScript"
         },
         {
             "id": 35,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 35",
             "position": [
-                -4.0,
+                -3.0,
                 0.5,
                 9.0
             ],
@@ -728,14 +728,14 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 36,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 36",
             "position": [
-                -2.0,
+                0.0,
                 0.5,
                 9.0
             ],
@@ -749,33 +749,12 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
             "id": 37,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
             "name": "Tasma 37",
-            "position": [
-                0.0,
-                0.5,
-                9.0
-            ],
-            "rotation": [
-                0.0,
-                90.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                0.5,
-                1.0
-            ],
-            "script": "ConveyorScript"
-        },
-        {
-            "id": 38,
-            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
-            "name": "Tasma 38",
             "position": [
                 2.0,
                 0.5,
@@ -791,12 +770,12 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
-            "id": 39,
+            "id": 38,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
-            "name": "Tasma 39",
+            "name": "Tasma 38",
             "position": [
                 4.0,
                 0.5,
@@ -812,12 +791,12 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
-            "id": 40,
+            "id": 39,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
-            "name": "Tasma 40",
+            "name": "Tasma 39",
             "position": [
                 6.0,
                 0.5,
@@ -833,12 +812,12 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
         },
         {
-            "id": 41,
+            "id": 40,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
-            "name": "Tasma 41",
+            "name": "Tasma 40",
             "position": [
                 8.0,
                 0.5,
@@ -854,7 +833,40 @@
                 0.5,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "RotationScript"
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "id": 41,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/naczynia/plate-done.gltf",
+            "name": "talerz",
+            "position": [
+                -7.0,
+                1.149999976158142,
+                9.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "script": "RotationScript"
         }
     ]
 }
