@@ -209,6 +209,7 @@
     <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h" />
     <ClInclude Include="CookingStation\Layers\RenderLayer\RendererLayer.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\EditorLayer.h" />
+    <ClInclude Include="CookingStation\Scripts\ConveyorScript.h" />
     <ClInclude Include="CookingStation\Scripts\ItemScript.h" />
     <ClInclude Include="CookingStation\Scripts\RotationScript.h" />
     <ClInclude Include="CookingStation\Scene\SceneManager.h" />

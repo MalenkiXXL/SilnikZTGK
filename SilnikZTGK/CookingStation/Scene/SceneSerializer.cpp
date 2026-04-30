@@ -140,6 +140,8 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 		}
 	}
 
+	// Na koñcu SceneSerializer::Deserialize(...)
+	m_Scene->RebuildConveyorCache();
 	return true; // scena wczytana pomyslnie
 }
 

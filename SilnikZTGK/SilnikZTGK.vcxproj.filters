@@ -239,6 +239,12 @@
     <ClInclude Include="CookingStation\Core\GridSystem.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
+    <ClInclude Include="CookingStation\Scripts\ItemScript.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Scripts\ConveyorScript.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

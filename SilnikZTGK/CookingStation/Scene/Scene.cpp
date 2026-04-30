@@ -10,6 +10,7 @@
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Renderer/Model.h"          
 #include "glm/gtc/matrix_transform.hpp"
+#include "CookingStation/Scripts/ConveyorScript.h"
 
 #include <iostream> 
 
@@ -89,6 +90,12 @@ void Scene::OnUpdateRuntime(Timestep ts)
 				scriptComp.Instance->OnUpdate(ts);
 			}
 		}
+	}
+
+	if (!m_ConveyorCacheReady)
+	{
+		RebuildConveyorCache();
+		m_ConveyorCacheReady = true;
 	}
 
 	// ==========================================
@@ -215,6 +222,8 @@ void Scene::OnRuntimeStop()
 			}
 		}
 	}
+
+	m_ConveyorCacheReady = false;
 }
 
 std::shared_ptr<Scene> Scene::Copy(std::shared_ptr<Scene> other)
@@ -364,4 +373,24 @@ void Scene::SetParent(Entity child, Entity parent) {
 	parentRel->ChildrenCount++;
 
 	spdlog::info("Podpieto encje {} do rodzica {}", child.id, parent.id);
+}
+
+void Scene::RebuildConveyorCache()
+{
+	Conveyors.clear();
+
+	auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
+	if (!scriptStorage) return;
+
+	for (auto& scriptComp : scriptStorage->dense)
+	{
+		if (scriptComp.Instance)
+		{
+			ConveyorScript* conveyor = dynamic_cast<ConveyorScript*>(scriptComp.Instance);
+			if (conveyor)
+				Conveyors.push_back(conveyor);
+		}
+	}
+
+	spdlog::info("Znaleziono {} tasmy na scenie.", Conveyors.size());
 }

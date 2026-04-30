@@ -15,6 +15,7 @@
 #include "MoveEntityCommand.h"
 #include <functional> 
 #include "CookingStation/Core/GridSystem.h"
+#include <CookingStation/Scripts/ConveyorScript.h>
 
 float GridSystem::CELL_SIZE = 2.0f;
 
@@ -273,9 +274,54 @@ void EditorLayer::OnUpdate(Timestep ts)
             }
         }
     }
-    else
+    else // TRYB PLAY
     {
         activeScene->OnUpdateRuntime(ts);
+
+        if (Input::IsMouseButtonJustPressed(0))
+        {
+            auto mousePos = Input::GetMousePosition();
+            float localMouseX = mousePos.first - 200.0f;
+            float localMouseY = mousePos.second - 30.0f;
+            glm::vec2 viewportSize = { m_ViewportWidth - 500.0f, m_ViewportHeight - 230.0f };
+
+            Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
+
+            auto& world = activeScene->GetWorld();
+            auto* meshStorage = world.GetComponentVector<MeshComponent>();
+            auto* transformStorage = world.GetComponentVector<TransformComponent>();
+            auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
+
+            if (meshStorage && transformStorage)
+            {
+                for (size_t it = 0; it < meshStorage->dense.size(); it++)
+                {
+                    Entity entity = meshStorage->reverse[it];
+                    TransformComponent* transform = transformStorage->Get(entity);
+
+                    if (transform)
+                    {
+                        glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
+                        AABB box;
+                        box.Min = globalPos - transform->Scale;
+                        box.Max = globalPos + transform->Scale;
+
+                        if (Physics::Intersects(ray, box))
+                        {
+                            if (scriptStorage)
+                            {
+                                auto* nsc = scriptStorage->Get(entity);
+                                if (nsc && nsc->Instance)
+                                {
+                                    nsc->Instance->OnClick();
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     Renderer2D::EndScene();

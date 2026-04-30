@@ -4,6 +4,8 @@
 #include "ecs.h"
 #include <vector>
 
+
+class ConveyorScript;
 class Entity;
 class Camera;
 
@@ -44,6 +46,8 @@ public:
 
 	World& GetWorld() { return m_ECSWorld;  }
 
+	std::vector<ConveyorScript*>& GetConveyors() { return Conveyors;  }
+
 	void SetCamera(Camera* camera) { m_MainCamera = camera; }
 	Camera* GetCamera() { return m_MainCamera; }
 
@@ -55,6 +59,7 @@ public:
 	void SetParent(Entity child, Entity parent);
 
 	GridRequest& GetGridRequest() { return m_GridRequest; }
+	void RebuildConveyorCache();
 private:
 	World m_ECSWorld;
 	Camera* m_MainCamera = nullptr;
@@ -62,5 +67,8 @@ private:
 	PlacementRequest m_PlacementRequest;
 	GridRequest m_GridRequest;
 	SceneState m_State = SceneState::Edit;
+
+	std::vector<ConveyorScript*> Conveyors;
+	bool m_ConveyorCacheReady = false;
 };
 

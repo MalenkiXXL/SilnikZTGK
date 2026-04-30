@@ -19,6 +19,7 @@ public:
 	virtual void OnDestroy() {}
 	virtual void OnUpdate(Timestep ts) {}
 	virtual void OnCollision() {}
+	virtual void OnClick() {}
 
 private:
 	//encja do ktorej jest przypieta
