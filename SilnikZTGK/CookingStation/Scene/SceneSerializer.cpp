@@ -10,6 +10,8 @@
 #include <nlohmann/json.hpp>
 
 #include "CookingStation/Scripts/RotationScript.h"
+#include "CookingStation/Scripts/ConveyorScript.h"
+#include "CookingStation/Scripts/ItemScript.h"
 
 using json = nlohmann::json;
 
@@ -90,10 +92,21 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 				std::string scriptName = item["script"].get<std::string>();
 
 				if (scriptName == "RotationScript") {
-					nsc.Bind<RotationScript>();
+					nsc.Bind<RotationScript>(scriptName);
 				}
+
+				else if (scriptName == "ConveyorScript") { 
+					nsc.Bind<ConveyorScript>(scriptName);
+				}
+
+				else if (scriptName == "ItemScript") {
+					nsc.Bind<ItemScript>(scriptName);
+				}
+
 				builder.With<NativeScriptComponent>(nsc);
 			}
+
+
 
 			// FINALIZACJA BUDOWY
 			Entity newEntity = builder.Build();
@@ -179,8 +192,10 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 
 		if (scriptStorage) {
 			auto* script = scriptStorage->Get(entity);
-			if (script && script->InstantiateScript) {
-				item["script"] = "RotationScript";
+			// Sprawdzamy, czy skrypt istnieje i czy ma zapisan¹ nazwê
+			if (script && script->InstantiateScript && !script->ScriptName.empty()) {
+				// Zamiast sztywnego tekstu, u¿ywamy zmiennej!
+				item["script"] = script->ScriptName;
 			}
 		}
 

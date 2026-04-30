@@ -7,6 +7,8 @@ class ScriptableEntity
 public:
 	virtual ~ScriptableEntity() {}
 
+	Scene* GetScene() { return m_Scene; }
+
 	//funkcja ktora wywoluje GetComponent z ecs dla m_Entity
 	template<typename T> T* GetComponent()
 	{

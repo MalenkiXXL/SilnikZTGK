@@ -35,7 +35,7 @@ void AssetLayer::OnAttach() {
 
 	// wczytujemy konkretne obiekty i ich stan z pliku zapisu
 	SceneSerializer serializer(activeScene.get());
-	serializer.Deserialize("CookingStation/Assets/example.json");
+	serializer.Deserialize("CookingStation/Assets/levels/level01.json");
 };
 
 void AssetLayer::OnUpdate(Timestep ts)

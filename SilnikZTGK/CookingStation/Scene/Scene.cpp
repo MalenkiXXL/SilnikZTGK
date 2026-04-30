@@ -22,6 +22,7 @@ Scene::Scene()
 	m_ECSWorld.RegisterComponent<NativeScriptComponent>();
 	m_ECSWorld.RegisterComponent<ClearColorComponent>();
 	m_ECSWorld.RegisterComponent<RelationshipComponent>();
+	m_ECSWorld.RegisterComponent<ConveyorComponent>();
 }
 
 Scene::~Scene() {};

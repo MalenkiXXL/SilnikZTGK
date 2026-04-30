@@ -62,3 +62,9 @@ struct BoxColliderComponent
     glm::vec3 Size = { 1.0f, 1.0f, 1.0f };
     glm::vec3 Offset = { 0.0f, 0.0f, 0.0f };
 };
+
+struct ConveyorComponent
+{
+    glm::vec3 Direction = { 1.0f, 0.0f, 0.0f };
+    float Speed = 2.0f;
+};
