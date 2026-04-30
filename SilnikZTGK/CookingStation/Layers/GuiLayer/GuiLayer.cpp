@@ -6,6 +6,8 @@
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Events/EditorEvents.h"
 #include "CookingStation/Core/Application.h"
+#include <cstdlib> 
+#include <cstdio>
 
 void GuiLayer::OnAttach() {
 	Renderer2D::Init();
@@ -157,6 +159,38 @@ void GuiLayer::OnUpdate(Timestep ts) {
 			m_ShowViewMenu = false;
 		}
 	}
+
+
+
+	// --- PROTOTYP: GENERATOR QUESTÓW ---
+	// Rysujemy t³o ma³ego panelu (np. z lewej strony, pod przyciskiem Plik/Widok)
+	glm::vec2 questPanelPos = { 10.0f, 150.0f }; // Ustaw pozycjê, ¿eby nie nak³ada³o siê na inne
+	Renderer2D::DrawQuad(questPanelPos, { 180.0f, 85.0f }, { 0.15f, 0.15f, 0.15f, 0.9f });
+	Gui::DrawGuiText("Generator Questow:", { questPanelPos.x + 5.f, questPanelPos.y + 10.f }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
+
+	// Przycisk 1: Z tych samych newsów (Tylko ponowny rzut do LLM)
+	if (Gui::Button("Generuj (Stary Cache)", { questPanelPos.x + 5.f, questPanelPos.y + 30.f }, { 170.f, 20.f })) {
+		spdlog::info("Generowanie z istniejacego cache...");
+
+		// POPRAWIONA ŒCIE¯KA:
+		system("python CookingStation/Tools/QuestGenerator/main.py");
+		ReloadQuests();
+
+		spdlog::info("Gotowe! Questy czekaja w pliku wygenerowane_quests.json.");
+	}
+
+	// Przycisk 2: Pobierz nowe newsy i wygeneruj
+	if (Gui::Button("Generuj (Nowe Newsy)", { questPanelPos.x + 5.f, questPanelPos.y + 55.f }, { 170.f, 20.f })) {
+		spdlog::info("Czyszczenie cache i pobieranie nowych newsow...");
+
+		// POPRAWIONA ŒCIE¯KA:
+		std::remove("CookingStation/Tools/QuestGenerator/news_cache.json");
+		system("python CookingStation/Tools/QuestGenerator/main.py");
+		ReloadQuests();
+
+		spdlog::info("Gotowe! Wygenerowano questy z pachnacych nowoscia newsow.");
+	}
+	// ------------------------------------
 
 
 	if (m_ShowDiagnosticPanel) {
@@ -434,6 +468,25 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		}
 	}
 
+	if (!m_CurrentQuests.empty()) {
+		float startY = 100.0f; // odleglosc od gory ekranu
+		float startX = m_ViewportWidth - 350.0f; // odleglosc od lewej krawedzi (zeby bylo po prawej)
+
+		// Opcjonalne t³o dla czytelnoœci
+		Renderer2D::DrawQuad({ startX - 10.f, startY - 20.f }, { 340.f, m_CurrentQuests.size() * 50.0f + 20.0f }, { 0.1f, 0.1f, 0.1f, 0.8f });
+
+		Gui::DrawGuiText("ZADANIA:", { startX, startY - 15.f }, 0.5f, { 1.0f, 0.5f, 0.2f, 1.0f });
+
+		for (const auto& q : m_CurrentQuests) {
+			// Tytu³ na ¿ó³to
+			Gui::DrawGuiText(q.title, { startX, startY }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
+			// Opis na bia³o, trochê mniejszy
+			Gui::DrawGuiText(q.desc, { startX, startY + 20.0f }, 0.35f, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+			startY += 50.0f; // Przesuwamy w dó³ dla kolejnego questa
+		}
+	}
+
 	Renderer2D::EndScene();
 	glEnable(GL_DEPTH_TEST);
 	Gui::EndFrame();
@@ -452,4 +505,23 @@ bool GuiLayer::OnWindowResize(WindowResizeEvent& e) {
 	return false;
 }
 
+void GuiLayer::ReloadQuests() {
+	m_CurrentQuests.clear();
+	std::ifstream file("CookingStation/Assets/wygenerowane_quests.json");
+	if (file.is_open()) {
+		try {
+			nlohmann::json data = nlohmann::json::parse(file);
+			for (auto& q : data) {
+				m_CurrentQuests.push_back({ q["title"].get<std::string>(), q["description"].get<std::string>() });
+			}
+			spdlog::info("Questy zaladowane do interfejsu!");
+		}
+		catch (...) {
+			spdlog::error("Blad parsowania JSONa questow.");
+		}
+	}
+}
+
+
 GuiLayer::~GuiLayer() {}
+

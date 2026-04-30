@@ -10,6 +10,8 @@
 #include "CookingStation/Renderer/Framebuffer.h"
 #include <memory>
 #include <limits>
+#include <nlohmann/json.hpp>
+#include <vector>
 
 class GuiLayer : public Layer {
 public:
@@ -20,6 +22,8 @@ public:
     virtual void OnEvent(Event& e) override;
     bool OnWindowResize(WindowResizeEvent& e);
     void SetViewportFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_ViewportFBO = fbo; }
+
+    void ReloadQuests();
 
 private:
     Entity m_SelectedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -54,4 +58,10 @@ private:
     bool m_IsDraggingTransform = false;
     glm::vec3 m_TransformStartPos = { 0.0f, 0.0f, 0.0f };
     std::shared_ptr<Framebuffer> m_ViewportFBO;
+
+    struct QuestData {
+        std::string title;
+        std::string desc;
+    };
+    std::vector<QuestData> m_CurrentQuests;
 };

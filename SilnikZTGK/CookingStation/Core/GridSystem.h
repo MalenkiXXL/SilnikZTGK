@@ -10,7 +10,7 @@ public:
     // Rozmiar jednego kafelka w jednostkach swiata (dopasuj do swoich modeli tasmy)
     static float CELL_SIZE;
 
-    // Przelicza dowoln? pozycj? w swiecie na srodek najblizszego kafelka
+    // Przelicza dowolna pozycje w swiecie na srodek najblizszego kafelka
     static glm::vec3 SnapToGrid(const glm::vec3& worldPos)
     {
         // Snap do CENTRUM kafelka, nie do jego rogu
