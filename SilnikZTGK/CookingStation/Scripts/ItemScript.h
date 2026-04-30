@@ -29,9 +29,8 @@ public:
             {
                 float dx = transform->Position.x - foundTransform->Position.x;
                 float dz = transform->Position.z - foundTransform->Position.z;
-                float dist = std::sqrt(dx * dx + dz * dz);
 
-                if (dist < 0.5f) // próg – dopiero wtedy prze³¹cz
+                if (dx * dx + dz * dz < 0.25f) // 0.5f * 0.5f
                     m_CurrentConveyor = found;
             }
         }

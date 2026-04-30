@@ -57,6 +57,7 @@ public:
 	World& GetWorld() { return m_ECSWorld;  }
 
 	ConveyorScript* GetConveyorAt(float worldX, float worldZ);
+	std::unordered_map<GridPos, ConveyorScript*, GridPosHash>& GetConveyorMap() { return ConveyorMap; }
 
 	void SetCamera(Camera* camera) { m_MainCamera = camera; }
 	Camera* GetCamera() { return m_MainCamera; }
