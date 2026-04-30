@@ -62,6 +62,9 @@ private:
     struct QuestData {
         std::string title;
         std::string desc;
+        int portions;
+        std::string reward;
     };
     std::vector<QuestData> m_CurrentQuests;
+    int m_CurrentQuestIndex = 0;
 };

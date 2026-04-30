@@ -162,29 +162,27 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
 
 
-	// --- PROTOTYP: GENERATOR QUESTÓW ---
-	// Rysujemy t³o ma³ego panelu (np. z lewej strony, pod przyciskiem Plik/Widok)
-	glm::vec2 questPanelPos = { 10.0f, 150.0f }; // Ustaw pozycjê, ¿eby nie nak³ada³o siê na inne
+	// --- prototy generowania questow ---
+	// t³o ma³ego panelu 
+	glm::vec2 questPanelPos = { 10.0f, 150.0f }; 
 	Renderer2D::DrawQuad(questPanelPos, { 180.0f, 85.0f }, { 0.15f, 0.15f, 0.15f, 0.9f });
 	Gui::DrawGuiText("Generator Questow:", { questPanelPos.x + 5.f, questPanelPos.y + 10.f }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
 
-	// Przycisk 1: Z tych samych newsów (Tylko ponowny rzut do LLM)
+	// przycisk 1: z tych samych newsów (ponowny rzut do LLM)
 	if (Gui::Button("Generuj (Stary Cache)", { questPanelPos.x + 5.f, questPanelPos.y + 30.f }, { 170.f, 20.f })) {
 		spdlog::info("Generowanie z istniejacego cache...");
-
-		// POPRAWIONA ŒCIE¯KA:
+ 
 		system("python CookingStation/Tools/QuestGenerator/main.py");
 		ReloadQuests();
 
 		spdlog::info("Gotowe! Questy czekaja w pliku wygenerowane_quests.json.");
 	}
 
-	// Przycisk 2: Pobierz nowe newsy i wygeneruj
+	// przycisk 2: pobierz nowe newsy i wygeneruj
 	if (Gui::Button("Generuj (Nowe Newsy)", { questPanelPos.x + 5.f, questPanelPos.y + 55.f }, { 170.f, 20.f })) {
 		spdlog::info("Czyszczenie cache i pobieranie nowych newsow...");
 
-		// POPRAWIONA ŒCIE¯KA:
-		std::remove("CookingStation/Tools/QuestGenerator/news_cache.json");
+		std::remove("CookingStation/Assets/news_cache.json");
 		system("python CookingStation/Tools/QuestGenerator/main.py");
 		ReloadQuests();
 
@@ -469,21 +467,57 @@ void GuiLayer::OnUpdate(Timestep ts) {
 	}
 
 	if (!m_CurrentQuests.empty()) {
-		float startY = 100.0f; // odleglosc od gory ekranu
-		float startX = m_ViewportWidth - 350.0f; // odleglosc od lewej krawedzi (zeby bylo po prawej)
+		float startY = 100.0f;
+		float panelWidth = 380.0f;
+		float panelHeight = 200.0f;
+		float startX = m_ViewportWidth - panelWidth - 20.0f;
 
-		// Opcjonalne t³o dla czytelnoœci
-		Renderer2D::DrawQuad({ startX - 10.f, startY - 20.f }, { 340.f, m_CurrentQuests.size() * 50.0f + 20.0f }, { 0.1f, 0.1f, 0.1f, 0.8f });
+		// T³o panelu zadania
+		Renderer2D::DrawQuad({ startX, startY }, { panelWidth, panelHeight }, { 0.12f, 0.12f, 0.12f, 0.95f });
 
-		Gui::DrawGuiText("ZADANIA:", { startX, startY - 15.f }, 0.5f, { 1.0f, 0.5f, 0.2f, 1.0f });
+		// Pobieramy aktualnie wybrane zadanie
+		const auto& q = m_CurrentQuests[m_CurrentQuestIndex];
 
-		for (const auto& q : m_CurrentQuests) {
-			// Tytu³ na ¿ó³to
-			Gui::DrawGuiText(q.title, { startX, startY }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
-			// Opis na bia³o, trochê mniejszy
-			Gui::DrawGuiText(q.desc, { startX, startY + 20.0f }, 0.35f, { 1.0f, 1.0f, 1.0f, 1.0f });
+		// Numeracja i nag³ówek
+		std::string header = "AKTUALNE ZADANIE (" + std::to_string(m_CurrentQuestIndex + 1) + "/" + std::to_string(m_CurrentQuests.size()) + ")";
+		Gui::DrawGuiText(header, { startX + 15.f, startY + 15.f }, 0.6f, { 1.0f, 0.5f, 0.2f, 1.0f });
 
-			startY += 50.0f; // Przesuwamy w dó³ dla kolejnego questa
+		// Tytu³ zadania
+		Gui::DrawGuiText(q.title, { startX + 15.f, startY + 45.f }, 0.55f, { 1.0f, 0.8f, 0.2f, 1.0f });
+
+		// Prosty prototypowy hack na zawijanie wierszy opisu (tnijmy co ~50 znaków na spacjach)
+		std::string line1 = q.desc, line2 = "", line3 = "";
+		if (line1.length() > 50) {
+			size_t spacePos = line1.find_last_of(' ', 50);
+			if (spacePos != std::string::npos) {
+				line2 = line1.substr(spacePos + 1);
+				line1 = line1.substr(0, spacePos);
+			}
+		}
+		if (line2.length() > 50) {
+			size_t spacePos = line2.find_last_of(' ', 50);
+			if (spacePos != std::string::npos) {
+				line3 = line2.substr(spacePos + 1);
+				line2 = line2.substr(0, spacePos);
+			}
+		}
+
+		// Rysowanie linijek opisu
+		Gui::DrawGuiText(line1, { startX + 15.f, startY + 75.f }, 0.45f, { 0.9f, 0.9f, 0.9f, 1.0f });
+		if (!line2.empty()) Gui::DrawGuiText(line2, { startX + 15.f, startY + 95.f }, 0.45f, { 0.9f, 0.9f, 0.9f, 1.0f });
+		if (!line3.empty()) Gui::DrawGuiText(line3, { startX + 15.f, startY + 115.f }, 0.45f, { 0.9f, 0.9f, 0.9f, 1.0f });
+
+		// Statystyki / Szczegó³y
+		Gui::DrawGuiText("Cel: " + std::to_string(q.portions) + " porcji", { startX + 15.f, startY + 145.f }, 0.5f, { 0.5f, 1.0f, 0.5f, 1.0f });
+		Gui::DrawGuiText("Nagroda: " + q.reward, { startX + 15.f, startY + 170.f }, 0.45f, { 0.4f, 0.8f, 1.0f, 1.0f });
+
+		// Przyciski nawigacyjne (poprzednie / nastêpne)
+		if (Gui::Button("< Poprzednie", { startX, startY + panelHeight + 5.f }, { 120.f, 25.f })) {
+			if (m_CurrentQuestIndex > 0) m_CurrentQuestIndex--;
+		}
+
+		if (Gui::Button("Nastepne >", { startX + panelWidth - 120.f, startY + panelHeight + 5.f }, { 120.f, 25.f })) {
+			if (m_CurrentQuestIndex < m_CurrentQuests.size() - 1) m_CurrentQuestIndex++;
 		}
 	}
 
@@ -512,8 +546,14 @@ void GuiLayer::ReloadQuests() {
 		try {
 			nlohmann::json data = nlohmann::json::parse(file);
 			for (auto& q : data) {
-				m_CurrentQuests.push_back({ q["title"].get<std::string>(), q["description"].get<std::string>() });
+				m_CurrentQuests.push_back({
+					q.value("title", "Brak tytulu"),
+					q.value("description", "Brak opisu"),
+					q.value("portions", 0),
+					q.value("reward", "Brak nagrody")
+					});
 			}
+			m_CurrentQuestIndex = 0;
 			spdlog::info("Questy zaladowane do interfejsu!");
 		}
 		catch (...) {

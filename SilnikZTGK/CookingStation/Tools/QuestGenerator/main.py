@@ -8,10 +8,10 @@ import datetime as dt
 
 #konfiguracja kluczy
 api_my_key = "3d259c682589472b95edf767d9cb39e0"
-gemini_key = "AIzaSyDcIhsCqHYxWtZgQz7jLSqQcDnHlehjf_0"
+gemini_key = "AIzaSyBwG0-t5Lm_Hf6qY4DgbfbVW1idbBB8RU0"
 
 #konfiguracja plikow zapisu
-cashe_file = "news_cache.json"
+cashe_file = "CookingStation/Assets/news_cache.json"
 cache_expiry_seconds = 3600
 
 #konfiguracja modelu gemini
@@ -27,7 +27,8 @@ def get_news():
     print("Caching news data...")
     try:
         newsapi = NewsApiClient(api_key=api_my_key)
-        data = newsapi.get_top_headlines(language='en', page_size=10)
+        #data = newsapi.get_top_headlines(language='en', page_size=10)
+        data = newsapi.get_top_headlines(category="entertainment", page_size=10)
         with open(cashe_file, "w", encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
         return data
@@ -80,7 +81,7 @@ def generate_quests(news_data):
     Na podstawie poniższych prawdziwych wiadomości ze świata, wygeneruj listę 5 zadań (eventów) dla graczy w grze restauracyjnej.
     
     ZASADA GŁÓWNA: Twoje opisy mają być totalnie odjechane, absurdalne i zabawne. Łącz poważne tematy (np. giełda, wybory, technologie) z absurdalnymi problemami kulinarnymi (np. politycy kradnący sos, rakieta napędzana gulaszem).
-    
+    WAZNE - BRAK POLSKICH ZNAKOW: Wszystkie wygenerowane teksty w JSON (wartosci pol) absolutnie nie moga zawierac polskich znakow diakrytycznych! Zastap je zwyklymi literami (np. l zamiast ł, o zamiast ó, a zamiast ą, s zamiast ś, itd.).
     Zwróć wynik jako tabelę (array) w formacie JSON. Każdy obiekt zadania musi zawierać dokładnie poniższe klucze:
 
     1. "title": String. Tytuł wydarzenia. Maksymalnie 50 znaków, maksymalnie 6 słów. Zawsze zamieniaj kluczowe słowo z newsa na jedzenie. (Przykład z newsa o NASA: "NASA wystrzeliła ziemniaka na orbitę!").
@@ -96,15 +97,23 @@ def generate_quests(news_data):
     print("\n Generating quests...")
 
     #wymuszenie odpowiedzi w jsonie
-    response = client.models.generate_content(
-        model = "gemini-2.5-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
+    try:
+        response = client.models.generate_content(
+            model = "gemini-2.5-flash-lite",
+            contents=prompt,
+            config=types.GenerateContentConfig(response_mime_type="application/json")
         )
-    )
-
-    return response.text
+        return response.text
+    except Exception as e:
+        print(f"\n [!!!] BLAD API - LIMIT PRZEKROCZONY: {e}")
+        return """[
+          {
+            "title": "Bunt Serwerow AI!",
+            "description": "Zbyt duzo zapytan! Sztuczna inteligencja strajkuje. Szybko, zrob 20 porcji Gwiezdnych Kopytek, aby udobruchac serwery!",
+            "portions": 20,
+            "reward": "999 Monet, Szacunek Maszyn"
+          }
+        ]"""
 
 #uruchomienie
 if __name__ == "__main__":
@@ -115,7 +124,7 @@ if __name__ == "__main__":
 
         print("\n -------- Generated Quests -------- ")
         print(quests_json)
-        generated_quest_path = "../../Assets/wygenerowane_quests.json"
+        generated_quest_path = "CookingStation/Assets/wygenerowane_quests.json"
         with open(generated_quest_path, "w", encoding='utf-8') as f:
             f.write(quests_json)
         print("\n Quests saved to wygenerowane_quests.json")
