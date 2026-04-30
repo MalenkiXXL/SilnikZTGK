@@ -9,6 +9,7 @@ struct Character {
     glm::vec2 UV_Min;
     glm::vec2 UV_Max;
     glm::vec2 Size;
+    glm::vec2 Offset; 
     float Advance;
 };
 
