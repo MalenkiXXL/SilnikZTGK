@@ -46,4 +46,6 @@ private:
 	std::vector<Quest> m_ActiveQuests;
 	std::atomic<bool> m_IsGenerating{ false };
 	std::atomic<bool> m_GenerationDone{ false };
+	std::shared_ptr<Shader> m_ActiveShader;
+	std::shared_ptr<Texture2D> m_RampTexture;
 };

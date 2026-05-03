@@ -248,11 +248,11 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		Gui::DrawGuiText(m_DrawCallsUIText, { textX, textY }, scale, textColor); textY += lineOffset;
 		Gui::DrawGuiText(m_TrisUIText, { textX, textY }, scale, textColor);
 	}
-
 	if (m_ShowEnvironmentPanel) {
-		// T³o panelu na dole po lewej
-		Renderer2D::DrawQuad({ 10.f, m_ViewportHeight - 160.f }, { 180.f, 150.f }, { 0.15f, 0.15f, 0.15f, 0.9f });
-		Gui::DrawGuiText("Kolor tla:", { 15.f, m_ViewportHeight - 145.f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
+		// POSZERZONE T o panelu na dole po lewej (szeroko   z 180 na 260)
+		Renderer2D::DrawQuad({ 10.f, m_ViewportHeight - 310.f }, { 180.f, 300.f }, { 0.15f, 0.15f, 0.15f, 0.9f });
+
+		Gui::DrawGuiText("Kolor tla:", { 15.f, m_ViewportHeight - 295.f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
 		auto* colorStorage = world.GetComponentVector<ClearColorComponent>();
 		if (colorStorage && !colorStorage->dense.empty()) {
@@ -260,10 +260,30 @@ void GuiLayer::OnUpdate(Timestep ts) {
 			float* g = &colorStorage->dense[0].bgColor.g;
 			float* b = &colorStorage->dense[0].bgColor.b;
 
-			// Suwaki lub DragFloaty ustawione relatywnie do do³u ekranu
-			Gui::SliderFloat("R", r, 0.0f, 1.0f, { 15.f, m_ViewportHeight - 110.f }, { 150.f, 20.f });
-			Gui::SliderFloat("G", g, 0.0f, 1.0f, { 15.f, m_ViewportHeight - 75.f }, { 150.f, 20.f });
-			Gui::SliderFloat("B", b, 0.0f, 1.0f, { 15.f, m_ViewportHeight - 40.f }, { 150.f, 20.f });
+			Gui::SliderFloat("R", r, 0.0f, 1.0f, { 15.f, m_ViewportHeight - 260.f }, { 150.f, 20.f });
+			Gui::SliderFloat("G", g, 0.0f, 1.0f, { 15.f, m_ViewportHeight - 225.f }, { 150.f, 20.f });
+			Gui::SliderFloat("B", b, 0.0f, 1.0f, { 15.f, m_ViewportHeight - 190.f }, { 150.f, 20.f });
+		}
+
+		// --- SEKCJA O WIETLENIA ---
+		Gui::DrawGuiText("Model Oswietlenia:", { 15.f, m_ViewportHeight - 155.f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+		// Przycisk "Standard"
+		bool isStandard = (Renderer::ActiveShader == "Standard");
+		if (Gui::Button("Standard", { 15.f, m_ViewportHeight - 135.f }, { 80.f, 20.f }, isStandard)) {
+			Renderer::ActiveShader = "Standard";
+		}
+
+		// Przycisk "RAMP"
+		bool isRamp = (Renderer::ActiveShader == "RAMP");
+		if (Gui::Button("RAMP", { 100.f, m_ViewportHeight - 135.f }, { 80.f, 20.f }, isRamp)) {
+			Renderer::ActiveShader = "RAMP";
+		}
+
+		// NOWE: Przycisk "FakeBRDF"
+		bool isFakeBrdf = (Renderer::ActiveShader == "FakeBRDF");
+		if (Gui::Button("Fake BRDF", { 15.f, m_ViewportHeight - 105.f }, { 80.f, 20.f }, isFakeBrdf)) {
+			Renderer::ActiveShader = "FakeBRDF";
 		}
 	}
 

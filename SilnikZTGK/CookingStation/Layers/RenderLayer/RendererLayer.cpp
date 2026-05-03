@@ -15,11 +15,19 @@
 #include <GLFW/glfw3.h>
 
 void RendererLayer::OnAttach() {
-    m_Shader = m_ShaderLibrary.Load("Standardowy", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
+    m_ShaderLibrary.Load("Standard", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
+    m_ShaderLibrary.Load("RAMP", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/RAMP.frag");
+    m_ShaderLibrary.Load("FakeBRDF", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/FakeBRDF.frag");
 
-    // Wczytujemy questy z Pythona na start
+    m_RampTexture = std::make_shared<Texture2D>("CookingStation/Assets/textures/RAMP_texture.png");
+
+    auto rampShader = m_ShaderLibrary.Get("RAMP");
+    rampShader->use();
+    rampShader->setInt("rampTex", 10);
+
     LoadQuestFromFile("C:\\Inzynierka\\PlikPython\\wygenerowane_quests.json");
 }
+
 
 void RendererLayer::LoadQuestFromFile(const std::string& filepath) {
     std::ifstream file(filepath);
@@ -80,22 +88,34 @@ void RendererLayer::OnUpdate(Timestep ts) {
         glm::mat4 viewProjection = projection * view;
 
         Renderer::BeginScene(viewProjection);
-        m_Shader->use();
-        m_Shader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-        m_Shader->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
-        m_Shader->setVec3("viewPos", activeScene->GetCamera()->Position);
+
+        // Wybieramy shader z biblioteki na podstawie zmiennej z GUI
+        m_ActiveShader = m_ShaderLibrary.Get(Renderer::ActiveShader);
+
+        m_ActiveShader->use();
+        m_ActiveShader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+        m_ActiveShader->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
+        m_ActiveShader->setVec3("viewPos", activeScene->GetCamera()->Position);
+
+        // Bindujemy LUT jeœli aktywny jest RAMP
+        if (Renderer::ActiveShader == "RAMP") {
+            m_RampTexture->Bind(10);
+        }
 
         if (meshStorage && transformStorage) {
             for (size_t i = 0; i < meshStorage->dense.size(); i++) {
                 auto& meshComp = meshStorage->dense[i];
                 Entity owner = meshStorage->reverse[i];
                 TransformComponent* transform = transformStorage->Get(owner);
+
                 if (transform && meshComp.ModelPtr) {
-                    Renderer::Submit(m_Shader, meshComp.ModelPtr, transform->WorldMatrix);
+                    // Rysujemy podaj¹c aktualny m_ActiveShader
+                    Renderer::Submit(m_ActiveShader, meshComp.ModelPtr, transform->WorldMatrix);
                 }
             }
         }
         Renderer::EndScene();
+
 
         // =================================================================
         // NOWOŒÆ: RYSOWANIE QUESTÓW JAKO OBIEKT FIZYCZNY W ŒWIECIE GRY

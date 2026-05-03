@@ -7,7 +7,7 @@ Renderer::SceneData* Renderer::s_SceneData = new Renderer::SceneData;
 RendererStatistics Renderer::s_Stats;
 uint32_t Renderer::s_GPUQueryID = 0;
 bool Renderer::s_GPUQueryInitialized = false;
-
+std::string Renderer::ActiveShader = "Standard";
 
 void Renderer::BeginScene(const glm::mat4& viewProjectionMatrix)
 {
