@@ -18,6 +18,8 @@ void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("Standard", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
     m_ShaderLibrary.Load("RAMP", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/RAMP.frag");
     m_ShaderLibrary.Load("FakeBRDF", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/FakeBRDF.frag");
+    m_ShaderLibrary.Load("BlinnPhong", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/BlinnPhong.frag");
+    m_ShaderLibrary.Load("Rim", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/Rim.frag");
 
     m_RampTexture = std::make_shared<Texture2D>("CookingStation/Assets/textures/RAMP_texture.png");
 

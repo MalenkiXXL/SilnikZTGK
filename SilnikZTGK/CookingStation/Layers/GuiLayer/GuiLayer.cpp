@@ -285,6 +285,16 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		if (Gui::Button("Fake BRDF", { 15.f, m_ViewportHeight - 105.f }, { 80.f, 20.f }, isFakeBrdf)) {
 			Renderer::ActiveShader = "FakeBRDF";
 		}
+
+		bool isBlinn = (Renderer::ActiveShader == "BlinnPhong");
+		if (Gui::Button("Blinn-Phong", { 100.f, m_ViewportHeight - 105.f }, { 80.f, 20.f }, isBlinn)) {
+			Renderer::ActiveShader = "BlinnPhong";
+		}
+
+		bool isRim = (Renderer::ActiveShader == "Rim");
+		if (Gui::Button("Rim", { 185.f, m_ViewportHeight - 105.f }, { 80.f, 20.f }, isRim)) {
+			Renderer::ActiveShader = "Rim";
+		}
 	}
 
 
