@@ -214,6 +214,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
 			m_DrawCalls3DText = "Draw Calls (3D): " + std::to_string(stats.DrawCalls3D);
 			m_Tris3DText = "Trojkaty (3D): " + std::to_string(stats.TriangleCount3D);
+			m_Culled3DText = "Odrzucone (Culled): " + std::to_string(stats.CulledObjects3D);
 			m_DrawCallsUIText = "Draw Calls (UI): " + std::to_string(stats.DrawCallsUI);
 			m_TrisUIText = "Trojkaty (UI): " + std::to_string(stats.TriangleCountUI);
 
@@ -221,7 +222,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		}
 
 		// 2. T£O PANELU DIAGNOSTYCZNEGO
-		glm::vec2 panelPos(m_ViewportWidth - 290.0f, m_ViewportHeight - 260.0f);
+		glm::vec2 panelPos(m_ViewportWidth - 290.0f, m_ViewportHeight - 290.0f);
 		glm::vec2 panelSize(280.0f, 250.0f);
 		glm::vec4 panelColor(0.12f, 0.12f, 0.12f, 0.85f);
 		Renderer2D::DrawQuad(panelPos, panelSize, panelColor);
@@ -245,6 +246,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		Gui::DrawGuiText(m_GpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
 		Gui::DrawGuiText(m_DrawCalls3DText, { textX, textY }, scale, textColor); textY += lineOffset;
 		Gui::DrawGuiText(m_Tris3DText, { textX, textY }, scale, textColor); textY += lineOffset;
+		Gui::DrawGuiText(m_Culled3DText, { textX, textY }, scale, textColor); textY += lineOffset;
 		Gui::DrawGuiText(m_DrawCallsUIText, { textX, textY }, scale, textColor); textY += lineOffset;
 		Gui::DrawGuiText(m_TrisUIText, { textX, textY }, scale, textColor);
 	}
@@ -269,7 +271,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		Gui::DrawGuiText("Model Oswietlenia:", { 15.f, m_ViewportHeight - 155.f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
 		// Przycisk "Standard"
-		bool isStandard = (Renderer::ActiveShader == "Standard");
+		bool isStandard = (Renderer::ActiveShader == "Phong");
 		if (Gui::Button("Standard", { 15.f, m_ViewportHeight - 135.f }, { 80.f, 20.f }, isStandard)) {
 			Renderer::ActiveShader = "Standard";
 		}
@@ -292,7 +294,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
 		}
 
 		bool isRim = (Renderer::ActiveShader == "Rim");
-		if (Gui::Button("Rim", { 185.f, m_ViewportHeight - 105.f }, { 80.f, 20.f }, isRim)) {
+		if (Gui::Button("Rim", { 15.f, m_ViewportHeight - 75.f }, { 80.f, 20.f }, isRim)) {
 			Renderer::ActiveShader = "Rim";
 		}
 	}

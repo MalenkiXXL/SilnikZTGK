@@ -33,22 +33,20 @@ AABB ComputeDynamicAABB(TransformComponent* trans, BoxColliderComponent* col)
 	AABB box;
 	glm::vec3 globalPos = glm::vec3(trans->WorldMatrix[3][0], trans->WorldMatrix[3][1], trans->WorldMatrix[3][2]);
 	glm::vec3 center = globalPos + col->Offset;
-	glm::vec3 extents = trans->Scale * col->Size; // odleg³oœæ od œrodka do krawêdzi
+	glm::vec3 extents = trans->Scale * col->Size;
 
-	// wyliczamy sam¹ macierz rotacji
 	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.x), { 1, 0, 0 })
 		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.y), { 0, 1, 0 })
 		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.z), { 0, 0, 1 });
 
-	// przekszta³camy rozmiary przez bezwzglêdne wartoœci macierzy rotacji
 	glm::vec3 rotatedExtents(
 		std::abs(rotation[0][0]) * extents.x + std::abs(rotation[1][0]) * extents.y + std::abs(rotation[2][0]) * extents.z,
 		std::abs(rotation[0][1]) * extents.x + std::abs(rotation[1][1]) * extents.y + std::abs(rotation[2][1]) * extents.z,
 		std::abs(rotation[0][2]) * extents.x + std::abs(rotation[1][2]) * extents.y + std::abs(rotation[2][2]) * extents.z
 	);
 
-	box.Min = center - rotatedExtents;
-	box.Max = center + rotatedExtents;
+	box.center = center;
+	box.extents = rotatedExtents;
 
 	return box;
 }
@@ -110,13 +108,12 @@ void Scene::OnUpdateRuntime(Timestep ts)
 		struct ColliderData
 		{
 			Entity ent;
-			AABB box;
+			AABB box; 
 		};
 
 		std::vector<ColliderData> activeColliders;
 		activeColliders.reserve(colliderStorage->dense.size());
 
-		//zbieramy aktualne	pudelka wszystkich encji
 		for (size_t i = 0; i < colliderStorage->dense.size(); i++)
 		{
 			Entity ent = colliderStorage->reverse[i];
@@ -124,14 +121,13 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			auto* col = &colliderStorage->dense[i];
 
 			if (trans) {
-
 				activeColliders.push_back({ ent, ComputeDynamicAABB(trans, col) });
 			}
-		} 
+		}
 
-		// 2. sortujemy po minimalnej wartoœci osi X
+		// ZMIANA: Obliczamy Min.x "w locie" dla sortowania
 		std::sort(activeColliders.begin(), activeColliders.end(), [](const ColliderData& a, const ColliderData& b) {
-			return a.box.Min.x < b.box.Min.x;
+			return (a.box.center.x - a.box.extents.x) < (b.box.center.x - b.box.extents.x);
 			});
 
 		for (size_t i = 0; i < activeColliders.size(); i++)
@@ -142,15 +138,12 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			{
 				const auto& dataB = activeColliders[j];
 
-				// Jeœli minimalny X obiektu B jest wiêkszy ni¿ maksymalny X obiektu A,
-				// to znaczy, ¿e obiekty B i WSZYSTKIE NASTÊPNE w posortowanej liœcie
-				// s¹ zbyt daleko na prawo, ¿eby kolidowaæ z A.
-				if (dataB.box.Min.x > dataA.box.Max.x)
+				// ZMIANA: Porównujemy odpowiednio wyliczone Min i Max
+				if ((dataB.box.center.x - dataB.box.extents.x) > (dataA.box.center.x + dataA.box.extents.x))
 				{
 					break;
 				}
 
-				// W przeciwnym razie sprawdzamy pe³n¹ kolizjê AABB z Physics.h
 				if (Physics::Intersects(dataA.box, dataB.box))
 				{
 					// Kolizja 

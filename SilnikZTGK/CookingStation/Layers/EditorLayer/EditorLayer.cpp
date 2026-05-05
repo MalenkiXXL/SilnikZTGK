@@ -239,8 +239,8 @@ void EditorLayer::OnUpdate(Timestep ts)
                     {
                         glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                         AABB box;
-                        box.Min = globalPos - transform->Scale;
-                        box.Max = globalPos + transform->Scale;
+                        box.center = globalPos;
+                        box.extents = transform->Scale;
                         if (Physics::Intersects(ray, box))
                         {
                             activeScene->SetSelectedEntity(entity);
@@ -303,8 +303,8 @@ void EditorLayer::OnUpdate(Timestep ts)
                     {
                         glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                         AABB box;
-                        box.Min = globalPos - transform->Scale;
-                        box.Max = globalPos + transform->Scale;
+                        box.center = globalPos;
+                        box.extents = transform->Scale;
 
                         if (Physics::Intersects(ray, box))
                         {

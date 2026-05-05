@@ -1,6 +1,7 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <memory>
+#include "CookingStation/Math/Geometry.h"
 
 #include "VertexArray.h"
 #include "Shader.h"
@@ -12,6 +13,8 @@ struct RendererStatistics {
 	uint32_t DrawCallsUI = 0;
 	uint32_t TriangleCount3D = 0;
 	uint32_t TriangleCountUI = 0;
+	uint32_t CulledObjects3D = 0;
+
 	float CPULogicTime = 0.0f;
 	float CPURenderTime = 0.0f;
 	float GPURenderTime = 0.0f;
@@ -21,6 +24,7 @@ struct RendererStatistics {
 		DrawCallsUI = 0; 
 		TriangleCount3D = 0;
 		TriangleCountUI = 0;
+		CulledObjects3D = 0;
 	}
 };
 
@@ -44,6 +48,7 @@ private:
 	struct SceneData
 	{
 		glm::mat4 ViewProjectionMatrix;
+		Frustum ActiveFrustum;
 	};
 
 	static SceneData* s_SceneData;

@@ -8,6 +8,9 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include "CookingStation/Math/Geometry.h"
+#include <limits>
+#include <cmath>
 
 #include "CookingStation/Renderer/VertexArray.h"
 #include "CookingStation/Renderer/Buffer.h"
@@ -41,6 +44,24 @@ struct MeshTexture {
 // Klasa Mesh to pojedyncza "siatka". Model mo�e sk�ada� si� z wielu takich siatek (np. ludzik: osobna siatka na cia�o, osobna na bro�)
 class Mesh {
 public:
+    AABB localAABB;
+
+    AABB GetWorldAABB(const glm::mat4& transform) const {
+        glm::vec3 globalCenter = transform * glm::vec4(localAABB.center, 1.0f);
+
+        // Wyciągamy macierz 3x3 dla samej rotacji i skali
+        glm::mat3 m = glm::mat3(transform);
+        // Tworzymy macierz wartości bezwzględnych dla poprawnego skalowania extents
+        glm::mat3 absM(
+            std::abs(m[0][0]), std::abs(m[0][1]), std::abs(m[0][2]),
+            std::abs(m[1][0]), std::abs(m[1][1]), std::abs(m[1][2]),
+            std::abs(m[2][0]), std::abs(m[2][1]), std::abs(m[2][2])
+        );
+        glm::vec3 globalExtents = absM * localAABB.extents;
+
+        return { globalCenter, globalExtents };
+    }
+
     // Dane siatki
     vector<Vertex>       vertices;
     vector<unsigned int> indices;
@@ -52,6 +73,26 @@ public:
         this->vertices = vertices;
         this->indices = indices;
         this->textures = textures;
+       
+        // --- ZABEZPIECZONE WYLICZANIE AABB ---
+        if (vertices.empty()) {
+            localAABB.center = glm::vec3(0.0f);
+            localAABB.extents = glm::vec3(0.0f);
+        }
+        else {
+            glm::vec3 minP(std::numeric_limits<float>::max());
+            glm::vec3 maxP(std::numeric_limits<float>::lowest());
+
+            for (const auto& v : vertices) {
+                minP = glm::min(minP, v.Position);
+                maxP = glm::max(maxP, v.Position);
+            }
+
+            localAABB.center = (minP + maxP) * 0.5f;
+            localAABB.extents = (maxP - minP) * 0.5f;
+        }
+        // -------------------------------------
+        
         // Po otrzymaniu danych konfigurujemy bufory OpenGL
         setupMesh();
     }

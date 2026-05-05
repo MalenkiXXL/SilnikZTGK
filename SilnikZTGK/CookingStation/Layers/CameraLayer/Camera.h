@@ -5,6 +5,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include "CookingStation/Math/Geometry.h"
+
 enum Camera_Movement {
     FORWARD,
     BACKWARD,
@@ -25,9 +27,11 @@ class Camera
 public:
     float AspectRatio = 1.7777f;
 
-    // NOWE: rozmiar obszaru widocznego w rzucie ortograficznym
+    // rozmiar obszaru widocznego w rzucie ortograficznym
     // Wiekszy = widac wiecej swiata, mniejszy = zoom in
     float OrthoSize = 10.0f;
+    float NearPlane = 0.1f;
+    float FarPlane = 100.0f;
 
     glm::vec3 Position;
     glm::vec3 Front;
@@ -71,6 +75,20 @@ public:
         return glm::lookAt(Position, Position + Front, Up);
     }
 
+    glm::mat4 GetProjectionMatrix() const
+    {
+        float left = -OrthoSize * AspectRatio;
+        float right = OrthoSize * AspectRatio;
+        float bottom = -OrthoSize;
+        float top = OrthoSize;
+        return glm::ortho(left, right, bottom, top, NearPlane, FarPlane);
+    }
+
+    const Frustum& GetFrustum() const
+    {
+        return m_Frustum;
+    }
+
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
@@ -80,6 +98,7 @@ public:
         if (direction == RIGHT)    Position += Right * velocity;
         if (direction == UP)       Position += Up * velocity;
         if (direction == DOWN)     Position -= Up * velocity;
+        UpdateFrustum();
     }
 
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true)
@@ -96,15 +115,22 @@ public:
         updateCameraVectors();
     }
 
-    // NOWE: Zoom izometryczny - zmienia OrthoSize zamiast FOV
     void ProcessMouseScroll(float yoffset)
     {
         OrthoSize -= yoffset * 0.8f;
         if (OrthoSize < 2.0f)  OrthoSize = 2.0f;
         if (OrthoSize > 40.0f) OrthoSize = 40.0f;
+        UpdateFrustum();
     }
 
 private:
+    Frustum m_Frustum;
+    void UpdateFrustum()
+    {
+        // Generujemy po³¹czon¹ macierz P * V i wyci¹gamy z niej p³aszczyzny
+        glm::mat4 viewProj = GetProjectionMatrix() * GetViewMatrix();
+        m_Frustum = ExtractFrustum(viewProj);
+    }
     void updateCameraVectors()
     {
         glm::vec3 front;
@@ -114,6 +140,8 @@ private:
         Front = glm::normalize(front);
         Right = glm::normalize(glm::cross(Front, WorldUp));
         Up = glm::normalize(glm::cross(Right, Front));
+
+        UpdateFrustum();
     }
 };
 #endif

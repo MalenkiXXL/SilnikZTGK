@@ -25,6 +25,7 @@ void Renderer::BeginScene(const glm::mat4& viewProjectionMatrix)
 
 	//zapisuje macierz kamery zeby nie podawac dla kazdego modelu
 	s_SceneData->ViewProjectionMatrix = viewProjectionMatrix;
+	s_SceneData->ActiveFrustum = ExtractFrustum(viewProjectionMatrix);
 }
 
 void Renderer::EndScene()
@@ -75,13 +76,20 @@ void Renderer::Submit(const std::shared_ptr<Shader>& shader, const std::shared_p
 	shader->setMat4("viewProjection", s_SceneData->ViewProjectionMatrix);
 	shader->setMat4("model", transform);
 
-	// model sam wie jak narysowac wszystkie mesh/vertexArray
-	model->Draw(*shader);
+	for (auto& mesh : model->meshes) {
+		// Obliczamy gdzie fizycznie w œwiecie le¿y ten konkretny Mesh
+		AABB worldAABB = mesh.GetWorldAABB(transform);
 
-	for (const auto& mesh : model->meshes)
-	{
-		s_Stats.DrawCalls3D++; 
-		s_Stats.TriangleCount3D += (mesh.indices.size() / 3);
+		// Test przeciêcia (Culling)
+		if (IsOnFrustum(s_SceneData->ActiveFrustum, worldAABB)) {
+			// Widaæ go Renderujemy
+			mesh.Draw(*shader);
+			s_Stats.DrawCalls3D++;
+			s_Stats.TriangleCount3D += (mesh.indices.size() / 3);
+		}
+		else {
+			// Ukryty, pomijamy GPU
+			s_Stats.CulledObjects3D++;
+		}
 	}
-
 }
