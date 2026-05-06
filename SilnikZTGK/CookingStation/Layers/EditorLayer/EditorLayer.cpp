@@ -37,7 +37,7 @@ void EditorLayer::OnAttach() {
 void EditorLayer::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, float range)
 {
     const float cell = GridSystem::CELL_SIZE;
-    const float t = 0.06f; // Zwiększyłem lekko grubość linii
+    const float t = 0.06f;
 
     glm::vec4 borderColor = { 0.6f, 0.6f, 0.6f, 0.55f };
     glm::vec4 hoverColor = { 0.2f, 0.9f, 0.4f, 0.50f };
@@ -61,7 +61,6 @@ void EditorLayer::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos,
     Renderer2D::EndScene();
     Renderer2D::BeginScene(viewProj3D);
 
-    // WYMUSZAMY PRZEZROCZYSTOŚĆ I WIDOCZNOŚĆ!
     glDisable(GL_DEPTH_TEST);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -86,9 +85,10 @@ void EditorLayer::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos,
     glEnable(GL_DEPTH_TEST);
 }
 
+//obliczanie przeciecia promienia z podloga
 void EditorLayer::UpdateGridPlacement(float localMouseX, float localMouseY, const glm::vec2& viewportSize, const glm::mat4& projection3D, const glm::mat4& view3D)
 {
-    // Używamy Waszego solidnego raycastingu z Physics.h!
+    // Używamy raycastingu
     Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, projection3D, view3D);
 
     // Przecięcie promienia z płaszczyzną podłogi (Y = 0)
