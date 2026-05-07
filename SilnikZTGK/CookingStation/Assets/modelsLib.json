@@ -131,6 +131,22 @@
     {
       "name": "kosz",
       "path": "CookingStation/Assets/models/przybory_kuchenne/kosz/kosz.gltf"
+    },
+    {
+      "name": "babcia",
+      "path": "CookingStation/Assets/models/klienci/babcia.gltf"
+    },
+    {
+      "name": "cukierek",
+      "path": "CookingStation/Assets/models/skladniki/cukierek/cukierek.gltf"
+    },
+    {
+      "name": "kopytka",
+      "path": "CookingStation/Assets/models/skladniki/kopytka/kopytka.gltf"
+    },
+    {
+      "name": "kopytka-zlote",
+      "path": "CookingStation/Assets/models/skladniki/kopytka/kopytka-zlote.gltf"
     }
 
 
