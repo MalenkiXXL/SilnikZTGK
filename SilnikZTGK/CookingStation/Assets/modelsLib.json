@@ -147,6 +147,18 @@
     {
       "name": "kopytka-zlote",
       "path": "CookingStation/Assets/models/skladniki/kopytka/kopytka-zlote.gltf"
+    },
+    {
+      "name": "owca",
+      "path": "CookingStation/Assets/models/skladniki/owieczki/owca.gltf"
+    },
+    {
+      "name": "pomidor",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/pomidor.gltf"
+    },
+    {
+      "name": "pomidor-pokrojony",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/pomidor-pokrojony.gltf"
     }
 
 
