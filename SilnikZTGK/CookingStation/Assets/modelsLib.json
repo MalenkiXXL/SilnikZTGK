@@ -1,6 +1,50 @@
 {
   "models": [
     {
+      "name": "pomidor",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/pomidor.gltf"
+    },
+    {
+      "name": "pomidor-pokrojony",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/pomidor-pokrojony.gltf"
+    },
+    {
+      "name": "babeczka",
+      "path": "CookingStation/Assets/models/skladniki/babeczka/babeczka.gltf"
+    },
+    {
+      "name": "bagietka",
+      "path": "CookingStation/Assets/models/skladniki/bagietka/bagietka.gltf"
+    },
+    {
+      "name": "bagietka-przekrojona",
+      "path": "CookingStation/Assets/models/skladniki/bagietka/bagietka-przekrojona.gltf"
+    },
+    {
+      "name": "kanapka",
+      "path": "CookingStation/Assets/models/skladniki/bagietka/kanapka.gltf"
+    },
+    {
+      "name": "ciastka",
+      "path": "CookingStation/Assets/models/skladniki/ciastka/ciastka.gltf"
+    },
+    {
+      "name": "ser",
+      "path": "CookingStation/Assets/models/skladniki/ser/ser.gltf"
+    },
+    {
+      "name": "ser-pokrojony",
+      "path": "CookingStation/Assets/models/skladniki/ser/ser-pokrojony.gltf"
+    },
+    {
+      "name": "szynka",
+      "path": "CookingStation/Assets/models/skladniki/szynka/szynka.gltf"
+    },
+    {
+      "name": "szynka-pokrojona",
+      "path": "CookingStation/Assets/models/skladniki/szynka/szynka-pokrojona.gltf"
+    },
+    {
       "name": "marchewka",
       "path": "CookingStation/Assets/models/warzywka/marchewka/test.gltf"
     },
@@ -151,14 +195,6 @@
     {
       "name": "owca",
       "path": "CookingStation/Assets/models/skladniki/owieczki/owca.gltf"
-    },
-    {
-      "name": "pomidor",
-      "path": "CookingStation/Assets/models/skladniki/pomidor/pomidor.gltf"
-    },
-    {
-      "name": "pomidor-pokrojony",
-      "path": "CookingStation/Assets/models/skladniki/pomidor/pomidor-pokrojony.gltf"
     }
 
 
