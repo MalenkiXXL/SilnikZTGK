@@ -7,6 +7,7 @@
 #include "CookingStation/Core/Application.h"
 #include <fstream>
 #include "CookingStation/json.hpp"
+#include "CookingStation/Layers/AssetLayer/AssetManager.h"
 bool GameGuiLayer::s_NeedsQuestReload = false; // Inicjalizacja flagi
 
 // === SYSTEM KOTWIC (VIRTUAL ANCHORING) ===
@@ -34,7 +35,7 @@ void GameGuiLayer::OnAttach() {
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
-
+    m_CornerIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bottomCornerClouds.png");
 }
 
 void GameGuiLayer::OnUpdate(Timestep ts) {
@@ -102,6 +103,44 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                 if (m_CurrentQuestIndex < (int)m_CurrentQuests.size() - 1) m_CurrentQuestIndex++;
             }
         }
+    }
+
+    // Chmurki w rogach ekranu - UI do sk³adników i maszyn
+    if (m_CornerIcon) {
+        float iconH = 300.0f;
+        float iconW = iconH * 1239.0f / 1024.0f;
+
+        glm::vec2 iconSize = { iconW, iconH };
+
+        float padding = 0.0f;
+
+        glm::vec2 leftPos = {
+            gameX + padding,
+            gameY + gameHeight - iconSize.y - padding
+        };
+
+        glm::vec2 rightPos = {
+            gameX + gameWidth - iconSize.x - padding,
+            gameY + gameHeight - iconSize.y - padding
+        };
+
+        Renderer2D::DrawQuad(
+            leftPos,
+            iconSize,
+            m_CornerIcon,
+            { 1.0f, 1.0f, 1.0f, 1.0f },
+            { 0.0f, 1.0f },
+            { 1.0f, 0.0f }
+        );
+
+        Renderer2D::DrawQuad(
+            rightPos,
+            iconSize,
+            m_CornerIcon,
+            { 1.0f, 1.0f, 1.0f, 1.0f },
+            { 1.0f, 1.0f },
+            { 0.0f, 0.0f }
+        );
     }
 
     // --- 4. WY£¥CZENIE NO¯YC ---

@@ -33,8 +33,21 @@ std::shared_ptr<Model> AssetManager::GetModel(const std::string& path) {
 	return newModel;
 }
 
+std::unordered_map<std::string, std::shared_ptr<Texture>> AssetManager::m_Textures;
+
+std::shared_ptr<Texture> AssetManager::GetTexture(const std::string& path) {
+	auto it = m_Textures.find(path);
+	if (it != m_Textures.end())
+		return it->second;
+
+	auto tex = std::make_shared<Texture>(path);
+	m_Textures[path] = tex;
+	return tex;
+}
+
 void AssetManager::Clean() {
 	m_Models.clear();
+	m_Textures.clear();
 }
 
 void AssetManager::InitCoreAssets() {

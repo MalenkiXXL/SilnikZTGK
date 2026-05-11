@@ -23,10 +23,12 @@ public:
 	static void Clean();
 	static void InitCoreAssets();
 	static ShaderLibrary& GetShaders() { return s_Shaders; }
+	static std::shared_ptr<Texture> GetTexture(const std::string& path);
 
 private:
 	static std::unordered_map<std::string, std::shared_ptr<Model>> m_Models;
 	static std::vector<ModelLibraryEntry> s_Library;
 	static ShaderLibrary s_Shaders;
-};	
+	static std::unordered_map<std::string, std::shared_ptr<Texture>> m_Textures;
+};
 
