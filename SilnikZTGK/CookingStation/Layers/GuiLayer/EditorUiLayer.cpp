@@ -343,7 +343,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
                     m_IsDraggingTransform = false;
                 }
             }
-            if (Gui::Button("USUN OBIEKT", { inspPos.x, inspPos.y + 360.0f }, { 300.0f, 40.0f })) {
+            if (Gui::Button("USUN OBIEKT", { inspPos.x, inspPos.y + 400.0f }, { 300.0f, 40.0f })) {
                 EntityDeletedEvent e(selected);
                 Application::Get().OnEvent(e);
                 activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
