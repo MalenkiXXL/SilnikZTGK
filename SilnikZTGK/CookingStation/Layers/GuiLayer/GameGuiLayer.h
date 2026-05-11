@@ -8,6 +8,8 @@
 #include <string>
 #include <glm/glm.hpp>
 #include "CookingStation/Core/Texture.h"
+#include <memory>
+#include "CookingStation/Renderer/Framebuffer.h"
 
 class GameGuiLayer : public Layer {
 public:
