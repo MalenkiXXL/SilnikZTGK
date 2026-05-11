@@ -1,4 +1,4 @@
-#include "GuiLayer.h"
+#include "EditorGuiLayer.h"
 #include "CookingStation/Events/WindowEvent.h"
 #include "CookingStation/Events/KeyEvent.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
@@ -6,27 +6,27 @@
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Events/EditorEvents.h"
 #include "CookingStation/Core/Application.h"
+#include "GameGuiLayer.h"
 #include <cstdlib> 
 #include <cstdio>
 #include <fstream>
 
-// SYSTEM KOTWIC (VIRTUAL ANCHORING)
-enum class Anchor {
-    TopLeft, TopRight, BottomLeft, BottomRight, Center
-};
+namespace { // Pocz¹tek anonimowej przestrzeni nazw
+    enum class Anchor { TopLeft, TopRight, BottomLeft, BottomRight, Center };
 
-glm::vec2 GetAnchoredPosition(Anchor anchor, float offsetX, float offsetY, float width, float height, float screenWidth, float screenHeight) {
-    switch (anchor) {
-    case Anchor::TopLeft:     return { offsetX, offsetY };
-    case Anchor::TopRight:    return { screenWidth - width - offsetX, offsetY };
-    case Anchor::BottomLeft:  return { offsetX, screenHeight - height - offsetY };
-    case Anchor::BottomRight: return { screenWidth - width - offsetX, screenHeight - height - offsetY };
-    case Anchor::Center:      return { (screenWidth - width) / 2.0f + offsetX, (screenHeight - height) / 2.0f + offsetY };
+    glm::vec2 GetAnchoredPosition(Anchor anchor, float offsetX, float offsetY, float width, float height, float screenWidth, float screenHeight) {
+        switch (anchor) {
+            case Anchor::TopLeft:     return { offsetX, offsetY };
+            case Anchor::TopRight:    return { screenWidth - width - offsetX, offsetY };
+            case Anchor::BottomLeft:  return { offsetX, screenHeight - height - offsetY };
+            case Anchor::BottomRight: return { screenWidth - width - offsetX, screenHeight - height - offsetY };
+            case Anchor::Center:      return { (screenWidth - width) / 2.0f + offsetX, (screenHeight - height) / 2.0f + offsetY };
+        }
+        return { offsetX, offsetY };
     }
-    return { offsetX, offsetY };
 }
 
-void GuiLayer::OnAttach() {
+void EditorGuiLayer::OnAttach() {
     Renderer2D::Init();
 
     // pobieramy aktualny rozmiar okna
@@ -44,7 +44,7 @@ void GuiLayer::OnAttach() {
     Gui::Init("CookingStation/Assets/fonts/ARIAL.ttf", 32);
 }
 
-void GuiLayer::OnUpdate(Timestep ts) {
+void EditorGuiLayer::OnUpdate(Timestep ts) {
 
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
 
@@ -123,7 +123,7 @@ void GuiLayer::OnUpdate(Timestep ts) {
     }
 
     if (m_ShowViewMenu) {
-        Renderer2D::DrawQuad({ 100.0f, 30.0f }, { 160.0f, 160.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
+        Renderer2D::DrawQuad({ 100.0f, 30.0f }, { 160.0f, 190.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
         if (Gui::Button("Panel Otoczenia", { 105.0f, 35.0f }, { 150.0f, 25.0f }, m_ShowEnvironmentPanel)) {
             m_ShowEnvironmentPanel = !m_ShowEnvironmentPanel; m_ShowViewMenu = false;
         }
@@ -139,23 +139,35 @@ void GuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("Diagnostyka", { 105.0f, 155.0f }, { 150.0f, 25.0f }, m_ShowDiagnosticPanel)) {
             m_ShowDiagnosticPanel = !m_ShowDiagnosticPanel; m_ShowViewMenu = false;
         }
+        if (Gui::Button("Questy", { 105.0f, 185.0f }, { 150.0f, 25.0f }, m_ShowQuestsPanel)) {
+            m_ShowQuestsPanel = !m_ShowQuestsPanel; m_ShowViewMenu = false;
+        }
     }
 
-    // --- PROTOTYP QUESTÓW (ANCHOR: TOP LEFT) ---
-    glm::vec2 questPanelPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 150.0f, 180.0f, 85.0f, m_ViewportWidth, m_ViewportHeight);
-    Renderer2D::DrawQuad(questPanelPos, { 180.0f, 85.0f }, { 0.15f, 0.15f, 0.15f, 0.9f });
-    Gui::DrawGuiText("Generator Questow:", { questPanelPos.x + 5.f, questPanelPos.y + 10.f }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
+    // --- PANEL GENERATORA QUESTÓW AI (TYLKO W EDYTORZE) ---
+    if (m_ShowQuestsPanel) {
+        glm::vec2 questPanelPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 400.0f, 180.0f, 85.0f, m_ViewportWidth, m_ViewportHeight);
 
-    if (Gui::Button("Generuj (Stary Cache)", { questPanelPos.x + 5.f, questPanelPos.y + 30.f }, { 170.f, 20.f })) {
-        spdlog::info("Generowanie z istniejacego cache...");
-        system("python CookingStation/Tools/QuestGenerator/main.py");
-        ReloadQuests();
-    }
-    if (Gui::Button("Generuj (Nowe Newsy)", { questPanelPos.x + 5.f, questPanelPos.y + 55.f }, { 170.f, 20.f })) {
-        spdlog::info("Czyszczenie cache i pobieranie nowych newsow...");
-        std::remove("CookingStation/Assets/news_cache.json");
-        system("python CookingStation/Tools/QuestGenerator/main.py");
-        ReloadQuests();
+        // T³o panelu (zaokr¹glone)
+        Renderer2D::DrawQuad(questPanelPos, { 180.0f, 85.0f }, { 0.15f, 0.15f, 0.15f, 0.9f }, 15.0f);
+        Gui::DrawGuiText("Generator Questow:", { questPanelPos.x + 5.f, questPanelPos.y + 10.f }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
+
+        // Przycisk: Generuj (Stary Cache)
+        if (Gui::Button("Generuj (Stary Cache)", { questPanelPos.x + 5.f, questPanelPos.y + 30.f }, { 170.f, 20.f })) {
+            spdlog::info("Generowanie z istniejacego cache...");
+            system("python CookingStation/Tools/QuestGenerator/main.py");
+
+            GameGuiLayer::s_NeedsQuestReload = true; // <--- POWIADAMIAMY WARSTWÊ GRY!
+        }
+
+        // Przycisk: Generuj (Nowe Newsy)
+        if (Gui::Button("Generuj (Nowe Newsy)", { questPanelPos.x + 5.f, questPanelPos.y + 55.f }, { 170.f, 20.f })) {
+            spdlog::info("Czyszczenie cache i pobieranie nowych newsow...");
+            std::remove("CookingStation/Assets/news_cache.json");
+            system("python CookingStation/Tools/QuestGenerator/main.py");
+
+            GameGuiLayer::s_NeedsQuestReload = true; // <--- POWIADAMIAMY WARSTWÊ GRY!
+        }
     }
 
     // --- PANEL DIAGNOSTYCZNY (ANCHOR: BOTTOM RIGHT) ---
@@ -389,49 +401,12 @@ void GuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("Anuluj", { dialogPos.x + 180.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) m_ShowLoadDialog = false;
     }
 
-    // --- AKTUALNE QUESTY (ANCHOR: TOP RIGHT) ---
-    if (!m_CurrentQuests.empty()) {
-        glm::vec2 qpSize = { 380.0f, 200.0f };
-        glm::vec2 qpPos = GetAnchoredPosition(Anchor::TopRight, 20.0f, 100.0f, qpSize.x, qpSize.y, m_ViewportWidth, m_ViewportHeight);
-
-        Renderer2D::DrawQuad(qpPos, qpSize, { 0.12f, 0.12f, 0.12f, 0.95f });
-
-        const auto& q = m_CurrentQuests[m_CurrentQuestIndex];
-        std::string header = "AKTUALNE ZADANIE (" + std::to_string(m_CurrentQuestIndex + 1) + "/" + std::to_string(m_CurrentQuests.size()) + ")";
-        Gui::DrawGuiText(header, { qpPos.x + 15.f, qpPos.y + 15.f }, 0.6f, { 1.0f, 0.5f, 0.2f, 1.0f });
-        Gui::DrawGuiText(q.title, { qpPos.x + 15.f, qpPos.y + 45.f }, 0.55f, { 1.0f, 0.8f, 0.2f, 1.0f });
-
-        std::string line1 = q.desc, line2 = "", line3 = "";
-        if (line1.length() > 50) {
-            size_t spacePos = line1.find_last_of(' ', 50);
-            if (spacePos != std::string::npos) { line2 = line1.substr(spacePos + 1); line1 = line1.substr(0, spacePos); }
-        }
-        if (line2.length() > 50) {
-            size_t spacePos = line2.find_last_of(' ', 50);
-            if (spacePos != std::string::npos) { line3 = line2.substr(spacePos + 1); line2 = line2.substr(0, spacePos); }
-        }
-
-        Gui::DrawGuiText(line1, { qpPos.x + 15.f, qpPos.y + 75.f }, 0.45f, { 0.9f, 0.9f, 0.9f, 1.0f });
-        if (!line2.empty()) Gui::DrawGuiText(line2, { qpPos.x + 15.f, qpPos.y + 95.f }, 0.45f, { 0.9f, 0.9f, 0.9f, 1.0f });
-        if (!line3.empty()) Gui::DrawGuiText(line3, { qpPos.x + 15.f, qpPos.y + 115.f }, 0.45f, { 0.9f, 0.9f, 0.9f, 1.0f });
-
-        Gui::DrawGuiText("Cel: " + std::to_string(q.portions) + " porcji", { qpPos.x + 15.f, qpPos.y + 145.f }, 0.5f, { 0.5f, 1.0f, 0.5f, 1.0f });
-        Gui::DrawGuiText("Nagroda: " + q.reward, { qpPos.x + 15.f, qpPos.y + 170.f }, 0.45f, { 0.4f, 0.8f, 1.0f, 1.0f });
-
-        if (Gui::Button("< Poprzednie", { qpPos.x, qpPos.y + qpSize.y + 5.f }, { 120.f, 25.f })) {
-            if (m_CurrentQuestIndex > 0) m_CurrentQuestIndex--;
-        }
-        if (Gui::Button("Nastepne >", { qpPos.x + qpSize.x - 120.f, qpPos.y + qpSize.y + 5.f }, { 120.f, 25.f })) {
-            if (m_CurrentQuestIndex < m_CurrentQuests.size() - 1) m_CurrentQuestIndex++;
-        }
-    }
-
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);
     Gui::EndFrame();
 }
 
-void GuiLayer::OnEvent(Event& e) {
+void EditorGuiLayer::OnEvent(Event& e) {
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) { return OnWindowResize(ev); });
     dispatcher.Dispatch<KeyTypedEvent>([](KeyTypedEvent& ev) { Gui::OnCharTyped(ev.GetKeyCode()); return false; });
@@ -439,7 +414,7 @@ void GuiLayer::OnEvent(Event& e) {
     dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& ev) { return OnMouseScrolled(ev); });
 }
 
-bool GuiLayer::OnMouseScrolled(MouseScrolledEvent& e) {
+bool EditorGuiLayer::OnMouseScrolled(MouseScrolledEvent& e) {
     auto mousePos = Input::GetMousePosition();
     float mouseX = mousePos.first;
     float mouseY = mousePos.second;
@@ -478,7 +453,7 @@ bool GuiLayer::OnMouseScrolled(MouseScrolledEvent& e) {
     return false;
 }
 
-bool GuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
+bool EditorGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
     auto mousePos = Input::GetMousePosition();
     float mouseX = mousePos.first;
     float mouseY = mousePos.second;
@@ -492,9 +467,6 @@ bool GuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
     if (m_ShowFileMenu && IsInside(10.0f, 30.0f, 150.0f, 90.0f)) return true;
     if (m_ShowViewMenu && IsInside(100.0f, 30.0f, 160.0f, 160.0f)) return true;
 
-    // 2. Prototyp Questów (TopLeft)
-    glm::vec2 questPanelPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 150.0f, 180.0f, 85.0f, m_ViewportWidth, m_ViewportHeight);
-    if (IsInside(questPanelPos.x, questPanelPos.y, 180.0f, 85.0f)) return true;
 
     // 3. Panele
     if (m_ShowDiagnosticPanel) {
@@ -533,46 +505,15 @@ bool GuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
         if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
     }
 
-    // 5. Aktualne questy
-    if (!m_CurrentQuests.empty()) {
-        glm::vec2 size(380.0f, 200.0f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::TopRight, 20.0f, 100.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        // Sprawdzamy panel i obszar przycisków pod nim
-        if (IsInside(pos.x, pos.y, size.x, size.y + 40.0f)) return true;
-    }
-
     return false;
 }
 
 
-bool GuiLayer::OnWindowResize(WindowResizeEvent& e) {
+bool EditorGuiLayer::OnWindowResize(WindowResizeEvent& e) {
     m_ViewportWidth = (float)e.GetWidth();
     m_ViewportHeight = (float)e.GetHeight();
     Gui::UpdateScreenSize(m_ViewportWidth, m_ViewportHeight);
     return false;
 }
 
-void GuiLayer::ReloadQuests() {
-    m_CurrentQuests.clear();
-    std::ifstream file("CookingStation/Assets/wygenerowane_quests.json");
-    if (file.is_open()) {
-        try {
-            nlohmann::json data = nlohmann::json::parse(file);
-            for (auto& q : data) {
-                m_CurrentQuests.push_back({
-                    q.value("title", "Brak tytulu"),
-                    q.value("description", "Brak opisu"),
-                    q.value("portions", 0),
-                    q.value("reward", "Brak nagrody")
-                    });
-            }
-            m_CurrentQuestIndex = 0;
-            spdlog::info("Questy zaladowane do interfejsu!");
-        }
-        catch (...) {
-            spdlog::error("Blad parsowania JSONa questow.");
-        }
-    }
-}
-
-GuiLayer::~GuiLayer() {}
+EditorGuiLayer::~EditorGuiLayer() {}
