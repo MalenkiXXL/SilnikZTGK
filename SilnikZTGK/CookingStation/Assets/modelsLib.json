@@ -195,6 +195,22 @@
     {
       "name": "owca",
       "path": "CookingStation/Assets/models/skladniki/owieczki/owca.gltf"
+    },
+    {
+      "name": "marchewka",
+      "path": "CookingStation/Assets/models/skladniki/marchewka/carrot1.gltf"
+    },
+    {
+      "name": "ziemniak",
+      "path": "CookingStation/Assets/models/skladniki/ziemniak/potato2.gltf"
+    },
+    {
+      "name": "jablko",
+      "path": "CookingStation/Assets/models/skladniki/jablko/apple1.gltf"
+    }
+    {
+      "name": "miod",
+      "path": "CookingStation/Assets/models/skladniki/miod/jar1.gltf"
     }
 
 

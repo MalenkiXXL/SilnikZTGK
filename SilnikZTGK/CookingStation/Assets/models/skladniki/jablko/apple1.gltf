@@ -16,34 +16,33 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube",
-			"rotation":[
-				0,
-				0.7071068286895752,
-				0,
-				0.7071068286895752
-			]
+			"name":"Sphere.002"
 		},
 		{
 			"mesh":1,
-			"name":"Plane",
+			"name":"Cylinder.002",
 			"rotation":[
 				0,
-				0.7071068286895752,
+				1,
 				0,
-				0.7071068286895752
+				0
+			],
+			"scale":[
+				-0.11008528620004654,
+				-1.192110538482666,
+				-0.11008528620004654
 			],
 			"translation":[
-				0,
-				0.5,
-				0
+				-0.2932761311531067,
+				1.4721802473068237,
+				-0.2955157160758972
 			]
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material",
+			"name":"Material.005",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -54,7 +53,7 @@
 		},
 		{
 			"doubleSided":true,
-			"name":"Material.001",
+			"name":"Material.006",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":1
@@ -66,7 +65,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube",
+			"name":"Sphere.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -80,7 +79,7 @@
 			]
 		},
 		{
-			"name":"Plane",
+			"name":"Cylinder.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -101,151 +100,146 @@
 		},
 		{
 			"sampler":0,
-			"source":1
+			"source":0
 		}
 	],
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"belt",
-			"uri":"belt.png"
-		},
-		{
-			"mimeType":"image/png",
-			"name":"a",
-			"uri":"a.png"
+			"name":"palette",
+			"uri":"palette.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":24,
+			"count":902,
 			"max":[
-				1,
-				0.5,
-				1
+				1.7803117036819458,
+				1.2738834619522095,
+				1.7797120809555054
 			],
 			"min":[
-				-1,
-				-0.5,
-				-1
+				-1.7798353433609009,
+				-1.4250500202178955,
+				-1.7800099849700928
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":24,
+			"count":902,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":24,
+			"count":902,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":36,
+			"count":4608,
 			"type":"SCALAR"
 		},
 		{
 			"bufferView":4,
 			"componentType":5126,
-			"count":4,
+			"count":1085,
 			"max":[
-				1,
-				0,
-				1
+				4.924781799316406,
+				1.3479422330856323,
+				3.6583797931671143
 			],
 			"min":[
-				-1,
-				0,
-				-1
+				-0.07605400681495667,
+				-0.6139140725135803,
+				1.634065866470337
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":5,
 			"componentType":5126,
-			"count":4,
+			"count":1085,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":6,
 			"componentType":5126,
-			"count":4,
+			"count":1085,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":7,
 			"componentType":5123,
-			"count":6,
+			"count":4608,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":288,
+			"byteLength":10824,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":288,
-			"byteOffset":288,
+			"byteLength":10824,
+			"byteOffset":10824,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":192,
-			"byteOffset":576,
+			"byteLength":7216,
+			"byteOffset":21648,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":72,
-			"byteOffset":768,
+			"byteLength":9216,
+			"byteOffset":28864,
 			"target":34963
 		},
 		{
 			"buffer":0,
-			"byteLength":48,
-			"byteOffset":840,
+			"byteLength":13020,
+			"byteOffset":38080,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":48,
-			"byteOffset":888,
+			"byteLength":13020,
+			"byteOffset":51100,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":32,
-			"byteOffset":936,
+			"byteLength":8680,
+			"byteOffset":64120,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":12,
-			"byteOffset":968,
+			"byteLength":9216,
+			"byteOffset":72800,
 			"target":34963
 		}
 	],
 	"samplers":[
 		{
-			"magFilter":9729,
-			"minFilter":9987
+			"magFilter":9728,
+			"minFilter":9984
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":980,
-			"uri":"conveyor.bin"
+			"byteLength":82016,
+			"uri":"apple1.bin"
 		}
 	]
 }
