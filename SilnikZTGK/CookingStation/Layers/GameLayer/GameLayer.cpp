@@ -1,5 +1,6 @@
 #include "GameLayer.h"
 #include "CookingStation/Scene/SceneManager.h"
+#include "CookingStation/Core/AudioEngine.h"
 
 void GameLayer::OnAttach()
 {
@@ -27,6 +28,33 @@ void GameLayer::OnUpdate(Timestep ts)
 
 void GameLayer::OnEvent(Event& e)
 {
-    // Dispatchowanie eventów (np. pauza gry, wyjœcie do menu)
+    // Tworzymy dyspozytor z rzuconym zdarzeniem
+    EventDispatcher dispatcher(e);
+
+    // Przekazujemy zdarzenia typu KeyPressedEvent do naszej metody OnKeyPressed.
+    // U¿ywamy tu lambdy, ¿eby elegancko przekazaæ wskaŸnik 'this'.
+    dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& event) {
+        return OnKeyPressed(event);
+        });
 }
 
+bool GameLayer::OnKeyPressed(KeyPressedEvent& e)
+{
+    // 1. Pobieramy aktualn¹ scenê z mened¿era
+    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+
+    // 2. Jeœli nie ma sceny, ALBO nie jest ona w trybie PLAY - ignorujemy klikniêcia gracza!
+    if (!activeScene || activeScene->GetState() != SceneState::Play)
+    {
+        return false;
+    }
+
+    // 3. W³aœciwa logika GRY (wykona siê tylko w trybie PLAY)
+    if (e.GetKeyCode() == 32 && e.GetRepeatCode() == 0)
+    {
+        AudioEngine::Play("CookingStation/Assets/sounds/onion_chopping.mp3");
+        return false;
+    }
+
+    return false;
+}

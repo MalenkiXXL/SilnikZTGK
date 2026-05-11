@@ -10,6 +10,7 @@
 #include "CookingStation/Layers/GuiLayer/EditorGuiLayer.h"
 #include "CookingStation/Layers/GuiLayer/GameGuiLayer.h"
 #include "CookingStation/Layers/EditorLayer/EditorLayer.h"
+#include "CookingStation/Layers/GameLayer/GameLayer.h"
 #include "CookingStation/Renderer/Framebuffer.h" 
 #include <memory>
 #include <vector>

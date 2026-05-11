@@ -78,9 +78,6 @@
     <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="CookingStation\Layers\GuiLayer\EditorUiLayer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
     <ClCompile Include="CookingStation\Core\Texture_GUI.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
@@ -112,6 +109,18 @@
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="CookingStation\Math\Geometry.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\Core\AudioEngine.cpp">
+      <Filter>Pliki źródłowe</Filter>
+    </ClCompile>
+    <ClCompile Include="CookingStation\miniaudio_impl.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
   </ItemGroup>
@@ -188,9 +197,6 @@
     <ClInclude Include="CookingStation\Layers\GuiLayer\Font.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
-    <ClInclude Include="CookingStation\Layers\GuiLayer\GuiLayer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
     <ClInclude Include="CookingStation\Core\Physics.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
@@ -252,6 +258,15 @@
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="CookingStation\Math\Geometry.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Layers\GuiLayer\GameGuiLayer.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.h">
+      <Filter>Pliki nagłówkowe</Filter>
+    </ClInclude>
+    <ClInclude Include="CookingStation\Core\AudioEngine.h">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>

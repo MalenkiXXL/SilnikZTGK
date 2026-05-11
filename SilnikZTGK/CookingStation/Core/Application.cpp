@@ -8,6 +8,7 @@
 #include "CookingStation/Layers/HudLayer/HUDLayer.h"
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Core/Timestep.h"
+#include "CookingStation/Core/AudioEngine.h"
 #include <iostream>
 
 Application* Application::s_Instance = nullptr;
@@ -28,6 +29,8 @@ Application::Application()
 	// DODAJEMY WARSTWY DO STOSU
 	PushLayer(new CameraLayer());
 	PushLayer(new AssetLayer());
+	auto gameLayer = new GameLayer();
+	PushLayer(gameLayer);
 	auto renderLayer = new RendererLayer();
 	renderLayer->SetTargetFramebuffer(m_ViewportFBO);
 	PushLayer(renderLayer);
@@ -42,11 +45,14 @@ Application::Application()
 	auto gameGuiLayer = new GameGuiLayer();
 	gameGuiLayer->SetViewportFramebuffer(m_ViewportFBO);
 	PushLayer(gameGuiLayer);
+
+	AudioEngine::Init();
 }
 
 Application::~Application()
 {
 	delete m_Window;
+	AudioEngine::Shutdown();
 }
 
 void Application::Run()

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CookingStation/Events/Event.h"
+#include "CookingStation/Events/KeyEvent.h"
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Core/Layer.h"
 #include "CookingStation/Scene/Scene.h"
@@ -18,5 +19,6 @@ public:
     virtual void OnEvent(Event& e) override;
 
 private:
+    bool OnKeyPressed(KeyPressedEvent& e);
     std::shared_ptr<Scene> m_ActiveScene;
 };

@@ -137,10 +137,12 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="CookingStation\Core\AudioEngine.cpp" />
     <ClCompile Include="CookingStation\Core\Texture_GUI.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp" />
     <ClCompile Include="CookingStation\Math\Geometry.cpp" />
+    <ClCompile Include="CookingStation\miniaudio_impl.cpp" />
     <ClCompile Include="CookingStation\Renderer\Buffer.cpp" />
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetManager.cpp" />
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetLayer.cpp" />
@@ -173,6 +175,7 @@
     <ClCompile Include="CookingStation\Layers\HudLayer\HUDLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CookingStation\Core\AudioEngine.h" />
     <ClInclude Include="CookingStation\Core\GridSystem.h" />
     <ClInclude Include="CookingStation\Core\Physics.h" />
     <ClInclude Include="CookingStation\Core\Texture.h" />
