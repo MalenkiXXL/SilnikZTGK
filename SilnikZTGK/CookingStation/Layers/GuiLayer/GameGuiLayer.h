@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
+#include "CookingStation/Core/Texture.h"
 
 class GameGuiLayer : public Layer {
 public:
@@ -36,4 +37,5 @@ private:
 
     std::vector<QuestData> m_CurrentQuests;
     int m_CurrentQuestIndex = 0;
+    std::shared_ptr<Texture> m_CornerIcon;
 };

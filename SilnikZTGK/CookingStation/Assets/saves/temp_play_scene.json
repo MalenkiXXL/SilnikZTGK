@@ -855,6 +855,39 @@
                 1.0
             ],
             "script": "ConveyorScript"
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "id": 42,
+            "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
+            "name": "event",
+            "position": [
+                -24.676952362060547,
+                -0.15000000596046448,
+                1.1281509399414063
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "script": "RotationScript"
         }
     ]
 }
