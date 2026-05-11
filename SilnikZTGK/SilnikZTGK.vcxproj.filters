@@ -78,7 +78,7 @@
     <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="CookingStation\Layers\GuiLayer\GuiLayer.cpp">
+    <ClCompile Include="CookingStation\Layers\GuiLayer\EditorUiLayer.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
     <ClCompile Include="CookingStation\Core\Texture_GUI.cpp">

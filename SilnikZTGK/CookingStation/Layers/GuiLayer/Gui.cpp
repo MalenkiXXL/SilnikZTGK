@@ -6,7 +6,6 @@
 std::shared_ptr<Font> Gui::s_Font = nullptr;
 float Gui::s_ScreenWidth = 800.0f;
 float Gui::s_ScreenHeight = 600.0f;
-bool Gui::s_AnyActive = false;
 std::string Gui::s_ActiveWidgetID = ""; 
 std::string Gui::s_CharacterBuffer = "";
 static std::string s_FloatEditBuffer = "";
@@ -143,8 +142,6 @@ bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::
 
 	bool isActive = (s_ActiveWidgetID == widgetID);
 
-	// wysylamy to do kamery, zeby wiedziala kiedy ma przestac odbierac input
-	if (isActive) s_AnyActive = true;
 
 	// zmiana koloru tla w zaleznosci od stanu
 	glm::vec4 bgColor = isActive ? glm::vec4(0.2f, 0.2f, 0.2f, 1.0f) : glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
@@ -269,7 +266,6 @@ bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, con
 
 	// 5. Tryb tekstowy (Wpisywanie z klawiatury)
 	if (isActive && s_IsInTextMode) {
-		s_AnyActive = true; // Zatrzymuje kamerê z gry
 
 		// Backspace
 		if (Input::IsKeyPressed(259) && !s_FloatEditBuffer.empty()) {

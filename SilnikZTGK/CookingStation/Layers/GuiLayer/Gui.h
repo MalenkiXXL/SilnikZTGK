@@ -15,7 +15,7 @@ public:
     static glm::vec2 GetMappedMousePos();
     static bool IsMouseOver(const glm::vec2& pos, const glm::vec2& size);
     static void OnCharTyped(int charcode);
-    static bool AnyItemActive() { return s_AnyActive; }
+    static bool AnyItemActive() { return !s_ActiveWidgetID.empty(); }
     static void EndFrame() { s_CharacterBuffer.clear(); }
     static bool DragFloat(const std::string& label, float* value, float dragSpeed, const glm::vec2& pos, const glm::vec2& size);
 
@@ -24,6 +24,5 @@ private:
     static float s_ScreenWidth;
     static float s_ScreenHeight;
     static std::string s_CharacterBuffer;
-    static bool s_AnyActive;
     static std::string s_ActiveWidgetID;
 };
