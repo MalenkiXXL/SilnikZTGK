@@ -14,23 +14,26 @@ public:
 	static void BeginScene(const glm::mat4& projection);
 	static void EndScene();
 
-	static void DrawQuad(const glm::vec2& position, 
-		const glm::vec2& size, 
-		const glm::vec4& color);
+	static void DrawQuad(const glm::vec2& position,
+		const glm::vec2& size,
+		const glm::vec4& color,
+		float radius = 15.0f); 
 
-	static void DrawQuad(const glm::vec2& position, 
-		const glm::vec2& size, 
-		const std::shared_ptr<Texture>& texture, 
-		const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f }, 
-		const glm::vec2& uvMin = { 0.0f, 0.0f }, 
-		const glm::vec2& uvMax = { 1.0f, 1.0f });
+	static void DrawQuad(const glm::vec2& position,
+		const glm::vec2& size,
+		const std::shared_ptr<Texture>& texture,
+		const glm::vec4& color = { 1.0f, 1.0f, 1.0f, 1.0f },
+		const glm::vec2& uvMin = { 0.0f, 0.0f },
+		const glm::vec2& uvMax = { 1.0f, 1.0f },
+		float radius = 0.0f); 
 
-	static void DrawQuad(const glm::vec2& position, 
-		const glm::vec2& size, 
-		uint32_t textureID, 
-		const glm::vec4& tintColor = glm::vec4(1.0f), 
-		const glm::vec2& uv0 = glm::vec2(0.0f, 1.0f), 
-		const glm::vec2& uv1 = glm::vec2(1.0f, 0.0f));
+	static void DrawQuad(const glm::vec2& position,
+		const glm::vec2& size,
+		uint32_t textureID,
+		const glm::vec4& tintColor = glm::vec4(1.0f),
+		const glm::vec2& uv0 = glm::vec2(0.0f, 1.0f),
+		const glm::vec2& uv1 = glm::vec2(1.0f, 0.0f),
+		float radius = 0.0f); 
 
 	static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
 
