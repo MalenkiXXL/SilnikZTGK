@@ -326,12 +326,13 @@ void GuiLayer::OnUpdate(Timestep ts) {
 
                 Gui::DragFloat("Pos X", &transform->Position.x, dS, { inspPos.x, inspPos.y + 40.0f }, { 300, 30 });
                 Gui::DragFloat("Pos Y", &transform->Position.y, dS, { inspPos.x, inspPos.y + 80.0f }, { 300, 30 });
-                Gui::DragFloat("Rot X", &transform->Rotation.x, rS, { inspPos.x, inspPos.y + 120.0f }, { 300, 30 });
-                Gui::DragFloat("Rot Y", &transform->Rotation.y, rS, { inspPos.x, inspPos.y + 160.0f }, { 300, 30 });
-                Gui::DragFloat("Rot Z", &transform->Rotation.z, rS, { inspPos.x, inspPos.y + 200.0f }, { 300, 30 });
-                Gui::DragFloat("Skala X", &transform->Scale.x, dS, { inspPos.x, inspPos.y + 240.0f }, { 300, 30 });
-                Gui::DragFloat("Skala Y", &transform->Scale.y, dS, { inspPos.x, inspPos.y + 280.0f }, { 300, 30 });
-                Gui::DragFloat("Skala Z", &transform->Scale.z, dS, { inspPos.x, inspPos.y + 320.0f }, { 300, 30 });
+                Gui::DragFloat("Pos Z", &transform->Position.z, dS, { inspPos.x, inspPos.y + 120.0f }, { 300, 30 });
+                Gui::DragFloat("Rot X", &transform->Rotation.x, rS, { inspPos.x, inspPos.y + 160.0f }, { 300, 30 });
+                Gui::DragFloat("Rot Y", &transform->Rotation.y, rS, { inspPos.x, inspPos.y + 200.0f }, { 300, 30 });
+                Gui::DragFloat("Rot Z", &transform->Rotation.z, rS, { inspPos.x, inspPos.y + 240.0f }, { 300, 30 });
+                Gui::DragFloat("Skala X", &transform->Scale.x, dS, { inspPos.x, inspPos.y + 280.0f }, { 300, 30 });
+                Gui::DragFloat("Skala Y", &transform->Scale.y, dS, { inspPos.x, inspPos.y + 320.0f }, { 300, 30 });
+                Gui::DragFloat("Skala Z", &transform->Scale.z, dS, { inspPos.x, inspPos.y + 360.0f }, { 300, 30 });
 
                 if (posBeforeSliders != transform->Position && !m_IsDraggingTransform) {
                     m_IsDraggingTransform = true; m_TransformStartPos = posBeforeSliders;
