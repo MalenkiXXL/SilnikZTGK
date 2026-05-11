@@ -366,6 +366,14 @@
       "rotation": [ 0.0, 180.0, 0.0 ],
       "scale": [ 1.0, 0.5, 1.0 ],
       "script": "ConveyorScript"
+    },
+    {
+      "id": 42,
+      "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
+      "name": "event",
+      "position": [ -25.0, 0.0, 1.0 ],
+      "rotation": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ]
     }
   ]
 }
