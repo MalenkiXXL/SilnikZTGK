@@ -3,6 +3,9 @@
 		"generator":"Khronos glTF Blender I/O v4.5.48",
 		"version":"2.0"
 	},
+	"extensionsUsed":[
+		"KHR_materials_emissive_strength"
+	],
 	"scene":0,
 	"scenes":[
 		{
@@ -17,18 +20,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Circle.001",
-			"rotation":[
-				0.2300184965133667,
-				0.19056491553783417,
-				-0.6088484525680542,
-				0.7349014282226562
-			],
-			"translation":[
-				0.876055896282196,
-				1.2072839736938477,
-				-0.06742221862077713
-			]
+			"name":"Circle.001"
 		},
 		{
 			"mesh":1,
@@ -36,17 +28,7 @@
 		},
 		{
 			"mesh":2,
-			"name":"Cylinder.001",
-			"scale":[
-				1,
-				1,
-				0.9874133467674255
-			],
-			"translation":[
-				0,
-				0.712979793548584,
-				0
-			]
+			"name":"Cylinder.001"
 		}
 	],
 	"materials":[
@@ -63,11 +45,24 @@
 		},
 		{
 			"doubleSided":true,
+			"emissiveFactor":[
+				1,
+				1,
+				1
+			],
+			"emissiveTexture":{
+				"index":1,
+				"texCoord":1
+			},
+			"extensions":{
+				"KHR_materials_emissive_strength":{
+					"emissiveStrength":8
+				}
+			},
 			"name":"Material.001",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":1,
-					"texCoord":1
+					"index":2
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5
@@ -78,7 +73,7 @@
 			"name":"Material.002",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
-					"index":2
+					"index":3
 				},
 				"metallicFactor":0,
 				"roughnessFactor":0.5
@@ -140,6 +135,10 @@
 			"source":1
 		},
 		{
+			"sampler":2,
+			"source":0
+		},
+		{
 			"sampler":0,
 			"source":0
 		}
@@ -162,14 +161,14 @@
 			"componentType":5126,
 			"count":2152,
 			"max":[
-				0.1747039556503296,
-				0.10404469817876816,
-				0.6648543477058411
+				0.956174373626709,
+				1.544268250465393,
+				0.850922703742981
 			],
 			"min":[
-				-0.8446716070175171,
-				-1.6598000526428223,
-				-0.7410213947296143
+				-0.8429537415504456,
+				1.1768540143966675,
+				-0.8494870662689209
 			],
 			"type":"VEC3"
 		},
@@ -237,13 +236,13 @@
 			"count":1242,
 			"max":[
 				1.0837829113006592,
-				0.9012653231620789,
-				1.1149628162384033
+				1.6142451763153076,
+				1.1009291410446167
 			],
 			"min":[
 				-1.0834856033325195,
-				0.3593752980232239,
-				-1.1147973537445068
+				1.072355031967163,
+				-1.1007658243179321
 			],
 			"type":"VEC3"
 		},
@@ -356,6 +355,10 @@
 			"minFilter":9987,
 			"wrapS":33071,
 			"wrapT":33071
+		},
+		{
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[

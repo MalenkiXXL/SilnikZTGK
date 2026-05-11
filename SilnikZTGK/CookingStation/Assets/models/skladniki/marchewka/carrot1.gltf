@@ -16,23 +16,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube.002",
-			"rotation":[
-				-0.13243970274925232,
-				-0.835092306137085,
-				-0.22939229011535645,
-				0.4821408689022064
-			],
-			"scale":[
-				1.0499358177185059,
-				1.0499358177185059,
-				1.0499358177185059
-			],
-			"translation":[
-				0,
-				2.14573335647583,
-				0
-			]
+			"name":"Cube.002"
 		},
 		{
 			"mesh":1,
@@ -100,15 +84,10 @@
 		},
 		{
 			"sampler":0,
-			"source":1
+			"source":0
 		}
 	],
 	"images":[
-		{
-			"mimeType": "image/png",
-			"name": "palette.png",
-			"uri": "../../../textures/palette.png"
-		},
 		{
 			"mimeType": "image/png",
 			"name": "palette",
@@ -121,14 +100,14 @@
 			"componentType":5126,
 			"count":453,
 			"max":[
-				0.5779865384101868,
-				0.9239890575408936,
-				0.7249252200126648
+				0.6050262451171875,
+				3.0459156036376953,
+				0.4663175046443939
 			],
 			"min":[
-				-0.5779890418052673,
-				-0.12708260118961334,
-				-0.26297271251678467
+				-0.6080623269081116,
+				2.033895492553711,
+				-0.651985228061676
 			],
 			"type":"VEC3"
 		},
@@ -153,7 +132,7 @@
 		{
 			"bufferView":4,
 			"componentType":5126,
-			"count":920,
+			"count":757,
 			"max":[
 				0.8535814881324768,
 				2.2794744968414307,
@@ -161,7 +140,7 @@
 			],
 			"min":[
 				-0.853581428527832,
-				-0.3885737359523773,
+				-0.3917471766471863,
 				-0.853581428527832
 			],
 			"type":"VEC3"
@@ -169,19 +148,19 @@
 		{
 			"bufferView":5,
 			"componentType":5126,
-			"count":920,
+			"count":757,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":6,
 			"componentType":5126,
-			"count":920,
+			"count":757,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":7,
 			"componentType":5123,
-			"count":3864,
+			"count":3090,
 			"type":"SCALAR"
 		}
 	],
@@ -212,26 +191,26 @@
 		},
 		{
 			"buffer":0,
-			"byteLength":11040,
+			"byteLength":9084,
 			"byteOffset":18180,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":11040,
-			"byteOffset":29220,
+			"byteLength":9084,
+			"byteOffset":27264,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":7360,
-			"byteOffset":40260,
+			"byteLength":6056,
+			"byteOffset":36348,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":7728,
-			"byteOffset":47620,
+			"byteLength":6180,
+			"byteOffset":42404,
 			"target":34963
 		}
 	],
@@ -243,7 +222,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":55348,
+			"byteLength":48584,
 			"uri":"carrot1.bin"
 		}
 	]

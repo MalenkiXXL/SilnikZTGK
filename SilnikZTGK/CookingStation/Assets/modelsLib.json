@@ -211,6 +211,10 @@
     {
       "name": "miod",
       "path": "CookingStation/Assets/models/skladniki/miod/jar1.gltf"
+    },
+    {
+      "name": "event",
+      "path": "CookingStation/Assets/models/wystroj/event.gltf"
     }
 
 
