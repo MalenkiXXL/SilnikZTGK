@@ -11,16 +11,16 @@
 #include <cstdio>
 #include <fstream>
 
-namespace { // Pocz¹tek anonimowej przestrzeni nazw
+namespace { 
     enum class Anchor { TopLeft, TopRight, BottomLeft, BottomRight, Center };
 
     glm::vec2 GetAnchoredPosition(Anchor anchor, float offsetX, float offsetY, float width, float height, float screenWidth, float screenHeight) {
         switch (anchor) {
-            case Anchor::TopLeft:     return { offsetX, offsetY };
-            case Anchor::TopRight:    return { screenWidth - width - offsetX, offsetY };
-            case Anchor::BottomLeft:  return { offsetX, screenHeight - height - offsetY };
-            case Anchor::BottomRight: return { screenWidth - width - offsetX, screenHeight - height - offsetY };
-            case Anchor::Center:      return { (screenWidth - width) / 2.0f + offsetX, (screenHeight - height) / 2.0f + offsetY };
+        case Anchor::TopLeft:     return { offsetX, offsetY };
+        case Anchor::TopRight:    return { screenWidth - width - offsetX, offsetY };
+        case Anchor::BottomLeft:  return { offsetX, screenHeight - height - offsetY };
+        case Anchor::BottomRight: return { screenWidth - width - offsetX, screenHeight - height - offsetY };
+        case Anchor::Center:      return { (screenWidth - width) / 2.0f + offsetX, (screenHeight - height) / 2.0f + offsetY };
         }
         return { offsetX, offsetY };
     }
@@ -45,7 +45,7 @@ void EditorGuiLayer::OnAttach() {
 }
 
 void EditorGuiLayer::OnUpdate(Timestep ts) {
-
+    Gui::BeginFrame(); // Reset flagi przechwytywania myszy
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
 
     if (!activeScene) {
@@ -76,8 +76,8 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- G£ÓWNY PASEK ZADAÑ (TOP-LEFT ANCHOR IMPLICITLY) ---
-    Renderer2D::DrawQuad({ 0.0f, 0.0f }, { m_ViewportWidth, 30.0f }, { 0.15f, 0.15f, 0.15f, 1.0f });
+    // --- G£ÓWNY PASEK ZADAÑ ---
+    Gui::Panel({ 0.0f, 0.0f }, { m_ViewportWidth, 30.0f }, { 0.15f, 0.15f, 0.15f, 1.0f });
 
     if (Gui::Button("Plik", { 10.0f, 5.0f }, { 80.0f, 20.0f })) {
         m_ShowFileMenu = !m_ShowFileMenu;
@@ -111,7 +111,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
     }
 
     if (m_ShowFileMenu) {
-        Renderer2D::DrawQuad({ 10.0f, 30.0f }, { 150.0f, 90.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
+        Gui::Panel({ 10.0f, 30.0f }, { 150.0f, 90.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
         if (Gui::Button("Zapisz", { 15.0f, 35.0f }, { 140.0f, 25.0f })) {
             m_ShowSaveDialog = true;
             m_ShowFileMenu = false;
@@ -122,51 +122,25 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    if (m_ShowViewMenu) {
-        Renderer2D::DrawQuad({ 100.0f, 30.0f }, { 160.0f, 190.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
-        if (Gui::Button("Panel Otoczenia", { 105.0f, 35.0f }, { 150.0f, 25.0f }, m_ShowEnvironmentPanel)) {
-            m_ShowEnvironmentPanel = !m_ShowEnvironmentPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Hierarchia", { 105.0f, 65.0f }, { 150.0f, 25.0f }, m_ShowHierarchyPanel)) {
-            m_ShowHierarchyPanel = !m_ShowHierarchyPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Biblioteka", { 105.0f, 95.0f }, { 150.0f, 25.0f }, m_ShowLibraryPanel)) {
-            m_ShowLibraryPanel = !m_ShowLibraryPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Inspektor", { 105.0f, 125.0f }, { 150.0f, 25.0f }, m_ShowInspectorPanel)) {
-            m_ShowInspectorPanel = !m_ShowInspectorPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Diagnostyka", { 105.0f, 155.0f }, { 150.0f, 25.0f }, m_ShowDiagnosticPanel)) {
-            m_ShowDiagnosticPanel = !m_ShowDiagnosticPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Questy", { 105.0f, 185.0f }, { 150.0f, 25.0f }, m_ShowQuestsPanel)) {
-            m_ShowQuestsPanel = !m_ShowQuestsPanel; m_ShowViewMenu = false;
-        }
-    }
-
     // --- PANEL GENERATORA QUESTÓW AI (TYLKO W EDYTORZE) ---
     if (m_ShowQuestsPanel) {
         glm::vec2 questPanelPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 400.0f, 180.0f, 85.0f, m_ViewportWidth, m_ViewportHeight);
 
-        // T³o panelu (zaokr¹glone)
-        Renderer2D::DrawQuad(questPanelPos, { 180.0f, 85.0f }, { 0.15f, 0.15f, 0.15f, 0.9f }, 15.0f);
+        // U¿ywamy Gui::Panel (z blokowaniem klikniêæ)
+        Gui::Panel(questPanelPos, { 180.0f, 85.0f }, { 0.15f, 0.15f, 0.15f, 0.9f }, 15.0f);
         Gui::DrawGuiText("Generator Questow:", { questPanelPos.x + 5.f, questPanelPos.y + 10.f }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
 
-        // Przycisk: Generuj (Stary Cache)
         if (Gui::Button("Generuj (Stary Cache)", { questPanelPos.x + 5.f, questPanelPos.y + 30.f }, { 170.f, 20.f })) {
             spdlog::info("Generowanie z istniejacego cache...");
             system("python CookingStation/Tools/QuestGenerator/main.py");
-
-            GameGuiLayer::s_NeedsQuestReload = true; // <--- POWIADAMIAMY WARSTWÊ GRY!
+            GameGuiLayer::s_NeedsQuestReload = true;
         }
 
-        // Przycisk: Generuj (Nowe Newsy)
         if (Gui::Button("Generuj (Nowe Newsy)", { questPanelPos.x + 5.f, questPanelPos.y + 55.f }, { 170.f, 20.f })) {
             spdlog::info("Czyszczenie cache i pobieranie nowych newsow...");
             std::remove("CookingStation/Assets/news_cache.json");
             system("python CookingStation/Tools/QuestGenerator/main.py");
-
-            GameGuiLayer::s_NeedsQuestReload = true; // <--- POWIADAMIAMY WARSTWÊ GRY!
+            GameGuiLayer::s_NeedsQuestReload = true;
         }
     }
 
@@ -195,7 +169,8 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
 
         glm::vec2 panelSize(280.0f, 250.0f);
         glm::vec2 panelPos = GetAnchoredPosition(Anchor::BottomRight, 10.0f, 10.0f, panelSize.x, panelSize.y, m_ViewportWidth, m_ViewportHeight);
-        Renderer2D::DrawQuad(panelPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.85f });
+
+        Gui::Panel(panelPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.85f });
 
         float textX = panelPos.x + 15.0f; float textY = panelPos.y + 5.0f; float lineOffset = 25.0f; float scale = 0.6f;
         glm::vec4 textColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -218,7 +193,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         glm::vec2 envSize = { 180.f, 300.f };
         glm::vec2 envPos = GetAnchoredPosition(Anchor::BottomLeft, 10.f, 10.f, envSize.x, envSize.y, m_ViewportWidth, m_ViewportHeight);
 
-        Renderer2D::DrawQuad(envPos, envSize, { 0.15f, 0.15f, 0.15f, 0.9f });
+        Gui::Panel(envPos, envSize, { 0.15f, 0.15f, 0.15f, 0.9f });
         Gui::DrawGuiText("Kolor tla:", { envPos.x + 5.f, envPos.y + 15.f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
         auto* colorStorage = world.GetComponentVector<ClearColorComponent>();
@@ -246,23 +221,18 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             glm::vec2 panelSize = { 180.0f, 300.0f };
             glm::vec2 startPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 80.0f, panelSize.x, panelSize.y, m_ViewportWidth, m_ViewportHeight);
 
-            // Rysujemy t³o panelu (nie chcemy uci¹æ t³a, wiêc robimy to PRZED no¿yczkami)
-            Renderer2D::DrawQuad(startPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.8f });
+            Gui::Panel(startPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.8f });
             Gui::DrawGuiText("Hierarchia sceny:", { startPos.x + 5.0f, startPos.y + 15.0f }, 0.5f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-            // --- MAGIA SCISSOR TEST ---
-            Renderer2D::EndScene(); // Wypychamy paczkê renderingu na ekran
-            glEnable(GL_SCISSOR_TEST); // W³¹czamy sprzêtowe no¿yce GPU
+            Renderer2D::EndScene();
+            glEnable(GL_SCISSOR_TEST);
 
-            // OpenGL liczy oœ Y od DO£U EKRANU (odwrotnie ni¿ GUI)! Musimy to przeliczyæ.
             int scissorY = (int)(m_ViewportHeight - (startPos.y + panelSize.y));
             glScissor((int)startPos.x, scissorY, (int)panelSize.x, (int)panelSize.y);
 
-            Renderer2D::BeginScene(uiProj); // Zaczynamy now¹ paczkê
-            // ---------------------------
+            Renderer2D::BeginScene(uiProj);
 
             for (size_t i = 0; i < tagStorage->dense.size(); i++) {
-         
                 glm::vec2 currentItemPos = { startPos.x, startPos.y + 35.0f + (i * 30.0f) - m_HierarchyScrollY };
 
                 auto& tagComp = tagStorage->dense[i];
@@ -273,10 +243,9 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 }
             }
 
-            // --- ZAKOÑCZENIE SCISSOR TEST ---
-            Renderer2D::EndScene(); // Wypychamy przewijane przyciski na ekran
-            glDisable(GL_SCISSOR_TEST); // Wy³¹czamy no¿yce
-            Renderer2D::BeginScene(uiProj); // Wracamy do normalnego trybu!
+            Renderer2D::EndScene();
+            glDisable(GL_SCISSOR_TEST);
+            Renderer2D::BeginScene(uiProj);
         }
     }
 
@@ -285,20 +254,16 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         glm::vec2 libSize = { m_ViewportWidth - 500.0f, 200.0f };
         glm::vec2 libPos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, libSize.x, libSize.y, m_ViewportWidth, m_ViewportHeight);
 
-        // T³o panelu
-        Renderer2D::DrawQuad(libPos, libSize, { 0.14f, 0.14f, 0.14f, 0.95f });
+        Gui::Panel(libPos, libSize, { 0.14f, 0.14f, 0.14f, 0.95f });
         Gui::DrawGuiText("Zasoby:", { libPos.x + 10.0f, libPos.y + 15.0f }, 0.45f, { 1, 1, 1, 1 });
 
-        // --- W£¥CZENIE NO¯YC ---
         Renderer2D::EndScene();
         glEnable(GL_SCISSOR_TEST);
         int scissorY = (int)(m_ViewportHeight - (libPos.y + libSize.y));
         glScissor((int)libPos.x, scissorY, (int)libSize.x, (int)libSize.y);
         Renderer2D::BeginScene(uiProj);
-        // -----------------------
 
         float xOffset = libPos.x + 10.0f;
-        // STARTOWE PRZESUNIÊCIE: Odejmujemy m_LibraryScrollY
         float yOffset = libPos.y + 40.0f - m_LibraryScrollY;
 
         for (const auto& entry : AssetManager::GetLibrary()) {
@@ -308,14 +273,12 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             }
             xOffset += 130.0f;
 
-            // Zawijanie do nowej linii
             if (xOffset + 120.0f > libPos.x + libSize.x) {
                 xOffset = libPos.x + 10.0f;
-                yOffset += 40.0f; // Nastêpny wiersz idzie ni¿ej (razem ze scrollem)
+                yOffset += 40.0f;
             }
         }
 
-        // --- WY£¥CZENIE NO¯YC ---
         Renderer2D::EndScene();
         glDisable(GL_SCISSOR_TEST);
         Renderer2D::BeginScene(uiProj);
@@ -368,7 +331,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         glm::vec2 dialogSize = { 350.0f, 150.0f };
         glm::vec2 dialogPos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, dialogSize.x, dialogSize.y, m_ViewportWidth, m_ViewportHeight);
 
-        Renderer2D::DrawQuad(dialogPos, dialogSize, { 0.2f, 0.2f, 0.25f, 1.0f });
+        Gui::Panel(dialogPos, dialogSize, { 0.2f, 0.2f, 0.25f, 1.0f });
         Gui::DrawGuiText("Zapisz scene jako:", { dialogPos.x + 10.0f, dialogPos.y + 10.0f }, 0.5f, { 1.0f, 1.0f, 1.0f, 1.0f });
         Gui::InputGuiText("Nazwa", m_SaveFileName, { dialogPos.x + 10.0f, dialogPos.y + 50.0f }, { 330.0f, 30.0f });
 
@@ -386,7 +349,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         glm::vec2 dialogSize = { 350.0f, 150.0f };
         glm::vec2 dialogPos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, dialogSize.x, dialogSize.y, m_ViewportWidth, m_ViewportHeight);
 
-        Renderer2D::DrawQuad(dialogPos, dialogSize, { 0.25f, 0.2f, 0.2f, 1.0f });
+        Gui::Panel(dialogPos, dialogSize, { 0.25f, 0.2f, 0.2f, 1.0f });
         Gui::DrawGuiText("Wczytaj scene:", { dialogPos.x + 10.0f, dialogPos.y + 10.0f }, 0.5f, { 1.0f, 1.0f, 1.0f, 1.0f });
         Gui::InputGuiText("Nazwa", m_LoadFileName, { dialogPos.x + 10.0f, dialogPos.y + 50.0f }, { 330.0f, 30.0f });
 
@@ -399,6 +362,29 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             m_ShowLoadDialog = false;
         }
         if (Gui::Button("Anuluj", { dialogPos.x + 180.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) m_ShowLoadDialog = false;
+    }
+
+    // --- MENU WIDOK ---
+    if (m_ShowViewMenu) {
+        Gui::Panel({ 100.0f, 30.0f }, { 160.0f, 190.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
+        if (Gui::Button("Panel Otoczenia", { 105.0f, 35.0f }, { 150.0f, 25.0f }, m_ShowEnvironmentPanel)) {
+            m_ShowEnvironmentPanel = !m_ShowEnvironmentPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Hierarchia", { 105.0f, 65.0f }, { 150.0f, 25.0f }, m_ShowHierarchyPanel)) {
+            m_ShowHierarchyPanel = !m_ShowHierarchyPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Biblioteka", { 105.0f, 95.0f }, { 150.0f, 25.0f }, m_ShowLibraryPanel)) {
+            m_ShowLibraryPanel = !m_ShowLibraryPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Inspektor", { 105.0f, 125.0f }, { 150.0f, 25.0f }, m_ShowInspectorPanel)) {
+            m_ShowInspectorPanel = !m_ShowInspectorPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Diagnostyka", { 105.0f, 155.0f }, { 150.0f, 25.0f }, m_ShowDiagnosticPanel)) {
+            m_ShowDiagnosticPanel = !m_ShowDiagnosticPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Questy", { 105.0f, 185.0f }, { 150.0f, 25.0f }, m_ShowQuestsPanel)) {
+            m_ShowQuestsPanel = !m_ShowQuestsPanel; m_ShowViewMenu = false;
+        }
     }
 
     Renderer2D::EndScene();
@@ -415,35 +401,24 @@ void EditorGuiLayer::OnEvent(Event& e) {
 }
 
 bool EditorGuiLayer::OnMouseScrolled(MouseScrolledEvent& e) {
-    auto mousePos = Input::GetMousePosition();
-    float mouseX = mousePos.first;
-    float mouseY = mousePos.second;
-
-    auto IsInside = [&](float x, float y, float w, float h) {
-        return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
-        };
-
-    // Szybkoœæ przewijania (im wiêksza wartoœæ, tym mocniejszy scroll)
     float scrollAmount = e.GetYOffset() * 30.0f;
 
-    // 1. Sprawdzamy czy mysz jest nad Bibliotek¹
+    // Podmiana manualnego liczenia na gotowe rozwi¹zanie z GUI:
     if (m_ShowLibraryPanel) {
         glm::vec2 size(m_ViewportWidth - 500.0f, 200.0f);
         glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
 
-        if (IsInside(pos.x, pos.y, size.x, size.y)) {
+        if (Gui::IsMouseOver(pos, size)) {
             m_LibraryScrollY -= scrollAmount;
-            if (m_LibraryScrollY < 0.0f) m_LibraryScrollY = 0.0f; // Blokada przewijania "do góry"
-            return true; // Po¿eramy event! Gra nie oddali kamery.
+            if (m_LibraryScrollY < 0.0f) m_LibraryScrollY = 0.0f;
+            return true;
         }
     }
 
-    // 2. Sprawdzamy czy mysz jest nad Hierarchi¹
     if (m_ShowHierarchyPanel) {
         glm::vec2 pos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 80.0f, 180.0f, 250.0f, m_ViewportWidth, m_ViewportHeight);
 
-        // Dajemy nieco wiêkszy hit-box w dó³
-        if (IsInside(pos.x, pos.y, 180.0f, 300.0f)) {
+        if (Gui::IsMouseOver(pos, { 180.0f, 300.0f })) {
             m_HierarchyScrollY -= scrollAmount;
             if (m_HierarchyScrollY < 0.0f) m_HierarchyScrollY = 0.0f;
             return true;
@@ -454,60 +429,12 @@ bool EditorGuiLayer::OnMouseScrolled(MouseScrolledEvent& e) {
 }
 
 bool EditorGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
-    auto mousePos = Input::GetMousePosition();
-    float mouseX = mousePos.first;
-    float mouseY = mousePos.second;
-
-    auto IsInside = [&](float x, float y, float w, float h) {
-        return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
-        };
-
-    // 1. Górny pasek
-    if (IsInside(0.0f, 0.0f, m_ViewportWidth, 30.0f)) return true;
-    if (m_ShowFileMenu && IsInside(10.0f, 30.0f, 150.0f, 90.0f)) return true;
-    if (m_ShowViewMenu && IsInside(100.0f, 30.0f, 160.0f, 160.0f)) return true;
-
-
-    // 3. Panele
-    if (m_ShowDiagnosticPanel) {
-        glm::vec2 size(280.0f, 250.0f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::BottomRight, 10.0f, 10.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
+    if (Gui::WantCaptureMouse()) {
+        return true;
     }
 
-    if (m_ShowEnvironmentPanel) {
-        glm::vec2 size(180.f, 300.f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 10.f, 10.f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
-    }
-
-    if (m_ShowLibraryPanel) {
-        glm::vec2 size(m_ViewportWidth - 500.0f, 200.0f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
-    }
-
-    if (m_ShowHierarchyPanel) {
-        glm::vec2 pos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 80.0f, 180.0f, 250.0f, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, 180.0f, 300.0f)) return true; // Przybli¿ona strefa klikniêæ dla listy
-    }
-
-    if (m_ShowInspectorPanel) {
-        glm::vec2 size(300.0f, 400.0f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::TopRight, 10.0f, 70.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
-    }
-
-    // 4. Dialogi
-    if (m_ShowSaveDialog || m_ShowLoadDialog) {
-        glm::vec2 size(350.0f, 150.0f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
-    }
-
-    return false;
+    return false; // Kliknêliœmy w pustkê, edytor mo¿e dzia³aæ.
 }
-
 
 bool EditorGuiLayer::OnWindowResize(WindowResizeEvent& e) {
     m_ViewportWidth = (float)e.GetWidth();

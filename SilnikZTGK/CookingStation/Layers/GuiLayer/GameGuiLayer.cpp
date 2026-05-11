@@ -38,6 +38,7 @@ void GameGuiLayer::OnAttach() {
 }
 
 void GameGuiLayer::OnUpdate(Timestep ts) {
+    Gui::BeginFrame();
     Gui::UpdateDeltaTime(ts.GetSeconds());
 
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();

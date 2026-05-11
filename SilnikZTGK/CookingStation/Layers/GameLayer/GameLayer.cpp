@@ -8,7 +8,6 @@ void GameLayer::OnAttach()
     // Jeœli to standalone, ³adujemy z pliku.
     m_ActiveScene = std::make_shared<Scene>();
 
-
     // Wywo³ujemy Start na scenie, OnCreate()
     m_ActiveScene->OnRuntimeStart();
 }

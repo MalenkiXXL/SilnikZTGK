@@ -212,3 +212,47 @@ bool RendererLayer::OnWindowResize(WindowResizeEvent& e) {
     glViewport(0, 0, e.GetWidth(), e.GetHeight());
     return false;
 }
+
+
+
+// jakbyœmy kiedyœ potrzebowali znowu zmieniaæ shadery dla poszczególnych obiektów to tutaj poradnik
+
+//if (meshStorage && transformStorage && tagStorage) { // Dodaj tagStorage do warunku
+//    for (size_t i = 0; i < meshStorage->dense.size(); i++) {
+//        auto& meshComp = meshStorage->dense[i];
+//        Entity owner = meshStorage->reverse[i];
+//        TransformComponent* transform = transformStorage->Get(owner);
+//        TagComponent* tagComp = tagStorage->Get(owner); // Pobieramy tag obiektu
+//
+//        if (transform && meshComp.ModelPtr) {
+//            // 1. ZAPAMIÊTUJEMY DOMYŒLNY SHADER
+//            // (ten wybrany przez Ciebie w panelu bocznym edytora)
+//            auto shaderToUse = m_ActiveShader;
+//
+//            // 2. LOGIKA PODMIANY TYLKO DLA BABÆ (NA POTRZEBY ZDJÊCIA)
+//            if (tagComp) {
+//                if (tagComp->Tag == "Babcia_Blinn")      shaderToUse = m_ShaderLibrary.Get("BlinnPhong");
+//                else if (tagComp->Tag == "Babcia_BRDF")  shaderToUse = m_ShaderLibrary.Get("FakeBRDF");
+//                else if (tagComp->Tag == "Babcia_RAMP")  shaderToUse = m_ShaderLibrary.Get("RAMP");
+//                else if (tagComp->Tag == "Babcia_Rim")   shaderToUse = m_ShaderLibrary.Get("Rim");
+//
+//
+//                if (shaderToUse != m_ActiveShader) {
+//                    shaderToUse->use();
+//                    // Przekazujemy parametry œwiat³a do nowego shadera
+//                    shaderToUse->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+//                    shaderToUse->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
+//                    shaderToUse->setVec3("viewPos", activeScene->GetCamera()->Position);
+//
+//                    if (tagComp->Tag == "Babcia_RAMP") m_RampTexture->Bind(10);
+//                }
+//            }
+//
+//            // 3. RYSOWANIE
+//            Renderer::Submit(shaderToUse, meshComp.ModelPtr, transform->WorldMatrix);
+//
+//            // 4. PRZYWRÓCENIE G£ÓWNEGO SHADERA (dla kolejnych obiektów w pêtli)
+//            m_ActiveShader->use();
+//        }
+//    }
+//}

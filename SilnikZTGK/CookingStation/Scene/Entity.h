@@ -39,6 +39,7 @@ struct MeshComponent {
     std::shared_ptr<Model> ModelPtr = nullptr;
     std::shared_ptr<Shader> ShaderPtr = nullptr; 
     std::string Path = "";
+    std::string ShaderName = "ModelShader";
 
     // Konstruktor domyœlny
     MeshComponent() = default;
@@ -67,4 +68,12 @@ struct ConveyorComponent
 {
     glm::vec3 Direction = { 1.0f, 0.0f, 0.0f };
     float Speed = 2.0f;
+};
+
+struct ShaderComponent {
+    std::shared_ptr<Shader> shader;
+
+    ShaderComponent() = default;
+    ShaderComponent(const ShaderComponent&) = default;
+    ShaderComponent(std::shared_ptr<Shader> s) : shader(s) {}
 };

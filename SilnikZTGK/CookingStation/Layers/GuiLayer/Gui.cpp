@@ -14,6 +14,7 @@ static float s_DragFloatStartValue = 0.0f;
 static bool s_IsDraggingFloat = false;
 static bool s_IsInTextMode = false;
 float Gui::s_DeltaTime = 0.0f;
+bool Gui::s_WantCaptureMouse = false;
 
 // laduje czcionke i inicjalizuje atlas dla gui
 void Gui::Init(const std::string& fontPath, float fontSize) {
@@ -133,6 +134,7 @@ bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::
 	if (Input::IsMouseButtonPressed(0)) {
 		if (hovered) {
 			s_ActiveWidgetID = widgetID;
+			s_WantCaptureMouse = true;
 		}
 		else {
 			if (s_ActiveWidgetID == widgetID) {
@@ -185,6 +187,7 @@ bool Gui::Button(const std::string& label, const glm::vec2& pos, const glm::vec2
 	// Reakcja na najechanie myszk¹ - te¿ rozró¿niamy w³¹czony vs wy³¹czony
 	if (hovered) {
 		color = isActive ? glm::vec4(0.6f, 0.6f, 0.7f, 1.0f) : glm::vec4(0.4f, 0.4f, 0.4f, 1.0f);
+		s_WantCaptureMouse = true;
 	}
 
 	// Reakcja na fizyczne wciœniêcie 
@@ -214,6 +217,9 @@ void Gui::OnCharTyped(int charcode) {
 bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, const glm::vec2& pos, const glm::vec2& size) {
 	std::string widgetID = label + std::to_string(pos.x) + std::to_string(pos.y);
 	bool hovered = IsMouseOver(pos, size);
+	if (hovered) {
+		s_WantCaptureMouse = true;
+	}
 	bool changed = false;
 	glm::vec2 mousePos = GetMappedMousePos();
 
@@ -313,4 +319,19 @@ bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, con
 	DrawGuiText(label + ": " + displayStr, { pos.x + 5.0f, pos.y + 5.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
 	return changed;
+}
+
+void Gui::BeginFrame() {
+	// Resetujemy flagê na pocz¹tku ka¿dej klatki
+	s_WantCaptureMouse = false;
+}
+
+void Gui::Panel(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, float radius) {
+	// Je¿eli myszka jest nad panelem, GUI "po³yka" klikniêcie
+	if (IsMouseOver(pos, size)) {
+		s_WantCaptureMouse = true;
+	}
+	// Rysujemy fizyczne t³o
+	if (radius > 0.0f) Renderer2D::DrawQuad(pos, size, color, radius);
+	else Renderer2D::DrawQuad(pos, size, color);
 }

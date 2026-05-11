@@ -19,6 +19,9 @@ public:
     static bool AnyItemActive() { return !s_ActiveWidgetID.empty(); }
     static void EndFrame() { s_CharacterBuffer.clear(); }
     static bool DragFloat(const std::string& label, float* value, float dragSpeed, const glm::vec2& pos, const glm::vec2& size);
+    static void BeginFrame();
+    static bool WantCaptureMouse() { return s_WantCaptureMouse; }
+    static void Panel(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, float radius = 0.0f);
 
 private:
     static std::shared_ptr<Font> s_Font;
@@ -27,4 +30,5 @@ private:
     static std::string s_CharacterBuffer;
     static std::string s_ActiveWidgetID;
     static float s_DeltaTime;
+    static bool s_WantCaptureMouse;
 };
