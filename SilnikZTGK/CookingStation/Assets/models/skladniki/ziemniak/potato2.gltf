@@ -55,9 +55,9 @@
 	],
 	"images":[
 		{
-			"mimeType":"image/png",
-			"name":"palette.png",
-			"uri":"palette.png.png"
+			"mimeType": "image/png",
+			"name": "palette.png",
+			"uri": "../../../textures/palette.png"
 		}
 	],
 	"accessors":[
