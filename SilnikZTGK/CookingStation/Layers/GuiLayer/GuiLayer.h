@@ -45,6 +45,10 @@ private:
     std::string m_PendingModelPath = "";
     std::string m_PendingModelName = "";
 
+
+    float m_HierarchyScrollY = 0.0f;
+    float m_LibraryScrollY = 0.0f;
+    bool OnMouseScrolled(MouseScrolledEvent& e);
     bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
     bool m_IsPlacing = false;
     bool m_ShowFileMenu = false;

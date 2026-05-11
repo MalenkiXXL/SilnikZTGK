@@ -231,11 +231,28 @@ void GuiLayer::OnUpdate(Timestep ts) {
     if (m_ShowHierarchyPanel) {
         auto* tagStorage = world.GetComponentVector<TagComponent>();
         if (tagStorage) {
-            glm::vec2 startPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 80.0f, 180.0f, 25.0f, m_ViewportWidth, m_ViewportHeight);
-            Gui::DrawGuiText("Hierarchia sceny:", { startPos.x, startPos.y - 25.0f }, 0.5f, { 1.0f, 1.0f, 1.0f, 1.0f });
+            glm::vec2 panelSize = { 180.0f, 300.0f };
+            glm::vec2 startPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 80.0f, panelSize.x, panelSize.y, m_ViewportWidth, m_ViewportHeight);
+
+            // Rysujemy t³o panelu (nie chcemy uci¹æ t³a, wiêc robimy to PRZED no¿yczkami)
+            Renderer2D::DrawQuad(startPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.8f });
+            Gui::DrawGuiText("Hierarchia sceny:", { startPos.x + 5.0f, startPos.y + 15.0f }, 0.5f, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+            // --- MAGIA SCISSOR TEST ---
+            Renderer2D::EndScene(); // Wypychamy paczkê renderingu na ekran
+            glEnable(GL_SCISSOR_TEST); // W³¹czamy sprzêtowe no¿yce GPU
+
+            // OpenGL liczy oœ Y od DO£U EKRANU (odwrotnie ni¿ GUI)! Musimy to przeliczyæ.
+            int scissorY = (int)(m_ViewportHeight - (startPos.y + panelSize.y));
+            glScissor((int)startPos.x, scissorY, (int)panelSize.x, (int)panelSize.y);
+
+            Renderer2D::BeginScene(uiProj); // Zaczynamy now¹ paczkê
+            // ---------------------------
 
             for (size_t i = 0; i < tagStorage->dense.size(); i++) {
-                glm::vec2 currentItemPos = { startPos.x, startPos.y + (i * 30.0f) };
+         
+                glm::vec2 currentItemPos = { startPos.x, startPos.y + 35.0f + (i * 30.0f) - m_HierarchyScrollY };
+
                 auto& tagComp = tagStorage->dense[i];
                 Entity owner = tagStorage->reverse[i];
 
@@ -243,19 +260,34 @@ void GuiLayer::OnUpdate(Timestep ts) {
                     activeScene->SetSelectedEntity(owner);
                 }
             }
+
+            // --- ZAKOÑCZENIE SCISSOR TEST ---
+            Renderer2D::EndScene(); // Wypychamy przewijane przyciski na ekran
+            glDisable(GL_SCISSOR_TEST); // Wy³¹czamy no¿yce
+            Renderer2D::BeginScene(uiProj); // Wracamy do normalnego trybu!
         }
     }
 
-    // --- BIBLIOTEKA MODELI (ANCHOR: BOTTOM LEFT) ---
+    // --- BIBLIOTEKA MODELI ---
     if (m_ShowLibraryPanel) {
         glm::vec2 libSize = { m_ViewportWidth - 500.0f, 200.0f };
         glm::vec2 libPos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, libSize.x, libSize.y, m_ViewportWidth, m_ViewportHeight);
 
+        // T³o panelu
         Renderer2D::DrawQuad(libPos, libSize, { 0.14f, 0.14f, 0.14f, 0.95f });
         Gui::DrawGuiText("Zasoby:", { libPos.x + 10.0f, libPos.y + 15.0f }, 0.45f, { 1, 1, 1, 1 });
 
+        // --- W£¥CZENIE NO¯YC ---
+        Renderer2D::EndScene();
+        glEnable(GL_SCISSOR_TEST);
+        int scissorY = (int)(m_ViewportHeight - (libPos.y + libSize.y));
+        glScissor((int)libPos.x, scissorY, (int)libSize.x, (int)libSize.y);
+        Renderer2D::BeginScene(uiProj);
+        // -----------------------
+
         float xOffset = libPos.x + 10.0f;
-        float yOffset = libPos.y + 50.0f;
+        // STARTOWE PRZESUNIÊCIE: Odejmujemy m_LibraryScrollY
+        float yOffset = libPos.y + 40.0f - m_LibraryScrollY;
 
         for (const auto& entry : AssetManager::GetLibrary()) {
             if (Gui::Button(entry.Name, { xOffset, yOffset }, { 120, 30 })) {
@@ -263,10 +295,18 @@ void GuiLayer::OnUpdate(Timestep ts) {
                 request.Name = entry.Name; request.Path = entry.Path; request.Active = true;
             }
             xOffset += 130.0f;
+
+            // Zawijanie do nowej linii
             if (xOffset + 120.0f > libPos.x + libSize.x) {
-                xOffset = libPos.x + 10.0f; yOffset += 40.0f;
+                xOffset = libPos.x + 10.0f;
+                yOffset += 40.0f; // Nastêpny wiersz idzie ni¿ej (razem ze scrollem)
             }
         }
+
+        // --- WY£¥CZENIE NO¯YC ---
+        Renderer2D::EndScene();
+        glDisable(GL_SCISSOR_TEST);
+        Renderer2D::BeginScene(uiProj);
     }
 
     // --- INSPEKTOR ENCJI (ANCHOR: TOP RIGHT) ---
@@ -395,6 +435,46 @@ void GuiLayer::OnEvent(Event& e) {
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) { return OnWindowResize(ev); });
     dispatcher.Dispatch<KeyTypedEvent>([](KeyTypedEvent& ev) { Gui::OnCharTyped(ev.GetKeyCode()); return false; });
     dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& ev) { return OnMouseButtonPressed(ev); });
+    dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& ev) { return OnMouseScrolled(ev); });
+}
+
+bool GuiLayer::OnMouseScrolled(MouseScrolledEvent& e) {
+    auto mousePos = Input::GetMousePosition();
+    float mouseX = mousePos.first;
+    float mouseY = mousePos.second;
+
+    auto IsInside = [&](float x, float y, float w, float h) {
+        return mouseX >= x && mouseX <= x + w && mouseY >= y && mouseY <= y + h;
+        };
+
+    // Szybkoœæ przewijania (im wiêksza wartoœæ, tym mocniejszy scroll)
+    float scrollAmount = e.GetYOffset() * 30.0f;
+
+    // 1. Sprawdzamy czy mysz jest nad Bibliotek¹
+    if (m_ShowLibraryPanel) {
+        glm::vec2 size(m_ViewportWidth - 500.0f, 200.0f);
+        glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
+
+        if (IsInside(pos.x, pos.y, size.x, size.y)) {
+            m_LibraryScrollY -= scrollAmount;
+            if (m_LibraryScrollY < 0.0f) m_LibraryScrollY = 0.0f; // Blokada przewijania "do góry"
+            return true; // Po¿eramy event! Gra nie oddali kamery.
+        }
+    }
+
+    // 2. Sprawdzamy czy mysz jest nad Hierarchi¹
+    if (m_ShowHierarchyPanel) {
+        glm::vec2 pos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 80.0f, 180.0f, 250.0f, m_ViewportWidth, m_ViewportHeight);
+
+        // Dajemy nieco wiêkszy hit-box w dó³
+        if (IsInside(pos.x, pos.y, 180.0f, 300.0f)) {
+            m_HierarchyScrollY -= scrollAmount;
+            if (m_HierarchyScrollY < 0.0f) m_HierarchyScrollY = 0.0f;
+            return true;
+        }
+    }
+
+    return false;
 }
 
 bool GuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
@@ -462,6 +542,7 @@ bool GuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
 
     return false;
 }
+
 
 bool GuiLayer::OnWindowResize(WindowResizeEvent& e) {
     m_ViewportWidth = (float)e.GetWidth();
