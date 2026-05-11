@@ -164,7 +164,7 @@
     <ClCompile Include="CookingStation\Renderer\Renderer.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Gui.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Renderer2D.cpp" />
-    <ClCompile Include="CookingStation\Layers\GuiLayer\GuiLayer.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\EditorUiLayer.cpp" />
     <ClCompile Include="CookingStation\Renderer\Texture.cpp" />
     <ClCompile Include="CookingStation\Renderer\ShaderLibrary.cpp" />
     <ClCompile Include="CookingStation\Layers\RenderLayer\RendererLayer.cpp" />
