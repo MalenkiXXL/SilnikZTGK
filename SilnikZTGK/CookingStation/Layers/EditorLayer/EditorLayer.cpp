@@ -445,3 +445,4 @@ void EditorLayer::OnSceneStop() {
     SceneManager::SetActiveScene(m_EditorScene);
     m_RuntimeScene = nullptr;
 }
+

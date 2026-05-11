@@ -5,7 +5,7 @@
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Events/WindowEvent.h"
 #include "CookingStation/Events/MouseEvent.h"
-#include "GuiLayer.h"
+#include "CookingStation/Layers/GuiLayer/EditorGuiLayer.h"
 #include "Gui.h"
 #include "Renderer2D.h"
 #include "CookingStation/Renderer/Framebuffer.h"
@@ -14,10 +14,10 @@
 #include <nlohmann/json.hpp>
 #include <vector>
 
-class GuiLayer : public Layer {
+class EditorGuiLayer : public Layer {
 public:
-    GuiLayer() : Layer("GuiLayer") {};
-    ~GuiLayer();
+    EditorGuiLayer() : Layer("EditorGuiLayer") {};
+    ~EditorGuiLayer();
     virtual void OnAttach() override;
     virtual void OnUpdate(Timestep ts) override;
     virtual void OnEvent(Event& e) override;
@@ -58,6 +58,7 @@ private:
     bool m_ShowLibraryPanel = true;
     bool m_ShowInspectorPanel = true;
     bool m_ShowDiagnosticPanel = false; 
+    bool m_ShowQuestsPanel = false; 
     bool m_ShowSaveDialog = false;
     bool m_ShowLoadDialog = false;
     std::string m_SaveFileName = "moja_scena";

@@ -7,6 +7,7 @@ class Gui {
 public:
     static void Init(const std::string& fontPath, float fontSize);
 
+    static void UpdateDeltaTime(float dt) { s_DeltaTime = dt; }
     static bool SliderFloat(const std::string& label, float* value, float min, float max, const glm::vec2& pos, const glm::vec2& size);
     static void DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const glm::vec4& color);
     static bool Button(const std::string& label, const glm::vec2& pos, const glm::vec2& size, bool isActive = false);
@@ -25,4 +26,5 @@ private:
     static float s_ScreenHeight;
     static std::string s_CharacterBuffer;
     static std::string s_ActiveWidgetID;
+    static float s_DeltaTime;
 };

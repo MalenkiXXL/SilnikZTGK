@@ -13,6 +13,7 @@ static float s_DragFloatStartMouseX = 0.0f;
 static float s_DragFloatStartValue = 0.0f;
 static bool s_IsDraggingFloat = false;
 static bool s_IsInTextMode = false;
+float Gui::s_DeltaTime = 0.0f;
 
 // laduje czcionke i inicjalizuje atlas dla gui
 void Gui::Init(const std::string& fontPath, float fontSize) {

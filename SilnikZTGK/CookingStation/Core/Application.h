@@ -7,7 +7,8 @@
 #include "Window.h"
 #include "CookingStation/Layers/CameraLayer/CameraLayer.h"
 #include "CookingStation/Layers/AssetLayer/AssetLayer.h"
-#include "CookingStation/Layers/GuiLayer/GuiLayer.h"
+#include "CookingStation/Layers/GuiLayer/EditorGuiLayer.h"
+#include "CookingStation/Layers/GuiLayer/GameGuiLayer.h"
 #include "CookingStation/Layers/EditorLayer/EditorLayer.h"
 #include "CookingStation/Renderer/Framebuffer.h" 
 #include <memory>

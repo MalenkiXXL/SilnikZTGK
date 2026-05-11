@@ -139,6 +139,7 @@
   <ItemGroup>
     <ClCompile Include="CookingStation\Core\Texture_GUI.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp" />
     <ClCompile Include="CookingStation\Math\Geometry.cpp" />
     <ClCompile Include="CookingStation\Renderer\Buffer.cpp" />
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetManager.cpp" />
@@ -164,7 +165,7 @@
     <ClCompile Include="CookingStation\Renderer\Renderer.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Gui.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Renderer2D.cpp" />
-    <ClCompile Include="CookingStation\Layers\GuiLayer\EditorUiLayer.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp" />
     <ClCompile Include="CookingStation\Renderer\Texture.cpp" />
     <ClCompile Include="CookingStation\Renderer\ShaderLibrary.cpp" />
     <ClCompile Include="CookingStation\Layers\RenderLayer\RendererLayer.cpp" />
@@ -181,6 +182,7 @@
     <ClInclude Include="CookingStation\Layers\EditorLayer\CommandHistory.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\CreateEntityCommand.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\MoveEntityCommand.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\GameGuiLayer.h" />
     <ClInclude Include="CookingStation\Math\Geometry.h" />
     <ClInclude Include="CookingStation\Renderer\Buffer.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h" />
@@ -207,7 +209,7 @@
     <ClInclude Include="CookingStation\Layers\GuiLayer\Gui.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\Renderer2D.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\Font.h" />
-    <ClInclude Include="CookingStation\Layers\GuiLayer\GuiLayer.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.h" />
     <ClInclude Include="CookingStation\Renderer\Texture.h" />
     <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h" />
     <ClInclude Include="CookingStation\Layers\RenderLayer\RendererLayer.h" />

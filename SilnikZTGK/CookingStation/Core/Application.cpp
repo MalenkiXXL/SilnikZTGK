@@ -36,9 +36,12 @@ Application::Application()
 	PushLayer(editorLayer);
 	auto hudLayer = new HUDLayer();
 	PushLayer(hudLayer);
-	auto guiLayer = new GuiLayer();
-	guiLayer->SetViewportFramebuffer(m_ViewportFBO);
-	PushLayer(guiLayer);
+	auto editorGuiLayer = new EditorGuiLayer();
+	editorGuiLayer->SetViewportFramebuffer(m_ViewportFBO);
+	PushLayer(editorGuiLayer);
+	auto gameGuiLayer = new GameGuiLayer();
+	gameGuiLayer->SetViewportFramebuffer(m_ViewportFBO);
+	PushLayer(gameGuiLayer);
 }
 
 Application::~Application()
