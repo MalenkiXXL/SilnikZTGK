@@ -46,17 +46,16 @@ void Renderer2D::Init() {
 void Renderer2D::BeginScene(const glm::mat4& projection) {
     s_Data->UI_Shader->use();
     s_Data->UI_Shader->setMat4("u_ViewProjection", projection);
-}
 
+}
 // Wersja 1: Tylko kolor 
-void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color) {
-    // Wywo³ujemy drug¹ funkcjê, podaj¹c nasz¹ bia³¹ teksturê i standardowe UV (0-1)
-    DrawQuad(position, size, s_Data->WhiteTexture, color, { 0.0f, 0.0f }, { 1.0f, 1.0f });
+void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const glm::vec4& color, float radius) {
+    // Przekazujemy 'radius' dalej
+    DrawQuad(position, size, s_Data->WhiteTexture, color, { 0.0f, 0.0f }, { 1.0f, 1.0f }, radius);
 }
 
-
-// Wersja 2: Pe³na (u¿ywana do tekstu, ikon, marchewek)
-void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<Texture>& texture, const glm::vec4& color, const glm::vec2& uvMin, const glm::vec2& uvMax) {
+// Wersja 2: Pe³na (u¿ywana do tekstu, ikon)
+void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<Texture>& texture, const glm::vec4& color, const glm::vec2& uvMin, const glm::vec2& uvMax, float radius) {
     texture->Bind();
 
     glm::mat4 transform = glm::translate(glm::mat4(1.0f), glm::vec3(position, 0.0f))
@@ -67,26 +66,19 @@ void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, cons
     s_Data->UI_Shader->setVec2("u_UVMin", uvMin);
     s_Data->UI_Shader->setVec2("u_UVMax", uvMax);
 
+    // DYNAMICZNE ZAOKR¥GLENIE
+    s_Data->UI_Shader->setVec2("u_QuadSize", size);
+    s_Data->UI_Shader->setFloat("u_Radius", radius); // <--- Czyta z argumentu!
+    s_Data->UI_Shader->setFloat("u_Softness", 1.5f);
+
     s_Data->QuadVAO->Bind();
-
-    glDrawElements(
-        GL_TRIANGLES,
-        s_Data->QuadVAO->GetIndexBuffer()->GetCount(),
-        GL_UNSIGNED_INT,
-        nullptr
-    );
-
-
-    // podbijamy licznik wywo³añ rysowania dla UI
+    glDrawElements(GL_TRIANGLES, s_Data->QuadVAO->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
     Renderer::GetStats().DrawCallsUI++;
-
-    // ka¿dy Quad to dok³adnie 2 trójk¹ty
     Renderer::GetStats().TriangleCountUI += 2;
 }
 
-void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, uint32_t textureID, const glm::vec4& color, const glm::vec2& uvMin, const glm::vec2& uvMax) {
-
-    // Zamiast texture->Bind() u¿ywamy bezpoœredniego podpiêcia ID z OpenGL
+// Wersja 3: ID Tekstury (u¿ywana do rysowania Viewport FBO)
+void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, uint32_t textureID, const glm::vec4& color, const glm::vec2& uvMin, const glm::vec2& uvMax, float radius) {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureID);
 
@@ -98,16 +90,13 @@ void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, uint
     s_Data->UI_Shader->setVec2("u_UVMin", uvMin);
     s_Data->UI_Shader->setVec2("u_UVMax", uvMax);
 
+    // DYNAMICZNE ZAOKR¥GLENIE
+    s_Data->UI_Shader->setVec2("u_QuadSize", size);
+    s_Data->UI_Shader->setFloat("u_Radius", radius); // <--- Czyta z argumentu!
+    s_Data->UI_Shader->setFloat("u_Softness", 1.5f);
+
     s_Data->QuadVAO->Bind();
-
-    glDrawElements(
-        GL_TRIANGLES,
-        s_Data->QuadVAO->GetIndexBuffer()->GetCount(),
-        GL_UNSIGNED_INT,
-        nullptr
-    );
-
-    // podbijamy licznik wywo³añ rysowania dla UI
+    glDrawElements(GL_TRIANGLES, s_Data->QuadVAO->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
     Renderer::GetStats().DrawCallsUI++;
     Renderer::GetStats().TriangleCountUI += 2;
 }

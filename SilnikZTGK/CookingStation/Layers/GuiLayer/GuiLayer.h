@@ -4,6 +4,7 @@
 #include "CookingStation/Scene/SceneSerializer.h"
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Events/WindowEvent.h"
+#include "CookingStation/Events/MouseEvent.h"
 #include "GuiLayer.h"
 #include "Gui.h"
 #include "Renderer2D.h"
@@ -44,6 +45,7 @@ private:
     std::string m_PendingModelPath = "";
     std::string m_PendingModelName = "";
 
+    bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
     bool m_IsPlacing = false;
     bool m_ShowFileMenu = false;
     bool m_ShowViewMenu = false;
