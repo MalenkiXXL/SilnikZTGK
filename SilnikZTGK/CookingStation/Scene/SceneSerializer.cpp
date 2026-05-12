@@ -12,6 +12,7 @@
 #include "CookingStation/Scripts/RotationScript.h"
 #include "CookingStation/Scripts/ConveyorScript.h"
 #include "CookingStation/Scripts/ItemScript.h"
+#include "CookingStation/Scripts/PotScript.h"
 
 using json = nlohmann::json;
 
@@ -102,6 +103,12 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 				else if (scriptName == "ItemScript") {
 					nsc.Bind<ItemScript>(scriptName);
 				}
+
+				else if (scriptName == "PotScript") {
+					nsc.Bind<PotScript>(scriptName);
+				}
+
+
 
 				builder.With<NativeScriptComponent>(nsc);
 			}

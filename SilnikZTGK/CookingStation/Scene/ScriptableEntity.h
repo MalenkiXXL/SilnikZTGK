@@ -21,12 +21,13 @@ public:
 	virtual void OnCollision() {}
 	virtual void OnClick() {}
 
-private:
+protected:
 	//encja do ktorej jest przypieta
 	Entity m_Entity;
 	//pointer na swiat
 	Scene* m_Scene;
 
+private:
 	//tylko scene moze ustawiac te prywatne zmienne
 	friend class Scene;
 };

@@ -96,7 +96,8 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
         m_ActiveShader->use();
         m_ActiveShader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-        m_ActiveShader->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
+        m_ActiveShader->setVec3("sunDir", glm::vec3(-0.321f, -0.766f, -0.557f));
+
         m_ActiveShader->setVec3("viewPos", activeScene->GetCamera()->Position);
 
         // Bindujemy LUT jeœli aktywny jest RAMP

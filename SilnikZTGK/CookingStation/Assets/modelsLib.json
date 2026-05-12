@@ -65,10 +65,6 @@
       "path": "CookingStation/Assets/models/proteza/proteza.gltf"
     },
     {
-      "name": "big_pot",
-      "path": "CookingStation/Assets/models/przybory_kuchenne/big_pot/bigger_pot.gltf"
-    },
-    {
       "name": "chleb",
       "path": "CookingStation/Assets/models/skladniki/chleb/chleb2.gltf"
     },
@@ -139,10 +135,6 @@
     {
       "name": "deska",
       "path": "CookingStation/Assets/models/przybory_kuchenne/deska/board.gltf"
-    },
-    {
-      "name": "deska+noz",
-      "path": "CookingStation/Assets/models/przybory_kuchenne/deska/cutting.gltf"
     },
     {
       "name": "paczka",
@@ -216,7 +208,5 @@
       "name": "event",
       "path": "CookingStation/Assets/models/wystroj/event.gltf"
     }
-
-
   ]
 }

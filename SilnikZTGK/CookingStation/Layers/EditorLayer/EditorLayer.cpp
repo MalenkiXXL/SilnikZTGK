@@ -16,7 +16,7 @@
 #include <functional> 
 #include "CookingStation/Core/GridSystem.h"
 #include <CookingStation/Scripts/ConveyorScript.h>
-#include "CookingStation/Scene/PrefabSerializer.cpp"
+#include "CookingStation/Scene/PrefabSerializer.h"
 
 float GridSystem::CELL_SIZE = 2.0f;
 
