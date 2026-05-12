@@ -15,6 +15,7 @@
 #include <algorithm>
 #include <string>
 #include <limits>
+#include "CookingStation/Scripts/PotScript.h"
 
 namespace {
     enum class Anchor { TopLeft, TopRight, BottomLeft, BottomRight, Center };
@@ -417,6 +418,9 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 }
                 if (Gui::Button("ItemScript", { inspPos.x, inspPos.y + 550.0f }, { 145.0f, 25.0f })) {
                     scriptComp->Bind<ItemScript>("ItemScript");
+				}
+                if (Gui::Button("PotScript", { inspPos.x + 155.0f, inspPos.y + 550.0f }, { 145.0f, 25.0f })) {
+                    scriptComp->Bind<PotScript>("PotScript");
                 }
 
                 if (Gui::Button("USUN SKRYPT", { inspPos.x + 155.0f, inspPos.y + 550.0f }, { 145.0f, 25.0f })) {

@@ -222,6 +222,8 @@
     <ClInclude Include="CookingStation\Layers\EditorLayer\EditorLayer.h" />
     <ClInclude Include="CookingStation\Scripts\ConveyorScript.h" />
     <ClInclude Include="CookingStation\Scripts\ItemScript.h" />
+    <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
+    <ClInclude Include="CookingStation\Scripts\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\RotationScript.h" />
     <ClInclude Include="CookingStation\Scene\SceneManager.h" />
     <ClInclude Include="CookingStation\Layers\GameLayer\GameLayer.h" />
