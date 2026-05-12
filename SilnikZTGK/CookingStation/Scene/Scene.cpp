@@ -109,7 +109,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 		struct ColliderData
 		{
 			Entity ent;
-			AABB box; 
+			AABB box;
 		};
 
 		std::vector<ColliderData> activeColliders;
@@ -126,7 +126,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			}
 		}
 
-		// ZMIANA: Obliczamy Min.x "w locie" dla sortowania
+		// Obliczamy Min.x "w locie" dla sortowania
 		std::sort(activeColliders.begin(), activeColliders.end(), [](const ColliderData& a, const ColliderData& b) {
 			return (a.box.center.x - a.box.extents.x) < (b.box.center.x - b.box.extents.x);
 			});
@@ -139,7 +139,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			{
 				const auto& dataB = activeColliders[j];
 
-				// ZMIANA: Porównujemy odpowiednio wyliczone Min i Max
+				// Porównujemy odpowiednio wyliczone Min i Max
 				if ((dataB.box.center.x - dataB.box.extents.x) > (dataA.box.center.x + dataA.box.extents.x))
 				{
 					break;
@@ -163,39 +163,6 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			}
 		}
 	}
-	// ==========================================
-	// 3. RENDEROWANIE SCENY 
-	// ==========================================
-	// Przeliczamy ca³e drzewo transformacji przed renderowaniem
-
-	if (m_MainCamera)
-	{
-		float orthoSize = 10.0f * (m_MainCamera->Zoom / 45.0f);
-		glm::mat4 projection = glm::ortho(-m_MainCamera->AspectRatio * orthoSize, m_MainCamera->AspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
-		glm::mat4 viewProjection = projection * m_MainCamera->GetViewMatrix();
-
-		Renderer::BeginScene(viewProjection);
-
-		auto* meshStorage = m_ECSWorld.GetComponentVector<MeshComponent>();
-		auto* transformStorage = m_ECSWorld.GetComponentVector<TransformComponent>();
-
-		if (meshStorage && transformStorage)
-		{
-			for (size_t i = 0; i < meshStorage->dense.size(); i++)
-			{
-				Entity entity = meshStorage->reverse[i];
-				auto& meshComp = meshStorage->dense[i];
-				auto* trans = transformStorage->Get(entity);
-
-				if (trans && meshComp.ModelPtr && meshComp.ShaderPtr)
-				{
-					// Wysy³amy do karty graficznej ostateczn¹ pozycjê w œwiecie (WorldMatrix)
-					Renderer::Submit(meshComp.ShaderPtr, meshComp.ModelPtr, trans->WorldMatrix);
-				}
-			}
-		}
-		Renderer::EndScene();
-	}
 }
 
 void Scene::OnRuntimeStop()
@@ -211,8 +178,8 @@ void Scene::OnRuntimeStop()
 			if (scriptComp.Instance)
 			{
 				scriptComp.Instance->OnDestroy();
-				delete scriptComp.Instance;       // zwalniamy pamiêæ
-				scriptComp.Instance = nullptr; // zabezpieczenie przed wiszacym pointerem
+				delete scriptComp.Instance;       
+				scriptComp.Instance = nullptr; 
 			}
 		}
 	}
@@ -244,13 +211,18 @@ void UpdateTransformTree(World& world, std::size_t entityId, const glm::mat4& pa
 	auto* transform = world.GetComponentByID<TransformComponent>(entityId);
 	if (!transform) return;
 
-	// Sprawdzamy czy my siê ruszyliœmy, LUB czy rusz³ siê nasz rodzic
 	bool needsUpdate = transform->IsDirty() || parentIsDirty;
 
 	if (needsUpdate) {
-		// Liczymy pozycjê w œwiecie 
 		glm::mat4 localMatrix = transform->GetLocalMatrix();
 		transform->WorldMatrix = parentGlobalMatrix * localMatrix;
+
+		// Statystyka: Praca wykonana
+		Renderer::GetStats().MatrixCalculations++;
+	}
+	else {
+		// Statystyka: Praca zaoszczêdzona dziêki Dirty Flag
+		Renderer::GetStats().SkippedCalculations++;
 	}
 
 	// Przekazujemy macierz ni¿ej

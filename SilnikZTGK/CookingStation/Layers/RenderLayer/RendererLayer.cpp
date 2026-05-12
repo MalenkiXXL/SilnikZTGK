@@ -104,23 +104,55 @@ void RendererLayer::OnUpdate(Timestep ts) {
             m_RampTexture->Bind(10);
         }
 
+        // 1. Wyci¹gamy Frustum z aktualnej macierzy widoku-projekcji
+        Frustum activeFrustum = ExtractFrustum(viewProjection);
+
         if (meshStorage && transformStorage) {
+            // Mapa do grupowania obiektów
+            std::unordered_map<Model*, std::pair<std::shared_ptr<Shader>, std::vector<glm::mat4>>> instancedBatches;
+
             for (size_t i = 0; i < meshStorage->dense.size(); i++) {
                 auto& meshComp = meshStorage->dense[i];
                 Entity owner = meshStorage->reverse[i];
                 TransformComponent* transform = transformStorage->Get(owner);
 
                 if (transform && meshComp.ModelPtr) {
-                    // Rysujemy podaj¹c aktualny m_ActiveShader
-                    Renderer::Submit(m_ActiveShader, meshComp.ModelPtr, transform->WorldMatrix);
+                    bool isVisible = false;
+
+                    // Sprawdzamy widocznoœæ modelu (testujemy ka¿d¹ jego siatkê)
+                    for (auto& mesh : meshComp.ModelPtr->meshes) {
+                        // U¿ywamy Twojej istniej¹cej metody GetWorldAABB z klasy Mesh
+                        AABB worldAABB = mesh.GetWorldAABB(transform->WorldMatrix);
+
+                        if (IsOnFrustum(activeFrustum, worldAABB)) {
+                            isVisible = true;
+                            break; // Wystarczy, ¿e jedna siatka modelu jest widoczna
+                        }
+                    }
+
+                    if (isVisible) {
+                        Model* modelKey = meshComp.ModelPtr.get();
+                        instancedBatches[modelKey].first = meshComp.ShaderPtr ? meshComp.ShaderPtr : m_ActiveShader;
+                        instancedBatches[modelKey].second.push_back(transform->WorldMatrix);
+                    }
+                    else {
+                        // Aktualizujemy statystyki, które wyœwietlasz w GUI
+                        Renderer::GetStats().CulledObjects3D++;
+                    }
                 }
             }
+
+            // Rysowanie paczek
+            for (auto& [modelPtr, batchData] : instancedBatches) {
+                Renderer::SubmitInstanced(batchData.first, modelPtr, batchData.second);
+            }
         }
+
         Renderer::EndScene();
 
 
         // =================================================================
-        // NOWOŒÆ: RYSOWANIE QUESTÓW JAKO OBIEKT FIZYCZNY W ŒWIECIE GRY
+        // RYSOWANIE QUESTÓW JAKO OBIEKT FIZYCZNY W ŒWIECIE GRY
         // =================================================================
         auto* tagStorage = world.GetComponentVector<TagComponent>();
         bool boardFound = false;
