@@ -16,6 +16,7 @@
 #include <functional> 
 #include "CookingStation/Core/GridSystem.h"
 #include <CookingStation/Scripts/ConveyorScript.h>
+#include "CookingStation/Scene/PrefabSerializer.cpp"
 
 float GridSystem::CELL_SIZE = 2.0f;
 
@@ -180,10 +181,21 @@ void EditorLayer::OnUpdate(Timestep ts)
                 spawnPosition = GridSystem::SnapToGrid(spawnPosition);
             }
 
-            std::shared_ptr<Shader> modelShader = AssetManager::GetShaders().Get("ModelShader");
-            std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
-                &world, m_PendingModelName, m_PendingModelPath, spawnPosition, modelShader);
-            m_CommandHistory.ExecuteCommand(std::move(cmd));
+            // --- NOWA LOGIKA ROZPOZNAWANIA PREFABÓW ---
+            if (m_PendingModelPath.find(".json") != std::string::npos) {
+                // Jeśli ścieżka kończy się na .json, to znaczy że to prefab. 
+                // Pomijamy Assimp i zlecamy stworzenie encji prosto z pliku!
+                PrefabSerializer::Deserialize(activeScene.get(), m_PendingModelPath, spawnPosition);
+                spdlog::info("EditorLayer: Postawiono prefab z pliku: {}", m_PendingModelPath);
+            }
+            else {
+                // Jeśli to zwykły model (np. .gltf), używamy starych komend
+                std::shared_ptr<Shader> modelShader = AssetManager::GetShaders().Get("ModelShader");
+                std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
+                    &world, m_PendingModelName, m_PendingModelPath, spawnPosition, modelShader);
+                m_CommandHistory.ExecuteCommand(std::move(cmd));
+            }
+
             m_IsPlacing = false;
         }
 
@@ -255,11 +267,62 @@ void EditorLayer::OnUpdate(Timestep ts)
         if (validEntity)
         {
             auto* transform = world.GetComponent<TransformComponent>(selected);
+            auto* collider = world.GetComponent<BoxColliderComponent>(selected);
+
+            // --- RYSOWANIE ZIELONEGO COLLIDERA (OBB) ---
+            if (transform && collider)
+            {
+                Renderer2D::EndScene();
+                Renderer2D::BeginScene(proj3D * view3D);
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glDisable(GL_DEPTH_TEST); // Żeby linie było widać przez modele
+
+                // Obliczamy środek i wymiary boxa
+                glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
+                glm::vec3 center = globalPos + collider->Offset;
+                glm::vec3 e = transform->Scale * collider->Size; // e = Extents (połowa rozmiaru)
+
+                // Pobieramy TYLKO rotację obiektu, żeby box obracał się razem z nim (OBB)
+                glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(transform->Rotation.x), { 1, 0, 0 })
+                    * glm::rotate(glm::mat4(1.0f), glm::radians(transform->Rotation.y), { 0, 1, 0 })
+                    * glm::rotate(glm::mat4(1.0f), glm::radians(transform->Rotation.z), { 0, 0, 1 });
+
+                // Baza transformacji dla każdej z 12 linii
+                glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rot;
+
+                float t = 0.05f; // Grubość linii
+                float h = t / 2.0f; // Połowa grubości (do idealnego centrowania na rogach)
+                glm::vec4 color = { 0.2f, 0.9f, 0.2f, 0.8f };
+
+                // Krawędzie wzdłuż osi X (skala X=2*e.x, Y=t)
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x,  e.y - h,  e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x, -e.y - h,  e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x,  e.y - h, -e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x, -e.y - h, -e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
+
+                // Krawędzie wzdłuż osi Y (skala X=t, Y=2*e.y)
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y,  e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y,  e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y, -e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y, -e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
+
+                // Krawędzie wzdłuż osi Z (wymaga obrócenia płaskiego quada o -90 stopni wokół Y)
+                glm::mat4 rotZ = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 0.0f, 1.0f, 0.0f });
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h,  e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h,  e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
+                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
+
+                Renderer2D::EndScene();
+                glEnable(GL_DEPTH_TEST);
+                Renderer2D::BeginScene(uiProj); // Wracamy do interfejsu
+            }
+
+            // --- STARE GIZMO (OŚ X/Y UI) ---
             if (transform)
             {
                 glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
-
-                // ZMIANA: Prawdziwe rzutowanie matematyczne punktu 3D do okna 2D!
                 glm::vec4 clipSpacePos = proj3D * view3D * glm::vec4(globalPos, 1.0f);
 
                 if (clipSpacePos.w != 0.0f) {
@@ -267,7 +330,6 @@ void EditorLayer::OnUpdate(Timestep ts)
                     float screenX = (ndcSpacePos.x + 1.0f) * 0.5f * fboWidth;
                     float screenY = (1.0f - ndcSpacePos.y) * 0.5f * fboHeight;
 
-                    // Oś X (Czerwona) i Oś Y (Zielona) rysowane na ekranie
                     Renderer2D::DrawQuad({ screenX, screenY }, { 50.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
                     Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
                 }
