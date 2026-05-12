@@ -32,12 +32,12 @@ public:
             if (!transform) return;
 
             glm::vec3 mouseWorldPos = GetMouseWorldPosition();
-            transform->Position = GridSystem::SnapToGrid(mouseWorldPos);
+            transform->SetPosition(GridSystem::SnapToGrid(mouseWorldPos));
 
             // Zakoñczenie przenoszenia (puszczenie LPM)
             if (Input::IsMouseButtonJustPressed(0))
             {
-                if (!IsCellOccupied(transform->Position))
+                if (!IsCellOccupied(transform->GetPosition()))
                 {
                     m_IsHeld = false;
                     spdlog::info("Maszyna odlozona na siatke!");
@@ -77,7 +77,7 @@ protected:
             Entity otherEntity = transforms->reverse[i];
             if (otherEntity.id == m_Entity.id) continue;
 
-            glm::ivec2 otherCell = GridSystem::WorldToCell(transforms->dense[i].Position);
+            glm::ivec2 otherCell = GridSystem::WorldToCell(transforms->dense[i].GetPosition());
             if (targetCell == otherCell)
             {
                 return true;
@@ -106,7 +106,7 @@ protected:
 
                     if (plateTransform)
                     {
-                        float dist = glm::distance(myTransform->Position, plateTransform->Position);
+                        float dist = glm::distance(myTransform->GetPosition(), plateTransform->GetPosition());
                         if (dist < closestDist)
                         {
                             closestDist = dist;

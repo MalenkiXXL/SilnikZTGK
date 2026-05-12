@@ -423,7 +423,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                     scriptComp->Bind<PotScript>("PotScript");
                 }
 
-                if (Gui::Button("USUN SKRYPT", { inspPos.x + 155.0f, inspPos.y + 550.0f }, { 145.0f, 25.0f })) {
+                if (Gui::Button("USUN SKRYPT", { inspPos.x, inspPos.y + 580.0f }, { 145.0f, 25.0f })) {
                     scriptComp->InstantiateScript = nullptr;
                     scriptComp->DestroyScript = nullptr;
                     scriptComp->ScriptName = "";

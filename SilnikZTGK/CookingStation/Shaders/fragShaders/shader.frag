@@ -19,7 +19,7 @@ void main()
     vec3 baseColor = texture(texture_diffuse1, TexCoords).rgb;
 
     // Szachownica na pod³odze
-    if (FragPos.y < 0.1) 
+    if (FragPos.y < 0.0) 
     {
         vec3 lightBrown = vec3(0.812, 0.596, 0.576);
         

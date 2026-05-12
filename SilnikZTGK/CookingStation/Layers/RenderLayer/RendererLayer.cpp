@@ -106,8 +106,9 @@ void RendererLayer::OnUpdate(Timestep ts) {
             if (!s) continue;
             s->use();
             s->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-            s->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
+            s->setVec3("sunDir", glm::vec3(-0.321f, -0.766f, -0.557f));
             s->setVec3("viewPos", activeScene->GetCamera()->Position);
+
 
             if (s == stdShader && Renderer::ActiveShader == "RAMP") {
                 m_RampTexture->Bind(10);
