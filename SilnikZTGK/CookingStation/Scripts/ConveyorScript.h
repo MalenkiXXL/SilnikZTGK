@@ -3,6 +3,17 @@
 #include <glm/glm.hpp>
 #include <CookingStation/Core/Input.h>
 
+struct AngleDirection {
+    float angle;
+    glm::vec3 direction;
+};
+
+static constexpr AngleDirection s_Mappings[] = {
+    {  90.0f, { 0.0f, 0.0f,  1.0f } },
+    { 270.0f, { 0.0f, 0.0f, -1.0f } },
+    { 180.0f, { 1.0f, 0.0f,  0.0f } },
+    {   0.0f, {-1.0f, 0.0f,  0.0f } },
+};
 
 class ConveyorScript : public ScriptableEntity
 {
@@ -26,10 +37,13 @@ public:
         while (rotY < 0.0f) rotY += 360.0f;
         while (rotY >= 360.0f) rotY -= 360.0f;
 
-        if (std::abs(rotY - 90.0f) < 1.0f) PushDirection = { 1.0f, 0.0f,  0.0f };
-        else if (std::abs(rotY - 270.0f) < 1.0f) PushDirection = { -1.0f, 0.0f,  0.0f };
-        else if (std::abs(rotY - 180.0f) < 1.0f) PushDirection = { 0.0f, 0.0f, -1.0f };
-        else                                      PushDirection = { 0.0f, 0.0f,  1.0f };
+        for (auto& m : s_Mappings)
+            if (std::abs(rotY - m.angle) < 1.0f)
+            {
+                PushDirection = m.direction;
+                return;
+            }
+        PushDirection = s_Mappings[3].direction;
     }
 
     void OnUpdate(Timestep ts) override
@@ -46,55 +60,38 @@ public:
         auto& conveyorMap = GetScene()->GetConveyorMap(); 
         int neighborCount = 0;
 
-        float directions[4][2] = { {0,1}, {1,0}, {0,-1}, {-1,0} };
+        float validAngles[4];
+        int validCount = 0;
 
-        for (auto& dir : directions)
+        for (auto& m : s_Mappings)
         {
             GridPos neighborKey{
-                (int)std::round((transform->Position.x + dir[0] * 2.0f) / 2.0f),
-                (int)std::round((transform->Position.z + dir[1] * 2.0f) / 2.0f)
+                (int)std::round((transform->Position.x + m.direction.x * 2.0f) / 2.0f),
+                (int)std::round((transform->Position.z + m.direction.z * 2.0f) / 2.0f)
             };
 
-            if (conveyorMap.count(neighborKey) > 0)
-                neighborCount++;
+            auto it = conveyorMap.find(neighborKey);
+            if (it == conveyorMap.end()) continue;
+
+            neighborCount++;
+
+            ConveyorScript* neighbor = it->second;
+            bool isHeadOnCollision = (
+                std::abs(neighbor->PushDirection.x + m.direction.x) < 0.1f &&
+                std::abs(neighbor->PushDirection.z + m.direction.z) < 0.1f
+                );
+            if (!isHeadOnCollision)
+            {
+                validAngles[validCount] = m.angle;
+                validCount++;
+            }
+
         }
 
         if (neighborCount < 3)
         {
             spdlog::info("Taœma ma tylko {} sasiadow. To nie jest zwrotnica!", neighborCount);
             return;
-        }
-
-        float validAngles[4];
-        int validCount = 0;
-
-        float testAngles[4] = { 0.0f, 90.0f, 180.0f, 270.0f };
-        glm::vec3 testDirections[4] = {
-            {0,0,1}, {1,0,0}, {0,0,-1}, {-1,0,0}
-        };
-
-        for (int i = 0; i < 4; i++)
-        {
-            glm::vec3 testDir = testDirections[i];
-            GridPos neighborKey{
-                (int)std::round((transform->Position.x + testDir.x * 2.0f) / 2.0f),
-                (int)std::round((transform->Position.z + testDir.z * 2.0f) / 2.0f)
-            };
-
-            auto it = conveyorMap.find(neighborKey);
-            if (it == conveyorMap.end()) continue;
-
-            ConveyorScript* neighbor = it->second;
-            bool isHeadOnCollision = (
-                std::abs(neighbor->PushDirection.x + testDir.x) < 0.1f &&
-                std::abs(neighbor->PushDirection.z + testDir.z) < 0.1f
-                );
-
-            if (!isHeadOnCollision)
-            {
-                validAngles[validCount] = testAngles[i];
-                validCount++;
-            }
         }
 
         if (validCount > 0)
