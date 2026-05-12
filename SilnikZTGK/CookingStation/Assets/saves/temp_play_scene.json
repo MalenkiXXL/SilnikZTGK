@@ -6,7 +6,7 @@
             "name": "Wielka_Podloga",
             "position": [
                 0.0,
-                -2.75,
+                -1.0,
                 0.0
             ],
             "rotation": [
@@ -66,7 +66,7 @@
             "name": "Tasma_4_Podstawa",
             "position": [
                 -3.0,
-                -2.1000001430511475,
+                0.0,
                 -5.0
             ],
             "rotation": [
@@ -87,7 +87,7 @@
             "parent_id": 4,
             "position": [
                 0.0,
-                2.6600000858306885,
+                0.5099999904632568,
                 0.0
             ],
             "rotation": [
@@ -926,7 +926,7 @@
             "name": "Tasma_45_Podstawa",
             "position": [
                 3.0,
-                2.1500000953674316,
+                0.0,
                 3.0
             ],
             "rotation": [
@@ -1198,7 +1198,7 @@
             "name": "Tasma_58_Podstawa",
             "position": [
                 7.0,
-                1.649999976158142,
+                0.0,
                 7.0
             ],
             "rotation": [
@@ -1240,7 +1240,7 @@
             "name": "Tasma_60_Podstawa",
             "position": [
                 -7.0,
-                5.300000190734863,
+                0.0,
                 9.0
             ],
             "rotation": [

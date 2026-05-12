@@ -46,10 +46,7 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 
 	if (data.contains("entities")) {
 
-		// NOWE: S³ownik do t³umaczenia "starych" ID z JSONA na "nowe" ID stworzone przez ECS podczas ³adowania
 		std::unordered_map<std::size_t, Entity> oldToNew;
-
-		// NOWE: Lista dzieci i starych ID ich rodziców, do po³¹czenia pod koniec
 		std::vector<std::pair<Entity, std::size_t>> pendingRelationships;
 
 		for (auto& item : data["entities"]) {
@@ -68,15 +65,16 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 			}
 
 			TransformComponent transComp;
+
 			if (item.contains("position") && item.contains("rotation") && item.contains("scale")) {
-				transComp.Position = { item["position"][0], item["position"][1], item["position"][2] };
-				transComp.Rotation = { item["rotation"][0], item["rotation"][1], item["rotation"][2] };
-				transComp.Scale = { item["scale"][0], item["scale"][1], item["scale"][2] };
+				transComp.SetPosition({ item["position"][0], item["position"][1], item["position"][2] });
+				transComp.SetRotation({ item["rotation"][0], item["rotation"][1], item["rotation"][2] });
+				transComp.SetScale({ item["scale"][0], item["scale"][1], item["scale"][2] });
 			}
 			else {
-				transComp.Position = { 0.0f, 0.0f, 0.0f };
-				transComp.Rotation = { 0.0f, 0.0f, 0.0f };
-				transComp.Scale = { 1.0f, 1.0f, 1.0f };
+				transComp.SetPosition({ 0.0f, 0.0f, 0.0f });
+				transComp.SetRotation({ 0.0f, 0.0f, 0.0f });
+				transComp.SetScale({ 1.0f, 1.0f, 1.0f });
 			}
 			builder.With<TransformComponent>(transComp);
 
@@ -94,19 +92,15 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 				if (scriptName == "RotationScript") {
 					nsc.Bind<RotationScript>(scriptName);
 				}
-
-				else if (scriptName == "ConveyorScript") { 
+				else if (scriptName == "ConveyorScript") {
 					nsc.Bind<ConveyorScript>(scriptName);
 				}
-
 				else if (scriptName == "ItemScript") {
 					nsc.Bind<ItemScript>(scriptName);
 				}
 
 				builder.With<NativeScriptComponent>(nsc);
 			}
-
-
 
 			// FINALIZACJA BUDOWY
 			Entity newEntity = builder.Build();
@@ -158,23 +152,25 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 	auto* meshStorage = world.GetComponentVector<MeshComponent>();
 	auto* colliderStorage = world.GetComponentVector<BoxColliderComponent>();
 	auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
-	// NOWE: Pobieramy relacje
 	auto* relStorage = world.GetComponentVector<RelationshipComponent>();
 
 	for (size_t i = 0; i < tagStorage->reverse.size(); ++i) {
 		Entity entity = tagStorage->reverse[i];
 		json item;
 
-		// NOWE: Zapisujemy stare, oryginalne ID tej encji
 		item["id"] = entity.id;
-
 		item["name"] = tagStorage->dense[i].Tag;
 
 		if (transformStorage) {
 			if (auto* transform = transformStorage->Get(entity)) {
-				item["position"] = { transform->Position.x, transform->Position.y, transform->Position.z };
-				item["rotation"] = { transform->Rotation.x, transform->Rotation.y, transform->Rotation.z };
-				item["scale"] = { transform->Scale.x, transform->Scale.y, transform->Scale.z };
+				// ZMIANA: Pobieramy dane przez GETTERY!
+				glm::vec3 pos = transform->GetPosition();
+				glm::vec3 rot = transform->GetRotation();
+				glm::vec3 scale = transform->GetScale();
+
+				item["position"] = { pos.x, pos.y, pos.z };
+				item["rotation"] = { rot.x, rot.y, rot.z };
+				item["scale"] = { scale.x, scale.y, scale.z };
 			}
 		}
 
@@ -194,18 +190,15 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 
 		if (scriptStorage) {
 			auto* script = scriptStorage->Get(entity);
-			// Sprawdzamy, czy skrypt istnieje i czy ma zapisan¹ nazwê
 			if (script && script->InstantiateScript && !script->ScriptName.empty()) {
-				// Zamiast sztywnego tekstu, u¿ywamy zmiennej!
 				item["script"] = script->ScriptName;
 			}
 		}
 
-		// NOWE: Zapisywanie informacji o rodzicu
 		if (relStorage) {
 			if (auto* rel = relStorage->Get(entity)) {
 				if (rel->Parent != NULL_ENTITY) {
-					item["parent_id"] = rel->Parent; // Zapisujemy tylko ID rodzica
+					item["parent_id"] = rel->Parent;
 				}
 			}
 		}

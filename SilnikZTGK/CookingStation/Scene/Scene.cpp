@@ -33,11 +33,12 @@ AABB ComputeDynamicAABB(TransformComponent* trans, BoxColliderComponent* col)
 	AABB box;
 	glm::vec3 globalPos = glm::vec3(trans->WorldMatrix[3][0], trans->WorldMatrix[3][1], trans->WorldMatrix[3][2]);
 	glm::vec3 center = globalPos + col->Offset;
-	glm::vec3 extents = trans->Scale * col->Size;
 
-	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.x), { 1, 0, 0 })
-		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.y), { 0, 1, 0 })
-		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.z), { 0, 0, 1 });
+	glm::vec3 extents = trans->GetScale() * col->Size;
+
+	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(trans->GetRotation().x), { 1, 0, 0 })
+		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->GetRotation().y), { 0, 1, 0 })
+		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->GetRotation().z), { 0, 0, 1 });
 
 	glm::vec3 rotatedExtents(
 		std::abs(rotation[0][0]) * extents.x + std::abs(rotation[1][0]) * extents.y + std::abs(rotation[2][0]) * extents.z,
@@ -108,7 +109,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 		struct ColliderData
 		{
 			Entity ent;
-			AABB box; 
+			AABB box;
 		};
 
 		std::vector<ColliderData> activeColliders;
@@ -125,7 +126,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			}
 		}
 
-		// ZMIANA: Obliczamy Min.x "w locie" dla sortowania
+		// Obliczamy Min.x "w locie" dla sortowania
 		std::sort(activeColliders.begin(), activeColliders.end(), [](const ColliderData& a, const ColliderData& b) {
 			return (a.box.center.x - a.box.extents.x) < (b.box.center.x - b.box.extents.x);
 			});
@@ -138,7 +139,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			{
 				const auto& dataB = activeColliders[j];
 
-				// ZMIANA: Porównujemy odpowiednio wyliczone Min i Max
+				// Porównujemy odpowiednio wyliczone Min i Max
 				if ((dataB.box.center.x - dataB.box.extents.x) > (dataA.box.center.x + dataA.box.extents.x))
 				{
 					break;
@@ -162,39 +163,6 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			}
 		}
 	}
-	// ==========================================
-	// 3. RENDEROWANIE SCENY 
-	// ==========================================
-	// Przeliczamy ca³e drzewo transformacji przed renderowaniem
-
-	if (m_MainCamera)
-	{
-		float orthoSize = 10.0f * (m_MainCamera->Zoom / 45.0f);
-		glm::mat4 projection = glm::ortho(-m_MainCamera->AspectRatio * orthoSize, m_MainCamera->AspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
-		glm::mat4 viewProjection = projection * m_MainCamera->GetViewMatrix();
-
-		Renderer::BeginScene(viewProjection);
-
-		auto* meshStorage = m_ECSWorld.GetComponentVector<MeshComponent>();
-		auto* transformStorage = m_ECSWorld.GetComponentVector<TransformComponent>();
-
-		if (meshStorage && transformStorage)
-		{
-			for (size_t i = 0; i < meshStorage->dense.size(); i++)
-			{
-				Entity entity = meshStorage->reverse[i];
-				auto& meshComp = meshStorage->dense[i];
-				auto* trans = transformStorage->Get(entity);
-
-				if (trans && meshComp.ModelPtr && meshComp.ShaderPtr)
-				{
-					// Wysy³amy do karty graficznej ostateczn¹ pozycjê w œwiecie (WorldMatrix)
-					Renderer::Submit(meshComp.ShaderPtr, meshComp.ModelPtr, trans->WorldMatrix);
-				}
-			}
-		}
-		Renderer::EndScene();
-	}
 }
 
 void Scene::OnRuntimeStop()
@@ -210,8 +178,8 @@ void Scene::OnRuntimeStop()
 			if (scriptComp.Instance)
 			{
 				scriptComp.Instance->OnDestroy();
-				delete scriptComp.Instance;       // zwalniamy pamiêæ
-				scriptComp.Instance = nullptr; // zabezpieczenie przed wiszacym pointerem
+				delete scriptComp.Instance;       
+				scriptComp.Instance = nullptr; 
 			}
 		}
 	}
@@ -239,32 +207,38 @@ std::shared_ptr<Scene> Scene::Copy(std::shared_ptr<Scene> other)
 }
 
 // 1. Rekurencyjna funkcja schodz¹ca w g³¹b drzewa
-void UpdateTransformTree(World& world, std::size_t entityId, const glm::mat4& parentGlobalMatrix) {
-	// U¿ywamy GetComponentByID, by omin¹æ sztywn¹ generacjê 0
+void UpdateTransformTree(World& world, std::size_t entityId, const glm::mat4& parentGlobalMatrix, bool parentIsDirty) {
 	auto* transform = world.GetComponentByID<TransformComponent>(entityId);
 	if (!transform) return;
 
-	// A. Liczymy nasz¹ pozycjê w œwiecie = Rodzic * Nasza Lokalna
-	glm::mat4 localMatrix = transform->GetLocalMatrix();
-	transform->WorldMatrix = parentGlobalMatrix * localMatrix;
+	bool needsUpdate = transform->IsDirty() || parentIsDirty;
 
-	// B. Przekazujemy nasz¹ macierz ni¿ej, do naszych dzieci
+	if (needsUpdate) {
+		glm::mat4 localMatrix = transform->GetLocalMatrix();
+		transform->WorldMatrix = parentGlobalMatrix * localMatrix;
+
+		// Statystyka: Praca wykonana
+		Renderer::GetStats().MatrixCalculations++;
+	}
+	else {
+		// Statystyka: Praca zaoszczêdzona dziêki Dirty Flag
+		Renderer::GetStats().SkippedCalculations++;
+	}
+
+	// Przekazujemy macierz ni¿ej
 	auto* rel = world.GetComponentByID<RelationshipComponent>(entityId);
 	if (rel && rel->FirstChild != NULL_ENTITY) {
-
 		std::size_t currentChildId = rel->FirstChild;
 
 		while (currentChildId != NULL_ENTITY) {
-			// Wywo³anie rekurencyjne
-			UpdateTransformTree(world, currentChildId, transform->WorldMatrix);
+			UpdateTransformTree(world, currentChildId, transform->WorldMatrix, needsUpdate);
 
-			// Przechodzimy do kolejnego brata
 			auto* childRel = world.GetComponentByID<RelationshipComponent>(currentChildId);
 			if (childRel) {
 				currentChildId = childRel->NextSibling;
 			}
 			else {
-				break; // zabezpieczenie
+				break;
 			}
 		}
 	}
@@ -295,7 +269,7 @@ void Scene::CalculateTransforms() {
 
 		// Jeœli to korzeñ grafu (lub samodzielny obiekt), startujemy drzewo
 		if (isRoot) {
-			UpdateTransformTree(world, entity.id, glm::mat4(1.0f));
+			UpdateTransformTree(world, entity.id, glm::mat4(1.0f), false); 
 		}
 	}
 }
@@ -385,8 +359,8 @@ void Scene::RebuildConveyorCache()
 		auto* t = conveyor->GetComponent<TransformComponent>();
 		if (!t) continue;
 
-		GridPos key{ (int)std::round(t->Position.x / 2.0f),
-					  (int)std::round(t->Position.z / 2.0f) };
+		GridPos key{ (int)std::round(t->GetPosition().x / 2.0f),
+					  (int)std::round(t->GetPosition().z / 2.0f) };
 
 		ConveyorMap[key] = conveyor;
 	}

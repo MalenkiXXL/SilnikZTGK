@@ -9,7 +9,7 @@ uniform sampler2D texture_diffuse1; // cube (belt.png)
 uniform sampler2D texture_diffuse2; // plane (a.png)
 uniform bool useTexture2;
 
-uniform float u_uvOffset;           // akumulowany czas * prêdkoœæ
+in float v_uvOffset;
 
 uniform vec3 lightColor;
 uniform vec3 lightPos;
@@ -21,8 +21,8 @@ void main()
     // Znak MINUS zmienia kierunek. Mno¿nik (np. 0.3) spowalnia animacjê.
     // U¿ycie funkcji fract() to bardzo dobra praktyka, zapobiega b³êdom precyzji!
     //float speedMultiplier = 0.3; // Zmieniaj tê wartoœæ, by dopasowaæ prêdkoœæ
-    vec2 scrolledUV = vec2(TexCoords.x, TexCoords.y - u_uvOffset);
-    //vec2 scrolledUV = vec2(TexCoords.x, fract(TexCoords.y - (u_uvOffset * speedMultiplier)));
+    vec2 scrolledUV = vec2(TexCoords.x, TexCoords.y - v_uvOffset);
+    //vec2 scrolledUV = vec2(TexCoords.x, fract(TexCoords.y - (v_uvOffset * speedMultiplier)));
 
     // 2. POBRANIE KOLORU (teraz zawsze u¿ywamy przesuniêtych kordów)
     vec3 baseColor = texture(texture_diffuse1, scrolledUV).rgb;

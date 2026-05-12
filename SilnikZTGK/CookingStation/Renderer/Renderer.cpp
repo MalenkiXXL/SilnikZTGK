@@ -93,3 +93,78 @@ void Renderer::Submit(const std::shared_ptr<Shader>& shader, const std::shared_p
 		}
 	}
 }
+
+void Renderer::SubmitInstanced(std::shared_ptr<Shader> shader, Model* model, const std::vector<InstanceData>& instanceData)
+{
+	// ZMIANA: Sprawdzamy now¹ listê instanceData
+	if (instanceData.empty() || !model || !shader) return;
+
+	shader->use();
+	// Wysy³amy macierz kamery, ¿eby instancje wiedzia³y jak siê wyœwietliæ na ekranie
+	shader->setMat4("viewProjection", s_SceneData->ViewProjectionMatrix);
+
+	// Dla ka¿dego sub-mesha w modelu
+	for (auto& mesh : model->meshes)
+	{
+		// 1. Przesy³amy zaktualizowane dane (Macierze + UVOffsety) do naszego Instance VBO
+		glBindBuffer(GL_ARRAY_BUFFER, mesh.m_InstanceVBO);
+		// ZMIANA: U¿ywamy sizeof(InstanceData) zamiast sizeof(glm::mat4) oraz instanceData.data()
+		glBufferSubData(GL_ARRAY_BUFFER, 0, instanceData.size() * sizeof(InstanceData), instanceData.data());
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		// 2. Bindowanie tekstur
+		unsigned int diffuseNr = 1;
+		unsigned int specularNr = 1;
+		unsigned int normalNr = 1;
+		unsigned int heightNr = 1;
+
+		int diffuseCount = 0;
+		for (const auto& t : mesh.textures) {
+			if (t.type == "texture_diffuse") diffuseCount++;
+		}
+
+		shader->SetBool("useTexture2", diffuseCount > 1);
+
+		for (unsigned int i = 0; i < mesh.textures.size(); i++)
+		{
+			glActiveTexture(GL_TEXTURE0 + i);
+			std::string number;
+			std::string name = mesh.textures[i].type;
+
+			if (name == "texture_diffuse") number = std::to_string(diffuseNr++);
+			else if (name == "texture_specular") number = std::to_string(specularNr++);
+			else if (name == "texture_normal") number = std::to_string(normalNr++);
+			else if (name == "texture_height") number = std::to_string(heightNr++);
+
+			glUniform1i(glGetUniformLocation(shader->ID, (name + number).c_str()), i);
+			mesh.textures[i].Texture2DPtr->Bind(i);
+		}
+
+		mesh.m_VertexArray->Bind();
+		// ZMIANA: Iloœæ instancji do narysowania bierzemy z instanceData.size()
+		glDrawElementsInstanced(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0, instanceData.size());
+		mesh.m_VertexArray->Unbind();
+
+		// 4. Sprz¹tanie jednostek teksturuj¹cych
+		for (unsigned int i = 0; i < mesh.textures.size(); i++)
+		{
+			glActiveTexture(GL_TEXTURE0 + i);
+			glBindTexture(GL_TEXTURE_2D, 0);
+		}
+
+		// 5. Aktualizacja statystyk dla Twojego GUI
+		s_Stats.DrawCalls3D++;
+		s_Stats.InstanceBatches++;
+		// ZMIANA: Obliczenia na podstawie instanceData.size()
+		s_Stats.TriangleCount3D += (mesh.indices.size() / 3) * instanceData.size();
+	}
+	static std::unordered_set<std::string> s_LoggedModels;
+
+	if (s_LoggedModels.find(model->FilePath) == s_LoggedModels.end())
+	{
+		// ZMIANA: instanceData.size() w logach
+		spdlog::info("Batch: Model {} ma {} siatek, rysuje {} instancji",
+			model->FilePath, model->meshes.size(), instanceData.size());
+		s_LoggedModels.insert(model->FilePath);
+	}
+}

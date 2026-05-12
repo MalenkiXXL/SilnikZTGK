@@ -79,3 +79,53 @@ void VertexArray::SetIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer
     //zapisujemy wskaznik zeby go trzymac przy zyciu
     m_IndexBuffer = indexBuffer;
 }
+
+void VertexArray::AddInstanceBuffer(const std::shared_ptr<VertexBuffer>& instanceBuffer)
+{
+    glBindVertexArray(m_RenderID);
+    instanceBuffer->Bind();
+
+    for (const auto& element : instanceBuffer->GetLayout())
+    {
+        // Macierz 4x4 w OpenGL to specjalny przypadek - nie mieœci siê w 1 slocie (max vec4).
+        // Musimy rozbiæ j¹ na 4 osobne atrybuty (wiersze macierzy).
+        if (element.Type == ShaderDataType::Mat4)
+        {
+            uint8_t count = 4;
+            for (uint8_t i = 0; i < count; i++)
+            {
+                glEnableVertexAttribArray(m_VertexBufferIndex);
+                glVertexAttribPointer(
+                    m_VertexBufferIndex,
+                    4, // Ka¿dy wektor w macierzy ma 4 floaty
+                    ShaderDataTypeToOpenGLBaseType(element.Type),
+                    element.Normalized ? GL_TRUE : GL_FALSE,
+                    instanceBuffer->GetLayout().GetStride(),
+                    (const void*)(element.Offset + sizeof(float) * 4 * i) // Przesuniêcie dla ka¿dego wiersza
+                );
+
+                // MAGIA INSTANCJONOWANIA: ten atrybut zmienia siê co 1 instancjê
+                glVertexAttribDivisor(m_VertexBufferIndex, 1);
+                m_VertexBufferIndex++;
+            }
+        }
+        else
+        {
+            // Dla innych atrybutów instancji (np. nasz float UVOffset)
+            glEnableVertexAttribArray(m_VertexBufferIndex);
+            glVertexAttribPointer(
+                m_VertexBufferIndex,
+                element.GetComponentCount(),
+                ShaderDataTypeToOpenGLBaseType(element.Type),
+                element.Normalized ? GL_TRUE : GL_FALSE,
+                instanceBuffer->GetLayout().GetStride(),
+                (const void*)(size_t)element.Offset
+            );
+
+            // MAGIA INSTANCJONOWANIA cd.
+            glVertexAttribDivisor(m_VertexBufferIndex, 1);
+            m_VertexBufferIndex++;
+        }
+    }
+    m_VertexBuffers.push_back(instanceBuffer);
+}

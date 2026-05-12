@@ -16,7 +16,7 @@
 #include <functional> 
 #include "CookingStation/Core/GridSystem.h"
 #include <CookingStation/Scripts/ConveyorScript.h>
-//#include "CookingStation/Scene/PrefabSerializer.cpp"
+#include "CookingStation/Scene/PrefabSerializer.h" // Poprawiony include nagłówka
 
 float GridSystem::CELL_SIZE = 2.0f;
 
@@ -25,8 +25,8 @@ static glm::mat4 FlatQuadTransform(const glm::vec3& center, float sizeX, float s
 {
     return glm::translate(glm::mat4(1.0f), center)
         * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 1.0f, 0.0f, 0.0f })
-        * glm::scale(glm::mat4(1.0f), { sizeX, sizeZ, 1.0f })       
-        * glm::translate(glm::mat4(1.0f), { -0.5f, -0.5f, 0.0f }); 
+        * glm::scale(glm::mat4(1.0f), { sizeX, sizeZ, 1.0f })
+        * glm::translate(glm::mat4(1.0f), { -0.5f, -0.5f, 0.0f });
 }
 
 void EditorLayer::OnAttach() {
@@ -89,10 +89,8 @@ void EditorLayer::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos,
 //obliczanie przeciecia promienia z podloga
 void EditorLayer::UpdateGridPlacement(float localMouseX, float localMouseY, const glm::vec2& viewportSize, const glm::mat4& projection3D, const glm::mat4& view3D)
 {
-    // Używamy raycastingu
     Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, projection3D, view3D);
 
-    // Przecięcie promienia z płaszczyzną podłogi (Y = 0)
     if (std::abs(ray.Direction.y) > 1e-6f)
     {
         float t = -ray.Origin.y / ray.Direction.y;
@@ -122,10 +120,7 @@ void EditorLayer::OnUpdate(Timestep ts)
     if (camera) camera->AspectRatio = aspectRatio;
 
     float orthoSize = camera ? (10.0f * (camera->Zoom / 45.0f)) : 10.0f;
-    float worldHeight = orthoSize * 2.0f;
-    float worldWidth = worldHeight * aspectRatio;
 
-    // NAPRAWA MACIERZY: To gra izometryczna, używamy glm::ortho dla 3D, a nie perspective!
     glm::mat4 proj3D = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
     glm::mat4 view3D = camera ? camera->GetViewMatrix() : glm::mat4(1.0f);
 
@@ -150,9 +145,8 @@ void EditorLayer::OnUpdate(Timestep ts)
         float localMouseX = mouseX - viewportPos.x;
         float localMouseY = mouseY - viewportPos.y;
 
-        auto& gridReq = activeScene->GetGridRequest(); // Pobranie stanu siatki
+        auto& gridReq = activeScene->GetGridRequest();
 
-        // ── 1. ZWYKŁE KŁADZENIE MODELI ────────────────────────────────────────
         auto& request = activeScene->GetPlacementRequest();
         if (request.Active)
         {
@@ -164,11 +158,9 @@ void EditorLayer::OnUpdate(Timestep ts)
 
         if (m_IsPlacing && Input::IsMouseButtonPressed(0) && isMouseInViewport)
         {
-            // ZMIANA: Strzelamy promieniem w świat 3D z myszki!
             Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
             glm::vec3 spawnPosition = glm::vec3(0.0f);
 
-            // Sprawdzamy w którym miejscu promień uderza w podłogę (oś Y = 0)
             if (std::abs(ray.Direction.y) > 1e-6f) {
                 float t = -ray.Origin.y / ray.Direction.y;
                 if (t > 0.0f) {
@@ -176,20 +168,17 @@ void EditorLayer::OnUpdate(Timestep ts)
                 }
             }
 
-            // Jeśli siatka jest aktywna przyceluj do równych kratek
             if (gridReq.Active) {
                 spawnPosition = GridSystem::SnapToGrid(spawnPosition);
             }
 
-            // --- NOWA LOGIKA ROZPOZNAWANIA PREFABÓW ---
+            // --- LOGIKA ROZPOZNAWANIA PREFABÓW (ODBLOKOWANA) ---
             if (m_PendingModelPath.find(".json") != std::string::npos) {
-                // Jeśli ścieżka kończy się na .json, to znaczy że to prefab. 
-                // Pomijamy Assimp i zlecamy stworzenie encji prosto z pliku!
-                //PrefabSerializer::Deserialize(activeScene.get(), m_PendingModelPath, spawnPosition);
+                // Wywołujemy deserializację, aby postawić prefab z pliku
+                PrefabSerializer::Deserialize(activeScene.get(), m_PendingModelPath, spawnPosition);
                 spdlog::info("EditorLayer: Postawiono prefab z pliku: {}", m_PendingModelPath);
             }
             else {
-                // Jeśli to zwykły model (np. .gltf), używamy starych komend
                 std::shared_ptr<Shader> modelShader = AssetManager::GetShaders().Get("ModelShader");
                 std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
                     &world, m_PendingModelName, m_PendingModelPath, spawnPosition, modelShader);
@@ -199,7 +188,6 @@ void EditorLayer::OnUpdate(Timestep ts)
             m_IsPlacing = false;
         }
 
-        // ── 2. TRYB SIATKI DLA ZAZNACZONEGO OBIEKTU ───────────────────────────
         Entity selected = activeScene->GetSelectedEntity();
         bool validEntity = (selected.id != std::numeric_limits<std::size_t>::max());
 
@@ -211,8 +199,6 @@ void EditorLayer::OnUpdate(Timestep ts)
             }
 
             DrawGrid(proj3D * view3D, camPos, 40.0f);
-
-            // Po powrocie wznawiamy 2D UI
             Renderer2D::BeginScene(uiProj);
 
             if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport)
@@ -220,8 +206,8 @@ void EditorLayer::OnUpdate(Timestep ts)
                 auto* transform = world.GetComponent<TransformComponent>(selected);
                 if (transform)
                 {
-                    glm::vec3 oldPos = transform->Position;
-                    glm::vec3 newPos = { m_GridHoverPos.x, transform->Position.y, m_GridHoverPos.z };
+                    glm::vec3 oldPos = transform->GetPosition();
+                    glm::vec3 newPos = { m_GridHoverPos.x, oldPos.y, m_GridHoverPos.z };
 
                     std::unique_ptr<Command> cmd = std::make_unique<MoveEntityCommand>(
                         &world, selected, oldPos, newPos);
@@ -229,11 +215,10 @@ void EditorLayer::OnUpdate(Timestep ts)
 
                     spdlog::info("Grid: Przeniesiono encje ID:{} na kafelek", selected.id);
                 }
-                gridReq.Active = false; // wyłącza tryb po kliknięciu
+                gridReq.Active = false;
             }
         }
 
-        // ── 3. WYBIERANIE MYSZKĄ (Nie działa, gdy siatka przejmuje klik) ──────
         if (Input::IsMouseButtonPressed(0) && isMouseInViewport && !m_IsPlacing && !gridReq.Active)
         {
             Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
@@ -252,7 +237,8 @@ void EditorLayer::OnUpdate(Timestep ts)
                         glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                         AABB box;
                         box.center = globalPos;
-                        box.extents = transform->Scale;
+                        box.extents = transform->GetScale();
+
                         if (Physics::Intersects(ray, box))
                         {
                             activeScene->SetSelectedEntity(entity);
@@ -263,51 +249,44 @@ void EditorLayer::OnUpdate(Timestep ts)
             }
         }
 
-        // ── 4. GIZMO ─────────────────────────────────────────────────────────
         if (validEntity)
         {
             auto* transform = world.GetComponent<TransformComponent>(selected);
             auto* collider = world.GetComponent<BoxColliderComponent>(selected);
 
-            // --- RYSOWANIE ZIELONEGO COLLIDERA (OBB) ---
             if (transform && collider)
             {
                 Renderer2D::EndScene();
                 Renderer2D::BeginScene(proj3D * view3D);
                 glEnable(GL_BLEND);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                glDisable(GL_DEPTH_TEST); // Żeby linie było widać przez modele
+                glDisable(GL_DEPTH_TEST);
 
-                // Obliczamy środek i wymiary boxa
                 glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                 glm::vec3 center = globalPos + collider->Offset;
-                glm::vec3 e = transform->Scale * collider->Size; // e = Extents (połowa rozmiaru)
+                glm::vec3 e = transform->GetScale() * collider->Size;
 
-                // Pobieramy TYLKO rotację obiektu, żeby box obracał się razem z nim (OBB)
-                glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(transform->Rotation.x), { 1, 0, 0 })
-                    * glm::rotate(glm::mat4(1.0f), glm::radians(transform->Rotation.y), { 0, 1, 0 })
-                    * glm::rotate(glm::mat4(1.0f), glm::radians(transform->Rotation.z), { 0, 0, 1 });
+                glm::vec3 currentRot = transform->GetRotation();
+                glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.x), { 1, 0, 0 })
+                    * glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.y), { 0, 1, 0 })
+                    * glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.z), { 0, 0, 1 });
 
-                // Baza transformacji dla każdej z 12 linii
                 glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rot;
 
-                float t = 0.05f; // Grubość linii
-                float h = t / 2.0f; // Połowa grubości (do idealnego centrowania na rogach)
+                float t = 0.05f;
+                float h = t / 2.0f;
                 glm::vec4 color = { 0.2f, 0.9f, 0.2f, 0.8f };
 
-                // Krawędzie wzdłuż osi X (skala X=2*e.x, Y=t)
                 Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x,  e.y - h,  e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
                 Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x, -e.y - h,  e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
                 Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x,  e.y - h, -e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
                 Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x, -e.y - h, -e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
 
-                // Krawędzie wzdłuż osi Y (skala X=t, Y=2*e.y)
                 Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y,  e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
                 Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y,  e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
                 Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y, -e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
                 Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y, -e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
 
-                // Krawędzie wzdłuż osi Z (wymaga obrócenia płaskiego quada o -90 stopni wokół Y)
                 glm::mat4 rotZ = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 0.0f, 1.0f, 0.0f });
                 Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h,  e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
                 Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h,  e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
@@ -316,10 +295,9 @@ void EditorLayer::OnUpdate(Timestep ts)
 
                 Renderer2D::EndScene();
                 glEnable(GL_DEPTH_TEST);
-                Renderer2D::BeginScene(uiProj); // Wracamy do interfejsu
+                Renderer2D::BeginScene(uiProj);
             }
 
-            // --- STARE GIZMO (OŚ X/Y UI) ---
             if (transform)
             {
                 glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
@@ -366,7 +344,7 @@ void EditorLayer::OnUpdate(Timestep ts)
                         glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                         AABB box;
                         box.center = globalPos;
-                        box.extents = transform->Scale;
+                        box.extents = transform->GetScale();
 
                         if (Physics::Intersects(ray, box))
                         {
@@ -396,7 +374,6 @@ void EditorLayer::OnUpdate(Timestep ts)
     glViewport(0, 0, windowSize.first, windowSize.second);
 }
 
-
 void EditorLayer::OnEvent(Event& e) {
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) { return OnWindowResize(ev); });
@@ -419,7 +396,6 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
 
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
 
-    // KLAWISZ G - SIATKA
     if (e.GetKeyCode() == GLFW_KEY_G && m_SceneState == SceneState::Edit && activeScene)
     {
         Entity selected = activeScene->GetSelectedEntity();
@@ -431,8 +407,9 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
             if (gridReq.Active) {
                 auto* transform = activeScene->GetWorld().GetComponent<TransformComponent>(selected);
                 if (transform) {
-                    m_GridEntityStartPos = transform->Position;
-                    m_GridHoverPos = GridSystem::SnapToGrid(transform->Position);
+                    glm::vec3 currentPos = transform->GetPosition();
+                    m_GridEntityStartPos = currentPos;
+                    m_GridHoverPos = GridSystem::SnapToGrid(currentPos);
                 }
                 spdlog::info("Grid Mode: ON (encja ID:{})", selected.id);
             }
@@ -443,7 +420,6 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
         }
     }
 
-    // ESCAPE - ANULOWANIE SIATKI
     if (e.GetKeyCode() == GLFW_KEY_ESCAPE && activeScene)
     {
         auto& gridReq = activeScene->GetGridRequest();
@@ -507,4 +483,3 @@ void EditorLayer::OnSceneStop() {
     SceneManager::SetActiveScene(m_EditorScene);
     m_RuntimeScene = nullptr;
 }
-
