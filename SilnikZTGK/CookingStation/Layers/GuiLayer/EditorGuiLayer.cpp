@@ -5,7 +5,7 @@
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Events/EditorEvents.h"
-#include "CookingStation/Scene/PrefabSerializer.cpp"
+#include "CookingStation/Scene/PrefabSerializer.h"
 #include "CookingStation/Core/Application.h"
 #include "GameGuiLayer.h"
 #include <cstdlib> 
@@ -124,31 +124,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("Wczytaj", { 15.0f, 65.0f }, { 140.0f, 25.0f })) {
             m_ShowLoadDialog = true;
             m_ShowFileMenu = false;
-        }
-    }
-
-    if (m_ShowViewMenu) {
-        Renderer2D::DrawQuad({ 100.0f, 30.0f }, { 160.0f, 190.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
-        if (Gui::Button("Panel Otoczenia", { 105.0f, 35.0f }, { 150.0f, 25.0f }, m_ShowEnvironmentPanel)) {
-            m_ShowEnvironmentPanel = !m_ShowEnvironmentPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Hierarchia", { 105.0f, 65.0f }, { 150.0f, 25.0f }, m_ShowHierarchyPanel)) {
-            m_ShowHierarchyPanel = !m_ShowHierarchyPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Biblioteka", { 105.0f, 95.0f }, { 150.0f, 25.0f }, m_ShowLibraryPanel)) {
-            m_ShowLibraryPanel = !m_ShowLibraryPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Inspektor", { 105.0f, 125.0f }, { 150.0f, 25.0f }, m_ShowInspectorPanel)) {
-            m_ShowInspectorPanel = !m_ShowInspectorPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Diagnostyka", { 105.0f, 155.0f }, { 150.0f, 25.0f }, m_ShowDiagnosticPanel)) {
-            m_ShowDiagnosticPanel = !m_ShowDiagnosticPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Questy", { 105.0f, 185.0f }, { 150.0f, 25.0f }, m_ShowQuestsPanel)) {
-            m_ShowQuestsPanel = !m_ShowQuestsPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Prefaby", { 105.0f, 215.0f }, { 150.0f, 25.0f }, m_ShowPrefabsPanel)) {
-            m_ShowPrefabsPanel = !m_ShowPrefabsPanel; m_ShowViewMenu = false;
         }
     }
 
@@ -307,49 +282,49 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 xOffset = libPos.x + 10.0f;
                 yOffset += 40.0f;
             }
-
-            // --- WY��CZENIE NO�YC DLA BIBLIOTEKI ---
-            Renderer2D::EndScene();
-            glDisable(GL_SCISSOR_TEST);
-            Renderer2D::BeginScene(uiProj);
         }
 
+        // --- WYŁĄCZENIE NOŻYC MUSI BYĆ POZA PĘTLĄ FOR! ---
+        Renderer2D::EndScene();
+        glDisable(GL_SCISSOR_TEST);
+        Renderer2D::BeginScene(uiProj);
+    }
+
         // --- PANEL PREFAB�W ---
-        if (m_ShowPrefabsPanel) {
-            glm::vec2 prefSize = { m_ViewportWidth - 500.0f, 120.0f };
-            // Rysujemy go nad bibliotek� modeli (offset Y: 220.0f)
-            glm::vec2 prefPos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 220.0f, prefSize.x, prefSize.y, m_ViewportWidth, m_ViewportHeight);
+    if (m_ShowPrefabsPanel) {
+        glm::vec2 prefSize = { m_ViewportWidth - 500.0f, 120.0f };
+        // Rysujemy go na samym dole (offset Y: 0.0f)
+        glm::vec2 prefPos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, prefSize.x, prefSize.y, m_ViewportWidth, m_ViewportHeight);
 
-            Renderer2D::DrawQuad(prefPos, prefSize, { 0.15f, 0.25f, 0.3f, 0.95f }); // Niebieskawe t�o
-            Gui::DrawGuiText("Gotowe Prefaby:", { prefPos.x + 10.0f, prefPos.y + 15.0f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
+        Gui::Panel(prefPos, prefSize, { 0.15f, 0.25f, 0.3f, 0.95f });
+        Gui::DrawGuiText("Gotowe Prefaby:", { prefPos.x + 10.0f, prefPos.y + 15.0f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-            float xOffset = prefPos.x + 10.0f;
-            float yOffset = prefPos.y + 40.0f;
+        float xOffset = prefPos.x + 10.0f;
+        float yOffset = prefPos.y + 40.0f;
 
-            if (std::filesystem::exists("CookingStation/Assets/prefabs")) {
-                for (const auto& entry : std::filesystem::directory_iterator("CookingStation/Assets/prefabs")) {
-                    if (entry.path().extension() == ".json") {
-                        std::string prefabName = entry.path().stem().string();
-                        std::string prefabPath = entry.path().string();
-                        std::replace(prefabPath.begin(), prefabPath.end(), '\\', '/'); // Windows -> uniwersalne uko�niki
+        if (std::filesystem::exists("CookingStation/Assets/prefabs")) {
+            for (const auto& entry : std::filesystem::directory_iterator("CookingStation/Assets/prefabs")) {
+                if (entry.path().extension() == ".json") {
+                    std::string prefabName = entry.path().stem().string();
+                    std::string prefabPath = entry.path().string();
+                    std::replace(prefabPath.begin(), prefabPath.end(), '\\', '/');
 
-                        if (Gui::Button(prefabName, { xOffset, yOffset }, { 120, 30 })) {
-                            // Wykorzystujemy ten sam request co w bibliotece!
-                            auto& request = activeScene->GetPlacementRequest();
-                            request.Name = prefabName;
-                            request.Path = prefabPath;
-                            request.Active = true;
-                        }
+                    if (Gui::Button(prefabName, { xOffset, yOffset }, { 120, 30 })) {
+                        auto& request = activeScene->GetPlacementRequest();
+                        request.Name = prefabName;
+                        request.Path = prefabPath;
+                        request.Active = true;
+                    }
 
-                        xOffset += 130.0f;
-                        if (xOffset + 120.0f > prefPos.x + prefSize.x) {
-                            xOffset = prefPos.x + 10.0f;
-                            yOffset += 40.0f;
-                        }
+                    xOffset += 130.0f;
+                    if (xOffset + 120.0f > prefPos.x + prefSize.x) {
+                        xOffset = prefPos.x + 10.0f;
+                        yOffset += 40.0f;
                     }
                 }
             }
         }
+    
     }
 
     // --- INSPEKTOR ENCJI (ANCHOR: TOP RIGHT) ---
@@ -472,9 +447,9 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("Anuluj", { dialogPos.x + 180.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) m_ShowLoadDialog = false;
     }
 
-    // --- MENU WIDOK ---
+
     if (m_ShowViewMenu) {
-        Gui::Panel({ 100.0f, 30.0f }, { 160.0f, 190.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
+        Renderer2D::DrawQuad({ 100.0f, 30.0f }, { 160.0f, 220.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
         if (Gui::Button("Panel Otoczenia", { 105.0f, 35.0f }, { 150.0f, 25.0f }, m_ShowEnvironmentPanel)) {
             m_ShowEnvironmentPanel = !m_ShowEnvironmentPanel; m_ShowViewMenu = false;
         }
@@ -482,7 +457,10 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             m_ShowHierarchyPanel = !m_ShowHierarchyPanel; m_ShowViewMenu = false;
         }
         if (Gui::Button("Biblioteka", { 105.0f, 95.0f }, { 150.0f, 25.0f }, m_ShowLibraryPanel)) {
-            m_ShowLibraryPanel = !m_ShowLibraryPanel; m_ShowViewMenu = false;
+            m_ShowLibraryPanel = !m_ShowLibraryPanel; 
+            if (m_ShowPrefabsPanel)
+                m_ShowPrefabsPanel = false; 
+            m_ShowViewMenu = false;
         }
         if (Gui::Button("Inspektor", { 105.0f, 125.0f }, { 150.0f, 25.0f }, m_ShowInspectorPanel)) {
             m_ShowInspectorPanel = !m_ShowInspectorPanel; m_ShowViewMenu = false;
@@ -492,6 +470,13 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
         if (Gui::Button("Questy", { 105.0f, 185.0f }, { 150.0f, 25.0f }, m_ShowQuestsPanel)) {
             m_ShowQuestsPanel = !m_ShowQuestsPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Prefaby", { 105.0f, 215.0f }, { 150.0f, 25.0f }, m_ShowPrefabsPanel)) {
+            m_ShowPrefabsPanel = !m_ShowPrefabsPanel; 
+            if(m_ShowLibraryPanel)
+                m_ShowLibraryPanel = false;
+            m_ShowLibraryPanel = false;
+            m_ShowViewMenu = false;
         }
     }
 
@@ -541,43 +526,7 @@ bool EditorGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
         return true;
     }
 
-    if (m_ShowEnvironmentPanel) {
-        glm::vec2 size(180.f, 300.f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 10.f, 10.f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
-    }
-
-    if (m_ShowLibraryPanel) {
-        glm::vec2 size(m_ViewportWidth - 500.0f, 200.0f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
-    }
-
-    if (m_ShowHierarchyPanel) {
-        glm::vec2 pos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 80.0f, 180.0f, 250.0f, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, 180.0f, 300.0f)) return true; // Przybli�ona strefa klikni�� dla listy
-    }
-
-    if (m_ShowInspectorPanel) {
-        glm::vec2 size(300.0f, 400.0f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::TopRight, 10.0f, 70.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
-    }
-
-    // 4. Dialogi
-    if (m_ShowSaveDialog || m_ShowLoadDialog) {
-        glm::vec2 size(350.0f, 150.0f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
-    }
-
-    if (m_ShowPrefabsPanel) {
-        glm::vec2 size(m_ViewportWidth - 500.0f, 120.0f);
-        glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 220.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
-    }
-
-    return false;
+    return false; // Kliknęliśmy w pustkę, edytor może działać.
 }
 
 bool EditorGuiLayer::OnWindowResize(WindowResizeEvent& e) {

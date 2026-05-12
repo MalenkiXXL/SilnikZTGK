@@ -1,283 +1,101 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Pliki źródłowe">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Pliki nagłówkowe">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
-    <Filter Include="Pliki zasobów">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClCompile Include="CookingStation\Core\AudioEngine.cpp" />
+    <ClCompile Include="CookingStation\Core\Texture_GUI.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp" />
+    <ClCompile Include="CookingStation\Math\Geometry.cpp" />
+    <ClCompile Include="CookingStation\miniaudio_impl.cpp" />
+    <ClCompile Include="CookingStation\Renderer\Buffer.cpp" />
+    <ClCompile Include="CookingStation\Layers\AssetLayer\AssetManager.cpp" />
+    <ClCompile Include="CookingStation\Layers\AssetLayer\AssetLayer.cpp" />
+    <ClCompile Include="CookingStation\Core\Application.cpp" />
+    <ClCompile Include="CookingStation\Renderer\Framebuffer.cpp" />
+    <ClCompile Include="CookingStation\Scene\PrefabSerializer.h" />
+    <ClCompile Include="CookingStation\Scene\SceneSerializer.cpp" />
+    <ClCompile Include="CookingStation\Layers\CameraLayer\CameraLayer.cpp" />
+    <ClCompile Include="CookingStation\stb_image_impl.cpp" />
+    <ClCompile Include="CookingStation\Scene\ecs.cpp" />
+    <ClCompile Include="CookingStation\Layers\EditorLayer\EditorLayer.cpp" />
+    <ClCompile Include="CookingStation\Layers\GameLayer\GameLayer.cpp" />
+    <ClCompile Include="CookingStation\Tools\QuestGenerator\QuestManager.cpp" />
+    <ClCompile Include="gettingStarted.cpp" />
+    <ClCompile Include="glad.c" />
+    <ClCompile Include="CookingStation\Core\Input.cpp" />
+    <ClCompile Include="CookingStation\Core\Layer.cpp" />
+    <ClCompile Include="CookingStation\main.cpp" />
+    <ClCompile Include="CookingStation\Core\Window.cpp" />
+    <ClCompile Include="CookingStation\Scene\Scene.cpp" />
+    <ClCompile Include="CookingStation\Renderer\VertexArray.cpp" />
+    <ClCompile Include="CookingStation\Renderer\RenderCommand.cpp" />
+    <ClCompile Include="CookingStation\Renderer\Renderer.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Gui.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Renderer2D.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp" />
+    <ClCompile Include="CookingStation\Renderer\Texture.cpp" />
+    <ClCompile Include="CookingStation\Renderer\ShaderLibrary.cpp" />
+    <ClCompile Include="CookingStation\Layers\RenderLayer\RendererLayer.cpp" />
+    <ClCompile Include="CookingStation\Scene\SceneManager.cpp" />
+    <ClCompile Include="CookingStation\Layers\HudLayer\HUDLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CookingStation\main.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="glad.c">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="gettingStarted.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Core\Window.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Core\Input.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Core\Application.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Core\Layer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\CameraLayer\CameraLayer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\AssetLayer\AssetManager.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\AssetLayer\AssetLayer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\stb_image_impl.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Scene\SceneSerializer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Scene\Scene.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Scene\ecs.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Renderer\Buffer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Renderer\VertexArray.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Renderer\RenderCommand.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Renderer\Renderer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\GuiLayer\Renderer2D.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\GuiLayer\Gui.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Core\Texture_GUI.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Renderer\Texture.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Renderer\ShaderLibrary.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\RenderLayer\RendererLayer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\EditorLayer\EditorLayer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Scene\SceneManager.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\GameLayer\GameLayer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\HudLayer\HUDLayer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Renderer\Framebuffer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Tools\QuestGenerator\QuestManager.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Math\Geometry.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\Core\AudioEngine.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="CookingStation\miniaudio_impl.cpp">
-    <ClCompile Include="CookingStation\Scene\PrefabSerializer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="CookingStation\Layers\CameraLayer\Camera.h">
-      <Filter>Pliki źródłowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Core\Window.h">
-      <Filter>Pliki źródłowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Events\Event.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Events\KeyEvent.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Events\MouseEvent.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Events\WindowEvent.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Core\Application.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Core\Layer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\CameraLayer\CameraLayer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\AssetLayer\AssetLayer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Renderer\Shader.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Scene\SceneSerializer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Scene\Scene.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Scene\Entity.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Scene\ecs.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Renderer\Buffer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Renderer\VertexArray.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Renderer\RenderCommand.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Renderer\Renderer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\GuiLayer\Renderer2D.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\GuiLayer\Gui.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Core\Texture.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\GuiLayer\Font.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Core\Physics.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Renderer\Texture.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\RenderLayer\RendererLayer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\EditorLayer\EditorLayer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Core\Timestep.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Scripts\RotationScript.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Scene\SceneManager.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\EditorLayer\Command.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\EditorLayer\CommandHistory.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\EditorLayer\MoveEntityCommand.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\EditorLayer\CreateEntityCommand.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Events\EditorEvents.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Core\ProfileTimer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\GameLayer\GameLayer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\HudLayer\HUDLayer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Renderer\Framebuffer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Core\GridSystem.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Scripts\ItemScript.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Scripts\ConveyorScript.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Math\Geometry.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\GuiLayer\GameGuiLayer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="CookingStation\Core\AudioEngine.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
+    <ClInclude Include="CookingStation\Core\AudioEngine.h" />
+    <ClInclude Include="CookingStation\Core\GridSystem.h" />
+    <ClInclude Include="CookingStation\Core\Physics.h" />
+    <ClInclude Include="CookingStation\Core\Texture.h" />
+    <ClInclude Include="CookingStation\Core\Timestep.h" />
+    <ClInclude Include="CookingStation\Events\EditorEvents.h" />
+    <ClInclude Include="CookingStation\Layers\EditorLayer\Command.h" />
+    <ClInclude Include="CookingStation\Layers\EditorLayer\CommandHistory.h" />
+    <ClInclude Include="CookingStation\Layers\EditorLayer\CreateEntityCommand.h" />
+    <ClInclude Include="CookingStation\Layers\EditorLayer\MoveEntityCommand.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\GameGuiLayer.h" />
+    <ClInclude Include="CookingStation\Math\Geometry.h" />
+    <ClInclude Include="CookingStation\Renderer\Buffer.h" />
+    <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h" />
+    <ClInclude Include="CookingStation\Layers\AssetLayer\AssetLayer.h" />
+    <ClInclude Include="CookingStation\Core\Application.h" />
+    <ClInclude Include="CookingStation\Core\ProfileTimer.h" />
+    <ClInclude Include="CookingStation\Renderer\Framebuffer.h" />
+    <ClInclude Include="CookingStation\Scene\SceneSerializer.h" />
+    <ClInclude Include="CookingStation\Layers\CameraLayer\Camera.h" />
+    <ClInclude Include="CookingStation\Layers\CameraLayer\CameraLayer.h" />
+    <ClInclude Include="CookingStation\Scene\Entity.h" />
+    <ClInclude Include="CookingStation\Events\Event.h" />
+    <ClInclude Include="CookingStation\Events\KeyEvent.h" />
+    <ClInclude Include="CookingStation\Events\MouseEvent.h" />
+    <ClInclude Include="CookingStation\Events\WindowEvent.h" />
+    <ClInclude Include="CookingStation\Core\Layer.h" />
+    <ClInclude Include="CookingStation\Renderer\Shader.h" />
+    <ClInclude Include="CookingStation\Core\Window.h" />
+    <ClInclude Include="CookingStation\Scene\Scene.h" />
+    <ClInclude Include="CookingStation\Scene\ecs.h" />
+    <ClInclude Include="CookingStation\Renderer\VertexArray.h" />
+    <ClInclude Include="CookingStation\Renderer\RenderCommand.h" />
+    <ClInclude Include="CookingStation\Renderer\Renderer.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Gui.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Renderer2D.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Font.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.h" />
+    <ClInclude Include="CookingStation\Renderer\Texture.h" />
+    <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h" />
+    <ClInclude Include="CookingStation\Layers\RenderLayer\RendererLayer.h" />
+    <ClInclude Include="CookingStation\Layers\EditorLayer\EditorLayer.h" />
+    <ClInclude Include="CookingStation\Scripts\ConveyorScript.h" />
+    <ClInclude Include="CookingStation\Scripts\ItemScript.h" />
+    <ClInclude Include="CookingStation\Scripts\RotationScript.h" />
+    <ClInclude Include="CookingStation\Scene\SceneManager.h" />
+    <ClInclude Include="CookingStation\Layers\GameLayer\GameLayer.h" />
+    <ClInclude Include="CookingStation\Layers\HudLayer\HUDLayer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />
+    <None Include="CookingStation\Shaders\fragShaders\BlinnPhong.frag" />
     <None Include="CookingStation\Shaders\fragShaders\lightCubeShader.frag" />
+    <None Include="CookingStation\Shaders\fragShaders\Rim.frag" />
     <None Include="CookingStation\Shaders\vsShaders\lightCubeShader.vs" />
     <None Include="CookingStation\Shaders\fragShaders\shader.frag" />
     <None Include="CookingStation\Shaders\vsShaders\shader.vs" />
-    <None Include="CookingStation\Shaders\fragShaders\BlinnPhong.frag" />
-    <None Include="CookingStation\Shaders\fragShaders\Rim.frag" />
   </ItemGroup>
 </Project>

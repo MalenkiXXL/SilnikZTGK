@@ -150,7 +150,7 @@
     <ClCompile Include="CookingStation\Layers\AssetLayer\AssetLayer.cpp" />
     <ClCompile Include="CookingStation\Core\Application.cpp" />
     <ClCompile Include="CookingStation\Renderer\Framebuffer.cpp" />
-    <ClCompile Include="CookingStation\Scene\PrefabSerializer.cpp" />
+    <ClCompile Include="CookingStation\Scene\PrefabSerializer.h" />
     <ClCompile Include="CookingStation\Scene\SceneSerializer.cpp" />
     <ClCompile Include="CookingStation\Layers\CameraLayer\CameraLayer.cpp" />
     <ClCompile Include="CookingStation\stb_image_impl.cpp" />
