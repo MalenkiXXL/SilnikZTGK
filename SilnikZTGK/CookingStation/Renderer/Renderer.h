@@ -8,6 +8,11 @@
 
 class Model;
 
+struct InstanceData {
+	glm::mat4 Transform;
+	float UVOffset;
+};
+
 struct RendererStatistics {
 	uint32_t DrawCalls3D = 0;
 	uint32_t DrawCallsUI = 0;
@@ -48,8 +53,7 @@ public:
 	static void Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vertexArray, const glm::mat4 transform = glm::mat4(1.0f));
 
 	static void Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<Model>& model, const glm::mat4& transform);
-	static void SubmitInstanced(std::shared_ptr<Shader> shader, Model* model, const std::vector<glm::mat4>& transforms);
-	static std::string ActiveShader;
+	static void SubmitInstanced(std::shared_ptr<Shader> shader, Model* model, const std::vector<InstanceData>& instanceData);	static std::string ActiveShader;
 private:
 	//globalne dane dla calej klatki
 	struct SceneData

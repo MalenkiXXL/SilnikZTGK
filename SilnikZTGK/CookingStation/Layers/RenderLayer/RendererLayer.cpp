@@ -90,6 +90,9 @@ void RendererLayer::OnUpdate(Timestep ts) {
         glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
         glm::mat4 viewProjection = projection * view;
 
+        // WA¯NE: Upewniamy siê, ¿e macierze œwiata s¹ aktualne przed cullingiem
+        activeScene->CalculateTransforms();
+
         Renderer::BeginScene(viewProjection);
 
         // 1. POBIERAMY SHADERY
@@ -99,6 +102,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
         // 2. USTAWIAMY WSPÓLNE DANE DLA OBU SHADERÓW
         std::vector<std::shared_ptr<Shader>> shaders = { stdShader, conveyorShader };
         for (auto& s : shaders) {
+            if (!s) continue;
             s->use();
             s->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
             s->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
@@ -109,13 +113,12 @@ void RendererLayer::OnUpdate(Timestep ts) {
             }
         }
 
-        // 3. PRZYGOTOWANIE DO RENDEROWANIA I CULLINGU
         auto* scrollStorage = world.GetComponentVector<UVScrollComponent>();
-        Frustum activeFrustum = ExtractFrustum(viewProjection); // Logika z ga³êzi matczak
+        Frustum activeFrustum = ExtractFrustum(viewProjection);
 
         if (meshStorage && transformStorage) {
-            // Mapa do grupowania obiektów statycznych (instancjonowanie)
-            std::unordered_map<Model*, std::pair<std::shared_ptr<Shader>, std::vector<glm::mat4>>> instancedBatches;
+            // ZMIANA 1: Mapa teraz przechowuje nasz nowy wektor structów InstanceData
+            std::unordered_map<Model*, std::pair<std::shared_ptr<Shader>, std::vector<InstanceData>>> instancedBatches;
 
             for (size_t i = 0; i < meshStorage->dense.size(); i++) {
                 auto& meshComp = meshStorage->dense[i];
@@ -123,7 +126,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
                 TransformComponent* transform = transformStorage->Get(owner);
 
                 if (transform && meshComp.ModelPtr) {
-                    // --- FRUSTUM CULLING ---
+                    // --- FRUSTUM CULLING (zostaje jak by³o) ---
                     bool isVisible = false;
                     for (auto& mesh : meshComp.ModelPtr->meshes) {
                         AABB worldAABB = mesh.GetWorldAABB(transform->WorldMatrix);
@@ -138,116 +141,35 @@ void RendererLayer::OnUpdate(Timestep ts) {
                         continue;
                     }
 
-                    // --- LOGIKA RENDEROWANIA ---
+                    // --- NOWA LOGIKA WYBORU RENDERERA ---
                     UVScrollComponent* scroll = scrollStorage ? scrollStorage->Get(owner) : nullptr;
 
+                    // Zbieramy offset. Jeœli obiekt nie ma komponentu scroll, wysy³amy po prostu 0.0f
+                    float currentUVOffset = scroll ? scroll->Offset : 0.0f;
+
+                    // Wybieramy shader: jeœli ma scrolla to conveyor, inaczej standardowy (lub nadpisany)
+                    std::shared_ptr<Shader> shaderToUse = scroll ? conveyorShader : (meshComp.ShaderPtr ? meshComp.ShaderPtr : stdShader);
+
+                    // Jeœli to model taœmy, chcemy wymusiæ odpowiedni tryb zawijania tekstury
                     if (scroll) {
-                        // Obiekty z animacj¹ UV (np. taœmy) renderujemy indywidualnie (Logika z HEAD)
-                        conveyorShader->use();
-                        conveyorShader->setFloat("u_uvOffset", scroll->Offset);
-
                         auto& tex = meshComp.ModelPtr->meshes[0].textures[0].Texture2DPtr;
+                        // Uwaga: Zmiana WrapMode co klatkê bywa kosztowna, ale jeœli jest potrzebna, robimy to tu
                         if (tex) tex->SetWrapMode(GL_REPEAT);
-
-                        Renderer::Submit(conveyorShader, meshComp.ModelPtr, transform->WorldMatrix);
-
-                        if (tex) tex->SetWrapMode(GL_CLAMP_TO_EDGE);
                     }
-                    else {
-                        // Zwyk³e obiekty dodajemy do paczki instancjonowanej
-                        Model* modelKey = meshComp.ModelPtr.get();
-                        instancedBatches[modelKey].first = meshComp.ShaderPtr ? meshComp.ShaderPtr : stdShader;
-                        instancedBatches[modelKey].second.push_back(transform->WorldMatrix);
-                    }
+
+                    // ZMIANA 2: Grupujemy WSZYSTKO (taœmy i zwyk³e obiekty)
+                    Model* modelKey = meshComp.ModelPtr.get();
+                    instancedBatches[modelKey].first = shaderToUse;
+                    instancedBatches[modelKey].second.push_back({ transform->WorldMatrix, currentUVOffset });
                 }
             }
 
-            // Rysowanie paczek instancjonowanych (tych, które przesz³y Culling)
+            // 3. RYSOWANIE PACZEK INSTANCJONOWANYCH (Teraz wyœle te¿ offsety!)
             for (auto& [modelPtr, batchData] : instancedBatches) {
                 Renderer::SubmitInstanced(batchData.first, modelPtr, batchData.second);
             }
         }
-
         Renderer::EndScene();
-
-
-        // =================================================================
-        // RYSOWANIE QUESTÓW JAKO OBIEKT FIZYCZNY W ŒWIECIE GRY
-        // =================================================================
-        auto* tagStorage = world.GetComponentVector<TagComponent>();
-        bool boardFound = false;
-        glm::vec3 boardPos = { 0.0f, 0.0f, 0.0f };
-
-        // Szukamy w œwiecie obiektu, nad którym ma wisieæ nasz tekst (Tablica/Marchewa itp.)
-        if (tagStorage && transformStorage) {
-            for (size_t i = 0; i < tagStorage->dense.size(); i++) {
-                // TUTAJ WPISZ NAZWÊ OBIEKTU Z EDYTORA, np. "Tablica"
-                if (tagStorage->dense[i].Tag == "Tablica") {
-                    Entity e = tagStorage->reverse[i];
-                    if (auto* trans = transformStorage->Get(e)) {
-                        boardPos = { trans->WorldMatrix[3][0], trans->WorldMatrix[3][1], trans->WorldMatrix[3][2] };
-                        boardFound = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (boardFound) {
-            // Skoro jesteœmy w 3D, w³¹czamy Depth Test! 
-            // Tekst schowa siê np. za grzybkiem, jeœli grzybek bêdzie bli¿ej kamery.
-            glEnable(GL_DEPTH_TEST);
-
-            // Wyci¹gamy rotacjê z widoku kamery i ODWRACAMY J¥.
-            // Dziêki temu tablica z tekstem bêdzie ZAWSZE patrzyæ przodem prosto do kamery gracza! (tzw. Billboarding)
-            glm::mat4 invView = glm::inverse(view);
-            glm::mat4 textRotation = glm::mat4(glm::mat3(invView));
-
-            // Przesuwamy obiekt o 2 jednostki do góry w osi Y wzglêdem modelu tablicy
-            glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), boardPos + glm::vec3(0.0f, 2.0f, 0.0f)) * textRotation;
-
-            // Zbudowanie specjalnej macierzy dla Renderer2D
-            glm::mat4 custom3DViewProj = projection * view * modelMatrix;
-
-            Renderer2D::BeginScene(custom3DViewProj);
-
-            // Skala jest u³amkowa, bo w przestrzeni 3D rysujemy w metrach (1.0 = 1 metr wielkoœci liter)
-            float scale = 0.015f;
-
-            // Rysujemy fizyczne t³o tablicy (wymiary w metrach)
-            Renderer2D::DrawQuad({ -1.5f, -0.5f }, { 3.0f, 2.5f }, { 0.15f, 0.15f, 0.15f, 0.85f });
-
-            // Rysowanie poszczególnych linijek
-            float textY = 0.0f;
-            Gui::DrawGuiText("ZLECENIA AI:", { -1.3f, textY }, scale + 0.005f, { 1.0f, 0.8f, 0.2f, 1.0f });
-            textY += 0.3f;
-
-            for (const auto& quest : m_ActiveQuests) {
-                Gui::DrawGuiText(quest.Title, { -1.3f, textY }, scale, { 1.0f, 1.0f, 1.0f, 1.0f });
-                textY += 0.2f;
-                Gui::DrawGuiText(quest.DishID + " (x" + std::to_string(quest.Portions) + ")", { -1.2f, textY }, scale * 0.8f, { 0.7f, 0.7f, 0.7f, 1.0f });
-                textY += 0.3f;
-            }
-
-            // Oznaczenie statusu i przycisk klawiaturowy
-            std::string statusText = m_IsGenerating ? "Generowanie..." : "[Nacisnij ENTER aby pobrac nowe]";
-            glm::vec4 statusColor = m_IsGenerating ? glm::vec4(1.0f, 0.2f, 0.2f, 1.0f) : glm::vec4(0.4f, 1.0f, 0.4f, 1.0f);
-
-            Gui::DrawGuiText(statusText, { -1.3f, textY + 0.1f }, scale, statusColor);
-
-            Renderer2D::EndScene();
-
-            // POBIERANIE W TLE (Poniewa¿ tablica jest w œwiecie 3D, zrezygnowaliœmy z klikania na ni¹ myszk¹. U¿ywamy klawisza ENTER).
-            if (Input::IsKeyPressed(GLFW_KEY_ENTER) && !m_IsGenerating) {
-                m_IsGenerating = true;
-                spdlog::info("Rozpoczeto asynchroniczne generowanie questow z News API...");
-
-                std::thread([this]() {
-                    std::system("cd C:\\Inzynierka\\PlikPython && .venv\\Scripts\\python.exe main.py");
-                    m_GenerationDone = true;
-                    }).detach();
-            }
-        }
     }
 }
 

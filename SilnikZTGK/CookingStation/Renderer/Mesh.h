@@ -8,13 +8,14 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <cstddef> // DODANE: Wymagane dla makra offsetof
 #include "CookingStation/Math/Geometry.h"
 #include <limits>
 #include <cmath>
 
 #include "CookingStation/Renderer/VertexArray.h"
 #include "CookingStation/Renderer/Buffer.h"
-#include "CookingStation/Renderer/Renderer.h"
+#include "CookingStation/Renderer/Renderer.h" // Tutaj znajduje się definicja naszej struktury InstanceData
 #include "CookingStation/Renderer/RenderCommand.h"
 #include "CookingStation/Renderer/Texture.h"
 
@@ -200,27 +201,32 @@ private:
         indexBuffer = std::make_shared<IndexBuffer>(&indices[0], indices.size());
         m_VertexArray->SetIndexBuffer(indexBuffer);
 
+        // ==========================================
+        //  LOGIKA BUFORA INSTANCJI (InstanceVBO)
+        // ==========================================
         glGenBuffers(1, &m_InstanceVBO);
         glBindBuffer(GL_ARRAY_BUFFER, m_InstanceVBO);
 
-        // Alokujemy pamięć dla maksymalnie np. 20 000 instancji tego samego modelu
-        // Używamy GL_DYNAMIC_DRAW, bo te pozycje będą się zmieniać podczas gry!
+        // Alokujemy pamięć na max 20 000 instancji na strukturę InstanceData!
         constexpr std::size_t maxInstances = 20000;
-        glBufferData(GL_ARRAY_BUFFER, maxInstances * sizeof(glm::mat4), nullptr, GL_DYNAMIC_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, maxInstances * sizeof(InstanceData), nullptr, GL_DYNAMIC_DRAW);
 
-        m_VertexArray->Bind(); // Bindujemy VAO modelu, żeby dopisać do niego atrybuty instancji
+        m_VertexArray->Bind();
 
         std::size_t vec4Size = sizeof(glm::vec4);
+
+        // 1. Ustawienie wskaźników dla MACIERZY TRANSFORMACJI (Lokacje 8, 9, 10, 11)
         for (int i = 0; i < 4; i++)
         {
-            // Zaczynamy od lokacji 8! (Bo 0-7 są już zajęte wyżej)
             glEnableVertexAttribArray(8 + i);
-            glVertexAttribPointer(8 + i, 4, GL_FLOAT, GL_FALSE, sizeof(glm::mat4), (void*)(i * vec4Size));
-
-            // TO JEST KLUCZ DO INSTANCJONOWANIA:
-            // Divisor = 1 oznacza, że ten atrybut zmienia się co 1 INSTANCJĘ (model), a nie co 1 wierzchołek!
+            glVertexAttribPointer(8 + i, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)(i * vec4Size));
             glVertexAttribDivisor(8 + i, 1);
         }
+
+        // 2. Ustawienie wskaźnika dla UV OFFSET (Lokacja 12)
+        glEnableVertexAttribArray(12);
+        glVertexAttribPointer(12, 1, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, UVOffset));
+        glVertexAttribDivisor(12, 1);
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         m_VertexArray->Unbind();

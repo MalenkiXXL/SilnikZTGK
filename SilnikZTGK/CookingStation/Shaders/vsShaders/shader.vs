@@ -6,6 +6,9 @@ layout (location = 3) in vec2 aTexCoords2;
 
 layout (location = 8) in mat4 aInstanceMatrix;
 
+layout (location = 12) in float a_uvOffset;
+out float v_uvOffset;
+
 out vec2 TexCoords;
 out vec2 TexCoords2; 
 
@@ -16,12 +19,12 @@ uniform mat4 viewProjection;
 
 void main()
 {
-    TexCoords = aTexCoords;    
+    TexCoords = aTexCoords;
     TexCoords2 = aTexCoords2;
 
-    // Poprawne rzutowanie normalnych
+    v_uvOffset = a_uvOffset; 
+
     Normal = mat3(transpose(inverse(aInstanceMatrix))) * aNormal;
-    
     FragPos = vec3(aInstanceMatrix * vec4(aPos, 1.0));
     gl_Position = viewProjection * aInstanceMatrix * vec4(aPos, 1.0);
 }

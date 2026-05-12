@@ -8,10 +8,11 @@ struct AngleDirection {
     glm::vec3 direction;
 };
 
+// Poprawione mapowanie - upewnij siê, ¿e osie pasuj¹ do Twojego œwiata
 static constexpr AngleDirection s_Mappings[] = {
     {  90.0f, { 0.0f, 0.0f,  1.0f } },
     { 270.0f, { 0.0f, 0.0f, -1.0f } },
-    { 180.0f, { 1.0f, 0.0f,  1.0f } }, // Poprawione na wektory osiowe jeœli trzeba
+    { 180.0f, { 1.0f, 0.0f,  0.0f } }, // Poprawiono z {1,0,1} na {1,0,0}
     {   0.0f, {-1.0f, 0.0f,  0.0f } },
 };
 
@@ -20,16 +21,20 @@ class ConveyorScript : public ScriptableEntity
 public:
     glm::vec3 PushDirection = { 0.0f, 0.0f, 0.0f };
     float Speed = 2.0f;
-    bool IsSwich = true;
 
     void OnCreate() override
     {
         SetPushDirection();
 
-        // Dodajemy komponent do animacji tekstury
-        UVScrollComponent scroll;
-        scroll.Speed = Speed;
-        AddComponent<UVScrollComponent>(scroll);
+        auto* existingScroll = GetComponent<UVScrollComponent>();
+
+        if (!existingScroll)
+        {
+            UVScrollComponent scroll;
+            scroll.Speed = Speed;
+            scroll.Offset = 0.0f;
+            AddComponent<UVScrollComponent>(scroll);
+        }
     }
 
     void OnUpdate(Timestep ts) override
@@ -37,15 +42,16 @@ public:
         auto* scroll = GetComponent<UVScrollComponent>();
         if (scroll)
         {
-            // Logika animacji UV (przesuwanie taœmy)
+            // Przesuwamy offset tekstury
+            // modelLength 4.0 oznacza, ¿e tekstura powtarza siê co 4 jednostki œwiata
             float modelLength = 4.0f;
             float uvSpeed = Speed / modelLength;
 
             scroll->Offset += uvSpeed * ts;
-            scroll->Offset = fmodf(scroll->Offset, 1.0f);
 
-            if (scroll->Offset < 0.0f)
-                scroll->Offset += 1.0f;
+            // Zawijanie offsetu (0.0 - 1.0)
+            if (scroll->Offset > 1.0f) scroll->Offset -= 1.0f;
+            if (scroll->Offset < 0.0f) scroll->Offset += 1.0f;
         }
     }
 
@@ -56,15 +62,19 @@ public:
 
         float rotY = transform->GetRotation().y;
 
-        while (rotY < 0.0f) rotY += 360.0f;
-        while (rotY >= 360.0f) rotY -= 360.0f;
+        // Normalizacja k¹ta do zakresu 0-360
+        float normalizedRot = fmodf(rotY, 360.0f);
+        if (normalizedRot < 0.0f) normalizedRot += 360.0f;
 
         for (auto& m : s_Mappings)
-            if (std::abs(rotY - m.angle) < 1.0f)
+        {
+            if (std::abs(normalizedRot - m.angle) < 1.0f)
             {
                 PushDirection = m.direction;
                 return;
             }
+        }
+        // Domyœlny kierunek, jeœli nie dopasowano k¹ta
         PushDirection = s_Mappings[3].direction;
     }
 
@@ -74,15 +84,17 @@ public:
         if (!transform) return;
 
         auto& conveyorMap = GetScene()->GetConveyorMap();
-        int neighborCount = 0;
 
+        // Logika szukania s¹siadów do zwrotnicy
         float validAngles[4];
         int validCount = 0;
+        int neighborCount = 0;
 
         glm::vec3 myPos = transform->GetPosition();
 
         for (auto& m : s_Mappings)
         {
+            // Klucz mapy to pozycja w kratkach (zak³adaj¹c CELL_SIZE = 2.0)
             GridPos neighborKey{
                 (int)std::round((myPos.x + m.direction.x * 2.0f) / 2.0f),
                 (int)std::round((myPos.z + m.direction.z * 2.0f) / 2.0f)
@@ -93,31 +105,22 @@ public:
 
             neighborCount++;
 
+            // Nie skrêcajmy "pod pr¹d" s¹siada (czo³ówka)
             ConveyorScript* neighbor = it->second;
-            bool isHeadOnCollision = (
-                std::abs(neighbor->PushDirection.x + m.direction.x) < 0.1f &&
-                std::abs(neighbor->PushDirection.z + m.direction.z) < 0.1f
-                );
-            if (!isHeadOnCollision)
+            bool isHeadOn = (glm::dot(m.direction, neighbor->PushDirection) < -0.9f);
+
+            if (!isHeadOn)
             {
-                validAngles[validCount] = m.angle;
-                validCount++;
+                validAngles[validCount++] = m.angle;
             }
         }
 
-        if (neighborCount < 3)
+        // Zmiana kierunku tylko jeœli to faktycznie skrzy¿owanie/zwrotnica
+        if (neighborCount >= 3 && validCount > 0)
         {
-            spdlog::info("Tasma ma tylko {} sasiadow. To nie jest zwrotnica!", neighborCount);
-            return;
-        }
-
-        if (validCount > 0)
-        {
-            glm::vec3 currentRotVec = transform->GetRotation();
-            float currentRot = currentRotVec.y;
-
-            while (currentRot < 0.0f) currentRot += 360.0f;
-            while (currentRot >= 360.0f) currentRot -= 360.0f;
+            float currentRot = transform->GetRotation().y;
+            currentRot = fmodf(currentRot, 360.0f);
+            if (currentRot < 0.0f) currentRot += 360.0f;
 
             int currentIndex = -1;
             for (int i = 0; i < validCount; i++)
@@ -131,10 +134,12 @@ public:
 
             int nextIndex = (currentIndex + 1) % validCount;
 
-            currentRotVec.y = validAngles[nextIndex];
-            transform->SetRotation(currentRotVec);
+            glm::vec3 newRot = transform->GetRotation();
+            newRot.y = validAngles[nextIndex];
+            transform->SetRotation(newRot);
 
             SetPushDirection();
+            spdlog::info("Zwrotnica: Nowy kierunek: {}", newRot.y);
         }
     }
 };
