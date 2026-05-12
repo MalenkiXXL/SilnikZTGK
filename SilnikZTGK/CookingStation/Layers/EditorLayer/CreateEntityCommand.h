@@ -20,9 +20,11 @@ public:
         m_World->AddComponent<MeshComponent>(m_Entity, meshComp);
 
         TransformComponent transComp;
-        transComp.Position = m_Position;
-        transComp.Rotation = glm::vec3(0.0f);
-        transComp.Scale = glm::vec3(1.0f, 1.0f, 1.0f); // Skala 1, ¿eby obiekt by³ widoczny!
+
+        transComp.SetPosition(m_Position);
+        transComp.SetRotation(glm::vec3(0.0f));
+        transComp.SetScale(glm::vec3(1.0f, 1.0f, 1.0f)); // Skala 1, ¿eby obiekt by³ widoczny!
+
         m_World->AddComponent<TransformComponent>(m_Entity, transComp);
 
         BoxColliderComponent colliderComp;
@@ -50,7 +52,7 @@ public:
         m_World->AddComponent<NativeScriptComponent>(m_Entity, NativeScriptComponent{});
 
         // 3. Podpinamy skrypt
-    /*    auto* script = m_World->GetComponent<NativeScriptComponent>(m_Entity);
+    /* auto* script = m_World->GetComponent<NativeScriptComponent>(m_Entity);
         if (script) {
             script->Bind<RotationScript>("RotationScript");
         }*/

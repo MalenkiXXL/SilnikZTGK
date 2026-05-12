@@ -21,7 +21,14 @@ public:
             auto* transform = GetComponent<TransformComponent>();
             if (transform)
             {
-                transform->Rotation.y += 90.0f * ts;
+                // 1. Pobieramy obecny wektor rotacji
+                glm::vec3 currentRot = transform->GetRotation();
+
+                // 2. Modyfikujemy odpowiedni¹ oœ (dodajemy 90 stopni * delta time)
+                currentRot.y += 90.0f * ts;
+
+                // 3. Wgrywamy z powrotem przez Setter (To aktywuje flagê IsDirty!)
+                transform->SetRotation(currentRot);
             }
         }
     }

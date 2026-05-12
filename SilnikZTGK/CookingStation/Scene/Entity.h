@@ -17,21 +17,48 @@ struct RelationshipComponent {
 };
 
 struct TransformComponent {
-    // lokalna pozycja wzgledem rodzica
-    glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
-    glm::vec3 Rotation = { 0.0f, 0.0f, 0.0f };
-    glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
+private:
+    // Lokalna pozycja wzgledem rodzica ukryta za enkapsulacj¹
+    glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 m_Rotation = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 m_Scale = { 1.0f, 1.0f, 1.0f };
 
-    // ostateczna macierz przekazywana do renderera
+    // Zbuforowana macierz lokalna
+    glm::mat4 m_LocalMatrix = glm::mat4(1.0f);
+
+    // FLAGI OPTYMALIZACYJNE
+    bool m_IsDirty = true;        
+    bool m_WorldIsDirty = true;  
+
+public:
+    // Ostateczna macierz przekazywana do renderera
     glm::mat4 WorldMatrix = glm::mat4(1.0f);
 
-    // funkcja licz¹ca lokaln¹ macierz (Translation * Rotation * Scale)
-    glm::mat4 GetLocalMatrix() const {
-        glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(Rotation.x), { 1, 0, 0 })
-            * glm::rotate(glm::mat4(1.0f), glm::radians(Rotation.y), { 0, 1, 0 })
-            * glm::rotate(glm::mat4(1.0f), glm::radians(Rotation.z), { 0, 0, 1 });
+    const glm::vec3& GetPosition() const { return m_Position; }
+    const glm::vec3& GetRotation() const { return m_Rotation; }
+    const glm::vec3& GetScale() const { return m_Scale; }
 
-        return glm::translate(glm::mat4(1.0f), Position) * rotation * glm::scale(glm::mat4(1.0f), Scale);
+    void SetPosition(const glm::vec3& pos) { m_Position = pos; m_IsDirty = true; m_WorldIsDirty = true; }
+    void SetRotation(const glm::vec3& rot) { m_Rotation = rot; m_IsDirty = true; m_WorldIsDirty = true; }
+    void SetScale(const glm::vec3& scale) { m_Scale = scale;  m_IsDirty = true; m_WorldIsDirty = true; }
+
+    bool IsDirty() const { return m_IsDirty; }
+    void SetWorldDirty() { m_WorldIsDirty = true; }
+    bool IsWorldDirty() const { return m_WorldIsDirty; }
+    void ClearWorldDirty() { m_WorldIsDirty = false; }
+
+    // Funkcja licz¹ca lokaln¹ macierz ze zintegrowan¹ pamiêci¹ podrêczn¹
+    const glm::mat4& GetLocalMatrix() {
+        if (m_IsDirty) {
+            glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(m_Rotation.x), { 1, 0, 0 })
+                * glm::rotate(glm::mat4(1.0f), glm::radians(m_Rotation.y), { 0, 1, 0 })
+                * glm::rotate(glm::mat4(1.0f), glm::radians(m_Rotation.z), { 0, 0, 1 });
+
+            m_LocalMatrix = glm::translate(glm::mat4(1.0f), m_Position) * rotation * glm::scale(glm::mat4(1.0f), m_Scale);
+
+            m_IsDirty = false; // Zdejmujemy flagê
+        }
+        return m_LocalMatrix;
     }
 };
 

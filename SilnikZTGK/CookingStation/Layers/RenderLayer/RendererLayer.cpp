@@ -96,60 +96,83 @@ void RendererLayer::OnUpdate(Timestep ts) {
         auto stdShader = m_ShaderLibrary.Get(Renderer::ActiveShader);
         auto conveyorShader = m_ShaderLibrary.Get("Conveyor");
 
-        // 2. USTAWIAMY WSPÓLNE DANE DLA OBU SHADERÓW (raz przed pêtl¹)
+        // 2. USTAWIAMY WSPÓLNE DANE DLA OBU SHADERÓW
         std::vector<std::shared_ptr<Shader>> shaders = { stdShader, conveyorShader };
-
         for (auto& s : shaders) {
             s->use();
             s->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
             s->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
             s->setVec3("viewPos", activeScene->GetCamera()->Position);
 
-            // Jeœli domyœlny shader to RAMP, bindujemy teksturê raz
             if (s == stdShader && Renderer::ActiveShader == "RAMP") {
                 m_RampTexture->Bind(10);
             }
         }
 
+        // 3. PRZYGOTOWANIE DO RENDEROWANIA I CULLINGU
         auto* scrollStorage = world.GetComponentVector<UVScrollComponent>();
+        Frustum activeFrustum = ExtractFrustum(viewProjection); // Logika z ga³êzi matczak
 
-        // 3. PÊTLA RENDERUJ¥CA
         if (meshStorage && transformStorage) {
+            // Mapa do grupowania obiektów statycznych (instancjonowanie)
+            std::unordered_map<Model*, std::pair<std::shared_ptr<Shader>, std::vector<glm::mat4>>> instancedBatches;
+
             for (size_t i = 0; i < meshStorage->dense.size(); i++) {
                 auto& meshComp = meshStorage->dense[i];
                 Entity owner = meshStorage->reverse[i];
                 TransformComponent* transform = transformStorage->Get(owner);
 
                 if (transform && meshComp.ModelPtr) {
+                    // --- FRUSTUM CULLING ---
+                    bool isVisible = false;
+                    for (auto& mesh : meshComp.ModelPtr->meshes) {
+                        AABB worldAABB = mesh.GetWorldAABB(transform->WorldMatrix);
+                        if (IsOnFrustum(activeFrustum, worldAABB)) {
+                            isVisible = true;
+                            break;
+                        }
+                    }
+
+                    if (!isVisible) {
+                        Renderer::GetStats().CulledObjects3D++;
+                        continue;
+                    }
+
+                    // --- LOGIKA RENDEROWANIA ---
                     UVScrollComponent* scroll = scrollStorage ? scrollStorage->Get(owner) : nullptr;
 
-                    // Wybieramy ju¿ skonfigurowany shader
-                    auto shaderToUse = scroll ? conveyorShader : stdShader;
-                    shaderToUse->use();
-
                     if (scroll) {
-                        // Tylko te wartoœci zmieniaj¹ siê per-obiekt
-                        shaderToUse->setFloat("u_uvOffset", scroll->Offset);
+                        // Obiekty z animacj¹ UV (np. taœmy) renderujemy indywidualnie (Logika z HEAD)
+                        conveyorShader->use();
+                        conveyorShader->setFloat("u_uvOffset", scroll->Offset);
 
                         auto& tex = meshComp.ModelPtr->meshes[0].textures[0].Texture2DPtr;
                         if (tex) tex->SetWrapMode(GL_REPEAT);
-                    }
 
-                    Renderer::Submit(shaderToUse, meshComp.ModelPtr, transform->WorldMatrix);
+                        Renderer::Submit(conveyorShader, meshComp.ModelPtr, transform->WorldMatrix);
 
-                    // Przywracamy Clamp jeœli to by³a taœma
-                    if (scroll) {
-                        auto& tex = meshComp.ModelPtr->meshes[0].textures[0].Texture2DPtr;
                         if (tex) tex->SetWrapMode(GL_CLAMP_TO_EDGE);
+                    }
+                    else {
+                        // Zwyk³e obiekty dodajemy do paczki instancjonowanej
+                        Model* modelKey = meshComp.ModelPtr.get();
+                        instancedBatches[modelKey].first = meshComp.ShaderPtr ? meshComp.ShaderPtr : stdShader;
+                        instancedBatches[modelKey].second.push_back(transform->WorldMatrix);
                     }
                 }
             }
+
+            // Rysowanie paczek instancjonowanych (tych, które przesz³y Culling)
+            for (auto& [modelPtr, batchData] : instancedBatches) {
+                Renderer::SubmitInstanced(batchData.first, modelPtr, batchData.second);
+            }
         }
+
         Renderer::EndScene();
 
 
         // =================================================================
-        // NOWOŒÆ: RYSOWANIE QUESTÓW JAKO OBIEKT FIZYCZNY W ŒWIECIE GRY
+        // RYSOWANIE QUESTÓW JAKO OBIEKT FIZYCZNY W ŒWIECIE GRY
         // =================================================================
         auto* tagStorage = world.GetComponentVector<TagComponent>();
         bool boardFound = false;

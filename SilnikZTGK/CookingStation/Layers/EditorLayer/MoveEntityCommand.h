@@ -8,20 +8,20 @@ public:
         // U¿ywamy nowej metody pobierania po ID
         TransformComponent* transform = m_World->GetComponentByID<TransformComponent>(m_EntityId);
         if (transform != nullptr) {
-            transform->Position = m_NewPosition;
+            transform->SetPosition(m_NewPosition);
         }
     }
 
     virtual void Undo() override {
         TransformComponent* transform = m_World->GetComponentByID<TransformComponent>(m_EntityId);
         if (transform != nullptr) {
-            transform->Position = m_OldPosition;
+            transform->SetPosition(m_OldPosition);
         }
     }
 
 private:
     World* m_World;
-    std::size_t m_EntityId; 
+    std::size_t m_EntityId;
     glm::vec3 m_OldPosition;
     glm::vec3 m_NewPosition;
 };

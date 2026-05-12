@@ -19,12 +19,19 @@ struct RendererStatistics {
 	float CPURenderTime = 0.0f;
 	float GPURenderTime = 0.0f;
 
+	uint32_t InstanceBatches = 0;  // Ile grup modeli wys³ano
+	uint32_t MatrixCalculations = 0; // Ile macierzy przeliczono w tej klatce (CPU Dirty Flag)
+	uint32_t SkippedCalculations = 0; // Ile obiektów pominiêto dziêki Dirty Flag
+
 	void Reset() {
 		DrawCalls3D = 0;
 		DrawCallsUI = 0; 
 		TriangleCount3D = 0;
 		TriangleCountUI = 0;
 		CulledObjects3D = 0;
+		InstanceBatches = 0;
+		MatrixCalculations = 0;
+		SkippedCalculations = 0;
 	}
 };
 
@@ -41,7 +48,7 @@ public:
 	static void Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vertexArray, const glm::mat4 transform = glm::mat4(1.0f));
 
 	static void Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<Model>& model, const glm::mat4& transform);
-	
+	static void SubmitInstanced(std::shared_ptr<Shader> shader, Model* model, const std::vector<glm::mat4>& transforms);
 	static std::string ActiveShader;
 private:
 	//globalne dane dla calej klatki

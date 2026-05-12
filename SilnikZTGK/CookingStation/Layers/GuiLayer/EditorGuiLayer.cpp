@@ -16,7 +16,7 @@
 #include <string>
 #include <limits>
 
-namespace { 
+namespace {
     enum class Anchor { TopLeft, TopRight, BottomLeft, BottomRight, Center };
 
     glm::vec2 GetAnchoredPosition(Anchor anchor, float offsetX, float offsetY, float width, float height, float screenWidth, float screenHeight) {
@@ -81,7 +81,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- G��WNY PASEK ZADA� ---
+    // --- GŁÓWNY PASEK ZADAŃ ---
     Gui::Panel({ 0.0f, 0.0f }, { m_ViewportWidth, 30.0f }, { 0.15f, 0.15f, 0.15f, 1.0f });
 
     if (Gui::Button("Plik", { 10.0f, 5.0f }, { 80.0f, 20.0f })) {
@@ -127,11 +127,10 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- PANEL GENERATORA QUEST�W AI (TYLKO W EDYTORZE) ---
+    // --- PANEL GENERATORA QUESTÓW AI ---
     if (m_ShowQuestsPanel) {
         glm::vec2 questPanelPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 400.0f, 180.0f, 85.0f, m_ViewportWidth, m_ViewportHeight);
 
-        // U�ywamy Gui::Panel (z blokowaniem klikni��)
         Gui::Panel(questPanelPos, { 180.0f, 85.0f }, { 0.15f, 0.15f, 0.15f, 0.9f }, 15.0f);
         Gui::DrawGuiText("Generator Questow:", { questPanelPos.x + 5.f, questPanelPos.y + 10.f }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
 
@@ -165,6 +164,14 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             m_CpuText = "CPU Logika: " + formatFloat(stats.CPULogicTime) + " ms";
             m_GpuText = "GPU Render: " + formatFloat(stats.GPURenderTime) + " ms";
             m_DrawCalls3DText = "Draw Calls (3D): " + std::to_string(stats.DrawCalls3D);
+
+            m_InstanceBatchesText = "Instanced Batches: " + std::to_string(stats.InstanceBatches);
+            m_MatrixCalcText = "CPU Matrix Calcs: " + std::to_string(stats.MatrixCalculations);
+
+            float totalMatrix = (float)(stats.MatrixCalculations + stats.SkippedCalculations);
+            float savings = totalMatrix > 0 ? ((float)stats.SkippedCalculations / totalMatrix) * 100.0f : 0.0f;
+            m_CpuSavingsText = "CPU Savings: " + formatFloat(savings) + "%";
+
             m_Tris3DText = "Trojkaty (3D): " + std::to_string(stats.TriangleCount3D);
             m_Culled3DText = "Odrzucone (Culled): " + std::to_string(stats.CulledObjects3D);
             m_DrawCallsUIText = "Draw Calls (UI): " + std::to_string(stats.DrawCallsUI);
@@ -172,21 +179,28 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             m_StatsUpdateTimer = 0.0f;
         }
 
-        glm::vec2 panelSize(280.0f, 250.0f);
-        glm::vec2 panelPos = GetAnchoredPosition(Anchor::BottomRight, 10.0f, 10.0f, panelSize.x, panelSize.y, m_ViewportWidth, m_ViewportHeight);
+        glm::vec2 panelSize(300.0f, 350.0f); 
+        glm::vec2 panelPos = GetAnchoredPosition(Anchor::BottomRight, 0.0f, 10.0f, panelSize.x, panelSize.y, m_ViewportWidth, m_ViewportHeight);
 
         Gui::Panel(panelPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.85f });
 
         float textX = panelPos.x + 15.0f; float textY = panelPos.y + 5.0f; float lineOffset = 25.0f; float scale = 0.6f;
         glm::vec4 textColor(1.0f, 1.0f, 1.0f, 1.0f);
         glm::vec4 highlightColor(1.0f, 0.8f, 0.2f, 1.0f);
+        glm::vec4 optColor(0.2f, 0.9f, 0.8f, 1.0f); 
 
         Gui::DrawGuiText("Diagnostyka Projektu:", { textX, textY }, scale + 0.1f, { 0.2f, 0.8f, 0.2f, 1.0f }); textY += lineOffset + 5.0f;
         Gui::DrawGuiText(m_FpsText, { textX, textY }, scale, textColor); textY += lineOffset;
         Gui::DrawGuiText(m_FrameTimeText, { textX, textY }, scale, textColor); textY += lineOffset;
         Gui::DrawGuiText(m_CpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
         Gui::DrawGuiText(m_GpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
+
+        // Wyświetlanie nowych statystyk
         Gui::DrawGuiText(m_DrawCalls3DText, { textX, textY }, scale, textColor); textY += lineOffset;
+        Gui::DrawGuiText(m_InstanceBatchesText, { textX, textY }, scale, optColor); textY += lineOffset;
+        Gui::DrawGuiText(m_MatrixCalcText, { textX, textY }, scale, optColor); textY += lineOffset;
+        Gui::DrawGuiText(m_CpuSavingsText, { textX, textY }, scale, optColor); textY += lineOffset;
+
         Gui::DrawGuiText(m_Tris3DText, { textX, textY }, scale, textColor); textY += lineOffset;
         Gui::DrawGuiText(m_Culled3DText, { textX, textY }, scale, textColor); textY += lineOffset;
         Gui::DrawGuiText(m_DrawCallsUIText, { textX, textY }, scale, textColor); textY += lineOffset;
@@ -212,7 +226,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
 
         Gui::DrawGuiText("Model Oswietlenia:", { envPos.x + 5.f, envPos.y + 145.f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
-        if (Gui::Button("Standard", { envPos.x + 5.f, envPos.y + 165.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "Phong"))) Renderer::ActiveShader = "Standard";
+        if (Gui::Button("Standard", { envPos.x + 5.f, envPos.y + 165.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "Standard"))) Renderer::ActiveShader = "Standard";
         if (Gui::Button("RAMP", { envPos.x + 90.f, envPos.y + 165.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "RAMP"))) Renderer::ActiveShader = "RAMP";
         if (Gui::Button("Fake BRDF", { envPos.x + 5.f, envPos.y + 195.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "FakeBRDF"))) Renderer::ActiveShader = "FakeBRDF";
         if (Gui::Button("Blinn-Phong", { envPos.x + 90.f, envPos.y + 195.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "BlinnPhong"))) Renderer::ActiveShader = "BlinnPhong";
@@ -284,16 +298,14 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             }
         }
 
-        // --- WYŁĄCZENIE NOŻYC MUSI BYĆ POZA PĘTLĄ FOR! ---
         Renderer2D::EndScene();
         glDisable(GL_SCISSOR_TEST);
         Renderer2D::BeginScene(uiProj);
     }
 
-        // --- PANEL PREFAB�W ---
+    // --- PANEL PREFABÓW ---
     if (m_ShowPrefabsPanel) {
         glm::vec2 prefSize = { m_ViewportWidth - 500.0f, 120.0f };
-        // Rysujemy go na samym dole (offset Y: 0.0f)
         glm::vec2 prefPos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, prefSize.x, prefSize.y, m_ViewportWidth, m_ViewportHeight);
 
         Gui::Panel(prefPos, prefSize, { 0.15f, 0.25f, 0.3f, 0.95f });
@@ -324,7 +336,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 }
             }
         }
-    
     }
 
     // --- INSPEKTOR ENCJI (ANCHOR: TOP RIGHT) ---
@@ -339,28 +350,41 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
 
             auto* transform = world.GetComponent<TransformComponent>(selected);
             if (transform) {
-                glm::vec3 posBeforeSliders = transform->Position;
+                glm::vec3 pos = transform->GetPosition();
+                glm::vec3 rot = transform->GetRotation();
+                glm::vec3 scale = transform->GetScale();
+
+                glm::vec3 posBeforeSliders = pos;
                 float dS = 0.05f; float rS = 0.5f;
 
-                Gui::DragFloat("Pos X", &transform->Position.x, dS, { inspPos.x, inspPos.y + 40.0f }, { 300, 30 });
-                Gui::DragFloat("Pos Y", &transform->Position.y, dS, { inspPos.x, inspPos.y + 80.0f }, { 300, 30 });
-                Gui::DragFloat("Pos Z", &transform->Position.z, dS, { inspPos.x, inspPos.y + 120.0f }, { 300, 30 });
-                Gui::DragFloat("Rot X", &transform->Rotation.x, rS, { inspPos.x, inspPos.y + 160.0f }, { 300, 30 });
-                Gui::DragFloat("Rot Y", &transform->Rotation.y, rS, { inspPos.x, inspPos.y + 200.0f }, { 300, 30 });
-                Gui::DragFloat("Rot Z", &transform->Rotation.z, rS, { inspPos.x, inspPos.y + 240.0f }, { 300, 30 });
-                Gui::DragFloat("Skala X", &transform->Scale.x, dS, { inspPos.x, inspPos.y + 280.0f }, { 300, 30 });
-                Gui::DragFloat("Skala Y", &transform->Scale.y, dS, { inspPos.x, inspPos.y + 320.0f }, { 300, 30 });
-                Gui::DragFloat("Skala Z", &transform->Scale.z, dS, { inspPos.x, inspPos.y + 360.0f }, { 300, 30 });
+                Gui::DragFloat("Pos X", &pos.x, dS, { inspPos.x, inspPos.y + 40.0f }, { 300, 30 });
+                Gui::DragFloat("Pos Y", &pos.y, dS, { inspPos.x, inspPos.y + 80.0f }, { 300, 30 });
+                Gui::DragFloat("Pos Z", &pos.z, dS, { inspPos.x, inspPos.y + 120.0f }, { 300, 30 });
+                Gui::DragFloat("Rot X", &rot.x, rS, { inspPos.x, inspPos.y + 160.0f }, { 300, 30 });
+                Gui::DragFloat("Rot Y", &rot.y, rS, { inspPos.x, inspPos.y + 200.0f }, { 300, 30 });
+                Gui::DragFloat("Rot Z", &rot.z, rS, { inspPos.x, inspPos.y + 240.0f }, { 300, 30 });
+                Gui::DragFloat("Skala X", &scale.x, dS, { inspPos.x, inspPos.y + 280.0f }, { 300, 30 });
+                Gui::DragFloat("Skala Y", &scale.y, dS, { inspPos.x, inspPos.y + 320.0f }, { 300, 30 });
+                Gui::DragFloat("Skala Z", &scale.z, dS, { inspPos.x, inspPos.y + 360.0f }, { 300, 30 });
 
-                if (posBeforeSliders != transform->Position && !m_IsDraggingTransform) {
-                    m_IsDraggingTransform = true; m_TransformStartPos = posBeforeSliders;
+                if (pos != posBeforeSliders || rot != transform->GetRotation() || scale != transform->GetScale()) {
+                    transform->SetPosition(pos);
+                    transform->SetRotation(rot);
+                    transform->SetScale(scale);
+
+                    if (pos != posBeforeSliders && !m_IsDraggingTransform) {
+                        m_IsDraggingTransform = true;
+                        m_TransformStartPos = posBeforeSliders;
+                    }
                 }
+
                 if (m_IsDraggingTransform && !Input::IsMouseButtonPressed(0)) {
-                    EntityTransformChangedEvent e(selected, m_TransformStartPos, transform->Position);
+                    EntityTransformChangedEvent e(selected, m_TransformStartPos, pos);
                     Application::Get().OnEvent(e);
                     m_IsDraggingTransform = false;
                 }
             }
+
             if (Gui::Button("USUN OBIEKT", { inspPos.x, inspPos.y + 400.0f }, { 300.0f, 40.0f })) {
                 EntityDeletedEvent e(selected);
                 Application::Get().OnEvent(e);
@@ -371,20 +395,17 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 auto* tag = world.GetComponent<TagComponent>(selected);
                 std::string prefabName = tag ? tag->Tag : "NowyPrefab";
                 std::string path = "CookingStation/Assets/prefabs/" + prefabName + ".json";
-
                 PrefabSerializer::Serialize(activeScene.get(), selected, path);
             }
 
             auto* scriptComp = world.GetComponent<NativeScriptComponent>(selected);
 
             if (!scriptComp) {
-                // Je�li obiekt nie ma w og�le komponentu skryptu
                 if (Gui::Button("DODAJ SKRYPT", { inspPos.x, inspPos.y + 490.0f }, { 300.0f, 30.0f })) {
                     world.AddComponent<NativeScriptComponent>(selected, NativeScriptComponent{});
                 }
             }
             else {
-                // Je�li obiekt ma komponent, pokazujemy menu wyboru skrypt�w
                 Gui::DrawGuiText("Skrypt: " + (scriptComp->ScriptName.empty() ? "Brak" : scriptComp->ScriptName),
                     { inspPos.x + 5.0f, inspPos.y + 495.0f }, 0.45f, { 0.2f, 0.9f, 0.2f, 1.0f });
 
@@ -398,7 +419,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                     scriptComp->Bind<ItemScript>("ItemScript");
                 }
 
-                // Przycisk usuwaj�cy bindowanie (czy�cimy wska�niki bez usuwania komponentu z ECS dla bezpiecze�stwa)
                 if (Gui::Button("USUN SKRYPT", { inspPos.x + 155.0f, inspPos.y + 550.0f }, { 145.0f, 25.0f })) {
                     scriptComp->InstantiateScript = nullptr;
                     scriptComp->DestroyScript = nullptr;
@@ -406,7 +426,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 }
             }
         }
-
     }
 
     // --- OKNO ZAPISU (ANCHOR: CENTER) ---
@@ -441,12 +460,10 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             std::shared_ptr<Scene> newScene = SceneManager::NewScene();
             SceneSerializer serializer(newScene.get());
             serializer.Deserialize(path);
-            spdlog::info("Wczytano scene z: {}", path);
             m_ShowLoadDialog = false;
         }
         if (Gui::Button("Anuluj", { dialogPos.x + 180.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) m_ShowLoadDialog = false;
     }
-
 
     if (m_ShowViewMenu) {
         Renderer2D::DrawQuad({ 100.0f, 30.0f }, { 160.0f, 220.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
@@ -457,9 +474,8 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             m_ShowHierarchyPanel = !m_ShowHierarchyPanel; m_ShowViewMenu = false;
         }
         if (Gui::Button("Biblioteka", { 105.0f, 95.0f }, { 150.0f, 25.0f }, m_ShowLibraryPanel)) {
-            m_ShowLibraryPanel = !m_ShowLibraryPanel; 
-            if (m_ShowPrefabsPanel)
-                m_ShowPrefabsPanel = false; 
+            m_ShowLibraryPanel = !m_ShowLibraryPanel;
+            if (m_ShowPrefabsPanel) m_ShowPrefabsPanel = false;
             m_ShowViewMenu = false;
         }
         if (Gui::Button("Inspektor", { 105.0f, 125.0f }, { 150.0f, 25.0f }, m_ShowInspectorPanel)) {
@@ -472,10 +488,8 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             m_ShowQuestsPanel = !m_ShowQuestsPanel; m_ShowViewMenu = false;
         }
         if (Gui::Button("Prefaby", { 105.0f, 215.0f }, { 150.0f, 25.0f }, m_ShowPrefabsPanel)) {
-            m_ShowPrefabsPanel = !m_ShowPrefabsPanel; 
-            if(m_ShowLibraryPanel)
-                m_ShowLibraryPanel = false;
-            m_ShowLibraryPanel = false;
+            m_ShowPrefabsPanel = !m_ShowPrefabsPanel;
+            if (m_ShowLibraryPanel) m_ShowLibraryPanel = false;
             m_ShowViewMenu = false;
         }
     }
@@ -495,38 +509,29 @@ void EditorGuiLayer::OnEvent(Event& e) {
 
 bool EditorGuiLayer::OnMouseScrolled(MouseScrolledEvent& e) {
     float scrollAmount = e.GetYOffset() * 30.0f;
-
-    // Podmiana manualnego liczenia na gotowe rozwi�zanie z GUI:
     if (m_ShowLibraryPanel) {
         glm::vec2 size(m_ViewportWidth - 500.0f, 200.0f);
         glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
-
         if (Gui::IsMouseOver(pos, size)) {
             m_LibraryScrollY -= scrollAmount;
             if (m_LibraryScrollY < 0.0f) m_LibraryScrollY = 0.0f;
             return true;
         }
     }
-
     if (m_ShowHierarchyPanel) {
         glm::vec2 pos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 80.0f, 180.0f, 250.0f, m_ViewportWidth, m_ViewportHeight);
-
         if (Gui::IsMouseOver(pos, { 180.0f, 300.0f })) {
             m_HierarchyScrollY -= scrollAmount;
             if (m_HierarchyScrollY < 0.0f) m_HierarchyScrollY = 0.0f;
             return true;
         }
     }
-
     return false;
 }
 
 bool EditorGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
-    if (Gui::WantCaptureMouse()) {
-        return true;
-    }
-
-    return false; // Kliknęliśmy w pustkę, edytor może działać.
+    if (Gui::WantCaptureMouse()) return true;
+    return false;
 }
 
 bool EditorGuiLayer::OnWindowResize(WindowResizeEvent& e) {

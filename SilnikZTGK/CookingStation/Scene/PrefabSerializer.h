@@ -30,9 +30,14 @@ public:
 
         if (transformStorage) {
             if (auto* transform = transformStorage->Get(entity)) {
-                item["position"] = { transform->Position.x, transform->Position.y, transform->Position.z };
-                item["rotation"] = { transform->Rotation.x, transform->Rotation.y, transform->Rotation.z };
-                item["scale"] = { transform->Scale.x, transform->Scale.y, transform->Scale.z };
+                // ZMIANA: Pobieramy dane przez bezpieczne Gettery
+                glm::vec3 pos = transform->GetPosition();
+                glm::vec3 rot = transform->GetRotation();
+                glm::vec3 scale = transform->GetScale();
+
+                item["position"] = { pos.x, pos.y, pos.z };
+                item["rotation"] = { rot.x, rot.y, rot.z };
+                item["scale"] = { scale.x, scale.y, scale.z };
             }
         }
 
@@ -76,10 +81,13 @@ public:
         builder.With<TagComponent>({ name });
 
         TransformComponent transComp;
-        transComp.Position = spawnPos; // NADPISUJEMY POZYCJÊ!
+
+        // ZMIANA: Wgrywamy dane przez Settery, co automatycznie ustawi flagê m_IsDirty na true!
+        transComp.SetPosition(spawnPos);
+
         if (item.contains("rotation") && item.contains("scale")) {
-            transComp.Rotation = { item["rotation"][0], item["rotation"][1], item["rotation"][2] };
-            transComp.Scale = { item["scale"][0], item["scale"][1], item["scale"][2] };
+            transComp.SetRotation({ item["rotation"][0], item["rotation"][1], item["rotation"][2] });
+            transComp.SetScale({ item["scale"][0], item["scale"][1], item["scale"][2] });
         }
         builder.With<TransformComponent>(transComp);
 
