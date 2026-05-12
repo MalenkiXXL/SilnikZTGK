@@ -5,11 +5,16 @@
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Events/EditorEvents.h"
+#include "CookingStation/Scene/PrefabSerializer.cpp"
 #include "CookingStation/Core/Application.h"
 #include "GameGuiLayer.h"
 #include <cstdlib> 
 #include <cstdio>
 #include <fstream>
+#include <filesystem>
+#include <algorithm>
+#include <string>
+#include <limits>
 
 namespace { 
     enum class Anchor { TopLeft, TopRight, BottomLeft, BottomRight, Center };
@@ -76,7 +81,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- G£ÓWNY PASEK ZADAÑ ---
+    // --- Gï¿½ï¿½WNY PASEK ZADAï¿½ ---
     Gui::Panel({ 0.0f, 0.0f }, { m_ViewportWidth, 30.0f }, { 0.15f, 0.15f, 0.15f, 1.0f });
 
     if (Gui::Button("Plik", { 10.0f, 5.0f }, { 80.0f, 20.0f })) {
@@ -122,11 +127,36 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- PANEL GENERATORA QUESTÓW AI (TYLKO W EDYTORZE) ---
+    if (m_ShowViewMenu) {
+        Renderer2D::DrawQuad({ 100.0f, 30.0f }, { 160.0f, 190.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
+        if (Gui::Button("Panel Otoczenia", { 105.0f, 35.0f }, { 150.0f, 25.0f }, m_ShowEnvironmentPanel)) {
+            m_ShowEnvironmentPanel = !m_ShowEnvironmentPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Hierarchia", { 105.0f, 65.0f }, { 150.0f, 25.0f }, m_ShowHierarchyPanel)) {
+            m_ShowHierarchyPanel = !m_ShowHierarchyPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Biblioteka", { 105.0f, 95.0f }, { 150.0f, 25.0f }, m_ShowLibraryPanel)) {
+            m_ShowLibraryPanel = !m_ShowLibraryPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Inspektor", { 105.0f, 125.0f }, { 150.0f, 25.0f }, m_ShowInspectorPanel)) {
+            m_ShowInspectorPanel = !m_ShowInspectorPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Diagnostyka", { 105.0f, 155.0f }, { 150.0f, 25.0f }, m_ShowDiagnosticPanel)) {
+            m_ShowDiagnosticPanel = !m_ShowDiagnosticPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Questy", { 105.0f, 185.0f }, { 150.0f, 25.0f }, m_ShowQuestsPanel)) {
+            m_ShowQuestsPanel = !m_ShowQuestsPanel; m_ShowViewMenu = false;
+        }
+        if (Gui::Button("Prefaby", { 105.0f, 215.0f }, { 150.0f, 25.0f }, m_ShowPrefabsPanel)) {
+            m_ShowPrefabsPanel = !m_ShowPrefabsPanel; m_ShowViewMenu = false;
+        }
+    }
+
+    // --- PANEL GENERATORA QUESTï¿½W AI (TYLKO W EDYTORZE) ---
     if (m_ShowQuestsPanel) {
         glm::vec2 questPanelPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 400.0f, 180.0f, 85.0f, m_ViewportWidth, m_ViewportHeight);
 
-        // U¿ywamy Gui::Panel (z blokowaniem klikniêæ)
+        // Uï¿½ywamy Gui::Panel (z blokowaniem klikniï¿½ï¿½)
         Gui::Panel(questPanelPos, { 180.0f, 85.0f }, { 0.15f, 0.15f, 0.15f, 0.9f }, 15.0f);
         Gui::DrawGuiText("Generator Questow:", { questPanelPos.x + 5.f, questPanelPos.y + 10.f }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
 
@@ -277,18 +307,56 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 xOffset = libPos.x + 10.0f;
                 yOffset += 40.0f;
             }
+
+            // --- WYï¿½ï¿½CZENIE NOï¿½YC DLA BIBLIOTEKI ---
+            Renderer2D::EndScene();
+            glDisable(GL_SCISSOR_TEST);
+            Renderer2D::BeginScene(uiProj);
         }
 
-        Renderer2D::EndScene();
-        glDisable(GL_SCISSOR_TEST);
-        Renderer2D::BeginScene(uiProj);
+        // --- PANEL PREFABï¿½W ---
+        if (m_ShowPrefabsPanel) {
+            glm::vec2 prefSize = { m_ViewportWidth - 500.0f, 120.0f };
+            // Rysujemy go nad bibliotekï¿½ modeli (offset Y: 220.0f)
+            glm::vec2 prefPos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 220.0f, prefSize.x, prefSize.y, m_ViewportWidth, m_ViewportHeight);
+
+            Renderer2D::DrawQuad(prefPos, prefSize, { 0.15f, 0.25f, 0.3f, 0.95f }); // Niebieskawe tï¿½o
+            Gui::DrawGuiText("Gotowe Prefaby:", { prefPos.x + 10.0f, prefPos.y + 15.0f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+            float xOffset = prefPos.x + 10.0f;
+            float yOffset = prefPos.y + 40.0f;
+
+            if (std::filesystem::exists("CookingStation/Assets/prefabs")) {
+                for (const auto& entry : std::filesystem::directory_iterator("CookingStation/Assets/prefabs")) {
+                    if (entry.path().extension() == ".json") {
+                        std::string prefabName = entry.path().stem().string();
+                        std::string prefabPath = entry.path().string();
+                        std::replace(prefabPath.begin(), prefabPath.end(), '\\', '/'); // Windows -> uniwersalne ukoï¿½niki
+
+                        if (Gui::Button(prefabName, { xOffset, yOffset }, { 120, 30 })) {
+                            // Wykorzystujemy ten sam request co w bibliotece!
+                            auto& request = activeScene->GetPlacementRequest();
+                            request.Name = prefabName;
+                            request.Path = prefabPath;
+                            request.Active = true;
+                        }
+
+                        xOffset += 130.0f;
+                        if (xOffset + 120.0f > prefPos.x + prefSize.x) {
+                            xOffset = prefPos.x + 10.0f;
+                            yOffset += 40.0f;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // --- INSPEKTOR ENCJI (ANCHOR: TOP RIGHT) ---
     if (m_ShowInspectorPanel) {
         Entity selected = activeScene->GetSelectedEntity();
         if (selected.id != std::numeric_limits<std::size_t>::max()) {
-            glm::vec2 inspSize = { 300.0f, 400.0f };
+            glm::vec2 inspSize = { 300.0f, 600.0f };
             glm::vec2 inspPos = GetAnchoredPosition(Anchor::TopRight, 10.0f, 70.0f, inspSize.x, inspSize.y, m_ViewportWidth, m_ViewportHeight);
 
             auto* tag = world.GetComponent<TagComponent>(selected);
@@ -323,7 +391,47 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 Application::Get().OnEvent(e);
                 activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
             }
+
+            if (Gui::Button("ZAPISZ JAKO PREFAB", { inspPos.x, inspPos.y + 450.0f }, { 300.0f, 30.0f })) {
+                auto* tag = world.GetComponent<TagComponent>(selected);
+                std::string prefabName = tag ? tag->Tag : "NowyPrefab";
+                std::string path = "CookingStation/Assets/prefabs/" + prefabName + ".json";
+
+                PrefabSerializer::Serialize(activeScene.get(), selected, path);
+            }
+
+            auto* scriptComp = world.GetComponent<NativeScriptComponent>(selected);
+
+            if (!scriptComp) {
+                // Jeï¿½li obiekt nie ma w ogï¿½le komponentu skryptu
+                if (Gui::Button("DODAJ SKRYPT", { inspPos.x, inspPos.y + 490.0f }, { 300.0f, 30.0f })) {
+                    world.AddComponent<NativeScriptComponent>(selected, NativeScriptComponent{});
+                }
+            }
+            else {
+                // Jeï¿½li obiekt ma komponent, pokazujemy menu wyboru skryptï¿½w
+                Gui::DrawGuiText("Skrypt: " + (scriptComp->ScriptName.empty() ? "Brak" : scriptComp->ScriptName),
+                    { inspPos.x + 5.0f, inspPos.y + 495.0f }, 0.45f, { 0.2f, 0.9f, 0.2f, 1.0f });
+
+                if (Gui::Button("RotationScript", { inspPos.x, inspPos.y + 520.0f }, { 145.0f, 25.0f })) {
+                    scriptComp->Bind<RotationScript>("RotationScript");
+                }
+                if (Gui::Button("ConveyorScript", { inspPos.x + 155.0f, inspPos.y + 520.0f }, { 145.0f, 25.0f })) {
+                    scriptComp->Bind<ConveyorScript>("ConveyorScript");
+                }
+                if (Gui::Button("ItemScript", { inspPos.x, inspPos.y + 550.0f }, { 145.0f, 25.0f })) {
+                    scriptComp->Bind<ItemScript>("ItemScript");
+                }
+
+                // Przycisk usuwajï¿½cy bindowanie (czyï¿½cimy wskaï¿½niki bez usuwania komponentu z ECS dla bezpieczeï¿½stwa)
+                if (Gui::Button("USUN SKRYPT", { inspPos.x + 155.0f, inspPos.y + 550.0f }, { 145.0f, 25.0f })) {
+                    scriptComp->InstantiateScript = nullptr;
+                    scriptComp->DestroyScript = nullptr;
+                    scriptComp->ScriptName = "";
+                }
+            }
         }
+
     }
 
     // --- OKNO ZAPISU (ANCHOR: CENTER) ---
@@ -403,7 +511,7 @@ void EditorGuiLayer::OnEvent(Event& e) {
 bool EditorGuiLayer::OnMouseScrolled(MouseScrolledEvent& e) {
     float scrollAmount = e.GetYOffset() * 30.0f;
 
-    // Podmiana manualnego liczenia na gotowe rozwi¹zanie z GUI:
+    // Podmiana manualnego liczenia na gotowe rozwiï¿½zanie z GUI:
     if (m_ShowLibraryPanel) {
         glm::vec2 size(m_ViewportWidth - 500.0f, 200.0f);
         glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
@@ -433,7 +541,43 @@ bool EditorGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
         return true;
     }
 
-    return false; // Kliknêliœmy w pustkê, edytor mo¿e dzia³aæ.
+    if (m_ShowEnvironmentPanel) {
+        glm::vec2 size(180.f, 300.f);
+        glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 10.f, 10.f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
+        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
+    }
+
+    if (m_ShowLibraryPanel) {
+        glm::vec2 size(m_ViewportWidth - 500.0f, 200.0f);
+        glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
+        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
+    }
+
+    if (m_ShowHierarchyPanel) {
+        glm::vec2 pos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 80.0f, 180.0f, 250.0f, m_ViewportWidth, m_ViewportHeight);
+        if (IsInside(pos.x, pos.y, 180.0f, 300.0f)) return true; // Przybliï¿½ona strefa klikniï¿½ï¿½ dla listy
+    }
+
+    if (m_ShowInspectorPanel) {
+        glm::vec2 size(300.0f, 400.0f);
+        glm::vec2 pos = GetAnchoredPosition(Anchor::TopRight, 10.0f, 70.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
+        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
+    }
+
+    // 4. Dialogi
+    if (m_ShowSaveDialog || m_ShowLoadDialog) {
+        glm::vec2 size(350.0f, 150.0f);
+        glm::vec2 pos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
+        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
+    }
+
+    if (m_ShowPrefabsPanel) {
+        glm::vec2 size(m_ViewportWidth - 500.0f, 120.0f);
+        glm::vec2 pos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 220.0f, size.x, size.y, m_ViewportWidth, m_ViewportHeight);
+        if (IsInside(pos.x, pos.y, size.x, size.y)) return true;
+    }
+
+    return false;
 }
 
 bool EditorGuiLayer::OnWindowResize(WindowResizeEvent& e) {

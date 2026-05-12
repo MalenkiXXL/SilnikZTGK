@@ -1,0 +1,32 @@
+{
+    "collider": {
+        "offset": [
+            0.0,
+            0.0,
+            0.0
+        ],
+        "size": [
+            1.0,
+            0.5,
+            1.0
+        ]
+    },
+    "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/conveyor.gltf",
+    "name": "tasma",
+    "position": [
+        10.282638549804688,
+        0.0,
+        3.4566497802734375
+    ],
+    "rotation": [
+        0.0,
+        0.0,
+        0.0
+    ],
+    "scale": [
+        1.0,
+        1.0,
+        1.0
+    ],
+    "script": "RotationScript"
+}

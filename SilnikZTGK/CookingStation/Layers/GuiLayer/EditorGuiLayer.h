@@ -75,4 +75,5 @@ private:
     };
     std::vector<QuestData> m_CurrentQuests;
     int m_CurrentQuestIndex = 0;
+    bool m_ShowPrefabsPanel = false;
 };
