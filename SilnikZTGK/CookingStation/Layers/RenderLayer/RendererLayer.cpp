@@ -20,6 +20,7 @@ void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("FakeBRDF", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/FakeBRDF.frag");
     m_ShaderLibrary.Load("BlinnPhong", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/BlinnPhong.frag");
     m_ShaderLibrary.Load("Rim", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/Rim.frag");
+    m_ShaderLibrary.Load("Conveyor", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/conveyor.frag");
 
     m_RampTexture = std::make_shared<Texture2D>("CookingStation/Assets/textures/RAMP_texture.png");
 
@@ -91,19 +92,28 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
         Renderer::BeginScene(viewProjection);
 
-        // Wybieramy shader z biblioteki na podstawie zmiennej z GUI
-        m_ActiveShader = m_ShaderLibrary.Get(Renderer::ActiveShader);
+        // 1. POBIERAMY SHADERY
+        auto stdShader = m_ShaderLibrary.Get(Renderer::ActiveShader);
+        auto conveyorShader = m_ShaderLibrary.Get("Conveyor");
 
-        m_ActiveShader->use();
-        m_ActiveShader->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
-        m_ActiveShader->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
-        m_ActiveShader->setVec3("viewPos", activeScene->GetCamera()->Position);
+        // 2. USTAWIAMY WSPÓLNE DANE DLA OBU SHADERÓW (raz przed pêtl¹)
+        std::vector<std::shared_ptr<Shader>> shaders = { stdShader, conveyorShader };
 
-        // Bindujemy LUT jeœli aktywny jest RAMP
-        if (Renderer::ActiveShader == "RAMP") {
-            m_RampTexture->Bind(10);
+        for (auto& s : shaders) {
+            s->use();
+            s->setVec3("lightColor", glm::vec3(1.0f, 1.0f, 1.0f));
+            s->setVec3("lightPos", glm::vec3(5.0f, 5.0f, 10.0f));
+            s->setVec3("viewPos", activeScene->GetCamera()->Position);
+
+            // Jeœli domyœlny shader to RAMP, bindujemy teksturê raz
+            if (s == stdShader && Renderer::ActiveShader == "RAMP") {
+                m_RampTexture->Bind(10);
+            }
         }
 
+        auto* scrollStorage = world.GetComponentVector<UVScrollComponent>();
+
+        // 3. PÊTLA RENDERUJ¥CA
         if (meshStorage && transformStorage) {
             for (size_t i = 0; i < meshStorage->dense.size(); i++) {
                 auto& meshComp = meshStorage->dense[i];
@@ -111,8 +121,27 @@ void RendererLayer::OnUpdate(Timestep ts) {
                 TransformComponent* transform = transformStorage->Get(owner);
 
                 if (transform && meshComp.ModelPtr) {
-                    // Rysujemy podaj¹c aktualny m_ActiveShader
-                    Renderer::Submit(m_ActiveShader, meshComp.ModelPtr, transform->WorldMatrix);
+                    UVScrollComponent* scroll = scrollStorage ? scrollStorage->Get(owner) : nullptr;
+
+                    // Wybieramy ju¿ skonfigurowany shader
+                    auto shaderToUse = scroll ? conveyorShader : stdShader;
+                    shaderToUse->use();
+
+                    if (scroll) {
+                        // Tylko te wartoœci zmieniaj¹ siê per-obiekt
+                        shaderToUse->setFloat("u_uvOffset", scroll->Offset);
+
+                        auto& tex = meshComp.ModelPtr->meshes[0].textures[0].Texture2DPtr;
+                        if (tex) tex->SetWrapMode(GL_REPEAT);
+                    }
+
+                    Renderer::Submit(shaderToUse, meshComp.ModelPtr, transform->WorldMatrix);
+
+                    // Przywracamy Clamp jeœli to by³a taœma
+                    if (scroll) {
+                        auto& tex = meshComp.ModelPtr->meshes[0].textures[0].Texture2DPtr;
+                        if (tex) tex->SetWrapMode(GL_CLAMP_TO_EDGE);
+                    }
                 }
             }
         }

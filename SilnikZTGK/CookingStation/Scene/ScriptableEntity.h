@@ -15,6 +15,11 @@ public:
 		return m_Scene->GetWorld().GetComponent<T>(m_Entity);
 	}
 
+	template<typename T> void AddComponent(T component)
+	{
+		m_Scene->GetWorld().AddComponent<T>(m_Entity, component);
+	}
+
 	virtual void OnCreate() {}
 	virtual void OnDestroy() {}
 	virtual void OnUpdate(Timestep ts) {}

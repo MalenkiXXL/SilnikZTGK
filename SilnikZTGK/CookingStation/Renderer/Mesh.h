@@ -39,6 +39,10 @@ struct MeshTexture {
     std::shared_ptr<Texture2D> Texture2DPtr;
     string type;
     string path;
+
+    uint32_t GetID() const {
+        return Texture2DPtr ? Texture2DPtr->GetRendererID() : 0;
+    }
 };
 
 // Klasa Mesh to pojedyncza "siatka". Model mo�e sk�ada� si� z wielu takich siatek (np. ludzik: osobna siatka na cia�o, osobna na bro�)

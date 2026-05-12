@@ -16,7 +16,7 @@
 #include <functional> 
 #include "CookingStation/Core/GridSystem.h"
 #include <CookingStation/Scripts/ConveyorScript.h>
-#include "CookingStation/Scene/PrefabSerializer.cpp"
+//#include "CookingStation/Scene/PrefabSerializer.cpp"
 
 float GridSystem::CELL_SIZE = 2.0f;
 
@@ -185,7 +185,7 @@ void EditorLayer::OnUpdate(Timestep ts)
             if (m_PendingModelPath.find(".json") != std::string::npos) {
                 // Jeśli ścieżka kończy się na .json, to znaczy że to prefab. 
                 // Pomijamy Assimp i zlecamy stworzenie encji prosto z pliku!
-                PrefabSerializer::Deserialize(activeScene.get(), m_PendingModelPath, spawnPosition);
+                //PrefabSerializer::Deserialize(activeScene.get(), m_PendingModelPath, spawnPosition);
                 spdlog::info("EditorLayer: Postawiono prefab z pliku: {}", m_PendingModelPath);
             }
             else {

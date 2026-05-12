@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 #include <iostream>
 
-Texture2D::Texture2D(const std::string& path)
+Texture2D::Texture2D(const std::string& path, GLenum wrapMode)
 {
 	stbi_set_flip_vertically_on_load(1);
 	int width, height, channels;
@@ -34,8 +34,8 @@ Texture2D::Texture2D(const std::string& path)
 		// Ustawienia filtrowania i powtarzania
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
 
 		// Przes³anie pikseli na kartê graficzn¹
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_Width, m_Height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
@@ -49,7 +49,7 @@ Texture2D::Texture2D(const std::string& path)
 	}
 }
 
-Texture2D::Texture2D(const unsigned char* data, uint32_t size)
+Texture2D::Texture2D(const unsigned char* data, uint32_t size, GLenum wrapMode)
 {
 	// glTF/GLB zazwyczaj nie wymagaj¹ flipowania UV, ale jeœli Twoje UV 
 	// s¹ odwrócone, zostawiamy to zgodnie z Twoim projektem.
@@ -80,8 +80,8 @@ Texture2D::Texture2D(const unsigned char* data, uint32_t size)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 		// Ustawienia zawijania - wa¿ne dla tekstur detali (buŸki)
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_Width, m_Height, 0, dataFormat, GL_UNSIGNED_BYTE, pixels);
 		glGenerateMipmap(GL_TEXTURE_2D);
@@ -106,4 +106,15 @@ void Texture2D::Bind(uint32_t slot) const
 {
 	glActiveTexture(GL_TEXTURE0 + slot);
 	glBindTexture(GL_TEXTURE_2D, m_RendererID);
+}
+
+void Texture2D::SetWrapMode(GLenum wrapMode)
+{
+	if (m_CurrentWrapMode == wrapMode) return;
+
+	glBindTexture(GL_TEXTURE_2D, m_RendererID);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
+
+	m_CurrentWrapMode = wrapMode;
 }

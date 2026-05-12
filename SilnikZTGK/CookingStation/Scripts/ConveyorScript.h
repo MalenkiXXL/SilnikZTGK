@@ -25,6 +25,26 @@ public:
     void OnCreate() override
     {
         SetPushDirection();
+        UVScrollComponent scroll;
+        scroll.Speed = Speed;
+        AddComponent<UVScrollComponent>(scroll);
+    }
+
+    void OnUpdate(Timestep ts) override
+    {
+        auto* scroll = GetComponent<UVScrollComponent>();
+        if (scroll)
+        {
+            float modelLength = 4.0f;
+            float uvSpeed = Speed / modelLength;
+
+            scroll->Offset += uvSpeed * ts;
+
+            scroll->Offset = fmodf(scroll->Offset, 1.0f);
+
+            if (scroll->Offset < 0.0f)
+                scroll->Offset += 1.0f;
+        }
     }
 
     void SetPushDirection()
@@ -44,11 +64,6 @@ public:
                 return;
             }
         PushDirection = s_Mappings[3].direction;
-    }
-
-    void OnUpdate(Timestep ts) override
-    {
-
     }
 
 

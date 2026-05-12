@@ -48,4 +48,5 @@ private:
 	std::atomic<bool> m_GenerationDone{ false };
 	std::shared_ptr<Shader> m_ActiveShader;
 	std::shared_ptr<Texture2D> m_RampTexture;
+	unsigned int m_RepeatSampler = 0;
 };
