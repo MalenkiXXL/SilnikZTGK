@@ -34,8 +34,14 @@ Texture2D::Texture2D(const std::string& path, GLenum wrapMode)
 		// Ustawienia filtrowania i powtarzania
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
+
+		GLenum finalWrap = wrapMode;
+		if (path.find("belt") != std::string::npos) {
+			finalWrap = GL_REPEAT;
+		}
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, finalWrap);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, finalWrap);
+		m_CurrentWrapMode = finalWrap;
 
 		// Przes³anie pikseli na kartê graficzn¹
 		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_Width, m_Height, 0, dataFormat, GL_UNSIGNED_BYTE, data);

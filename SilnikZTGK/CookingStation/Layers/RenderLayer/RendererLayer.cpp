@@ -130,18 +130,9 @@ void RendererLayer::OnUpdate(Timestep ts) {
                     if (scroll) {
                         // Tylko te wartoœci zmieniaj¹ siê per-obiekt
                         shaderToUse->setFloat("u_uvOffset", scroll->Offset);
-
-                        auto& tex = meshComp.ModelPtr->meshes[0].textures[0].Texture2DPtr;
-                        if (tex) tex->SetWrapMode(GL_REPEAT);
                     }
 
                     Renderer::Submit(shaderToUse, meshComp.ModelPtr, transform->WorldMatrix);
-
-                    // Przywracamy Clamp jeœli to by³a taœma
-                    if (scroll) {
-                        auto& tex = meshComp.ModelPtr->meshes[0].textures[0].Texture2DPtr;
-                        if (tex) tex->SetWrapMode(GL_CLAMP_TO_EDGE);
-                    }
                 }
             }
         }
