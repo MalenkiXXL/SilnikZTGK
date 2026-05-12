@@ -23,6 +23,7 @@ void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("Conveyor", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/conveyor.frag");
 
     m_RampTexture = std::make_shared<Texture2D>("CookingStation/Assets/textures/RAMP_texture.png");
+    m_BackgroundTexture = std::make_shared<Texture2D>("CookingStation/Assets/background/background.png");
 
     auto rampShader = m_ShaderLibrary.Get("RAMP");
     rampShader->use();
@@ -83,6 +84,19 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
     RenderCommand::SetClearColor(clearColor);
     RenderCommand::Clear();
+
+    glDisable(GL_DEPTH_TEST);
+
+    // Tworzymy projekcjê ortograficzn¹, która idealnie pokrywa nasz ekran
+    glm::mat4 bgProjection = glm::ortho(0.0f, fboWidth, 0.0f, fboHeight, -1.0f, 1.0f);
+
+    Renderer2D::BeginScene(bgProjection);
+    // Rysujemy quada na ca³y ekran. Rozmiar X to aspectRatio * 2, rozmiar Y to 2.0f
+    Renderer2D::DrawQuad(glm::vec2(0.0f, 0.0f), glm::vec2(fboWidth, fboHeight), m_BackgroundTexture->GetRendererID());
+    Renderer2D::EndScene();
+
+    // W³¹czamy test g³êbokoœci z powrotem, aby modele 3D poprawnie siê nak³ada³y
+    glEnable(GL_DEPTH_TEST);
 
     // ------- RYSOWANIE MODELI 3D ----------
     if (activeScene->GetCamera()) {
