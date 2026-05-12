@@ -33,11 +33,12 @@ AABB ComputeDynamicAABB(TransformComponent* trans, BoxColliderComponent* col)
 	AABB box;
 	glm::vec3 globalPos = glm::vec3(trans->WorldMatrix[3][0], trans->WorldMatrix[3][1], trans->WorldMatrix[3][2]);
 	glm::vec3 center = globalPos + col->Offset;
-	glm::vec3 extents = trans->Scale * col->Size;
 
-	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.x), { 1, 0, 0 })
-		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.y), { 0, 1, 0 })
-		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->Rotation.z), { 0, 0, 1 });
+	glm::vec3 extents = trans->GetScale() * col->Size;
+
+	glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(trans->GetRotation().x), { 1, 0, 0 })
+		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->GetRotation().y), { 0, 1, 0 })
+		* glm::rotate(glm::mat4(1.0f), glm::radians(trans->GetRotation().z), { 0, 0, 1 });
 
 	glm::vec3 rotatedExtents(
 		std::abs(rotation[0][0]) * extents.x + std::abs(rotation[1][0]) * extents.y + std::abs(rotation[2][0]) * extents.z,
@@ -239,32 +240,33 @@ std::shared_ptr<Scene> Scene::Copy(std::shared_ptr<Scene> other)
 }
 
 // 1. Rekurencyjna funkcja schodz¹ca w g³¹b drzewa
-void UpdateTransformTree(World& world, std::size_t entityId, const glm::mat4& parentGlobalMatrix) {
-	// U¿ywamy GetComponentByID, by omin¹æ sztywn¹ generacjê 0
+void UpdateTransformTree(World& world, std::size_t entityId, const glm::mat4& parentGlobalMatrix, bool parentIsDirty) {
 	auto* transform = world.GetComponentByID<TransformComponent>(entityId);
 	if (!transform) return;
 
-	// A. Liczymy nasz¹ pozycjê w œwiecie = Rodzic * Nasza Lokalna
-	glm::mat4 localMatrix = transform->GetLocalMatrix();
-	transform->WorldMatrix = parentGlobalMatrix * localMatrix;
+	// Sprawdzamy czy my siê ruszyliœmy, LUB czy rusz³ siê nasz rodzic
+	bool needsUpdate = transform->IsDirty() || parentIsDirty;
 
-	// B. Przekazujemy nasz¹ macierz ni¿ej, do naszych dzieci
+	if (needsUpdate) {
+		// Liczymy pozycjê w œwiecie 
+		glm::mat4 localMatrix = transform->GetLocalMatrix();
+		transform->WorldMatrix = parentGlobalMatrix * localMatrix;
+	}
+
+	// Przekazujemy macierz ni¿ej
 	auto* rel = world.GetComponentByID<RelationshipComponent>(entityId);
 	if (rel && rel->FirstChild != NULL_ENTITY) {
-
 		std::size_t currentChildId = rel->FirstChild;
 
 		while (currentChildId != NULL_ENTITY) {
-			// Wywo³anie rekurencyjne
-			UpdateTransformTree(world, currentChildId, transform->WorldMatrix);
+			UpdateTransformTree(world, currentChildId, transform->WorldMatrix, needsUpdate);
 
-			// Przechodzimy do kolejnego brata
 			auto* childRel = world.GetComponentByID<RelationshipComponent>(currentChildId);
 			if (childRel) {
 				currentChildId = childRel->NextSibling;
 			}
 			else {
-				break; // zabezpieczenie
+				break;
 			}
 		}
 	}
@@ -295,7 +297,7 @@ void Scene::CalculateTransforms() {
 
 		// Jeœli to korzeñ grafu (lub samodzielny obiekt), startujemy drzewo
 		if (isRoot) {
-			UpdateTransformTree(world, entity.id, glm::mat4(1.0f));
+			UpdateTransformTree(world, entity.id, glm::mat4(1.0f), false); 
 		}
 	}
 }
@@ -385,8 +387,8 @@ void Scene::RebuildConveyorCache()
 		auto* t = conveyor->GetComponent<TransformComponent>();
 		if (!t) continue;
 
-		GridPos key{ (int)std::round(t->Position.x / 2.0f),
-					  (int)std::round(t->Position.z / 2.0f) };
+		GridPos key{ (int)std::round(t->GetPosition().x / 2.0f),
+					  (int)std::round(t->GetPosition().z / 2.0f) };
 
 		ConveyorMap[key] = conveyor;
 	}

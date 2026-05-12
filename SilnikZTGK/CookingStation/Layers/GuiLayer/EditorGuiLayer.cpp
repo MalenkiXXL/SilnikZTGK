@@ -339,28 +339,48 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
 
             auto* transform = world.GetComponent<TransformComponent>(selected);
             if (transform) {
-                glm::vec3 posBeforeSliders = transform->Position;
+                // 1. Pobieramy aktualne wartości przez Gettery do zmiennych LOKALNYCH
+                glm::vec3 pos = transform->GetPosition();
+                glm::vec3 rot = transform->GetRotation();
+                glm::vec3 scale = transform->GetScale();
+
+                glm::vec3 posBeforeSliders = pos;
                 float dS = 0.05f; float rS = 0.5f;
 
-                Gui::DragFloat("Pos X", &transform->Position.x, dS, { inspPos.x, inspPos.y + 40.0f }, { 300, 30 });
-                Gui::DragFloat("Pos Y", &transform->Position.y, dS, { inspPos.x, inspPos.y + 80.0f }, { 300, 30 });
-                Gui::DragFloat("Pos Z", &transform->Position.z, dS, { inspPos.x, inspPos.y + 120.0f }, { 300, 30 });
-                Gui::DragFloat("Rot X", &transform->Rotation.x, rS, { inspPos.x, inspPos.y + 160.0f }, { 300, 30 });
-                Gui::DragFloat("Rot Y", &transform->Rotation.y, rS, { inspPos.x, inspPos.y + 200.0f }, { 300, 30 });
-                Gui::DragFloat("Rot Z", &transform->Rotation.z, rS, { inspPos.x, inspPos.y + 240.0f }, { 300, 30 });
-                Gui::DragFloat("Skala X", &transform->Scale.x, dS, { inspPos.x, inspPos.y + 280.0f }, { 300, 30 });
-                Gui::DragFloat("Skala Y", &transform->Scale.y, dS, { inspPos.x, inspPos.y + 320.0f }, { 300, 30 });
-                Gui::DragFloat("Skala Z", &transform->Scale.z, dS, { inspPos.x, inspPos.y + 360.0f }, { 300, 30 });
+                // 2. Podajemy do GUI wskaźniki do naszych LOKALNYCH zmiennych
+                Gui::DragFloat("Pos X", &pos.x, dS, { inspPos.x, inspPos.y + 40.0f }, { 300, 30 });
+                Gui::DragFloat("Pos Y", &pos.y, dS, { inspPos.x, inspPos.y + 80.0f }, { 300, 30 });
+                Gui::DragFloat("Pos Z", &pos.z, dS, { inspPos.x, inspPos.y + 120.0f }, { 300, 30 });
+                Gui::DragFloat("Rot X", &rot.x, rS, { inspPos.x, inspPos.y + 160.0f }, { 300, 30 });
+                Gui::DragFloat("Rot Y", &rot.y, rS, { inspPos.x, inspPos.y + 200.0f }, { 300, 30 });
+                Gui::DragFloat("Rot Z", &rot.z, rS, { inspPos.x, inspPos.y + 240.0f }, { 300, 30 });
+                Gui::DragFloat("Skala X", &scale.x, dS, { inspPos.x, inspPos.y + 280.0f }, { 300, 30 });
+                Gui::DragFloat("Skala Y", &scale.y, dS, { inspPos.x, inspPos.y + 320.0f }, { 300, 30 });
+                Gui::DragFloat("Skala Z", &scale.z, dS, { inspPos.x, inspPos.y + 360.0f }, { 300, 30 });
 
-                if (posBeforeSliders != transform->Position && !m_IsDraggingTransform) {
-                    m_IsDraggingTransform = true; m_TransformStartPos = posBeforeSliders;
+                // 3. Sprawdzamy, czy suwaki GUI zmieniły nasze lokalne zmienne
+                if (pos != posBeforeSliders || rot != transform->GetRotation() || scale != transform->GetScale()) {
+
+                    // Wgrywamy dane przez SETTERY (To ustawi flagę m_IsDirty = true!)
+                    transform->SetPosition(pos);
+                    transform->SetRotation(rot);
+                    transform->SetScale(scale);
+
+                    // 4. Logika drag & drop do Undo/Redo
+                    if (pos != posBeforeSliders && !m_IsDraggingTransform) {
+                        m_IsDraggingTransform = true;
+                        m_TransformStartPos = posBeforeSliders;
+                    }
                 }
+
                 if (m_IsDraggingTransform && !Input::IsMouseButtonPressed(0)) {
-                    EntityTransformChangedEvent e(selected, m_TransformStartPos, transform->Position);
+                    // Używamy zmiennej 'pos' zamast 'transform->Position'
+                    EntityTransformChangedEvent e(selected, m_TransformStartPos, pos);
                     Application::Get().OnEvent(e);
                     m_IsDraggingTransform = false;
                 }
             }
+
             if (Gui::Button("USUN OBIEKT", { inspPos.x, inspPos.y + 400.0f }, { 300.0f, 40.0f })) {
                 EntityDeletedEvent e(selected);
                 Application::Get().OnEvent(e);

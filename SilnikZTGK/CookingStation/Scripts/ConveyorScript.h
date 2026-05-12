@@ -32,7 +32,8 @@ public:
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        float rotY = transform->Rotation.y;
+        // ZMIANA: U¿ywamy Gettera do odczytu rotacji
+        float rotY = transform->GetRotation().y;
 
         while (rotY < 0.0f) rotY += 360.0f;
         while (rotY >= 360.0f) rotY -= 360.0f;
@@ -51,23 +52,24 @@ public:
 
     }
 
-
     void OnClick() override
     {
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        auto& conveyorMap = GetScene()->GetConveyorMap(); 
+        auto& conveyorMap = GetScene()->GetConveyorMap();
         int neighborCount = 0;
 
         float validAngles[4];
         int validCount = 0;
 
+        glm::vec3 myPos = transform->GetPosition();
+
         for (auto& m : s_Mappings)
         {
             GridPos neighborKey{
-                (int)std::round((transform->Position.x + m.direction.x * 2.0f) / 2.0f),
-                (int)std::round((transform->Position.z + m.direction.z * 2.0f) / 2.0f)
+                (int)std::round((myPos.x + m.direction.x * 2.0f) / 2.0f),
+                (int)std::round((myPos.z + m.direction.z * 2.0f) / 2.0f)
             };
 
             auto it = conveyorMap.find(neighborKey);
@@ -85,7 +87,6 @@ public:
                 validAngles[validCount] = m.angle;
                 validCount++;
             }
-
         }
 
         if (neighborCount < 3)
@@ -96,7 +97,9 @@ public:
 
         if (validCount > 0)
         {
-            float currentRot = transform->Rotation.y;
+            glm::vec3 currentRotVec = transform->GetRotation();
+            float currentRot = currentRotVec.y;
+
             while (currentRot < 0.0f) currentRot += 360.0f;
             while (currentRot >= 360.0f) currentRot -= 360.0f;
 
@@ -111,7 +114,11 @@ public:
             }
 
             int nextIndex = (currentIndex + 1) % validCount;
-            transform->Rotation.y = validAngles[nextIndex];
+
+            // ZMIANA: Nadpisujemy sk³adow¹ Y wektora, a nastêpnie wysy³amy przez Setter!
+            currentRotVec.y = validAngles[nextIndex];
+            transform->SetRotation(currentRotVec);
+
             SetPushDirection();
         }
     }

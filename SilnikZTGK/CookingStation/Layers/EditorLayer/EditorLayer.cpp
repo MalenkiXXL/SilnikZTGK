@@ -16,7 +16,7 @@
 #include <functional> 
 #include "CookingStation/Core/GridSystem.h"
 #include <CookingStation/Scripts/ConveyorScript.h>
-#include "CookingStation/Scene/PrefabSerializer.cpp"
+#include "CookingStation/Scene/PrefabSerializer.h"
 
 float GridSystem::CELL_SIZE = 2.0f;
 
@@ -25,8 +25,8 @@ static glm::mat4 FlatQuadTransform(const glm::vec3& center, float sizeX, float s
 {
     return glm::translate(glm::mat4(1.0f), center)
         * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 1.0f, 0.0f, 0.0f })
-        * glm::scale(glm::mat4(1.0f), { sizeX, sizeZ, 1.0f })       
-        * glm::translate(glm::mat4(1.0f), { -0.5f, -0.5f, 0.0f }); 
+        * glm::scale(glm::mat4(1.0f), { sizeX, sizeZ, 1.0f })
+        * glm::translate(glm::mat4(1.0f), { -0.5f, -0.5f, 0.0f });
 }
 
 void EditorLayer::OnAttach() {
@@ -220,8 +220,9 @@ void EditorLayer::OnUpdate(Timestep ts)
                 auto* transform = world.GetComponent<TransformComponent>(selected);
                 if (transform)
                 {
-                    glm::vec3 oldPos = transform->Position;
-                    glm::vec3 newPos = { m_GridHoverPos.x, transform->Position.y, m_GridHoverPos.z };
+                    // ZMIANA: Pobranie pozycji przez Getter
+                    glm::vec3 oldPos = transform->GetPosition();
+                    glm::vec3 newPos = { m_GridHoverPos.x, oldPos.y, m_GridHoverPos.z };
 
                     std::unique_ptr<Command> cmd = std::make_unique<MoveEntityCommand>(
                         &world, selected, oldPos, newPos);
@@ -252,7 +253,10 @@ void EditorLayer::OnUpdate(Timestep ts)
                         glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                         AABB box;
                         box.center = globalPos;
-                        box.extents = transform->Scale;
+
+                        // ZMIANA: Pobranie skali przez Getter
+                        box.extents = transform->GetScale();
+
                         if (Physics::Intersects(ray, box))
                         {
                             activeScene->SetSelectedEntity(entity);
@@ -281,12 +285,16 @@ void EditorLayer::OnUpdate(Timestep ts)
                 // Obliczamy środek i wymiary boxa
                 glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                 glm::vec3 center = globalPos + collider->Offset;
-                glm::vec3 e = transform->Scale * collider->Size; // e = Extents (połowa rozmiaru)
+
+                // ZMIANA: Pobranie skali przez Getter
+                glm::vec3 e = transform->GetScale() * collider->Size; // e = Extents (połowa rozmiaru)
 
                 // Pobieramy TYLKO rotację obiektu, żeby box obracał się razem z nim (OBB)
-                glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(transform->Rotation.x), { 1, 0, 0 })
-                    * glm::rotate(glm::mat4(1.0f), glm::radians(transform->Rotation.y), { 0, 1, 0 })
-                    * glm::rotate(glm::mat4(1.0f), glm::radians(transform->Rotation.z), { 0, 0, 1 });
+                // ZMIANA: Pobranie rotacji przez Getter
+                glm::vec3 currentRot = transform->GetRotation();
+                glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.x), { 1, 0, 0 })
+                    * glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.y), { 0, 1, 0 })
+                    * glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.z), { 0, 0, 1 });
 
                 // Baza transformacji dla każdej z 12 linii
                 glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rot;
@@ -366,7 +374,9 @@ void EditorLayer::OnUpdate(Timestep ts)
                         glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                         AABB box;
                         box.center = globalPos;
-                        box.extents = transform->Scale;
+
+                        // ZMIANA: Pobranie skali przez Getter
+                        box.extents = transform->GetScale();
 
                         if (Physics::Intersects(ray, box))
                         {
@@ -431,8 +441,10 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
             if (gridReq.Active) {
                 auto* transform = activeScene->GetWorld().GetComponent<TransformComponent>(selected);
                 if (transform) {
-                    m_GridEntityStartPos = transform->Position;
-                    m_GridHoverPos = GridSystem::SnapToGrid(transform->Position);
+                    // ZMIANA: Pobranie pozycji przez Getter
+                    glm::vec3 currentPos = transform->GetPosition();
+                    m_GridEntityStartPos = currentPos;
+                    m_GridHoverPos = GridSystem::SnapToGrid(currentPos);
                 }
                 spdlog::info("Grid Mode: ON (encja ID:{})", selected.id);
             }
@@ -507,4 +519,3 @@ void EditorLayer::OnSceneStop() {
     SceneManager::SetActiveScene(m_EditorScene);
     m_RuntimeScene = nullptr;
 }
-
