@@ -5,7 +5,10 @@
 
 class ItemScript : public ScriptableEntity
 {
-    ConveyorScript* m_CurrentConveyor = nullptr;
+    glm::vec3 m_TargetPosition = { 0.0f, 0.0f, 0.0f };
+    bool m_IsMoving = false;
+    float m_GridSize = 2.0f; // Rozmiar kratki
+    float m_CurrentSpeed = 2.0f;
 
 public:
     void OnCreate() override {}
@@ -18,67 +21,62 @@ public:
         // 1. Pobieramy obecn¹ pozycjê obiektu
         glm::vec3 myPos = transform->GetPosition();
 
-        ConveyorScript* found = GetScene()->GetConveyorAt(myPos.x, myPos.z);
-
-        if (found && found != m_CurrentConveyor)
+        if (!m_IsMoving)
         {
-            auto* foundTransform = found->GetComponent<TransformComponent>();
-            if (foundTransform)
+            ConveyorScript* currentConveyor = GetScene()->GetConveyorAt(myPos.x, myPos.z);
+
+
+            if (currentConveyor)
             {
-                glm::vec3 foundPos = foundTransform->GetPosition();
-                float dx = myPos.x - foundPos.x;
-                float dz = myPos.z - foundPos.z;
+                // Zapisujemy prêdkoœæ z taœmy, na której w³aœnie jesteœmy
+                m_CurrentSpeed = currentConveyor->Speed;
 
-                if (dx * dx + dz * dz < 0.25f) // 0.5f * 0.5f
-                    m_CurrentConveyor = found;
+                auto* conveyorTransform = currentConveyor->GetComponent<TransformComponent>();
+                if (conveyorTransform)
+                {
+                    glm::vec3 convPos = conveyorTransform->GetPosition();
+
+                    // Obliczamy œrodek KOLEJNEJ kratki
+                    m_TargetPosition = convPos + (currentConveyor->PushDirection * m_GridSize);
+
+                    // Wyrównanie obiektu do œrodka obecnej taœmy
+                    myPos.x = convPos.x;
+                    myPos.z = convPos.z;
+
+                    m_IsMoving = true;
+                }
             }
         }
-        else if (found)
+
+        if (m_IsMoving)
         {
-            m_CurrentConveyor = found;
-        }
+            float step = m_CurrentSpeed * ts.GetSeconds();
 
-        if (!m_CurrentConveyor) return;
+            // Wektor ró¿nicy miêdzy celem a nasz¹ pozycj¹ (tylko na osiach X i Z)
+            glm::vec3 diff = m_TargetPosition - myPos;
+            diff.y = 0.0f;
 
-        // 2. Logika fizyki taœmoci¹gu
-        auto* conveyorTransform = m_CurrentConveyor->GetComponent<TransformComponent>();
-        glm::vec3 convPos = conveyorTransform->GetPosition();
+            float distance = glm::length(diff);
 
-        float speed = m_CurrentConveyor->Speed * ts.GetSeconds();
-        float diffX = convPos.x - myPos.x;
-        float diffZ = convPos.z - myPos.z;
+            // Sprawdzamy, czy w tej klatce przekroczymy/osi¹gniemy cel
+            if (distance <= step)
+            {
+                // Dotarliœmy równiutko do celu
+                myPos.x = m_TargetPosition.x;
+                myPos.z = m_TargetPosition.z;
 
-        // Zmienna bool, by œledziæ czy obiekt fizycznie siê poruszy³ w tej klatce
-        bool moved = false;
-
-        if (std::abs(m_CurrentConveyor->PushDirection.x) > 0.1f)
-        {
-            if (std::abs(diffZ) > 0.01f) {
-                if (std::abs(diffZ) <= speed) myPos.z = convPos.z;
-                else myPos.z += std::copysign(speed, diffZ);
+                // Zatrzymujemy ruch. W kolejnej klatce skrypt sprawdzi now¹ taœmê pod now¹ pozycj¹.
+                m_IsMoving = false;
             }
-            else {
-                myPos.x += m_CurrentConveyor->PushDirection.x * speed;
-                myPos.z = convPos.z;
+            else
+            {
+                // Jeœli cel jest jeszcze daleko, po prostu przemieszczamy siê o wartoœæ 'step'
+                glm::vec3 dir = diff / distance;
+                myPos.x += dir.x * step;
+                myPos.z += dir.z * step;
             }
-            moved = true;
-        }
-        else if (std::abs(m_CurrentConveyor->PushDirection.z) > 0.1f)
-        {
-            if (std::abs(diffX) > 0.01f) {
-                if (std::abs(diffX) <= speed) myPos.x = convPos.x;
-                else myPos.x += std::copysign(speed, diffX);
-            }
-            else {
-                myPos.z += m_CurrentConveyor->PushDirection.z * speed;
-                myPos.x = convPos.x;
-            }
-            moved = true;
-        }
 
-        // 3. Wgrywamy now¹ pozycjê DOPIERO NA SAMYM KOÑCU
-        // Dziêki temu flaga Dirty zapali siê tylko raz (jeœli obiekt faktycznie siê poruszy³)
-        if (moved) {
+            // 3. Wgrywamy now¹ pozycjê DOPIERO NA SAMYM KOÑCU
             transform->SetPosition(myPos);
         }
     }

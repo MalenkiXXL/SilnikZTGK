@@ -8,6 +8,7 @@
 #include "CookingStation/Scripts/RotationScript.h"
 #include "CookingStation/Scripts/ConveyorScript.h"
 #include "CookingStation/Scripts/ItemScript.h"
+#include "CookingStation/Scripts/BeltVisualScript.h"
 
 class PrefabSerializer {
 public:
@@ -112,6 +113,7 @@ public:
             std::string scriptName = item["script"].get<std::string>();
             if (scriptName == "RotationScript") nsc.Bind<RotationScript>(scriptName);
             else if (scriptName == "ConveyorScript") nsc.Bind<ConveyorScript>(scriptName);
+            else if (scriptName == "BeltVisualScript") nsc.Bind<BeltVisualScript>(scriptName);
             else if (scriptName == "ItemScript") nsc.Bind<ItemScript>(scriptName);
 
             builder.With<NativeScriptComponent>(nsc);

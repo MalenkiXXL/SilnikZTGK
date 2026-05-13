@@ -33,7 +33,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -3.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 90.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 5,
@@ -43,7 +44,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 6,
@@ -51,7 +52,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -1.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 7,
@@ -61,7 +63,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 8,
@@ -69,7 +71,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 1.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 9,
@@ -79,7 +82,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 10,
@@ -87,7 +90,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 3.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 11,
@@ -97,7 +101,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 12,
@@ -105,7 +109,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 5.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 13,
@@ -115,7 +120,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 14,
@@ -123,7 +128,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 7.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 15,
@@ -133,7 +139,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 16,
@@ -141,7 +147,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 9.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 17,
@@ -151,14 +158,14 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 18,
       "name": "Chmura_18",
       "model_path": "CookingStation/Assets/models/wystroj/chmura.gltf",
       "position": [ -9.0, 8.5, -3.0 ],
-      "rotation": [ 0.0, 0.0, 0.0 ],
+      "rotation": [ 0.0, 90.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ]
     },
     {
@@ -167,7 +174,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -3.0, 0.0, -3.0 ],
       "rotation": [ 0.0, 90.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 20,
@@ -177,7 +185,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 21,
@@ -185,7 +193,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 9.0, 0.0, -3.0 ],
       "rotation": [ 0.0, 270.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 22,
@@ -195,7 +204,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 23,
@@ -203,7 +212,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -3.0, 0.0, -1.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 24,
@@ -213,7 +223,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 25,
@@ -221,7 +231,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -1.0, 0.0, -1.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 26,
@@ -231,7 +242,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 27,
@@ -239,7 +250,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 1.0, 0.0, -1.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 28,
@@ -249,7 +261,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 29,
@@ -257,7 +269,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 3.0, 0.0, -1.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 30,
@@ -267,7 +280,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 31,
@@ -275,7 +288,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 5.0, 0.0, -1.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 32,
@@ -285,7 +299,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 33,
@@ -293,7 +307,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 7.0, 0.0, -1.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 34,
@@ -303,7 +318,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 35,
@@ -311,7 +326,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 9.0, 0.0, -1.0 ],
       "rotation": [ 0.0, 270.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 36,
@@ -321,7 +337,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 37,
@@ -329,7 +345,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 1.0, 0.0, 1.0 ],
       "rotation": [ 0.0, 90.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 38,
@@ -339,7 +356,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 39,
@@ -347,7 +364,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 5.0, 0.0, 1.0 ],
       "rotation": [ 0.0, 270.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 40,
@@ -357,7 +375,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 41,
@@ -365,7 +383,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -1.0, 0.0, 3.0 ],
       "rotation": [ 0.0, 90.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 42,
@@ -375,7 +394,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 43,
@@ -383,7 +402,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 1.0, 0.0, 3.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 44,
@@ -393,7 +413,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 45,
@@ -401,7 +421,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 3.0, 0.0, 3.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 46,
@@ -411,7 +432,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 47,
@@ -419,7 +440,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 5.0, 0.0, 3.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 48,
@@ -429,7 +451,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 49,
@@ -437,7 +459,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 7.0, 0.0, 3.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 50,
@@ -447,7 +470,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 51,
@@ -463,7 +486,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -1.0, 0.0, 5.0 ],
       "rotation": [ 0.0, 90.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 53,
@@ -473,7 +497,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 54,
@@ -481,7 +505,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 7.0, 0.0, 5.0 ],
       "rotation": [ 0.0, 270.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 55,
@@ -491,7 +516,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 56,
@@ -499,7 +524,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -1.0, 0.0, 7.0 ],
       "rotation": [ 0.0, 90.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 57,
@@ -509,7 +535,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 58,
@@ -517,7 +543,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 7.0, 0.0, 7.0 ],
       "rotation": [ 0.0, 270.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 59,
@@ -527,7 +554,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 60,
@@ -535,7 +562,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -7.0, 0.0, 9.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 61,
@@ -545,13 +573,13 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 62,
       "name": "Talerz_62",
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/naczynia/deep_plate.gltf",
-      "position": [ -7.0, 3.0, 9.0 ],
+      "position": [ -7.0, 2.0, 9.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
       "script": "ItemScript"
@@ -562,7 +590,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -5.0, 0.0, 9.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 64,
@@ -572,7 +601,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 65,
@@ -580,7 +609,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -3.0, 0.0, 9.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 66,
@@ -590,7 +620,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 67,
@@ -598,7 +628,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -1.0, 0.0, 9.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 68,
@@ -608,7 +639,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 69,
@@ -616,7 +647,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 1.0, 0.0, 9.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 70,
@@ -626,7 +658,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 71,
@@ -634,7 +666,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 3.0, 0.0, 9.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 72,
@@ -644,7 +677,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 73,
@@ -652,7 +685,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 5.0, 0.0, 9.0 ],
       "rotation": [ 0.0, 180.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 74,
@@ -662,7 +696,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "id": 75,
@@ -670,7 +704,8 @@
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 7.0, 0.0, 9.0 ],
       "rotation": [ 0.0, 270.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "script": "ConveyorScript"
     },
     {
       "id": 76,
@@ -680,7 +715,7 @@
       "position": [ 0.0, 0.01, 0.0 ],
       "rotation": [ 0.0, 0.5, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "script": "BeltVisualScript"
     },
     {
       "collider": {

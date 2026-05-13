@@ -90,6 +90,7 @@
     <ClInclude Include="CookingStation\Layers\HudLayer\HUDLayer.h" />
     <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
     <ClInclude Include="CookingStation\Scripts\PotScript.h" />
+    <ClInclude Include="CookingStation\Scripts\BeltVisualScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

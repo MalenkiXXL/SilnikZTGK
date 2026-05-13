@@ -26,7 +26,7 @@
             "name": "Blat_2",
             "position": [
                 1.0,
-                0.5,
+                -0.6499999761581421,
                 -9.0
             ],
             "rotation": [
@@ -46,7 +46,7 @@
             "name": "Blat_3",
             "position": [
                 7.0,
-                0.5,
+                -0.6500000357627869,
                 -9.0
             ],
             "rotation": [
@@ -78,7 +78,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 5,
@@ -100,7 +101,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 6,
@@ -120,7 +121,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 7,
@@ -142,7 +144,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 8,
@@ -162,7 +164,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 9,
@@ -184,7 +187,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 10,
@@ -204,7 +207,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 11,
@@ -226,7 +230,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 12,
@@ -246,7 +250,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 13,
@@ -268,7 +273,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 14,
@@ -288,7 +293,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 15,
@@ -310,7 +316,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 16,
@@ -330,7 +336,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 17,
@@ -352,7 +359,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 18,
@@ -365,7 +372,7 @@
             ],
             "rotation": [
                 0.0,
-                0.0,
+                90.0,
                 0.0
             ],
             "scale": [
@@ -392,7 +399,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 20,
@@ -414,7 +422,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 21,
@@ -434,7 +442,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 22,
@@ -456,7 +465,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 23,
@@ -476,7 +485,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 24,
@@ -498,7 +508,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 25,
@@ -518,7 +528,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 26,
@@ -540,7 +551,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 27,
@@ -560,7 +571,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 28,
@@ -582,7 +594,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 29,
@@ -602,7 +614,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 30,
@@ -624,7 +637,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 31,
@@ -644,7 +657,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 32,
@@ -666,7 +680,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 33,
@@ -686,7 +700,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 34,
@@ -708,7 +723,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 35,
@@ -728,7 +743,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 36,
@@ -750,7 +766,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 37,
@@ -770,7 +786,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 38,
@@ -792,7 +809,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 39,
@@ -812,7 +829,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 40,
@@ -834,7 +852,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 41,
@@ -854,7 +872,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 42,
@@ -876,7 +895,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 43,
@@ -896,7 +915,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 44,
@@ -918,7 +938,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 45,
@@ -938,7 +958,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 46,
@@ -960,7 +981,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 47,
@@ -980,7 +1001,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 48,
@@ -1002,7 +1024,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 49,
@@ -1022,7 +1044,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 50,
@@ -1044,7 +1067,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 51,
@@ -1084,7 +1107,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 53,
@@ -1106,7 +1130,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 54,
@@ -1126,7 +1150,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 55,
@@ -1148,7 +1173,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 56,
@@ -1168,7 +1193,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 57,
@@ -1190,7 +1216,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 58,
@@ -1210,7 +1236,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 59,
@@ -1232,7 +1259,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 60,
@@ -1252,7 +1279,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 61,
@@ -1274,7 +1302,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 62,
@@ -1282,7 +1310,7 @@
             "name": "Talerz_62",
             "position": [
                 -7.0,
-                3.0,
+                2.0,
                 9.0
             ],
             "rotation": [
@@ -1315,7 +1343,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 64,
@@ -1337,7 +1366,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 65,
@@ -1357,7 +1386,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 66,
@@ -1379,7 +1409,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 67,
@@ -1399,7 +1429,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 68,
@@ -1421,7 +1452,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 69,
@@ -1441,7 +1472,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 70,
@@ -1463,7 +1495,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 71,
@@ -1483,7 +1515,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 72,
@@ -1505,7 +1538,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 73,
@@ -1525,7 +1558,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 74,
@@ -1547,7 +1581,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "id": 75,
@@ -1567,7 +1601,8 @@
                 1.0,
                 1.0,
                 1.0
-            ]
+            ],
+            "script": "ConveyorScript"
         },
         {
             "id": 76,
@@ -1589,7 +1624,7 @@
                 1.0,
                 1.0
             ],
-            "script": "ConveyorScript"
+            "script": "BeltVisualScript"
         },
         {
             "collider": {

@@ -25,34 +25,6 @@ public:
     void OnCreate() override
     {
         SetPushDirection();
-
-        auto* existingScroll = GetComponent<UVScrollComponent>();
-
-        if (!existingScroll)
-        {
-            UVScrollComponent scroll;
-            scroll.Speed = Speed;
-            scroll.Offset = 0.0f;
-            AddComponent<UVScrollComponent>(scroll);
-        }
-    }
-
-    void OnUpdate(Timestep ts) override
-    {
-        auto* scroll = GetComponent<UVScrollComponent>();
-        if (scroll)
-        {
-            // Przesuwamy offset tekstury
-            // modelLength 4.0 oznacza, ¿e tekstura powtarza siê co 4 jednostki œwiata
-            float modelLength = 4.0f;
-            float uvSpeed = Speed / modelLength;
-
-            scroll->Offset += uvSpeed * ts;
-
-            // Zawijanie offsetu (0.0 - 1.0)
-            if (scroll->Offset > 1.0f) scroll->Offset -= 1.0f;
-            if (scroll->Offset < 0.0f) scroll->Offset += 1.0f;
-        }
     }
 
     void SetPushDirection()
@@ -60,7 +32,6 @@ public:
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        // Bierzemy SWOJ¥ rotacjê (któr¹ za chwilê wygeneruje nam Python)
         float rotY = transform->GetRotation().y;
 
         float normalizedRot = fmodf(rotY, 360.0f);
@@ -68,7 +39,6 @@ public:
 
         for (auto& m : s_Mappings)
         {
-            // Zostawiamy tolerancjê 5 stopni, ¿eby uodporniæ siê na b³êdy zmiennoprzecinkowe
             if (std::abs(normalizedRot - m.angle) < 5.0f)
             {
                 PushDirection = m.direction;
@@ -76,7 +46,6 @@ public:
             }
         }
 
-        // Domyœlny kierunek
         PushDirection = s_Mappings[3].direction;
     }
 
