@@ -40,4 +40,14 @@ private:
     std::vector<QuestData> m_CurrentQuests;
     int m_CurrentQuestIndex = 0;
     std::shared_ptr<Texture> m_CornerIcon;
+    std::shared_ptr<Texture> m_TomatoIcon;
+
+    struct BubblyState {
+        float scale = 1.0f;
+        glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    };
+
+    std::unordered_map<std::string, BubblyState> m_BubblyStates;
+
+    bool DrawBubblyImage(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale = 1.3f, bool darkenOnHover = true);
 };

@@ -11,7 +11,9 @@
 #include "CookingStation/Scripts/ItemScript.h"
 #include "CookingStation/Scripts/BeltVisualScript.h"
 #include "CookingStation/Scripts/PotScript.h"
-#include "CookingStation/Scripts/MushroomAI.h"
+#include "CookingStation/Scripts/PlateSpawnerScript.h"
+#include "CookingStation/Scripts/ParticleEmitterScript.h"
+#include "DragAndDropScript.h"
 
 //globalny slownik ktory mapuke tekst na funkcje
 class ScriptRegistry
@@ -41,8 +43,9 @@ public:
         Register<ItemScript>("ItemScript");
         Register<BeltVisualScript>("BeltVisualScript");
         Register<PotScript>("PotScript");
-        Register<MushroomAI>("MushroomAI");
-
+        Register<PlateSpawnerScript>("PlateSpawnerScript");
+        Register<ParticleEmitterScript>("ParticleEmitterScript");
+        Register<DragAndDropScript>("DragAndDropScript");
     }
 
     static void AddScriptToComponent(NativeScriptComponent& nsc, const std::string& name)

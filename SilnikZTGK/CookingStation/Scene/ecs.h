@@ -153,6 +153,16 @@ public:
     }
 
     template <typename T>
+    void RemoveComponent(Entity entity) {
+        SparseSet<T>* storage = this->GetComponentVector<T>();
+        if (storage != nullptr) {
+            // SparseSet ma ju¿ zaimplementowan¹ doskona³¹ metodê Remove,
+            // która czyœci pamiêæ i zachowuje spójnoœæ wektorów (Swap & Pop)
+            storage->Remove(entity);
+        }
+    }
+
+    template <typename T>
     SparseSet<T>* GetComponentVector() {
         std::type_index typeId = typeid(T);
 

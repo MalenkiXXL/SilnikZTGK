@@ -14,6 +14,9 @@
 #include <cstdlib>
 #include <GLFW/glfw3.h>
 
+
+#include "CookingStation/Scripts/ParticleEmitterScript.h"
+
 void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("Standard", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
     m_ShaderLibrary.Load("RAMP", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/RAMP.frag");
@@ -218,6 +221,59 @@ void RendererLayer::OnUpdate(Timestep ts) {
             }
         }
         Renderer::EndScene();
+
+        // RENDEROWANIE SYSTEMU CZ¥STECZEK
+
+      // 1. Zabezpieczenia dla przezroczystoœci (Alpha Blending)
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Standardowe równanie: "na³ó¿ mój kolor pó³przezroczysty na to, co ju¿ jest za mn¹"
+        glDepthMask(GL_FALSE); // Zabraniamy cz¹steczkom zapisywania siê do bufora g³êbokoœci (Z-Buffer). Dziêki temu kwadratowa obwiednia dymu nie zas³oni "twardo" innej chmurki dymu z ty³u.
+
+        // 2. Otwieramy Renderer2D, ale dajemy mu macierz z 3D!
+        Renderer2D::BeginScene(viewProjection);
+
+        auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
+        if (scriptStorage && activeScene->GetCamera())
+        {
+            // Pobieramy wektory kamery do Billboardingu
+            glm::vec3 camRight = activeScene->GetCamera()->Right;
+            glm::vec3 camUp = activeScene->GetCamera()->Up;
+
+            for (auto& scriptComp : scriptStorage->dense)
+            {
+                for (auto& scriptEl : scriptComp.Scripts)
+                {
+                    if (scriptEl.Name == "ParticleEmitterScript" && scriptEl.Instance)
+                    {
+                        ParticleEmitterScript* emitter = static_cast<ParticleEmitterScript*>(scriptEl.Instance);
+
+                        for (const auto& particle : emitter->GetParticles())
+                        {
+                            if (!particle.Active) continue; // Nie rysuj uœpionych!
+
+                            // 3. Interpolacja (p³ynne przejœcia w trakcie ¿ycia cz¹steczki)
+                            // lifeRatio = 1.0 (start), 0.0 (œmieræ)
+                            float lifeRatio = particle.LifeRemaining / particle.LifeTime;
+
+                            float currentSize = glm::mix(particle.SizeEnd, particle.SizeBegin, lifeRatio);
+                            glm::vec4 currentColor = glm::mix(particle.ColorEnd, particle.ColorBegin, lifeRatio);
+
+                            // 4. BILLBOARDING - Budowa macierzy modelu
+                            glm::mat4 transform = glm::translate(glm::mat4(1.0f), particle.Position);
+                            transform[0] = glm::vec4(camRight * currentSize, 0.0f);
+                            transform[1] = glm::vec4(camUp * currentSize, 0.0f);
+                            transform[2] = glm::vec4(glm::cross(camRight, camUp) * currentSize, 0.0f);
+
+                            // 5. Wyrysowanie cz¹steczki za pomoc¹ Twojego szybkiego shadera UI
+                            Renderer2D::DrawQuad(transform, currentColor);
+                        }
+                    }
+                }
+            }
+        }
+
+        Renderer2D::EndScene();
+        glDepthMask(GL_TRUE); // Koniecznie w³¹czamy zapis g³êbi z powrotem dla kolejnej klatki!
     }
 }
 

@@ -18,6 +18,7 @@
 // DODANO NAGŁÓWKI ANIMACJI
 #include "CookingStation/Layers/AssetLayer/Animation.h"
 #include "CookingStation/Layers/GameLayer/Animator.h"
+#include "CookingStation/Scripts/DragAndDropScript.h"
 
 
 using json = nlohmann::json;

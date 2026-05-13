@@ -343,42 +343,51 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
     if (m_ShowInspectorPanel) {
         Entity selected = activeScene->GetSelectedEntity();
         if (selected.id != std::numeric_limits<std::size_t>::max()) {
-            glm::vec2 inspSize = { 300.0f, 600.0f };
+            glm::vec2 inspSize = { 300.0f, 750.0f }; // Delikatnie powiększone tło na nowe sekcje
             glm::vec2 inspPos = GetAnchoredPosition(Anchor::TopRight, 10.0f, 70.0f, inspSize.x, inspSize.y, m_ViewportWidth, m_ViewportHeight);
 
-            auto* tag = world.GetComponent<TagComponent>(selected);
-            if (tag) Gui::InputGuiText("Nazwa", tag->Tag, { inspPos.x, inspPos.y }, { 260.0f, 25.0f });
+            // Rysujemy tło panelu
+            Gui::Panel(inspPos, inspSize, { 0.15f, 0.15f, 0.15f, 0.95f });
 
+            float currentY = inspPos.y + 10.0f; // Dynamiczny kursor Y
+            float padX = inspPos.x + 5.0f;
+            float elementW = 290.0f;
+
+            // --- SEKCJA TAG ---
+            auto* tag = world.GetComponent<TagComponent>(selected);
+            if (tag) {
+                Gui::InputGuiText("Nazwa", tag->Tag, { padX, currentY }, { elementW, 25.0f });
+                currentY += 35.0f;
+            }
+
+            // --- SEKCJA TRANSFORM ---
             auto* transform = world.GetComponent<TransformComponent>(selected);
             if (transform) {
                 glm::vec3 pos = transform->GetPosition();
                 glm::vec3 rot = transform->GetRotation();
                 glm::vec3 scale = transform->GetScale();
-
                 glm::vec3 posBeforeSliders = pos;
                 float dS = 0.05f; float rS = 0.5f;
 
-                Gui::DragFloat("Pos X", &pos.x, dS, { inspPos.x, inspPos.y + 40.0f }, { 300, 30 });
-                Gui::DragFloat("Pos Y", &pos.y, dS, { inspPos.x, inspPos.y + 80.0f }, { 300, 30 });
-                Gui::DragFloat("Pos Z", &pos.z, dS, { inspPos.x, inspPos.y + 120.0f }, { 300, 30 });
-                Gui::DragFloat("Rot X", &rot.x, rS, { inspPos.x, inspPos.y + 160.0f }, { 300, 30 });
-                Gui::DragFloat("Rot Y", &rot.y, rS, { inspPos.x, inspPos.y + 200.0f }, { 300, 30 });
-                Gui::DragFloat("Rot Z", &rot.z, rS, { inspPos.x, inspPos.y + 240.0f }, { 300, 30 });
-                Gui::DragFloat("Skala X", &scale.x, dS, { inspPos.x, inspPos.y + 280.0f }, { 300, 30 });
-                Gui::DragFloat("Skala Y", &scale.y, dS, { inspPos.x, inspPos.y + 320.0f }, { 300, 30 });
-                Gui::DragFloat("Skala Z", &scale.z, dS, { inspPos.x, inspPos.y + 360.0f }, { 300, 30 });
+                Gui::DrawGuiText("Transform:", { padX, currentY }, 0.4f, { 1.0f, 0.8f, 0.2f, 1.0f }); currentY += 20.0f;
+
+                // Zmniejszyłem wysokość sliderów z 30 do 20, żeby zaoszczędzić miejsce!
+                Gui::DragFloat("Pos X", &pos.x, dS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Pos Y", &pos.y, dS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Pos Z", &pos.z, dS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Rot X", &rot.x, rS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Rot Y", &rot.y, rS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Rot Z", &rot.z, rS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Scale X", &scale.x, dS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Scale Y", &scale.y, dS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Scale Z", &scale.z, dS, { padX, currentY }, { elementW, 20 }); currentY += 30.0f;
 
                 if (pos != posBeforeSliders || rot != transform->GetRotation() || scale != transform->GetScale()) {
-                    transform->SetPosition(pos);
-                    transform->SetRotation(rot);
-                    transform->SetScale(scale);
-
+                    transform->SetPosition(pos); transform->SetRotation(rot); transform->SetScale(scale);
                     if (pos != posBeforeSliders && !m_IsDraggingTransform) {
-                        m_IsDraggingTransform = true;
-                        m_TransformStartPos = posBeforeSliders;
+                        m_IsDraggingTransform = true; m_TransformStartPos = posBeforeSliders;
                     }
                 }
-
                 if (m_IsDraggingTransform && !Input::IsMouseButtonPressed(0)) {
                     EntityTransformChangedEvent e(selected, m_TransformStartPos, pos);
                     Application::Get().OnEvent(e);
@@ -386,52 +395,93 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 }
             }
 
-            if (Gui::Button("USUN OBIEKT", { inspPos.x, inspPos.y + 400.0f }, { 300.0f, 40.0f })) {
-                EntityDeletedEvent e(selected);
-                Application::Get().OnEvent(e);
-                activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
+            // --- SEKCJA BOX COLLIDERA ---
+            auto* collider = world.GetComponent<BoxColliderComponent>(selected);
+            if (collider) {
+                Gui::DrawGuiText("Box Collider:", { padX, currentY }, 0.4f, { 1.0f, 0.8f, 0.2f, 1.0f }); currentY += 20.0f;
+                Gui::DragFloat("Size X", &collider->Size.x, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Size Y", &collider->Size.y, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Size Z", &collider->Size.z, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Off X", &collider->Offset.x, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Off Y", &collider->Offset.y, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                Gui::DragFloat("Off Z", &collider->Offset.z, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 25.0f;
+
+                if (Gui::Button("USUN COLLIDER", { padX, currentY }, { elementW, 25.0f })) {
+                    world.RemoveComponent<BoxColliderComponent>(selected);
+                }
+                currentY += 35.0f;
+            }
+            else {
+                if (Gui::Button("+ Dodaj Box Collider", { padX, currentY }, { elementW, 25.0f })) {
+                    BoxColliderComponent bc;
+                    bc.Size = { 1.0f, 1.0f, 1.0f }; bc.Offset = { 0.0f, 0.0f, 0.0f };
+                    world.AddComponent<BoxColliderComponent>(selected, bc);
+                }
+                currentY += 35.0f;
             }
 
-            if (Gui::Button("ZAPISZ JAKO PREFAB", { inspPos.x, inspPos.y + 450.0f }, { 300.0f, 30.0f })) {
-                auto* tag = world.GetComponent<TagComponent>(selected);
+            // --- SEKCJA SKRYPTÓW ---
+            auto* scriptComp = world.GetComponent<NativeScriptComponent>(selected);
+            if (!scriptComp) {
+                if (Gui::Button("+ Dodaj System Skryptow", { padX, currentY }, { elementW, 25.0f })) {
+                    world.AddComponent<NativeScriptComponent>(selected, NativeScriptComponent{});
+                }
+                currentY += 35.0f;
+            }
+            else {
+                Gui::DrawGuiText("Skrypty:", { padX, currentY }, 0.4f, { 1.0f, 0.8f, 0.2f, 1.0f }); currentY += 20.0f;
+
+                std::string scriptList = "";
+                for (const auto& s : scriptComp->Scripts) 
+                {
+                    scriptList += "- " + s.Name + "\n";
+                    if (s.Name == "ParticleEmitterScript" && s.Instance) {
+                        auto* emitter = static_cast<ParticleEmitterScript*>(s.Instance);
+                        Gui::DrawGuiText("Ustawienia Pary/Dymu:", { padX, currentY }, 0.4f, { 0.4f, 0.8f, 1.0f, 1.0f }); currentY += 20.0f;
+                        Gui::DragFloat("Predkosc Y", &emitter->ParticleTemplate.Velocity.y, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                        Gui::DragFloat("Rozrzut X", &emitter->ParticleTemplate.VelocityVariation.x, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                        Gui::DragFloat("Rozmiar", &emitter->ParticleTemplate.SizeBegin, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                        Gui::DragFloat("Czas Zycia", &emitter->ParticleTemplate.LifeTime, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                    }
+                }
+                if (!scriptList.empty()) {
+                    Gui::DrawGuiText(scriptList, { padX, currentY }, 0.35f, { 0.2f, 0.9f, 0.2f, 1.0f });
+                    currentY += (scriptComp->Scripts.size() * 15.0f) + 10.0f;
+                }
+
+                if (Gui::Button("+ Rot", { padX, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<RotationScript>("RotationScript");
+                if (Gui::Button("+ Conv", { padX + 70.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<ConveyorScript>("ConveyorScript");
+                if (Gui::Button("+ Item", { padX + 140.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<ItemScript>("ItemScript");
+                if (Gui::Button("+ Pot", { padX + 210.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<PotScript>("PotScript");
+                currentY += 25.0f;
+
+                if (Gui::Button("+ BeltVis", { padX, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<BeltVisualScript>("BeltVisualScript");
+                if (Gui::Button("+ Particle", { padX + 70.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<ParticleEmitterScript>("ParticleEmitterScript");
+                currentY += 25.0f;
+                if (Gui::Button("WYCZYSC SKRYPTY", { padX, currentY }, { elementW - 90.0f, 20.0f })) {
+                    scriptComp->Scripts.clear();
+                }
+                currentY += 25.0f;
+
+                if (Gui::Button("USUN SYSTEM SKRYPTOW", { padX, currentY }, { elementW, 25.0f })) {
+                    world.RemoveComponent<NativeScriptComponent>(selected);
+                }
+                currentY += 35.0f;
+            }
+
+            // --- PRZYCISKI ZARZĄDZANIA ---
+            currentY += 10.0f;
+            if (Gui::Button("ZAPISZ JAKO PREFAB", { padX, currentY }, { elementW, 30.0f })) {
                 std::string prefabName = tag ? tag->Tag : "NowyPrefab";
                 std::string path = "CookingStation/Assets/prefabs/" + prefabName + ".json";
                 PrefabSerializer::Serialize(activeScene.get(), selected, path);
             }
-            auto* scriptComp = world.GetComponent<NativeScriptComponent>(selected);
-            if (!scriptComp) {
-                if (Gui::Button("DODAJ SYSTEM SKRYPTOW", { inspPos.x, inspPos.y + 490.0f }, { 300.0f, 30.0f })) {
-                    world.AddComponent<NativeScriptComponent>(selected, NativeScriptComponent{});
-                }
-            }
-            else {
-                // 1. Wypisujemy aktualne skrypty:
-                std::string scriptList = "Skrypty:\n";
-                for (const auto& s : scriptComp->Scripts) scriptList += "- " + s.Name + "\n";
+            currentY += 35.0f;
 
-                Gui::DrawGuiText(scriptList, { inspPos.x + 5.0f, inspPos.y + 495.0f }, 0.40f, { 0.2f, 0.9f, 0.2f, 1.0f });
-
-                // 2. Przyciski dodawania DODATKOWYCH skryptów:
-                if (Gui::Button("+ Rotation", { inspPos.x, inspPos.y + 530.0f }, { 95.0f, 25.0f })) {
-                    scriptComp->AddScript<RotationScript>("RotationScript");
-                }
-                if (Gui::Button("+ Conveyor", { inspPos.x + 100.0f, inspPos.y + 530.0f }, { 95.0f, 25.0f })) {
-                    scriptComp->AddScript<ConveyorScript>("ConveyorScript");
-                }
-                if (Gui::Button("+ Item", { inspPos.x + 200.0f, inspPos.y + 530.0f }, { 95.0f, 25.0f })) {
-                    scriptComp->AddScript<ItemScript>("ItemScript");
-                }
-                if (Gui::Button("+ Pot", { inspPos.x, inspPos.y + 560.0f }, { 95.0f, 25.0f })) {
-                    scriptComp->AddScript<PotScript>("PotScript");
-                }
-                if (Gui::Button("+ BeltVis", { inspPos.x + 100.0f, inspPos.y + 560.0f }, { 95.0f, 25.0f })) {
-                    scriptComp->AddScript<BeltVisualScript>("BeltVisualScript");
-                }
-
-                // 3. Czyszczenie całej listy:
-                if (Gui::Button("WYCZYSC SKRYPTY", { inspPos.x, inspPos.y + 595.0f }, { 300.0f, 25.0f })) {
-                    scriptComp->Scripts.clear();
-                }
+            if (Gui::Button("USUN OBIEKT Z MAPY", { padX, currentY }, { elementW, 30.0f })) {
+                EntityDeletedEvent e(selected);
+                Application::Get().OnEvent(e);
+                activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
             }
         }
     }
