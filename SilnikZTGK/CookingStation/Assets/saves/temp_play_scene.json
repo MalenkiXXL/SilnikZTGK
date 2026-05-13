@@ -1824,7 +1824,7 @@
         },
         {
             "id": 79,
-            "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot",
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot/small_pot.gltf",
             "name": "DispenserManager",
             "position": [
                 0.0,
@@ -1874,29 +1874,6 @@
             ],
             "scripts": [
                 "MushroomAI"
-            ]
-        },
-        {
-            "id": 81,
-            "model_path": "CookingStation/Assets/models/przybory_kuchenne/naczynia/deep_plate.gltf",
-            "name": "Talerz",
-            "position": [
-                -3.332324504852295,
-                2.0,
-                9.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "scripts": [
-                "ItemScript"
             ]
         }
     ]

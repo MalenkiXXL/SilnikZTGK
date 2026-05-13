@@ -739,7 +739,7 @@
     },
     {
       "id": 79,
-      "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot",
+      "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot/small_pot.gltf",
       "name": "DispenserManager",
       "position": [ 0.0, -999.0, 1.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],

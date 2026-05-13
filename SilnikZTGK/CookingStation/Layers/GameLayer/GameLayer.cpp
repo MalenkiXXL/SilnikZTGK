@@ -15,7 +15,7 @@ void GameLayer::OnAttach()
         return;
     }
 
-    m_ActiveScene->OnRuntimeStart();
+    //m_ActiveScene->OnRuntimeStart();
 }
 
 void GameLayer::OnDetach()
@@ -26,30 +26,24 @@ void GameLayer::OnDetach()
 
 void GameLayer::OnUpdate(Timestep ts)
 {
+    m_ActiveScene = SceneManager::GetActiveScene();
     if (!m_ActiveScene) return;
 
-    // GameLayer zajmuje siê logik¹ sceny
-    // To tutaj odpalane s¹ systemy ECS (w tym nasz nowy Animator przeniesiony do Scene.cpp)
-    m_ActiveScene->OnUpdateRuntime(ts);
-
-    // ====================================================================
-    // DIAGNOSTYKA: Sprawdzamy czy komponent przetrwa³ wejœcie w tryb Play
-    // ====================================================================
-    if (m_ActiveScene->GetState() == SceneState::Play)
+    if (m_ActiveScene->GetState() != SceneState::Play)
     {
-        auto& world = m_ActiveScene->GetWorld();
-        auto* animatorStorage = world.GetComponentVector<AnimatorComponent>();
+        return;
+    }
 
-        if (animatorStorage && !animatorStorage->dense.empty())
-        {
-            // Opcjonalnie: odkomentuj poni¿sz¹ liniê na chwilê, by sprawdziæ czy wykrywa grzybka
-            // spdlog::info("Animator dziala! Liczba postaci: {}", animatorStorage->dense.size());
-        }
-        else
-        {
-            // Jeœli to siê wywo³a - oznacza to, ¿e serializer niszczy nasz komponent!
-            spdlog::error("BRAK ANIMATORA! Komponent wyparowal w trybie Play!");
-        }
+    auto& world = m_ActiveScene->GetWorld();
+    auto* animatorStorage = world.GetComponentVector<AnimatorComponent>();
+
+    if (animatorStorage && !animatorStorage->dense.empty())
+    {
+        // spdlog::info("Animator dziala! Liczba postaci: {}", animatorStorage->dense.size());
+    }
+    else
+    {
+        spdlog::error("BRAK ANIMATORA! Komponent wyparowal w trybie Play!");
     }
 }
 
