@@ -18,66 +18,85 @@ public:
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        // 1. Pobieramy obecn¹ pozycjê obiektu
         glm::vec3 myPos = transform->GetPosition();
 
+        // Ca³kowity dystans, jaki mamy do pokonania w TEJ klatce
+        float distanceToMove = m_CurrentSpeed * ts.GetSeconds();
+        bool movedThisFrame = false;
+
+        // 1. Jeœli obiekt stoi, sprawdzamy, czy w ogóle ma po czym jechaæ
         if (!m_IsMoving)
         {
-            ConveyorScript* currentConveyor = GetScene()->GetConveyorAt(myPos.x, myPos.z);
-
-
-            if (currentConveyor)
-            {
-                // Zapisujemy prêdkoœæ z taœmy, na której w³aœnie jesteœmy
-                m_CurrentSpeed = currentConveyor->Speed;
-
-                auto* conveyorTransform = currentConveyor->GetComponent<TransformComponent>();
-                if (conveyorTransform)
-                {
-                    glm::vec3 convPos = conveyorTransform->GetPosition();
-
-                    // Obliczamy œrodek KOLEJNEJ kratki
-                    m_TargetPosition = convPos + (currentConveyor->PushDirection * m_GridSize);
-
-                    // Wyrównanie obiektu do œrodka obecnej taœmy
-                    myPos.x = convPos.x;
-                    myPos.z = convPos.z;
-
-                    m_IsMoving = true;
-                }
-            }
+            if (!FindNextTarget(myPos))
+                return; // Nic pod nami nie ma, stoimy w miejscu
         }
 
-        if (m_IsMoving)
+        // 2. Pêtla ruchu. Jeœli dotrzemy do celu szybciej ni¿ "distanceToMove" 
+        // to resztê ruchu wykorzystujemy na p³ynny wjazd na kolejn¹ taœmê
+        while (distanceToMove > 0.001f && m_IsMoving)
         {
-            float step = m_CurrentSpeed * ts.GetSeconds();
-
-            // Wektor ró¿nicy miêdzy celem a nasz¹ pozycj¹ (tylko na osiach X i Z)
             glm::vec3 diff = m_TargetPosition - myPos;
-            diff.y = 0.0f;
+            diff.y = 0.0f; // Ignorujemy oœ Y, jeŸdzimy tylko w poziomie
+            float distanceToTarget = glm::length(diff);
 
-            float distance = glm::length(diff);
-
-            // Sprawdzamy, czy w tej klatce przekroczymy/osi¹gniemy cel
-            if (distance <= step)
+            if (distanceToTarget <= distanceToMove)
             {
-                // Dotarliœmy równiutko do celu
+                // Dotarliœmy dok³adnie do œrodka kratki
                 myPos.x = m_TargetPosition.x;
                 myPos.z = m_TargetPosition.z;
 
-                // Zatrzymujemy ruch. W kolejnej klatce skrypt sprawdzi now¹ taœmê pod now¹ pozycj¹.
-                m_IsMoving = false;
+                // Odejmujemy dystans, który zu¿yliœmy na dojazd do œrodka
+                distanceToMove -= distanceToTarget;
+
+                // OD RAZU szukamy nowej taœmy, bez czekania na now¹ klatkê!
+                if (!FindNextTarget(myPos))
+                {
+                    m_IsMoving = false; // Koniec trasy, zatrzymujemy siê na œrodku
+                }
             }
             else
             {
-                // Jeœli cel jest jeszcze daleko, po prostu przemieszczamy siê o wartoœæ 'step'
-                glm::vec3 dir = diff / distance;
-                myPos.x += dir.x * step;
-                myPos.z += dir.z * step;
+                // Zwyk³y ruch w stronê celu (zosta³o nam wiêcej drogi ni¿ dystansu do œrodka)
+                glm::vec3 dir = diff / distanceToTarget;
+                myPos.x += dir.x * distanceToMove;
+                myPos.z += dir.z * distanceToMove;
+
+                // Zu¿yliœmy ca³y ruch z tej klatki
+                distanceToMove = 0.0f;
             }
 
-            // 3. Wgrywamy now¹ pozycjê DOPIERO NA SAMYM KOÑCU
+            movedThisFrame = true;
+        }
+
+        // 3. Aktualizacja pozycji tylko wtedy, gdy faktycznie siê przemieœciliœmy (Dirty Flag)
+        if (movedThisFrame)
+        {
             transform->SetPosition(myPos);
         }
+    }
+
+private:
+    // Pomocnicza funkcja do wy³apywania kolejnej taœmy i ustawiania celu
+    bool FindNextTarget(glm::vec3 currentPos)
+    {
+        ConveyorScript* currentConveyor = GetScene()->GetConveyorAt(currentPos.x, currentPos.z);
+
+        if (currentConveyor)
+        {
+            m_CurrentSpeed = currentConveyor->Speed;
+            auto* conveyorTransform = currentConveyor->GetComponent<TransformComponent>();
+
+            if (conveyorTransform)
+            {
+                glm::vec3 convPos = conveyorTransform->GetPosition();
+
+                // Œrodek kolejnej kratki, zgodnie z kierunkiem taœmy
+                m_TargetPosition = convPos + (currentConveyor->PushDirection * m_GridSize);
+                m_IsMoving = true;
+                return true;
+            }
+        }
+
+        return false;
     }
 };
