@@ -225,6 +225,7 @@
     <ClInclude Include="CookingStation\Scripts\ConveyorScript.h" />
     <ClInclude Include="CookingStation\Scripts\ItemScript.h" />
     <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
+    <ClInclude Include="CookingStation\Scripts\ParticleEmitterScript.h" />
     <ClInclude Include="CookingStation\Scripts\PlateSpawnerScript.h" />
     <ClInclude Include="CookingStation\Scripts\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\RotationScript.h" />

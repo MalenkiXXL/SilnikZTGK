@@ -1799,7 +1799,8 @@
                 1.0
             ],
             "scripts": [
-                "PotScript"
+                "PotScript",
+                "ParticleEmitterScript"
             ]
         },
         {
