@@ -153,6 +153,7 @@
     <ClCompile Include="CookingStation\Scene\PrefabSerializer.h" />
     <ClCompile Include="CookingStation\Scene\SceneSerializer.cpp" />
     <ClCompile Include="CookingStation\Layers\CameraLayer\CameraLayer.cpp" />
+    <ClCompile Include="CookingStation\Scripts\src\PlateSpawnerScript.cpp" />
     <ClCompile Include="CookingStation\stb_image_impl.cpp" />
     <ClCompile Include="CookingStation\Scene\ecs.cpp" />
     <ClCompile Include="CookingStation\Layers\EditorLayer\EditorLayer.cpp" />
@@ -224,6 +225,7 @@
     <ClInclude Include="CookingStation\Scripts\ConveyorScript.h" />
     <ClInclude Include="CookingStation\Scripts\ItemScript.h" />
     <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
+    <ClInclude Include="CookingStation\Scripts\PlateSpawnerScript.h" />
     <ClInclude Include="CookingStation\Scripts\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\RotationScript.h" />
     <ClInclude Include="CookingStation\Scene\SceneManager.h" />
@@ -232,6 +234,7 @@
     <ClInclude Include="CookingStation\Scripts\ScriptRegistry.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="CookingStation\Assets\prefabs\plate.json" />
     <None Include="CookingStation\packages.config" />
     <None Include="CookingStation\Shaders\fragShaders\BlinnPhong.frag" />
     <None Include="CookingStation\Shaders\fragShaders\lightCubeShader.frag" />
