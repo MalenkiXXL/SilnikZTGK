@@ -101,7 +101,7 @@ public:
             std::string path = item["model_path"];
             MeshComponent meshComp;
             meshComp.ModelPtr = AssetManager::GetModel(path);
-            meshComp.ShaderPtr = AssetManager::GetShaders().Get("ModelShader");
+            meshComp.ShaderPtr = nullptr;
             meshComp.Path = path;
             builder.With<MeshComponent>(meshComp);
         }

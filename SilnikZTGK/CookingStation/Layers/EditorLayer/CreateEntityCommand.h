@@ -1,8 +1,8 @@
 class CreateEntityCommand : public Command {
 public:
     // Dodajemy wskaŸnik na shader do konstruktora komendy (albo mo¿esz go pobraæ z AssetManager'a wewn¹trz)
-    CreateEntityCommand(World* world, const std::string& name, const std::string& path, const glm::vec3& position, std::shared_ptr<Shader> shader)
-        : m_World(world), m_Name(name), m_ModelPath(path), m_Position(position), m_Shader(shader) {
+    CreateEntityCommand(World* world, const std::string& name, const std::string& path, const glm::vec3& position)
+        : m_World(world), m_Name(name), m_ModelPath(path), m_Position(position) {
     }
 
     virtual void Execute() override {
@@ -15,7 +15,6 @@ public:
         // U¿ywamy jawnego wywo³ania, zak³adaj¹c ¿e doda³eœ konstruktor do MeshComponent
         MeshComponent meshComp;
         meshComp.ModelPtr = AssetManager::GetModel(m_ModelPath);
-        meshComp.ShaderPtr = m_Shader; // Podpinamy shader!
         meshComp.Path = m_ModelPath;
         m_World->AddComponent<MeshComponent>(m_Entity, meshComp);
 
@@ -72,5 +71,4 @@ private:
     std::string m_Name;
     std::string m_ModelPath;
     glm::vec3 m_Position;
-    std::shared_ptr<Shader> m_Shader; // Zapisujemy shader w komendzie
 };
