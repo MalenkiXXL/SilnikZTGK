@@ -606,9 +606,8 @@ void EditorLayer::OnUpdate(Timestep ts)
                 if (scriptStorage)
                 {
                     auto* nsc = scriptStorage->Get(closestEntity);
-                    if (nsc && nsc->Instance)
-                    {
-                        nsc->Instance->OnClick();
+                    if (nsc) {
+                        for (auto& s : nsc->Scripts) if (s.Instance) s.Instance->OnClick();
                     }
                 }
             }

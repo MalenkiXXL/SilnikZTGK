@@ -70,9 +70,12 @@ public:
 
         if (auto* script = m_World->GetComponent<NativeScriptComponent>(m_Entity)) {
             m_HasScript = true;
-            // Kopiujemy tylko definicjê skryptu (InstantiateScript), 
-            // Instance musi zostaæ stworzone na nowo po przywróceniu.
-            m_Script.InstantiateScript = script->InstantiateScript;
+            m_Script = *script; // Kopiujemy ca³y komponent (czyli listê NativeScriptElement)
+            // Upewniamy siê, ¿e w kopii zapasowej (do Undo) czyœcimy wskaŸniki na ewentualne
+             // dzia³aj¹ce instancje, aby nie doprowadziæ do wycieków pamiêci i crashy.
+            for (auto& s : m_Script.Scripts) {
+                s.Instance = nullptr;
+            }
         }
     }
 

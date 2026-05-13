@@ -66,27 +66,23 @@ void Scene::OnUpdateRuntime(Timestep ts)
 	CalculateTransforms();
 	auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
 
-	if (scriptStorage)
-	{
-		for (size_t i = 0; i < scriptStorage->dense.size(); i++)
-		{
+	if (scriptStorage) {
+		for (size_t i = 0; i < scriptStorage->dense.size(); i++) {
 			Entity entity = scriptStorage->reverse[i];
 			auto& scriptComp = scriptStorage->dense[i];
 
-			if (!scriptComp.Instance)
-			{
-				if (scriptComp.InstantiateScript)
-				{
-					scriptComp.Instance = scriptComp.InstantiateScript();
-					scriptComp.Instance->m_Entity = entity;
-					scriptComp.Instance->m_Scene = this;
-					scriptComp.Instance->OnCreate();
+			for (auto& scriptEl : scriptComp.Scripts) {
+				if (!scriptEl.Instance) {
+					if (scriptEl.InstantiateScript) {
+						scriptEl.Instance = scriptEl.InstantiateScript();
+						scriptEl.Instance->m_Entity = entity;
+						scriptEl.Instance->m_Scene = this;
+						scriptEl.Instance->OnCreate();
+					}
 				}
-			}
-
-			if (scriptComp.Instance)
-			{
-				scriptComp.Instance->OnUpdate(ts);
+				if (scriptEl.Instance) {
+					scriptEl.Instance->OnUpdate(ts);
+				}
 			}
 		}
 	}
@@ -151,13 +147,13 @@ void Scene::OnUpdateRuntime(Timestep ts)
 					spdlog::info("kolizja miedzy ID: {} a ID: {}", dataA.ent.id, dataB.ent.id);
 
 					auto* scriptA = m_ECSWorld.GetComponent<NativeScriptComponent>(dataA.ent);
-					if (scriptA && scriptA->Instance) {
-						scriptA->Instance->OnCollision();
+					if (scriptA) {
+						for (auto& s : scriptA->Scripts) if (s.Instance) s.Instance->OnCollision();
 					}
 
 					auto* scriptB = m_ECSWorld.GetComponent<NativeScriptComponent>(dataB.ent);
-					if (scriptB && scriptB->Instance) {
-						scriptB->Instance->OnCollision();
+					if (scriptB) {
+						for (auto& s : scriptB->Scripts) if (s.Instance) s.Instance->OnCollision();
 					}
 				}
 			}
@@ -170,16 +166,15 @@ void Scene::OnRuntimeStop()
 	std::cout << "[Scene] OnRuntimeStop\n";
 
 	auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
-	if (scriptStorage)
-	{
-		for (size_t i = 0; i < scriptStorage->dense.size(); i++)
-		{
+	if (scriptStorage) {
+		for (size_t i = 0; i < scriptStorage->dense.size(); i++) {
 			auto& scriptComp = scriptStorage->dense[i];
-			if (scriptComp.Instance)
-			{
-				scriptComp.Instance->OnDestroy();
-				delete scriptComp.Instance;       
-				scriptComp.Instance = nullptr; 
+			for (auto& scriptEl : scriptComp.Scripts) {
+				if (scriptEl.Instance) {
+					scriptEl.Instance->OnDestroy();
+					if (scriptEl.DestroyScript) scriptEl.DestroyScript(&scriptEl);
+					scriptEl.Instance = nullptr;
+				}
 			}
 		}
 	}
@@ -353,16 +348,19 @@ void Scene::RebuildConveyorCache()
 
 	for (auto& scriptComp : scriptStorage->dense)
 	{
-		if (!scriptComp.Instance) continue;
+		ConveyorScript* conveyor = nullptr;
+		for (auto& scriptEl : scriptComp.Scripts) {
+			conveyor = dynamic_cast<ConveyorScript*>(scriptEl.Instance);
+			if (conveyor) break; 
+		}
 
-		ConveyorScript* conveyor = dynamic_cast<ConveyorScript*>(scriptComp.Instance);
 		if (!conveyor) continue;
 
 		auto* t = conveyor->GetComponent<TransformComponent>();
 		if (!t) continue;
 
 		GridPos key{ (int)std::round(t->GetPosition().x / 2.0f),
-					  (int)std::round(t->GetPosition().z / 2.0f) };
+					 (int)std::round(t->GetPosition().z / 2.0f) };
 
 		ConveyorMap[key] = conveyor;
 	}

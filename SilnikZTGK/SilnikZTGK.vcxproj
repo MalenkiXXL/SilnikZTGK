@@ -226,6 +226,7 @@
     <ClInclude Include="CookingStation\Scene\SceneManager.h" />
     <ClInclude Include="CookingStation\Layers\GameLayer\GameLayer.h" />
     <ClInclude Include="CookingStation\Layers\HudLayer\HUDLayer.h" />
+    <ClInclude Include="CookingStation\Scripts\ScriptRegistry.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

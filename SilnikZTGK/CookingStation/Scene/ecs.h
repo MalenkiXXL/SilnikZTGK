@@ -204,48 +204,36 @@ public:
 // Deklaracja wyprzedzaj¹ca
 class ScriptableEntity;
 
-//struct NativeScriptComponent
-//{
-//    ScriptableEntity* Instance = nullptr;
-//
-//    ScriptableEntity* (*InstantiateScript)();
-//    void (*DestroyScript)(NativeScriptComponent*);
-//
-//    std::string ScriptName = "";
-//
-//    // Zmieniamy typ na funkcjê, która zwraca wskaŸnik na ScriptableEntity
-//    std::function<ScriptableEntity* ()> InstantiateScript;
-//
-//    template<typename T>
-//    void Bind(const std::string& name)
-//    {
-//        //InstantiateScript = []() { return new T(); };
-//        InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
-//        DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
-//        ScriptName = name;
-//    }
-//};
-
-struct NativeScriptComponent
+// Struktura pojedynczego skryptu na liœcie
+struct NativeScriptElement
 {
     ScriptableEntity* Instance = nullptr;
-
-    // WskaŸniki na funkcje tworz¹ce i niszcz¹ce skrypt
     ScriptableEntity* (*InstantiateScript)() = nullptr;
-    void (*DestroyScript)(NativeScriptComponent*) = nullptr;
+    void (*DestroyScript)(NativeScriptElement*) = nullptr;
+    std::string Name = "";
 
-    // Nasza nowa zmienna przechowuj¹ca nazwê skryptu (np. "ItemScript")
-    std::string ScriptName = "";
-
-    // Funkcja Bind, która teraz przyjmuje te¿ nazwê skryptu
     template<typename T>
     void Bind(const std::string& name)
     {
+        Name = name;
         InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
-        DestroyScript = [](NativeScriptComponent* nsc) {
-            delete nsc->Instance;
-            nsc->Instance = nullptr;
+        DestroyScript = [](NativeScriptElement* nse) {
+            delete nse->Instance;
+            nse->Instance = nullptr;
             };
-        ScriptName = name;
+    }
+};
+
+// Zaktualizowany Komponent przechowuj¹cy WIELE skryptów
+struct NativeScriptComponent
+{
+    std::vector<NativeScriptElement> Scripts;
+
+    template<typename T>
+    void AddScript(const std::string& name)
+    {
+        NativeScriptElement nse;
+        nse.Bind<T>(name);
+        Scripts.push_back(nse);
     }
 };

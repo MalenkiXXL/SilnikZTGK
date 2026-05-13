@@ -12,6 +12,9 @@
 #include "CookingStation/Scripts/RotationScript.h"
 #include "CookingStation/Scripts/ConveyorScript.h"
 #include "CookingStation/Scripts/ItemScript.h"
+#include "CookingStation/Scripts/PotScript.h"
+#include "CookingStation/Scripts/ScriptRegistry.h"
+
 
 using json = nlohmann::json;
 
@@ -85,20 +88,18 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 				builder.With<BoxColliderComponent>(bc);
 			}
 
-			if (item.contains("script")) {
+			if (item.contains("scripts")) {
 				NativeScriptComponent nsc;
-				std::string scriptName = item["script"].get<std::string>();
-
-				if (scriptName == "RotationScript") {
-					nsc.Bind<RotationScript>(scriptName);
+				// Iterujemy po liœcie w JSON i dodajemy do komponentu przez nasz nowy Rejestr
+				for (const auto& scriptName : item["scripts"]) {
+					ScriptRegistry::AddScriptToComponent(nsc, scriptName.get<std::string>());
 				}
-				else if (scriptName == "ConveyorScript") {
-					nsc.Bind<ConveyorScript>(scriptName);
-				}
-				else if (scriptName == "ItemScript") {
-					nsc.Bind<ItemScript>(scriptName);
-				}
-
+				builder.With<NativeScriptComponent>(nsc);
+			}
+			// Opcjonalnie: kompatybilnoœæ wsteczna z Twoimi starymi zapisami scen (stary klucz "script")
+			else if (item.contains("script")) {
+				NativeScriptComponent nsc;
+				ScriptRegistry::AddScriptToComponent(nsc, item["script"].get<std::string>());
 				builder.With<NativeScriptComponent>(nsc);
 			}
 
@@ -189,9 +190,14 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 		}
 
 		if (scriptStorage) {
-			auto* script = scriptStorage->Get(entity);
-			if (script && script->InstantiateScript && !script->ScriptName.empty()) {
-				item["script"] = script->ScriptName;
+			if (auto* nsc = scriptStorage->Get(entity)) {
+				if (!nsc->Scripts.empty()) {
+					std::vector<std::string> scriptNames;
+					for (const auto& s : nsc->Scripts) {
+						scriptNames.push_back(s.Name);
+					}
+					item["scripts"] = scriptNames; // Klucz "scripts" z 's' na koñcu!
+				}
 			}
 		}
 

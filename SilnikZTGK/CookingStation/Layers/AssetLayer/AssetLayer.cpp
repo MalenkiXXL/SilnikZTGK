@@ -8,6 +8,7 @@
 #include "CookingStation/Renderer/Renderer.h"
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Core/Input.h"
+#include "CookingStation/Scripts/ScriptRegistry.h"
 #include <nlohmann/json.hpp>
 #include <glm/glm.hpp>
 
@@ -20,6 +21,9 @@ void AssetLayer::OnAttach() {
 	// wczytujemy definicje modeli do biblioteki z pliku
     AssetManager::LoadModelLibrary("CookingStation/Assets/modelsLib.json");
 	AssetManager::InitCoreAssets();
+
+
+	ScriptRegistry::Init();
 
 	// pobieramy aktualn¹ scenê utworzon¹ w Application.cpp przez SceneManagera
 	std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
@@ -36,6 +40,7 @@ void AssetLayer::OnAttach() {
 	// wczytujemy konkretne obiekty i ich stan z pliku zapisu
 	SceneSerializer serializer(activeScene.get());
 	serializer.Deserialize("CookingStation/Assets/levels/level01.json");
+
 };
 
 void AssetLayer::OnUpdate(Timestep ts)
