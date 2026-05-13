@@ -10,6 +10,9 @@ class ItemScript : public ScriptableEntity
     float m_GridSize = 2.0f; // Rozmiar kratki
     float m_CurrentSpeed = 2.0f;
 
+    ConveyorScript* m_CurrentConveyor = nullptr;
+    ConveyorScript* m_TargetConveyor = nullptr;
+
 public:
     void OnCreate() override {}
 
@@ -20,55 +23,61 @@ public:
 
         glm::vec3 myPos = transform->GetPosition();
 
-        // Ca≥kowity dystans, jaki mamy do pokonania w TEJ klatce
         float distanceToMove = m_CurrentSpeed * ts.GetSeconds();
         bool movedThisFrame = false;
 
-        // 1. Jeúli obiekt stoi, sprawdzamy, czy w ogÛle ma po czym jechaÊ
         if (!m_IsMoving)
         {
             if (!FindNextTarget(myPos))
-                return; // Nic pod nami nie ma, stoimy w miejscu
+            {
+                if (m_CurrentConveyor) m_CurrentConveyor->IsJammed = true;
+                return;
+            }
+            else
+            {
+                if (m_CurrentConveyor) m_CurrentConveyor->IsJammed = false;
+            }
         }
 
-        // 2. PÍtla ruchu. Jeúli dotrzemy do celu szybciej niø "distanceToMove" 
-        // to resztÍ ruchu wykorzystujemy na p≥ynny wjazd na kolejnπ taúmÍ
         while (distanceToMove > 0.001f && m_IsMoving)
         {
             glm::vec3 diff = m_TargetPosition - myPos;
-            diff.y = 0.0f; // Ignorujemy oú Y, jeüdzimy tylko w poziomie
+            diff.y = 0.0f;
             float distanceToTarget = glm::length(diff);
 
             if (distanceToTarget <= distanceToMove)
             {
-                // Dotarliúmy dok≥adnie do úrodka kratki
                 myPos.x = m_TargetPosition.x;
                 myPos.z = m_TargetPosition.z;
 
-                // Odejmujemy dystans, ktÛry zuøyliúmy na dojazd do úrodka
                 distanceToMove -= distanceToTarget;
 
-                // OD RAZU szukamy nowej taúmy, bez czekania na nowπ klatkÍ!
+                if (m_CurrentConveyor)
+                {
+                    m_CurrentConveyor->IsOccupied = false;
+                    m_CurrentConveyor->IsJammed = false;
+                }
+
+                m_CurrentConveyor = m_TargetConveyor;
+
                 if (!FindNextTarget(myPos))
                 {
-                    m_IsMoving = false; // Koniec trasy, zatrzymujemy siÍ na úrodku
+                    m_IsMoving = false;
+                    if (m_CurrentConveyor) m_CurrentConveyor->IsJammed = true;
                 }
             }
             else
             {
-                // Zwyk≥y ruch w stronÍ celu (zosta≥o nam wiÍcej drogi niø dystansu do úrodka)
                 glm::vec3 dir = diff / distanceToTarget;
                 myPos.x += dir.x * distanceToMove;
                 myPos.z += dir.z * distanceToMove;
 
-                // Zuøyliúmy ca≥y ruch z tej klatki
                 distanceToMove = 0.0f;
             }
 
             movedThisFrame = true;
         }
 
-        // 3. Aktualizacja pozycji tylko wtedy, gdy faktycznie siÍ przemieúciliúmy (Dirty Flag)
         if (movedThisFrame)
         {
             transform->SetPosition(myPos);
@@ -76,23 +85,30 @@ public:
     }
 
 private:
-    // Pomocnicza funkcja do wy≥apywania kolejnej taúmy i ustawiania celu
     bool FindNextTarget(glm::vec3 currentPos)
     {
         ConveyorScript* currentConveyor = GetScene()->GetConveyorAt(currentPos.x, currentPos.z);
+        if (!currentConveyor) return false;
 
-        if (currentConveyor)
+        if (!m_CurrentConveyor) {
+            m_CurrentConveyor = currentConveyor;
+            m_CurrentConveyor->IsOccupied = true;
+        }
+
+        glm::vec3 nextPos = currentPos + (currentConveyor->PushDirection * m_GridSize);
+        ConveyorScript* nextConveyor = GetScene()->GetConveyorAt(nextPos.x, nextPos.z);
+        
+        if (nextConveyor)
         {
-            m_CurrentSpeed = currentConveyor->Speed;
-            auto* conveyorTransform = currentConveyor->GetComponent<TransformComponent>();
-
-            if (conveyorTransform)
+            if (!nextConveyor->IsOccupied)
             {
-                glm::vec3 convPos = conveyorTransform->GetPosition();
+                nextConveyor->IsOccupied = true;
 
-                // årodek kolejnej kratki, zgodnie z kierunkiem taúmy
-                m_TargetPosition = convPos + (currentConveyor->PushDirection * m_GridSize);
+                m_TargetConveyor = nextConveyor;
+
+                m_TargetPosition = nextPos;
                 m_IsMoving = true;
+
                 return true;
             }
         }

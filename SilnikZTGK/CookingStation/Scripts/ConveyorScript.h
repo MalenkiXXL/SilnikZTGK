@@ -22,6 +22,9 @@ public:
     glm::vec3 PushDirection = { 0.0f, 0.0f, 0.0f };
     float Speed = 2.0f;
 
+    bool IsOccupied = false;
+    bool IsJammed = false;
+
     void OnCreate() override
     {
         SetPushDirection();
