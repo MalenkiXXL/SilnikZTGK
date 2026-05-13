@@ -211,6 +211,14 @@
     {
       "name": "GRZYBEK_ANIMA",
       "path": "CookingStation/Assets/models/animacje/grzybek/grzybek_walk.gltf"
+    },
+    {
+      "name": "budka",
+      "path": "CookingStation/Assets/models/wystroj/budka.gltf"
+    },
+    {
+      "name": "balony",
+      "path": "CookingStation/Assets/models/wystroj/balony.gltf"
     }
   ]
 }

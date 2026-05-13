@@ -730,16 +730,16 @@
       "script": "PotScript"
     },
     {
-        "id": 78,
-        "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
-        "name": "event_78",
-        "position": [ -25.0, 0.0, 1.0 ],
-        "rotation": [ 0.0, 0.0, 0.0 ],
-        "scale": [ 1.0, 1.0, 1.0 ]
+      "id": 78,
+      "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
+      "name": "event_78",
+      "position": [ -25.0, 0.0, 1.0 ],
+      "rotation": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ]
     },
     {
       "id": 79,
-      "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot/small_pot.gltf",
+      "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot.gltf",
       "name": "DispenserManager",
       "position": [ 0.0, -999.0, 1.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
@@ -761,7 +761,110 @@
         }
       },
       "scripts": [ "MushroomAI" ]
+    },
+    {
+      "id": 81,
+      "model_path": "CookingStation/Assets/models/dostawa/paczka.gltf",
+      "name": "paczka_1",
+      "position": [ -9.0, 1.0, 4.0 ],
+      "rotation": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ]
+    },
+    {
+      "id": 82,
+      "model_path": "CookingStation/Assets/models/dostawa/paczka.gltf",
+      "name": "paczka_2",
+      "position": [ -9.0, 1.0, 6.0 ],
+      "rotation": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ]
+    },
+    {
+      "id": 83,
+      "model_path": "CookingStation/Assets/models/wystroj/budka.gltf",
+      "name": "budka",
+      "position": [ -22.0, 1.0, 3.0 ],
+      "rotation": [ 0.0, -90.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ]
+    },
+    {
+      "id": 84,
+      "model_path": "CookingStation/Assets/models/wystroj/balony.gltf",
+      "name": "balony",
+      "position": [
+        -18.0,
+        0.0,
+        -3.5
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": 85,
+      "model_path": "CookingStation/Assets/models/wystroj/balony.gltf",
+      "name": "balony",
+      "position": [
+        -30.0,
+        0.5,
+        6.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": 86,
+      "model_path": "CookingStation/Assets/models/wystroj/balony.gltf",
+      "name": "balony",
+      "position": [
+        -31.0,
+        0.2,
+        -3.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
+    },
+    {
+      "id": 87,
+      "model_path": "CookingStation/Assets/models/wystroj/balony.gltf",
+      "name": "balony",
+      "position": [
+        -19.0,
+        0.3,
+        7.0
+      ],
+      "rotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "scale": [
+        1.0,
+        1.0,
+        1.0
+      ]
     }
-
   ]
 }
