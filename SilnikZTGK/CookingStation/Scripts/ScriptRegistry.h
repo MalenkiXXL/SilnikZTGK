@@ -41,7 +41,7 @@ public:
         Register<ItemScript>("ItemScript");
         Register<BeltVisualScript>("BeltVisualScript");
         Register<PotScript>("PotScript");
-        Register<PlateSpawnerScript>("SpawnerScript");
+        Register<PlateSpawnerScript>("PlateSpawnerScript");
     }
 
     static void AddScriptToComponent(NativeScriptComponent& nsc, const std::string& name)
