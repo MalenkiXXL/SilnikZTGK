@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include "CookingStation/Renderer/Model.h"
+#include "CookingStation/Layers/GameLayer/Animator.h"
 
 constexpr std::size_t NULL_ENTITY = std::numeric_limits<std::size_t>::max();
 
@@ -102,4 +103,17 @@ struct ShaderComponent {
     ShaderComponent() = default;
     ShaderComponent(const ShaderComponent&) = default;
     ShaderComponent(std::shared_ptr<Shader> s) : shader(s) {}
+};
+
+struct AnimatorComponent {
+    std::shared_ptr<Animator> AnimatorInstance;
+
+    // Opcjonalne parametry steruj¹ce
+    bool IsPlaying = true;
+    float PlaybackSpeed = 1.0f;
+
+    AnimatorComponent() = default;
+    AnimatorComponent(std::shared_ptr<Animator> animator)
+        : AnimatorInstance(animator) {
+    }
 };

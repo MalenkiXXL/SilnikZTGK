@@ -207,6 +207,10 @@
     {
       "name": "event",
       "path": "CookingStation/Assets/models/wystroj/event.gltf"
+    },
+    {
+      "name": "GRZYBEK_ANIMA",
+      "path": "CookingStation/Assets/models/animacje/grzybek/grzybek_walk.gltf"
     }
   ]
 }

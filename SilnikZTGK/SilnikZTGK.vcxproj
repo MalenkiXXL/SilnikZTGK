@@ -184,10 +184,13 @@
     <ClInclude Include="CookingStation\Core\Texture.h" />
     <ClInclude Include="CookingStation\Core\Timestep.h" />
     <ClInclude Include="CookingStation\Events\EditorEvents.h" />
+    <ClInclude Include="CookingStation\Layers\AssetLayer\Animation.h" />
+    <ClInclude Include="CookingStation\Layers\AssetLayer\Bone.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\Command.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\CommandHistory.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\CreateEntityCommand.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\MoveEntityCommand.h" />
+    <ClInclude Include="CookingStation\Layers\GameLayer\Animator.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\GameGuiLayer.h" />
     <ClInclude Include="CookingStation\Math\Geometry.h" />
     <ClInclude Include="CookingStation\Renderer\Buffer.h" />
@@ -224,6 +227,7 @@
     <ClInclude Include="CookingStation\Scripts\ConveyorScript.h" />
     <ClInclude Include="CookingStation\Scripts\ItemScript.h" />
     <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
+    <ClInclude Include="CookingStation\Scripts\MushroomAI.h" />
     <ClInclude Include="CookingStation\Scripts\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\RotationScript.h" />
     <ClInclude Include="CookingStation\Scene\SceneManager.h" />

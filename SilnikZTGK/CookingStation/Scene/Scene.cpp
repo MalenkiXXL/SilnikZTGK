@@ -11,6 +11,8 @@
 #include "CookingStation/Renderer/Model.h"          
 #include "glm/gtc/matrix_transform.hpp"
 #include "CookingStation/Scripts/ConveyorScript.h"
+#include "CookingStation/Layers/AssetLayer/Animation.h"
+#include "CookingStation/Layers/GameLayer/Animator.h"
 
 #include <iostream> 
 
@@ -24,6 +26,7 @@ Scene::Scene()
 	m_ECSWorld.RegisterComponent<ClearColorComponent>();
 	m_ECSWorld.RegisterComponent<RelationshipComponent>();
 	m_ECSWorld.RegisterComponent<UVScrollComponent>();
+	m_ECSWorld.RegisterComponent<AnimatorComponent>();
 }
 
 Scene::~Scene() {};
@@ -56,10 +59,30 @@ AABB ComputeDynamicAABB(TransformComponent* trans, BoxColliderComponent* col)
 void Scene::OnRuntimeStart()
 {
 	std::cout << "[Scene] OnRuntimeStart\n";
+
+	// Przeszukujemy wszystkie encje, które maj¹ w sobie komponent animacji
+	auto* animatorStorage = m_ECSWorld.GetComponentVector<AnimatorComponent>();
+	if (animatorStorage) {
+		for (auto& animComp : animatorStorage->dense) {
+			// Po wejœciu w tryb Play, ODBLOKOWUJEMY animacje (i TYLKO TO!)
+			animComp.IsPlaying = true;
+		}
+	}
 }
 
 void Scene::OnUpdateRuntime(Timestep ts)
 {
+
+	auto* animatorStorage = m_ECSWorld.GetComponentVector<AnimatorComponent>();
+	if (animatorStorage) {
+		for (auto& animComp : animatorStorage->dense) {
+			if (animComp.IsPlaying && animComp.AnimatorInstance) {
+				// Przesuwamy g³owicê odtwarzania w czasie - to siê wywo³uje co klatkê!
+				animComp.AnimatorInstance->UpdateAnimation(ts.GetSeconds() * animComp.PlaybackSpeed);
+			}
+		}
+	}
+
 	// ==========================================
 	// 1. update skrytpow
 	// ==========================================
