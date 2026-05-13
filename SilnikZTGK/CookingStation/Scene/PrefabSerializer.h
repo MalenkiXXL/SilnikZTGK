@@ -9,15 +9,16 @@
 #include "CookingStation/Scripts/ConveyorScript.h"
 #include "CookingStation/Scripts/ItemScript.h"
 #include "CookingStation/Scripts/BeltVisualScript.h"
+#include "CookingStation/Scripts/ScriptRegistry.h"
 
 class PrefabSerializer {
 public:
-    // ZAPIS: Wyci¹gamy komponenty z wybranej encji i wrzucamy do JSONa
+    // ZAPIS: Wyciï¿½gamy komponenty z wybranej encji i wrzucamy do JSONa
     static void Serialize(Scene* scene, Entity entity, const std::string& filepath) {
         nlohmann::json item;
         auto& world = scene->GetWorld();
 
-        // U¿ywamy bezpieczniejszego GetVector() - dok³adnie jak w SceneSerializerze!
+        // Uï¿½ywamy bezpieczniejszego GetVector() - dokï¿½adnie jak w SceneSerializerze!
         auto* tagStorage = world.GetComponentVector<TagComponent>();
         auto* transformStorage = world.GetComponentVector<TransformComponent>();
         auto* meshStorage = world.GetComponentVector<MeshComponent>();
@@ -56,9 +57,13 @@ public:
         }
 
         if (scriptStorage) {
-            if (auto* script = scriptStorage->Get(entity)) {
-                if (script->InstantiateScript && !script->ScriptName.empty()) {
-                    item["script"] = script->ScriptName;
+            if (auto* nsc = scriptStorage->Get(entity)) {
+                if (!nsc->Scripts.empty()) {
+                    std::vector<std::string> scriptNames;
+                    for (const auto& s : nsc->Scripts) {
+                        scriptNames.push_back(s.Name);
+                    }
+                    item["scripts"] = scriptNames; // Klucz "scripts" z 's' na koï¿½cu!
                 }
             }
         }
@@ -70,7 +75,7 @@ public:
         }
     }
 
-    // ODCZYT: Tworzymy now¹ encjê, wczytujemy dane i wymuszamy spawnPos
+    // ODCZYT: Tworzymy nowï¿½ encjï¿½, wczytujemy dane i wymuszamy spawnPos
     static Entity Deserialize(Scene* scene, const std::string& filepath, const glm::vec3& spawnPos) {
         std::ifstream file(filepath);
         if (!file.is_open()) return { std::numeric_limits<std::size_t>::max(), 0 };
@@ -83,7 +88,7 @@ public:
 
         TransformComponent transComp;
 
-        // ZMIANA: Wgrywamy dane przez Settery, co automatycznie ustawi flagê m_IsDirty na true!
+        // ZMIANA: Wgrywamy dane przez Settery, co automatycznie ustawi flagï¿½ m_IsDirty na true!
         transComp.SetPosition(spawnPos);
 
         if (item.contains("rotation") && item.contains("scale")) {
@@ -108,14 +113,18 @@ public:
             builder.With<BoxColliderComponent>(bc);
         }
 
-        if (item.contains("script")) {
+        if (item.contains("scripts")) {
             NativeScriptComponent nsc;
-            std::string scriptName = item["script"].get<std::string>();
-            if (scriptName == "RotationScript") nsc.Bind<RotationScript>(scriptName);
-            else if (scriptName == "ConveyorScript") nsc.Bind<ConveyorScript>(scriptName);
-            else if (scriptName == "BeltVisualScript") nsc.Bind<BeltVisualScript>(scriptName);
-            else if (scriptName == "ItemScript") nsc.Bind<ItemScript>(scriptName);
-
+            // Iterujemy po liï¿½cie w JSON i dodajemy do komponentu przez nasz nowy Rejestr
+            for (const auto& scriptName : item["scripts"]) {
+                ScriptRegistry::AddScriptToComponent(nsc, scriptName.get<std::string>());
+            }
+            builder.With<NativeScriptComponent>(nsc);
+        }
+        // Opcjonalnie: kompatybilnoï¿½ï¿½ wsteczna z Twoimi starymi zapisami scen (stary klucz "script")
+        else if (item.contains("script")) {
+            NativeScriptComponent nsc;
+            ScriptRegistry::AddScriptToComponent(nsc, item["script"].get<std::string>());
             builder.With<NativeScriptComponent>(nsc);
         }
 

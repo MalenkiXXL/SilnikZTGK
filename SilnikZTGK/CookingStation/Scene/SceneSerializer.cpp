@@ -14,10 +14,12 @@
 #include "CookingStation/Scripts/BeltVisualScript.h"
 #include "CookingStation/Scripts/ItemScript.h"
 #include "CookingStation/Scripts/PotScript.h"
+#include "CookingStation/Scripts/ScriptRegistry.h"
+
 
 using json = nlohmann::json;
 
-// Wczytuje dane z pliku do pamiêci i buduje œwiat w silniku
+// Wczytuje dane z pliku do pamiï¿½ci i buduje ï¿½wiat w silniku
 bool SceneSerializer::Deserialize(const std::string& path) {
 	std::ifstream file(path);
 	if (!file.is_open()) {
@@ -33,7 +35,7 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 		if (settings.contains("clear_color")) {
 			auto& c = settings["clear_color"]; // pobieranie tablicy rgba
 
-			// BEZPIECZNE pobieranie kolorów - je¿eli nie ma alfy (c[3]), dajemy 1.0f
+			// BEZPIECZNE pobieranie kolorï¿½w - jeï¿½eli nie ma alfy (c[3]), dajemy 1.0f
 			float r = c[0];
 			float g = c[1];
 			float b = c[2];
@@ -87,42 +89,31 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 				builder.With<BoxColliderComponent>(bc);
 			}
 
-			if (item.contains("script")) {
+			if (item.contains("scripts")) {
 				NativeScriptComponent nsc;
-				std::string scriptName = item["script"].get<std::string>();
-
-				if (scriptName == "RotationScript") {
-					nsc.Bind<RotationScript>(scriptName);
+				// Iterujemy po liï¿½cie w JSON i dodajemy do komponentu przez nasz nowy Rejestr
+				for (const auto& scriptName : item["scripts"]) {
+					ScriptRegistry::AddScriptToComponent(nsc, scriptName.get<std::string>());
 				}
-				else if (scriptName == "ConveyorScript") {
-					nsc.Bind<ConveyorScript>(scriptName);
-				}
-				else if (scriptName == "BeltVisualScript") {
-					nsc.Bind<BeltVisualScript>(scriptName);
-				}
-				else if (scriptName == "ItemScript") {
-					nsc.Bind<ItemScript>(scriptName);
-				}
-
-				else if (scriptName == "PotScript") {
-					nsc.Bind<PotScript>(scriptName);
-				}
-
-
-
+				builder.With<NativeScriptComponent>(nsc);
+			}
+			// Opcjonalnie: kompatybilnoï¿½ï¿½ wsteczna z Twoimi starymi zapisami scen (stary klucz "script")
+			else if (item.contains("script")) {
+				NativeScriptComponent nsc;
+				ScriptRegistry::AddScriptToComponent(nsc, item["script"].get<std::string>());
 				builder.With<NativeScriptComponent>(nsc);
 			}
 
 			// FINALIZACJA BUDOWY
 			Entity newEntity = builder.Build();
 
-			// Zapamiêtujemy, jakie ID dosta³ ten obiekt w stosunku do tego w pliku
+			// Zapamiï¿½tujemy, jakie ID dostaï¿½ ten obiekt w stosunku do tego w pliku
 			if (item.contains("id")) {
 				std::size_t oldId = item["id"].get<std::size_t>();
 				oldToNew[oldId] = newEntity;
 			}
 
-			// Jeœli encja mia³a w pliku rodzica, dodajemy j¹ do kolejki 
+			// Jeï¿½li encja miaï¿½a w pliku rodzica, dodajemy jï¿½ do kolejki 
 			if (item.contains("parent_id")) {
 				std::size_t oldParentId = item["parent_id"].get<std::size_t>();
 				pendingRelationships.push_back({ newEntity, oldParentId });
@@ -132,12 +123,12 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 		}
 
 		// ODBUDOWA RELACJI
-		// Kiedy wszystkie obiekty s¹ ju¿ na mapie, mo¿emy je popi¹c
+		// Kiedy wszystkie obiekty sï¿½ juï¿½ na mapie, moï¿½emy je popiï¿½c
 		for (auto& pair : pendingRelationships) {
 			Entity childEntity = pair.first;
 			std::size_t oldParentId = pair.second;
 
-			// Szukamy nowo stworzonego rodzica w s³owniku
+			// Szukamy nowo stworzonego rodzica w sï¿½owniku
 			if (oldToNew.find(oldParentId) != oldToNew.end()) {
 				Entity newParentEntity = oldToNew[oldParentId];
 				m_Scene->SetParent(childEntity, newParentEntity);
@@ -145,7 +136,7 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 		}
 	}
 
-	// Na koñcu SceneSerializer::Deserialize(...)
+	// Na koï¿½cu SceneSerializer::Deserialize(...)
 	m_Scene->RebuildConveyorCache();
 	return true; // scena wczytana pomyslnie
 }
@@ -200,9 +191,14 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 		}
 
 		if (scriptStorage) {
-			auto* script = scriptStorage->Get(entity);
-			if (script && script->InstantiateScript && !script->ScriptName.empty()) {
-				item["script"] = script->ScriptName;
+			if (auto* nsc = scriptStorage->Get(entity)) {
+				if (!nsc->Scripts.empty()) {
+					std::vector<std::string> scriptNames;
+					for (const auto& s : nsc->Scripts) {
+						scriptNames.push_back(s.Name);
+					}
+					item["scripts"] = scriptNames; // Klucz "scripts" z 's' na koï¿½cu!
+				}
 			}
 		}
 

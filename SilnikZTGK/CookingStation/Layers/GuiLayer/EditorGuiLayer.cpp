@@ -398,35 +398,39 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 std::string path = "CookingStation/Assets/prefabs/" + prefabName + ".json";
                 PrefabSerializer::Serialize(activeScene.get(), selected, path);
             }
-
             auto* scriptComp = world.GetComponent<NativeScriptComponent>(selected);
-
             if (!scriptComp) {
-                if (Gui::Button("DODAJ SKRYPT", { inspPos.x, inspPos.y + 490.0f }, { 300.0f, 30.0f })) {
+                if (Gui::Button("DODAJ SYSTEM SKRYPTOW", { inspPos.x, inspPos.y + 490.0f }, { 300.0f, 30.0f })) {
                     world.AddComponent<NativeScriptComponent>(selected, NativeScriptComponent{});
                 }
             }
             else {
-                Gui::DrawGuiText("Skrypt: " + (scriptComp->ScriptName.empty() ? "Brak" : scriptComp->ScriptName),
-                    { inspPos.x + 5.0f, inspPos.y + 495.0f }, 0.45f, { 0.2f, 0.9f, 0.2f, 1.0f });
+                // 1. Wypisujemy aktualne skrypty:
+                std::string scriptList = "Skrypty:\n";
+                for (const auto& s : scriptComp->Scripts) scriptList += "- " + s.Name + "\n";
 
-                if (Gui::Button("RotationScript", { inspPos.x, inspPos.y + 520.0f }, { 145.0f, 25.0f })) {
-                    scriptComp->Bind<RotationScript>("RotationScript");
+                Gui::DrawGuiText(scriptList, { inspPos.x + 5.0f, inspPos.y + 495.0f }, 0.40f, { 0.2f, 0.9f, 0.2f, 1.0f });
+
+                // 2. Przyciski dodawania DODATKOWYCH skryptów:
+                if (Gui::Button("+ Rotation", { inspPos.x, inspPos.y + 530.0f }, { 95.0f, 25.0f })) {
+                    scriptComp->AddScript<RotationScript>("RotationScript");
                 }
-                if (Gui::Button("ConveyorScript", { inspPos.x + 155.0f, inspPos.y + 520.0f }, { 145.0f, 25.0f })) {
-                    scriptComp->Bind<ConveyorScript>("ConveyorScript");
+                if (Gui::Button("+ Conveyor", { inspPos.x + 100.0f, inspPos.y + 530.0f }, { 95.0f, 25.0f })) {
+                    scriptComp->AddScript<ConveyorScript>("ConveyorScript");
                 }
-                if (Gui::Button("ItemScript", { inspPos.x, inspPos.y + 550.0f }, { 145.0f, 25.0f })) {
-                    scriptComp->Bind<ItemScript>("ItemScript");
-				}
-                if (Gui::Button("PotScript", { inspPos.x + 155.0f, inspPos.y + 550.0f }, { 145.0f, 25.0f })) {
-                    scriptComp->Bind<PotScript>("PotScript");
+                if (Gui::Button("+ Item", { inspPos.x + 200.0f, inspPos.y + 530.0f }, { 95.0f, 25.0f })) {
+                    scriptComp->AddScript<ItemScript>("ItemScript");
+                }
+                if (Gui::Button("+ Pot", { inspPos.x, inspPos.y + 560.0f }, { 95.0f, 25.0f })) {
+                    scriptComp->AddScript<PotScript>("PotScript");
+                }
+                if (Gui::Button("+ BeltVis", { inspPos.x + 100.0f, inspPos.y + 560.0f }, { 95.0f, 25.0f })) {
+                    scriptComp->AddScript<BeltVisualScript>("BeltVisualScript");
                 }
 
-                if (Gui::Button("USUN SKRYPT", { inspPos.x, inspPos.y + 580.0f }, { 145.0f, 25.0f })) {
-                    scriptComp->InstantiateScript = nullptr;
-                    scriptComp->DestroyScript = nullptr;
-                    scriptComp->ScriptName = "";
+                // 3. Czyszczenie całej listy:
+                if (Gui::Button("WYCZYSC SKRYPTY", { inspPos.x, inspPos.y + 595.0f }, { 300.0f, 25.0f })) {
+                    scriptComp->Scripts.clear();
                 }
             }
         }
