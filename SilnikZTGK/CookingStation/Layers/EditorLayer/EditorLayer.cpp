@@ -161,7 +161,7 @@ void EditorLayer::OnUpdate(Timestep ts)
 
         if (m_IsPlacing && Input::IsMouseButtonPressed(0) && isMouseInViewport)
         {
-            Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
+            Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, fboWidth, fboHeight, proj3D, view3D);
             glm::vec3 spawnPosition = glm::vec3(0.0f);
 
             if (std::abs(ray.Direction.y) > 1e-6f) {
@@ -231,35 +231,86 @@ void EditorLayer::OnUpdate(Timestep ts)
 
             auto start = std::chrono::high_resolution_clock::now();
 
+            // ZMIENNE DO SORTOWANIA GŁĘBOKOŚCI
+            Entity closestEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+            float closestDist = std::numeric_limits<float>::max();
+
             if (s_UseSSA)
             {
-                // czy kierunek promienia jest poprawny
                 if (meshStorage && transformStorage && std::abs(ray.Direction.y) > 1e-6f)
                 {
-                    // punkt przecięcia promienia z płaszczyzną podłogi
-                    float t = -ray.Origin.y / ray.Direction.y;
-                    if (t > 0.0f)
+                    float yMax = 15.0f;
+                    float yMin = -5.0f;
+
+                    float tTop = (yMax - ray.Origin.y) / ray.Direction.y;
+                    float tBottom = (yMin - ray.Origin.y) / ray.Direction.y;
+
+                    if (tTop > tBottom) std::swap(tTop, tBottom);
+
+                    if (tBottom > 0.0f)
                     {
-                        glm::vec3 hitPoint = ray.Origin + t * ray.Direction;
-                        glm::ivec2 targetCell = GridSystem::WorldToCell(hitPoint);
-                        bool hitFound = false;
-                        for (int dx = -1; dx <= 1 && !hitFound; dx++) {
-                            for (int dz = -1; dz <= 1 && !hitFound; dz++) {
-                                glm::ivec2 currentCell = { targetCell.x + dx, targetCell.y + dz };
+                        if (tTop < 0.0f) tTop = 0.0f;
+
+                        glm::vec3 hitTop = ray.Origin + tTop * ray.Direction;
+                        glm::vec3 hitBottom = ray.Origin + tBottom * ray.Direction;
+
+                        glm::ivec2 cellTop = GridSystem::WorldToCell(hitTop);
+                        glm::ivec2 cellBottom = GridSystem::WorldToCell(hitBottom);
+
+                        int minX = std::min(cellTop.x, cellBottom.x) - 1;
+                        int maxX = std::max(cellTop.x, cellBottom.x) + 1;
+                        int minZ = std::min(cellTop.y, cellBottom.y) - 1;
+                        int maxZ = std::max(cellTop.y, cellBottom.y) + 1;
+
+                        // USUNIĘTO zmienną hitFound! Sprawdzamy wszystko!
+                        for (int cx = minX; cx <= maxX; cx++)
+                        {
+                            for (int cz = minZ; cz <= maxZ; cz++)
+                            {
+                                glm::ivec2 currentCell = { cx, cz };
                                 const auto* entitiesInCell = activeScene->GetEntitiesInCell(currentCell);
-                                if (entitiesInCell) {
-                                    for (Entity entity : *entitiesInCell) {
+
+                                if (entitiesInCell)
+                                {
+                                    for (Entity entity : *entitiesInCell)
+                                    {
                                         if (!meshStorage->Get(entity)) continue;
                                         TransformComponent* transform = transformStorage->Get(entity);
-                                        if (transform) {
+                                        if (transform)
+                                        {
                                             glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                                             AABB box;
-                                            box.center = globalPos;
-                                            box.extents = transform->GetScale();
-                                            if (Physics::Intersects(ray, box)) {
-                                                activeScene->SetSelectedEntity(entity);
-                                                hitFound = true; // zatrzymuje zewnętrzne pętle 3x3
-                                                break;           // zatrzymuje wewnętrzną pętlę listy encji
+                                            auto* collider = world.GetComponent<BoxColliderComponent>(entity);
+                                            glm::vec3 extents = transform->GetScale();
+
+                                            if (collider) {
+                                                box.center = globalPos + collider->Offset;
+                                                extents *= collider->Size;
+                                            }
+                                            else {
+                                                box.center = globalPos;
+                                            }
+
+                                            glm::vec3 rot = transform->GetRotation();
+                                            glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), { 1, 0, 0 })
+                                                * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
+                                                * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
+
+                                            box.extents = glm::vec3(
+                                                std::abs(rotMat[0][0]) * extents.x + std::abs(rotMat[1][0]) * extents.y + std::abs(rotMat[2][0]) * extents.z,
+                                                std::abs(rotMat[0][1]) * extents.x + std::abs(rotMat[1][1]) * extents.y + std::abs(rotMat[2][1]) * extents.z,
+                                                std::abs(rotMat[0][2]) * extents.x + std::abs(rotMat[1][2]) * extents.y + std::abs(rotMat[2][2]) * extents.z
+                                            );
+
+                                            if (Physics::Intersects(ray, box))
+                                            {
+                                                // Trik rzutowania: liczymy dystans wzdłuż promienia
+                                                float dist = glm::dot(box.center - ray.Origin, ray.Direction);
+                                                if (dist < closestDist)
+                                                {
+                                                    closestDist = dist;
+                                                    closestEntity = entity;
+                                                }
                                             }
                                         }
                                     }
@@ -277,26 +328,56 @@ void EditorLayer::OnUpdate(Timestep ts)
                     {
                         Entity entity = meshStorage->reverse[it];
                         TransformComponent* transform = transformStorage->Get(entity);
+
                         if (transform)
                         {
                             glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                             AABB box;
-                            box.center = globalPos;
-                            box.extents = transform->GetScale();
+                            auto* collider = world.GetComponent<BoxColliderComponent>(entity);
+                            glm::vec3 extents = transform->GetScale();
+
+                            if (collider) {
+                                box.center = globalPos + collider->Offset;
+                                extents *= collider->Size;
+                            }
+                            else {
+                                box.center = globalPos;
+                            }
+
+                            glm::vec3 rot = transform->GetRotation();
+                            glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), { 1, 0, 0 })
+                                * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
+                                * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
+
+                            box.extents = glm::vec3(
+                                std::abs(rotMat[0][0]) * extents.x + std::abs(rotMat[1][0]) * extents.y + std::abs(rotMat[2][0]) * extents.z,
+                                std::abs(rotMat[0][1]) * extents.x + std::abs(rotMat[1][1]) * extents.y + std::abs(rotMat[2][1]) * extents.z,
+                                std::abs(rotMat[0][2]) * extents.x + std::abs(rotMat[1][2]) * extents.y + std::abs(rotMat[2][2]) * extents.z
+                            );
 
                             if (Physics::Intersects(ray, box))
                             {
-                                activeScene->SetSelectedEntity(entity);
-                                //break;
+                                float dist = glm::dot(box.center - ray.Origin, ray.Direction);
+                                if (dist < closestDist)
+                                {
+                                    closestDist = dist;
+                                    closestEntity = entity;
+                                }
                             }
                         }
                     }
                 }
             }
+
+            // NA KOŃCU: Zaznaczamy tylko obiekt najbliżej kamery
+            if (closestEntity.id != std::numeric_limits<std::size_t>::max())
+            {
+                activeScene->SetSelectedEntity(closestEntity);
+            }
+
             auto end = std::chrono::high_resolution_clock::now();
             float timeMs = std::chrono::duration<float, std::milli>(end - start).count();
 
-            // Zaloguj wynik do konsoli
             spdlog::info("Wyszukiwanie obiektu (SSA: {}): {:.4f} ms", s_UseSSA ? "ON" : "OFF", timeMs);
         }
 
@@ -384,47 +465,83 @@ void EditorLayer::OnUpdate(Timestep ts)
             auto* transformStorage = world.GetComponentVector<TransformComponent>();
             auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
 
+            Entity closestEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+            float closestDist = std::numeric_limits<float>::max();
+
             if (s_UseSSA)
             {
-                // promien nie jest idealnie poziomy (abs(Direction.y) > 0) by uniknac dzielenia przez zero
-                if (meshStorage && transformStorage && scriptStorage && std::abs(ray.Direction.y) > 1e-6f)
+                if (meshStorage && transformStorage && std::abs(ray.Direction.y) > 1e-6f)
                 {
-                    // dystans wzdluz promienia w ktorym przetnie on plaszczyzne podlogi
-                    float t = -ray.Origin.y / ray.Direction.y;
+                    float yMax = 15.0f;
+                    float yMin = -5.0f;
 
-                    // jesli t jest dodatnie to przecięcie znajduje się przed kamera
-                    if (t > 0.0f)
+                    float tTop = (yMax - ray.Origin.y) / ray.Direction.y;
+                    float tBottom = (yMin - ray.Origin.y) / ray.Direction.y;
+
+                    if (tTop > tBottom) std::swap(tTop, tBottom);
+
+                    if (tBottom > 0.0f)
                     {
-                        glm::vec3 hitPoint = ray.Origin + t * ray.Direction;
-                        glm::ivec2 targetCell = GridSystem::WorldToCell(hitPoint);
-                        bool hitFound = false;
+                        if (tTop < 0.0f) tTop = 0.0f;
 
-                        // x dla sasiadujacych komorek - od -1 do 1
-                        for (int dx = -1; dx <= 1 && !hitFound; dx++) {
-                            // z dla sasiadujacych komorek  od -1 do 1
-                            for (int dz = -1; dz <= 1 && !hitFound; dz++) {
-                                // obszar 3x3 wokol klikniecia
-                                glm::ivec2 currentCell = { targetCell.x + dx, targetCell.y + dz };
+                        glm::vec3 hitTop = ray.Origin + tTop * ray.Direction;
+                        glm::vec3 hitBottom = ray.Origin + tBottom * ray.Direction;
+
+                        glm::ivec2 cellTop = GridSystem::WorldToCell(hitTop);
+                        glm::ivec2 cellBottom = GridSystem::WorldToCell(hitBottom);
+
+                        int minX = std::min(cellTop.x, cellBottom.x) - 1;
+                        int maxX = std::max(cellTop.x, cellBottom.x) + 1;
+                        int minZ = std::min(cellTop.y, cellBottom.y) - 1;
+                        int maxZ = std::max(cellTop.y, cellBottom.y) + 1;
+
+                        for (int cx = minX; cx <= maxX; cx++)
+                        {
+                            for (int cz = minZ; cz <= maxZ; cz++)
+                            {
+                                glm::ivec2 currentCell = { cx, cz };
                                 const auto* entitiesInCell = activeScene->GetEntitiesInCell(currentCell);
-                                if (entitiesInCell) {
 
-                                    // tylko po encjach znajdujących się na tym konkretnym kafelku
-                                    for (Entity entity : *entitiesInCell) {
+                                if (entitiesInCell)
+                                {
+                                    for (Entity entity : *entitiesInCell)
+                                    {
                                         if (!meshStorage->Get(entity)) continue;
                                         TransformComponent* transform = transformStorage->Get(entity);
-                                        if (transform) {
+                                        if (transform)
+                                        {
                                             glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                                             AABB box;
-                                            box.center = globalPos;
-                                            box.extents = transform->GetScale();
-                                            if (Physics::Intersects(ray, box)) {
-                                                auto* nsc = scriptStorage->Get(entity);
-                                                if (nsc && nsc->Instance) {
-                                                    nsc->Instance->OnClick();
-                                                }
+                                            auto* collider = world.GetComponent<BoxColliderComponent>(entity);
+                                            glm::vec3 extents = transform->GetScale();
 
-                                                hitFound = true;
-                                                break;
+                                            if (collider) {
+                                                box.center = globalPos + collider->Offset;
+                                                extents *= collider->Size;
+                                            }
+                                            else {
+                                                box.center = globalPos;
+                                            }
+
+                                            glm::vec3 rot = transform->GetRotation();
+                                            glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), { 1, 0, 0 })
+                                                * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
+                                                * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
+
+                                            box.extents = glm::vec3(
+                                                std::abs(rotMat[0][0]) * extents.x + std::abs(rotMat[1][0]) * extents.y + std::abs(rotMat[2][0]) * extents.z,
+                                                std::abs(rotMat[0][1]) * extents.x + std::abs(rotMat[1][1]) * extents.y + std::abs(rotMat[2][1]) * extents.z,
+                                                std::abs(rotMat[0][2]) * extents.x + std::abs(rotMat[1][2]) * extents.y + std::abs(rotMat[2][2]) * extents.z
+                                            );
+
+                                            if (Physics::Intersects(ray, box))
+                                            {
+                                                float dist = glm::dot(box.center - ray.Origin, ray.Direction);
+                                                if (dist < closestDist)
+                                                {
+                                                    closestDist = dist;
+                                                    closestEntity = entity;
+                                                }
                                             }
                                         }
                                     }
@@ -433,7 +550,7 @@ void EditorLayer::OnUpdate(Timestep ts)
                         }
                     }
                 }
-            } 
+            }
             else
             {
                 if (meshStorage && transformStorage)
@@ -447,22 +564,51 @@ void EditorLayer::OnUpdate(Timestep ts)
                         {
                             glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
                             AABB box;
-                            box.center = globalPos;
-                            box.extents = transform->GetScale();
+                            auto* collider = world.GetComponent<BoxColliderComponent>(entity);
+                            glm::vec3 extents = transform->GetScale();
+
+                            if (collider) {
+                                box.center = globalPos + collider->Offset;
+                                extents *= collider->Size;
+                            }
+                            else {
+                                box.center = globalPos;
+                            }
+
+                            glm::vec3 rot = transform->GetRotation();
+                            glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), { 1, 0, 0 })
+                                * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
+                                * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
+
+                            box.extents = glm::vec3(
+                                std::abs(rotMat[0][0]) * extents.x + std::abs(rotMat[1][0]) * extents.y + std::abs(rotMat[2][0]) * extents.z,
+                                std::abs(rotMat[0][1]) * extents.x + std::abs(rotMat[1][1]) * extents.y + std::abs(rotMat[2][1]) * extents.z,
+                                std::abs(rotMat[0][2]) * extents.x + std::abs(rotMat[1][2]) * extents.y + std::abs(rotMat[2][2]) * extents.z
+                            );
 
                             if (Physics::Intersects(ray, box))
                             {
-                                if (scriptStorage)
+                                float dist = glm::dot(box.center - ray.Origin, ray.Direction);
+                                if (dist < closestDist)
                                 {
-                                    auto* nsc = scriptStorage->Get(entity);
-                                    if (nsc && nsc->Instance)
-                                    {
-                                        nsc->Instance->OnClick();
-                                    }
+                                    closestDist = dist;
+                                    closestEntity = entity;
                                 }
-                                break;
                             }
                         }
+                    }
+                }
+            }
+
+            // NA KOŃCU: Odpalenie skryptu dla najbliższego obiektu!
+            if (closestEntity.id != std::numeric_limits<std::size_t>::max())
+            {
+                if (scriptStorage)
+                {
+                    auto* nsc = scriptStorage->Get(closestEntity);
+                    if (nsc && nsc->Instance)
+                    {
+                        nsc->Instance->OnClick();
                     }
                 }
             }
