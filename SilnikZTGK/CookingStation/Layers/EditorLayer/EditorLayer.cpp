@@ -182,9 +182,8 @@ void EditorLayer::OnUpdate(Timestep ts)
                 spdlog::info("EditorLayer: Postawiono prefab z pliku: {}", m_PendingModelPath);
             }
             else {
-                std::shared_ptr<Shader> modelShader = AssetManager::GetShaders().Get("ModelShader");
                 std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
-                    &world, m_PendingModelName, m_PendingModelPath, spawnPosition, modelShader);
+                    &world, m_PendingModelName, m_PendingModelPath, spawnPosition);
                 m_CommandHistory.ExecuteCommand(std::move(cmd));
             }
 
