@@ -10,6 +10,7 @@
 #include "CookingStation/json.hpp"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include <algorithm> // dla std::max
+#include "CookingStation/Scripts/DragAndDropScript.h"
 
 bool GameGuiLayer::s_NeedsQuestReload = false;
 
@@ -34,6 +35,43 @@ void GameGuiLayer::OnAttach() {
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
     m_CornerIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bottomCornerClouds.png");
+    m_TomatoIcon = AssetManager::GetTexture("CookingStation/Assets/UI/tomato.png");
+}
+
+
+bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover)
+{
+    if (!icon) return false;
+
+    auto& state = m_BubblyStates[id];
+    auto mousePos = Input::GetMousePosition();
+    float animSpeed = 15.0f;
+
+    bool isHovered = (mousePos.first >= basePos.x && mousePos.first <= basePos.x + baseSize.x &&
+        mousePos.second >= basePos.y && mousePos.second <= basePos.y + baseSize.y);
+
+    float targetScale = isHovered ? hoverScale : 1.0f;
+    glm::vec4 targetColor = (isHovered && darkenOnHover) ? glm::vec4(0.8f, 0.8f, 0.8f, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+    state.scale += (targetScale - state.scale) * dt * animSpeed;
+    state.color.r += (targetColor.r - state.color.r) * dt * animSpeed;
+    state.color.g += (targetColor.g - state.color.g) * dt * animSpeed;
+    state.color.b += (targetColor.b - state.color.b) * dt * animSpeed;
+
+    glm::vec2 size = baseSize * state.scale;
+    glm::vec2 pos = {
+        basePos.x + (baseSize.x * 0.5f) - (size.x * 0.5f),
+        basePos.y + (baseSize.y * 0.5f) - (size.y * 0.5f)
+    };
+
+    if (id == "CloudRight") {
+        Renderer2D::DrawQuad(pos, size, icon, state.color, { 1.0f, 1.0f }, { 0.0f, 0.0f });
+    }
+    else {
+        Renderer2D::DrawQuad(pos, size, icon, state.color, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    }
+
+    return (Input::IsMouseButtonJustPressed(0) && isHovered);
 }
 
 void GameGuiLayer::OnUpdate(Timestep ts) {
@@ -115,17 +153,34 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- 5. CHMURY (SKALOWALNE) ---
+    // --- 5. CHMURY I SK£ADNIKI ---
     if (m_CornerIcon) {
-        float iconH = gameHeight * 0.30f; // Chmury zajmuj¹ 30% wysokoœci widoku gry
+        float iconH = gameHeight * 0.30f;
         float iconW = iconH * (1239.0f / 1024.0f);
-        glm::vec2 iconSize = { iconW, iconH };
+        glm::vec2 baseIconSize = { iconW, iconH };
 
-        glm::vec2 leftPos = { gameX, gameY + gameHeight - iconSize.y };
-        glm::vec2 rightPos = { gameX + gameWidth - iconSize.x, gameY + gameHeight - iconSize.y };
+        glm::vec2 leftPosBase = { gameX, gameY + gameHeight - baseIconSize.y };
+        glm::vec2 rightPosBase = { gameX + gameWidth - baseIconSize.x, gameY + gameHeight - baseIconSize.y };
 
-        Renderer2D::DrawQuad(leftPos, iconSize, m_CornerIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-        Renderer2D::DrawQuad(rightPos, iconSize, m_CornerIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f });
+        float dt = ts.GetSeconds();
+
+        // Rusyjemy chmury
+        DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false);
+        DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
+
+        // Rysujemy sk³adniki na lewej chmurze
+        if (m_TomatoIcon) {
+            float tomatoBaseH = baseIconSize.y * 0.3f;
+            glm::vec2 tomatoBaseSize = { tomatoBaseH, tomatoBaseH };
+            glm::vec2 tomatoBasePos = {
+                leftPosBase.x + (baseIconSize.x * 0.5f) - (tomatoBaseSize.x * 0.5f),
+                leftPosBase.y + (baseIconSize.y * 0.5f) - (tomatoBaseSize.y * 0.5f)
+            };
+            if (DrawBubblyImage("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, 1.30f, true)) {
+                spdlog::info("UI: Wyci¹gniêto pomidora!");
+                DragAndDropScript::StartDrag(IngredientType::Tomato, "CookingStation/Assets/models/skladniki/pomidor/pomidor.gltf");
+            }
+        }
     }
 
     Renderer2D::EndScene();

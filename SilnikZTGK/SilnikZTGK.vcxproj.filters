@@ -91,6 +91,8 @@
     <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
     <ClInclude Include="CookingStation\Scripts\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\BeltVisualScript.h" />
+    <ClInclude Include="CookingStation\Scripts\ScriptRegistry.h" />
+    <ClInclude Include="CookingStation\Scripts\DragAndDropScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />
