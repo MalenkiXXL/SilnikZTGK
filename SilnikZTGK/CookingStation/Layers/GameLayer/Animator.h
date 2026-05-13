@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <glm/glm.hpp>
 #include <vector>
 #include <cmath> 
@@ -11,7 +11,7 @@
 class Animator
 {
 public:
-    Animator() // Pusty konstruktor, animacje dodamy póŸniej
+    Animator() // Pusty konstruktor, animacje dodamy pï¿½niej
     {
         m_CurrentTime = 0.0f;
         m_CurrentAnimationName = "";
@@ -20,11 +20,11 @@ public:
             m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
     }
 
-    // Dodaje now¹ kasetê do naszego s³ownika
+    // Dodaje nowï¿½ kasetï¿½ do naszego sï¿½ownika
     void AddAnimation(const std::string& name, std::shared_ptr<Animation> anim)
     {
         m_Animations[name] = anim;
-        // Jeœli to pierwsza dodana animacja, ustawmy j¹ domyœlnie
+        // Jeï¿½li to pierwsza dodana animacja, ustawmy jï¿½ domyï¿½lnie
         if (m_CurrentAnimation == nullptr) {
             PlayAnimation(name);
         }
@@ -32,7 +32,7 @@ public:
 
     void PlayAnimation(const std::string& name)
     {
-        // BARDZO WA¯NE: Nie resetuj czasu, jeœli ta animacja JU¯ TERAZ leci
+        // BARDZO WAï¿½NE: Nie resetuj czasu, jeï¿½li ta animacja JUï¿½ TERAZ leci
         if (m_CurrentAnimationName == name) return;
 
         if (m_Animations.find(name) != m_Animations.end())
@@ -44,7 +44,7 @@ public:
         }
         else
         {
-            spdlog::warn("Animator B£¥D: Nie znaleziono animacji o nazwie '{}'!", name);
+            spdlog::warn("Animator Bï¿½ï¿½D: Nie znaleziono animacji o nazwie '{}'!", name);
         }
     }
 
@@ -86,6 +86,14 @@ public:
 
     const std::vector<glm::mat4>& GetFinalBoneMatrices() const {
         return m_FinalBoneMatrices;
+    }
+
+    const std::string& GetCurrentAnimationName() const {
+        return m_CurrentAnimationName;
+    }
+
+    const std::unordered_map<std::string, std::shared_ptr<Animation>>& GetAnimations() const {
+        return m_Animations;
     }
 
 private:

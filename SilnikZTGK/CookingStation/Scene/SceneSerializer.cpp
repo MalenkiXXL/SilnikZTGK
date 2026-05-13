@@ -109,9 +109,7 @@ bool SceneSerializer::Deserialize(const std::string& path) {
                 builder.With<NativeScriptComponent>(nsc);
             }
 
-            // ===============================================
- // ZMIANA: DESERIALIZACJA ANIMATORA (NAPRAWIONA)
- // ===============================================
+
             if (model) {
                 auto animator = std::make_shared<Animator>();
                 bool hasAnyAnimation = false;
@@ -272,9 +270,27 @@ void SceneSerializer::Serialize(const std::string& filepath) {
         // ===============================================
         if (animatorStorage) {
             if (auto* animComp = animatorStorage->Get(entity)) {
-                // Tworzymy mały obiekt JSON oznaczający animację
                 item["animator"]["is_playing"] = animComp->IsPlaying;
                 item["animator"]["playback_speed"] = animComp->PlaybackSpeed;
+
+                if (animComp->AnimatorInstance) {
+                    // Zapisujemy aktualnie ustawiony klip jako start_clip
+                    const std::string& currentClip = animComp->AnimatorInstance->GetCurrentAnimationName();
+                    if (!currentClip.empty() && currentClip != "Default") {
+                        item["animator"]["start_clip"] = currentClip;
+                    }
+
+                    // Zapisujemy wszystkie klipy (z wyjątkiem Default, który odtwarzamy z model_path)
+                    json clips = json::object();
+                    for (const auto& [clipName, clipAnim] : animComp->AnimatorInstance->GetAnimations()) {
+                        if (clipName != "Default") {
+                            clips[clipName] = clipAnim->GetPath();
+                        }
+                    }
+                    if (!clips.empty()) {
+                        item["animator"]["clips"] = clips;
+                    }
+                }
             }
         }
 

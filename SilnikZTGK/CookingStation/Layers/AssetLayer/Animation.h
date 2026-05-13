@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 #include <vector>
 #include <map>
 #include <string>
@@ -6,13 +6,13 @@
 #include <assimp/scene.h> 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
-#include <spdlog/spdlog.h> // Wymagane do logowania b³êdów
+#include <spdlog/spdlog.h> // Wymagane do logowania bï¿½ï¿½dï¿½w
 
 #include "Bone.h"
 #include "CookingStation/Renderer/Model.h" 
 
 // Struktura na zbuforowane drzewo modelu
-// ZABEZPIECZENIE: Zawsze inicjalizujemy wartoœci domyœlne na wypadek b³êdu ³adowania!
+// ZABEZPIECZENIE: Zawsze inicjalizujemy wartoï¿½ci domyï¿½lne na wypadek bï¿½ï¿½du ï¿½adowania!
 struct AssimpNodeData
 {
     glm::mat4 transformation = glm::mat4(1.0f);
@@ -28,13 +28,14 @@ public:
 
     Animation(const std::string& animationPath, Model* model)
     {
+        m_Path = animationPath;
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
 
-        // 1. Sprawdzamy czy plik w ogóle istnieje i za³adowa³ siê poprawnie
+        // 1. Sprawdzamy czy plik w ogï¿½le istnieje i zaï¿½adowaï¿½ siï¿½ poprawnie
         if (!scene || !scene->mRootNode)
         {
-            spdlog::error("Animator B£¥D: Nie udalo sie wczytac pliku animacji! Sciezka: {}", animationPath);
+            spdlog::error("Animator Bï¿½ï¿½D: Nie udalo sie wczytac pliku animacji! Sciezka: {}", animationPath);
             return;
         }
 
@@ -65,12 +66,14 @@ public:
 
     float GetTicksPerSecond() const { return m_TicksPerSecond; }
     float GetDuration() const { return m_Duration; }
+    const std::string& GetPath() const { return m_Path; }
     const AssimpNodeData& GetRootNode() const { return m_RootNode; }
     const std::map<std::string, BoneInfo>& GetBoneIDMap() const { return m_BoneInfoMap; }
 
 private:
     float m_Duration = 0.0f;
     float m_TicksPerSecond = 0.0f;
+    std::string m_Path = "";
     std::vector<Bone> m_Bones;
     AssimpNodeData m_RootNode;
     std::map<std::string, BoneInfo> m_BoneInfoMap;
@@ -86,17 +89,17 @@ private:
             auto channel = animation->mChannels[i];
             std::string boneName = channel->mNodeName.data;
 
-            // Upewniamy siê, ¿e koœæ ma wygenerowane ID w modelu
+            // Upewniamy siï¿½, ï¿½e koï¿½ï¿½ ma wygenerowane ID w modelu
             if (boneInfoMap.find(boneName) == boneInfoMap.end())
             {
                 boneInfoMap[boneName].id = boneCount;
                 boneCount++;
             }
-            // Zapisujemy kluczow¹ strukturê koœci z jej klatkami 
+            // Zapisujemy kluczowï¿½ strukturï¿½ koï¿½ci z jej klatkami 
             m_Bones.push_back(Bone(boneName, boneInfoMap[boneName].id, channel));
         }
 
-        m_BoneInfoMap = boneInfoMap; // Kopiujemy gotowy s³ownik do instancji animacji
+        m_BoneInfoMap = boneInfoMap; // Kopiujemy gotowy sï¿½ownik do instancji animacji
     }
 
     void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)
