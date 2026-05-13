@@ -12,7 +12,8 @@ void PlateSpawnerScript::OnUpdate(Timestep ts)
 
     if (m_TimeSinceLastSpawn >= m_SpawnInterval)
     {
-        SpawnPrefab();
+        if (m_ActivePlates < m_MaxPlates)
+            SpawnPrefab();
         m_TimeSinceLastSpawn = 0.0f;
     }
 }
@@ -25,4 +26,5 @@ void PlateSpawnerScript::SpawnPrefab()
     glm::vec3 spawnPos = transform->GetPosition();
 
     PrefabSerializer::Deserialize(GetScene(), m_PrefabPath, spawnPos);
+    m_ActivePlates++;
 }
