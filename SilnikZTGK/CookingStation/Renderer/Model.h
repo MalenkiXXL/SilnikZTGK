@@ -20,6 +20,26 @@
 
 using namespace std;
 
+// ==========================================
+// NOWE STRUKTURY DLA ANIMACJI SZKIELETOWEJ
+// ==========================================
+struct BoneInfo
+{
+    int id;           // Unikalne ID wysyłane do Vertex Shadera
+    glm::mat4 offset; // Offset Matrix (przekształca z przestrzeni modelu do przestrzeni kości)
+};
+
+// Funkcja konwertująca macierz Assimp na macierz GLM (kolumnową)
+static inline glm::mat4 AssimpMatToGLM(const aiMatrix4x4& from)
+{
+    glm::mat4 to;
+    to[0][0] = from.a1; to[1][0] = from.a2; to[2][0] = from.a3; to[3][0] = from.a4;
+    to[0][1] = from.b1; to[1][1] = from.b2; to[2][1] = from.b3; to[3][1] = from.b4;
+    to[0][2] = from.c1; to[1][2] = from.c2; to[2][2] = from.c3; to[3][2] = from.c4;
+    to[0][3] = from.d1; to[1][3] = from.d2; to[2][3] = from.d3; to[3][3] = from.d4;
+    return to;
+}
+
 class Model
 {
 public:
@@ -28,6 +48,14 @@ public:
     string FilePath;
     string directory;
     bool gammaCorrection;
+
+    // --- ZMIENNE SZKIELETOWE ---
+    std::map<string, BoneInfo> m_BoneInfoMap;
+    int m_BoneCounter = 0;
+
+    auto& GetBoneInfoMap() { return m_BoneInfoMap; }
+    int GetBoneCount() { return m_BoneCounter; }
+    // ---------------------------
 
     Model(string const& path, bool gamma = false) : gammaCorrection(gamma)
     {
@@ -102,6 +130,15 @@ private:
             else
                 vertex.TexCoords2 = glm::vec2(0.0f, 0.0f);
 
+            // ==============================================
+            // INICJALIZACJA DOMYŚLNYCH DANYCH SZKIELETOWYCH
+            // ==============================================
+            for (int j = 0; j < MAX_BONE_INFLUENCE; j++)
+            {
+                vertex.m_BoneIDs[j] = -1; // -1 oznacza pusty slot
+                vertex.m_Weights[j] = 0.0f;
+            }
+
             vertices.push_back(vertex);
         }
 
@@ -122,8 +159,66 @@ private:
         vector<MeshTexture> emissiveMaps = loadMaterialTextures(material, aiTextureType_EMISSIVE, "texture_diffuse");
         textures.insert(textures.end(), emissiveMaps.begin(), emissiveMaps.end());
 
+        // ==============================================
+        // EKTRAKCJA WAG I KOŚCI DLA WIERZCHOŁKÓW
+        // ==============================================
+        ExtractBoneWeightForVertices(vertices, mesh, scene);
+
         return Mesh(vertices, indices, textures);
     }
+
+    // --- FUNKCJE POMOCNICZE DLA ANIMACJI ---
+    void SetVertexBoneData(Vertex& vertex, int boneID, float weight)
+    {
+        for (int i = 0; i < MAX_BONE_INFLUENCE; ++i)
+        {
+            if (vertex.m_BoneIDs[i] < 0) // Znaleziono wolny slot
+            {
+                vertex.m_Weights[i] = weight;
+                vertex.m_BoneIDs[i] = boneID;
+                break;
+            }
+        }
+    }
+
+    void ExtractBoneWeightForVertices(vector<Vertex>& vertices, aiMesh* mesh, const aiScene* scene)
+    {
+        for (int boneIndex = 0; boneIndex < mesh->mNumBones; ++boneIndex)
+        {
+            int boneID = -1;
+            string boneName = mesh->mBones[boneIndex]->mName.C_Str();
+
+            // Sprawdzamy czy kość już istnieje w słowniku
+            if (m_BoneInfoMap.find(boneName) == m_BoneInfoMap.end())
+            {
+                // Tworzymy nową kość
+                BoneInfo newBoneInfo;
+                newBoneInfo.id = m_BoneCounter;
+                newBoneInfo.offset = AssimpMatToGLM(mesh->mBones[boneIndex]->mOffsetMatrix);
+                m_BoneInfoMap[boneName] = newBoneInfo;
+
+                boneID = m_BoneCounter;
+                m_BoneCounter++;
+            }
+            else
+            {
+                boneID = m_BoneInfoMap[boneName].id;
+            }
+
+            // Aplikowanie wag do odpowiednich wierzchołków
+            auto weights = mesh->mBones[boneIndex]->mWeights;
+            int numWeights = mesh->mBones[boneIndex]->mNumWeights;
+
+            for (int weightIndex = 0; weightIndex < numWeights; ++weightIndex)
+            {
+                int vertexId = weights[weightIndex].mVertexId;
+                float weight = weights[weightIndex].mWeight;
+
+                SetVertexBoneData(vertices[vertexId], boneID, weight);
+            }
+        }
+    }
+    // ---------------------------------------
 
     vector<MeshTexture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName)
     {

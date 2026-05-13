@@ -730,12 +730,38 @@
       "script": "PotScript"
     },
     {
-      "id": 78,
-      "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
-      "name": "event_78",
-      "position": [ -25.0, 0.0, 1.0 ],
+        "id": 78,
+        "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
+        "name": "event_78",
+        "position": [ -25.0, 0.0, 1.0 ],
+        "rotation": [ 0.0, 0.0, 0.0 ],
+        "scale": [ 1.0, 1.0, 1.0 ]
+    },
+    {
+      "id": 79,
+      "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot",
+      "name": "DispenserManager",
+      "position": [ 0.0, -999.0, 1.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+      "scale": [ 0.1, 0.1, 0.1 ],
+      "script": "DragAndDropScript"
+    },
+    {
+      "id": 80,
+      "model_path": "CookingStation/Assets/models/warzywka/grzybek/grzybek.gltf",
+      "name": "Pan Grzybek",
+      "position": [ 0.0, 5.0, 1.0 ],
+      "rotation": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ],
+      "animator": {
+        "is_playing": true,
+        "start_clip": "Walk",
+        "clips": {
+          "Walk": "CookingStation/Assets/models/animacje/grzybek/grzybek_walk.gltf"
+        }
+      },
+      "scripts": [ "MushroomAI" ]
     }
+
   ]
 }

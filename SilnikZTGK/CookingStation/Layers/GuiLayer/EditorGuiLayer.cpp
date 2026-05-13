@@ -432,7 +432,18 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 Gui::DrawGuiText("Skrypty:", { padX, currentY }, 0.4f, { 1.0f, 0.8f, 0.2f, 1.0f }); currentY += 20.0f;
 
                 std::string scriptList = "";
-                for (const auto& s : scriptComp->Scripts) scriptList += "- " + s.Name + "\n";
+                for (const auto& s : scriptComp->Scripts) 
+                {
+                    scriptList += "- " + s.Name + "\n";
+                    if (s.Name == "ParticleEmitterScript" && s.Instance) {
+                        auto* emitter = static_cast<ParticleEmitterScript*>(s.Instance);
+                        Gui::DrawGuiText("Ustawienia Pary/Dymu:", { padX, currentY }, 0.4f, { 0.4f, 0.8f, 1.0f, 1.0f }); currentY += 20.0f;
+                        Gui::DragFloat("Predkosc Y", &emitter->ParticleTemplate.Velocity.y, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                        Gui::DragFloat("Rozrzut X", &emitter->ParticleTemplate.VelocityVariation.x, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                        Gui::DragFloat("Rozmiar", &emitter->ParticleTemplate.SizeBegin, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                        Gui::DragFloat("Czas Zycia", &emitter->ParticleTemplate.LifeTime, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
+                    }
+                }
                 if (!scriptList.empty()) {
                     Gui::DrawGuiText(scriptList, { padX, currentY }, 0.35f, { 0.2f, 0.9f, 0.2f, 1.0f });
                     currentY += (scriptComp->Scripts.size() * 15.0f) + 10.0f;
@@ -444,8 +455,10 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 if (Gui::Button("+ Pot", { padX + 210.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<PotScript>("PotScript");
                 currentY += 25.0f;
 
-                if (Gui::Button("+ BeltVis", { padX, currentY }, { 80.0f, 20.0f })) scriptComp->AddScript<BeltVisualScript>("BeltVisualScript");
-                if (Gui::Button("WYCZYSC SKRYPTY", { padX + 90.0f, currentY }, { elementW - 90.0f, 20.0f })) {
+                if (Gui::Button("+ BeltVis", { padX, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<BeltVisualScript>("BeltVisualScript");
+                if (Gui::Button("+ Particle", { padX + 70.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<ParticleEmitterScript>("ParticleEmitterScript");
+                currentY += 25.0f;
+                if (Gui::Button("WYCZYSC SKRYPTY", { padX, currentY }, { elementW - 90.0f, 20.0f })) {
                     scriptComp->Scripts.clear();
                 }
                 currentY += 25.0f;

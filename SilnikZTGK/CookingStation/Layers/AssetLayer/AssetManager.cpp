@@ -3,6 +3,7 @@
 #include <fstream>
 #include "nlohmann/json.hpp"
 #include "spdlog/spdlog.h"
+#include "CookingStation/Layers/AssetLayer/Animation.h"
 
 std::vector<ModelLibraryEntry> AssetManager::s_Library;
 ShaderLibrary AssetManager::s_Shaders;
@@ -56,4 +57,22 @@ void AssetManager::InitCoreAssets() {
 		"CookingStation/Shaders/fragShaders/shader.frag");
 
 	spdlog::info("[AssetManager] Zaladowano bazowe shadery.");
+}
+
+std::unordered_map<std::string, std::shared_ptr<Animation>> AssetManager::s_Animations;
+
+std::shared_ptr<Animation> AssetManager::LoadAnimation(const std::string& name, const std::string& path, Model* model) {
+	if (s_Animations.find(name) != s_Animations.end()) {
+		return s_Animations[name]; // Zwróæ z pamiêci podrêcznej
+	}
+
+	auto animation = std::make_shared<Animation>(path, model);
+	s_Animations[name] = animation;
+	return animation;
+}
+
+std::shared_ptr<Animation> AssetManager::GetAnimation(const std::string& name) {
+	if (s_Animations.find(name) != s_Animations.end())
+		return s_Animations[name];
+	return nullptr;
 }
