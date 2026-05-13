@@ -14,11 +14,13 @@
 #include "CreateEntityCommand.h"
 #include "MoveEntityCommand.h"
 #include <functional> 
+#include <chrono>
 #include "CookingStation/Core/GridSystem.h"
 #include <CookingStation/Scripts/ConveyorScript.h>
 #include "CookingStation/Scene/PrefabSerializer.h"
 
 float GridSystem::CELL_SIZE = 2.0f;
+static bool s_UseSSA = true;
 
 //Helper: quad leżący płasko na podłodze(płaszczyzna XZ), środek w 'center'.
 static glm::mat4 FlatQuadTransform(const glm::vec3& center, float sizeX, float sizeZ)
@@ -108,6 +110,7 @@ void EditorLayer::OnUpdate(Timestep ts)
     if (!activeScene) return;
 
     activeScene->CalculateTransforms();
+    activeScene->UpdateSpatialGrid();
 
     auto& world = activeScene->GetWorld();
     auto* camera = activeScene->GetCamera();
@@ -219,35 +222,84 @@ void EditorLayer::OnUpdate(Timestep ts)
             }
         }
 
-        if (Input::IsMouseButtonPressed(0) && isMouseInViewport && !m_IsPlacing && !gridReq.Active)
+        if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport && !m_IsPlacing && !gridReq.Active)
         {
             Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
 
             auto* meshStorage = world.GetComponentVector<MeshComponent>();
             auto* transformStorage = world.GetComponentVector<TransformComponent>();
 
-            if (meshStorage && transformStorage)
-            {
-                for (size_t it = 0; it < meshStorage->dense.size(); it++)
-                {
-                    Entity entity = meshStorage->reverse[it];
-                    TransformComponent* transform = transformStorage->Get(entity);
-                    if (transform)
-                    {
-                        glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
-                        AABB box;
-                        box.center = globalPos;
-                        box.extents = transform->GetScale();
+            auto start = std::chrono::high_resolution_clock::now();
 
-                        if (Physics::Intersects(ray, box))
-                        {
-                            activeScene->SetSelectedEntity(entity);
-                            break;
+            if (s_UseSSA)
+            {
+                // czy kierunek promienia jest poprawny
+                if (meshStorage && transformStorage && std::abs(ray.Direction.y) > 1e-6f)
+                {
+                    // punkt przecięcia promienia z płaszczyzną podłogi
+                    float t = -ray.Origin.y / ray.Direction.y;
+                    if (t > 0.0f)
+                    {
+                        glm::vec3 hitPoint = ray.Origin + t * ray.Direction;
+                        glm::ivec2 targetCell = GridSystem::WorldToCell(hitPoint);
+                        bool hitFound = false;
+                        for (int dx = -1; dx <= 1 && !hitFound; dx++) {
+                            for (int dz = -1; dz <= 1 && !hitFound; dz++) {
+                                glm::ivec2 currentCell = { targetCell.x + dx, targetCell.y + dz };
+                                const auto* entitiesInCell = activeScene->GetEntitiesInCell(currentCell);
+                                if (entitiesInCell) {
+                                    for (Entity entity : *entitiesInCell) {
+                                        if (!meshStorage->Get(entity)) continue;
+                                        TransformComponent* transform = transformStorage->Get(entity);
+                                        if (transform) {
+                                            glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
+                                            AABB box;
+                                            box.center = globalPos;
+                                            box.extents = transform->GetScale();
+                                            if (Physics::Intersects(ray, box)) {
+                                                activeScene->SetSelectedEntity(entity);
+                                                hitFound = true; // zatrzymuje zewnętrzne pętle 3x3
+                                                break;           // zatrzymuje wewnętrzną pętlę listy encji
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
+            else
+            {
+                if (meshStorage && transformStorage)
+                {
+                    for (size_t it = 0; it < meshStorage->dense.size(); it++)
+                    {
+                        Entity entity = meshStorage->reverse[it];
+                        TransformComponent* transform = transformStorage->Get(entity);
+                        if (transform)
+                        {
+                            glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
+                            AABB box;
+                            box.center = globalPos;
+                            box.extents = transform->GetScale();
+
+                            if (Physics::Intersects(ray, box))
+                            {
+                                activeScene->SetSelectedEntity(entity);
+                                //break;
+                            }
+                        }
+                    }
+                }
+            }
+            auto end = std::chrono::high_resolution_clock::now();
+            float timeMs = std::chrono::duration<float, std::milli>(end - start).count();
+
+            // Zaloguj wynik do konsoli
+            spdlog::info("Wyszukiwanie obiektu (SSA: {}): {:.4f} ms", s_UseSSA ? "ON" : "OFF", timeMs);
         }
+
 
         if (validEntity)
         {
@@ -332,38 +384,90 @@ void EditorLayer::OnUpdate(Timestep ts)
             auto* transformStorage = world.GetComponentVector<TransformComponent>();
             auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
 
-            if (meshStorage && transformStorage)
+            if (s_UseSSA)
             {
-                for (size_t it = 0; it < meshStorage->dense.size(); it++)
+                // promien nie jest idealnie poziomy (abs(Direction.y) > 0) by uniknac dzielenia przez zero
+                if (meshStorage && transformStorage && scriptStorage && std::abs(ray.Direction.y) > 1e-6f)
                 {
-                    Entity entity = meshStorage->reverse[it];
-                    TransformComponent* transform = transformStorage->Get(entity);
+                    // dystans wzdluz promienia w ktorym przetnie on plaszczyzne podlogi
+                    float t = -ray.Origin.y / ray.Direction.y;
 
-                    if (transform)
+                    // jesli t jest dodatnie to przecięcie znajduje się przed kamera
+                    if (t > 0.0f)
                     {
-                        glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
-                        AABB box;
-                        box.center = globalPos;
-                        box.extents = transform->GetScale();
+                        glm::vec3 hitPoint = ray.Origin + t * ray.Direction;
+                        glm::ivec2 targetCell = GridSystem::WorldToCell(hitPoint);
+                        bool hitFound = false;
 
-                        if (Physics::Intersects(ray, box))
-                        {
-                            if (scriptStorage)
-                            {
-                                auto* nsc = scriptStorage->Get(entity);
-                                if (nsc && nsc->Instance)
-                                {
-                                    nsc->Instance->OnClick();
+                        // x dla sasiadujacych komorek - od -1 do 1
+                        for (int dx = -1; dx <= 1 && !hitFound; dx++) {
+                            // z dla sasiadujacych komorek  od -1 do 1
+                            for (int dz = -1; dz <= 1 && !hitFound; dz++) {
+                                // obszar 3x3 wokol klikniecia
+                                glm::ivec2 currentCell = { targetCell.x + dx, targetCell.y + dz };
+                                const auto* entitiesInCell = activeScene->GetEntitiesInCell(currentCell);
+                                if (entitiesInCell) {
+
+                                    // tylko po encjach znajdujących się na tym konkretnym kafelku
+                                    for (Entity entity : *entitiesInCell) {
+                                        if (!meshStorage->Get(entity)) continue;
+                                        TransformComponent* transform = transformStorage->Get(entity);
+                                        if (transform) {
+                                            glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
+                                            AABB box;
+                                            box.center = globalPos;
+                                            box.extents = transform->GetScale();
+                                            if (Physics::Intersects(ray, box)) {
+                                                auto* nsc = scriptStorage->Get(entity);
+                                                if (nsc && nsc->Instance) {
+                                                    nsc->Instance->OnClick();
+                                                }
+
+                                                hitFound = true;
+                                                break;
+                                            }
+                                        }
+                                    }
                                 }
                             }
-                            break;
+                        }
+                    }
+                }
+            } 
+            else
+            {
+                if (meshStorage && transformStorage)
+                {
+                    for (size_t it = 0; it < meshStorage->dense.size(); it++)
+                    {
+                        Entity entity = meshStorage->reverse[it];
+                        TransformComponent* transform = transformStorage->Get(entity);
+
+                        if (transform)
+                        {
+                            glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
+                            AABB box;
+                            box.center = globalPos;
+                            box.extents = transform->GetScale();
+
+                            if (Physics::Intersects(ray, box))
+                            {
+                                if (scriptStorage)
+                                {
+                                    auto* nsc = scriptStorage->Get(entity);
+                                    if (nsc && nsc->Instance)
+                                    {
+                                        nsc->Instance->OnClick();
+                                    }
+                                }
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
     }
-
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);
 
@@ -428,6 +532,53 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
             spdlog::info("Grid Mode: Anulowano");
             return true;
         }
+    }
+
+    // SSA
+
+    // F9 Przełączanie algorytmu
+    if (e.GetKeyCode() == GLFW_KEY_F9) {
+        s_UseSSA = !s_UseSSA;
+        spdlog::info("System SSA: {} ", s_UseSSA ? "WLACZONY (Szybki)" : "WYLACZONY (Brute-Force)");
+        return true;
+    }
+
+    if (e.GetKeyCode() == GLFW_KEY_F10 && activeScene) {
+        spdlog::info("Generowanie niewidzialnego stres testu");
+
+        auto& world = activeScene->GetWorld();
+
+        // generujemy potężną siatkę 100x100 obiektów
+        for (int x = 0; x < 100; x++) {
+            for (int z = 0; z < 100; z++) {
+                glm::vec3 spawnPos = { x * 2.0f, 0.0f, z * 2.0f };
+
+                Entity e = world.CreateEntity();
+
+                world.AddComponent<TagComponent>(e, TagComponent{ "StresTest_Pudlo" });
+
+                // 3. Dodajemy Transform
+                TransformComponent trans;
+                trans.SetPosition(spawnPos);
+                trans.SetScale(glm::vec3(1.0f)); 
+                world.AddComponent<TransformComponent>(e, trans);
+
+                // 4. pusty MeshComponent 
+                // Raycast myszki tego wymaga, ale dzięki "nullptr" 
+                // RendererLayer to zignoruje i nie obciąży karty graficznej GPU.
+                MeshComponent dummyMesh;
+                dummyMesh.ModelPtr = nullptr;
+                world.AddComponent<MeshComponent>(e, dummyMesh);
+
+                BoxColliderComponent bc;
+                bc.Size = glm::vec3(1.0f);
+                bc.Offset = glm::vec3(0.0f);
+                world.AddComponent<BoxColliderComponent>(e, bc);
+            }
+        }
+
+        spdlog::info("Stres test gotowy!");
+        return true;
     }
 
     if (control) {

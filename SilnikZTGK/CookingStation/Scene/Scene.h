@@ -4,6 +4,7 @@
 #include "ecs.h"
 #include <vector>
 #include <unordered_map>
+#include "CookingStation/Core/GridSystem.h"
 
 class ConveyorScript;
 class Entity;
@@ -71,6 +72,10 @@ public:
 
 	GridRequest& GetGridRequest() { return m_GridRequest; }
 	void RebuildConveyorCache();
+
+	//Nowy interfejsc SSA
+	void UpdateSpatialGrid();
+	const std::vector<Entity>* GetEntitiesInCell(const glm::ivec2& cell) const;
 private:
 	World m_ECSWorld;
 	Camera* m_MainCamera = nullptr;
@@ -81,5 +86,8 @@ private:
 
 	std::unordered_map<GridPos, ConveyorScript*, GridPosHash> ConveyorMap;
 	bool m_ConveyorCacheReady = false;
+
+	//struktura SSA: komorka siatki -> lista encji wewnatrz niej
+	std::unordered_map<glm::ivec2, std::vector<Entity>, IVec2Hash> m_SpartialGrid;
 };
 
