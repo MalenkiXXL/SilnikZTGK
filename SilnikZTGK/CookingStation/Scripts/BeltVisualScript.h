@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
+#include "CookingStation/Scripts/ConveyorScript.h"
 
 class BeltVisualScript : public ScriptableEntity
 {
@@ -22,15 +23,18 @@ public:
     void OnUpdate(Timestep ts) override
     {
         auto* scroll = GetComponent<UVScrollComponent>();
-        if (scroll)
-        {
-            float modelLength = 4.0f;
-            float uvSpeed = Speed / modelLength;
+        if (!scroll) return;
 
-            scroll->Offset += uvSpeed * ts;
+        auto* conveyor = GetParentScript<ConveyorScript>();
+        if (conveyor && conveyor->IsJammed)
+            return;
 
-            if (scroll->Offset > 1.0f) scroll->Offset -= 1.0f;
-            if (scroll->Offset < 0.0f) scroll->Offset += 1.0f;
-        }
+        float modelLength = 4.0f;
+        float uvSpeed = Speed / modelLength;
+
+        scroll->Offset += uvSpeed * ts;
+
+        if (scroll->Offset > 1.0f) scroll->Offset -= 1.0f;
+        if (scroll->Offset < 0.0f) scroll->Offset += 1.0f;
     }
 };

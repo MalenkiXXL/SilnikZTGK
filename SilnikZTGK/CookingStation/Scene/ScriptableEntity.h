@@ -20,6 +20,23 @@ public:
 		m_Scene->GetWorld().AddComponent<T>(m_Entity, component);
 	}
 
+	template<typename T>
+	T* GetParentScript()
+	{
+		auto* rel = GetComponent<RelationshipComponent>();
+		if (!rel || rel->Parent == NULL_ENTITY) return nullptr;
+
+		auto* nsc = m_Scene->GetWorld().GetComponentByID<NativeScriptComponent>(rel->Parent);
+		if (!nsc) return nullptr;
+
+		for (auto& element : nsc->Scripts)
+		{
+			if (auto* script = dynamic_cast<T*>(element.Instance))
+				return script;
+		}
+		return nullptr;
+	}
+
 	virtual void OnCreate() {}
 	virtual void OnDestroy() {}
 	virtual void OnUpdate(Timestep ts) {}
