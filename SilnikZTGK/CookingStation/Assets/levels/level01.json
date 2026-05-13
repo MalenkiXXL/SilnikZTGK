@@ -730,12 +730,21 @@
       "script": "PotScript"
     },
     {
-      "id": 78,
-      "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
-      "name": "event_78",
-      "position": [ -25.0, 0.0, 1.0 ],
-      "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ]
+        "id": 78,
+        "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
+        "name": "event_78",
+        "position": [ -25.0, 0.0, 1.0 ],
+        "rotation": [ 0.0, 0.0, 0.0 ],
+        "scale": [ 1.0, 1.0, 1.0 ]
+    },
+    {
+        "id": 79,
+        "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot",
+        "name": "DispenserManager",
+        "position": [ 0.0, -999.0, 1.0 ],
+        "rotation": [ 0.0, 0.0, 0.0 ],
+        "scale": [ 0.1, 0.1, 0.1 ],
+        "script": "DragAndDropScript"
     }
   ]
 }

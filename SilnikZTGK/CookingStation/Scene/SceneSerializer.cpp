@@ -15,6 +15,7 @@
 #include "CookingStation/Scripts/ItemScript.h"
 #include "CookingStation/Scripts/PotScript.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
+#include "CookingStation/Scripts/DragAndDropScript.h"
 
 
 using json = nlohmann::json;

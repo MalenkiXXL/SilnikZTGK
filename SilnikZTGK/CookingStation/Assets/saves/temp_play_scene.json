@@ -1435,7 +1435,8 @@
                 1.0
             ],
             "scripts": [
-                "PlateSpawnerScript"
+                "PlateSpawnerScript",
+                "ItemScript"
             ]
         },
         {
@@ -1799,8 +1800,7 @@
                 1.0
             ],
             "scripts": [
-                "PotScript",
-                "ParticleEmitterScript"
+                "PotScript"
             ]
         },
         {
@@ -1821,6 +1821,29 @@
                 1.0,
                 1.0,
                 1.0
+            ]
+        },
+        {
+            "id": 79,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot",
+            "name": "DispenserManager",
+            "position": [
+                0.0,
+                -999.0,
+                1.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.10000000149011612,
+                0.10000000149011612,
+                0.10000000149011612
+            ],
+            "scripts": [
+                "DragAndDropScript"
             ]
         }
     ]
