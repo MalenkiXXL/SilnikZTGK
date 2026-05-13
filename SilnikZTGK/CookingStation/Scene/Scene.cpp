@@ -340,6 +340,8 @@ void Scene::SetParent(Entity child, Entity parent) {
 	parentRel->ChildrenCount++;
 
 	spdlog::info("Podpieto encje {} do rodzica {}", child.id, parent.id);
+
+	UpdateSpatialGrid();
 }
 
 void Scene::RebuildConveyorCache()
@@ -375,4 +377,60 @@ ConveyorScript* Scene::GetConveyorAt(float worldX, float worldZ)
 
 	auto it = ConveyorMap.find(key);
 	return (it != ConveyorMap.end()) ? it->second : nullptr;
+}
+
+//wypleniamy strukture ssa -> dla kazdego kafelka sprawdzamy jakie ma entity w srodku
+void Scene::UpdateSpatialGrid()
+{
+	auto* transformStorage = GetWorld().GetComponentVector<TransformComponent>();
+	if (!transformStorage) return;
+
+	for (size_t i = 0; i < transformStorage->dense.size(); ++i)
+	{
+		TransformComponent& transform = transformStorage->dense[i];
+
+		// aktualizujemy przypisanie do siatki tylko jeœli obiekt zmieni³ pozycjê
+		if (transform.IsWorldDirty())
+		{
+			Entity entity = transformStorage->reverse[i];
+
+			// 1. usuwamy encjê z jej poprzedniego kafelka
+			for (auto& pair : m_SpartialGrid)
+			{
+				auto& cellEntities = pair.second;
+				bool found = false;
+
+				for (auto it = cellEntities.begin(); it != cellEntities.end(); ++it)
+				{
+					if (it->id == entity.id && it->generation == entity.generation)
+					{
+						cellEntities.erase(it);
+						found = true;
+						break;
+					}
+				}
+				if (found) break; 
+			}
+
+			glm::vec3 globalPos = { transform.WorldMatrix[3][0], transform.WorldMatrix[3][1], transform.WorldMatrix[3][2] };
+
+			// 3. nowy klucz i dodajemy encjê
+			glm::ivec2 newCell = GridSystem::WorldToCell(globalPos);
+			m_SpartialGrid[newCell].push_back(entity);
+
+			// 4. czyœcimy flagê
+			transform.ClearWorldDirty();
+		}
+	}
+}
+
+//pobieramy jakie sa entity w kafelku
+const std::vector<Entity>* Scene::GetEntitiesInCell(const glm::ivec2& cell) const
+{
+	auto it = m_SpartialGrid.find(cell);
+	if (it != m_SpartialGrid.end())
+	{
+		return &it->second;
+	}
+	return nullptr;
 }
