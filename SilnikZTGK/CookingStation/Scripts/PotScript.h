@@ -91,11 +91,11 @@ protected:
 
             TransformComponent tc;
             tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f)); // Unosi siê o 1 metr nad garnkiem
-            tc.SetScale(glm::vec3(7.0f, 7.0f, 7.0f)); // Rozmiar kanapki
+            tc.SetScale(glm::vec3(0.7f, 0.7f, 0.7f)); // Rozmiar kanapki
             builder.With<TransformComponent>(tc);
 
             MeshComponent mesh;
-            mesh.ModelPtr = AssetManager::GetModel("CookingStation/Assets/models/skladniki/bagietka/kanapka.gltf");
+            mesh.ModelPtr = AssetManager::GetModel("CookingStation/Assets/models/skladniki/pomidor/pomidorowa.gltf");
             builder.With<MeshComponent>(mesh);
 
             m_SpawnedFood = builder.Build();
