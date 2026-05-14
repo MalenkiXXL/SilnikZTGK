@@ -733,7 +733,7 @@
             "id": 78,
             "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
             "name": "event_78",
-            "position": [ -25.0, 0.0, 1.0 ],
+            "position": [ -25.0, 1.5, 1.0 ],
             "rotation": [ 0.0, 0.0, 0.0 ],
             "scale": [ 1.0, 1.0, 1.0 ]
         },
@@ -785,7 +785,7 @@
             "id": 83,
             "model_path": "CookingStation/Assets/models/wystroj/budka.gltf",
             "name": "budka",
-            "position": [ -22.0, 1.0, 3.0 ],
+            "position": [ -22.0, 2.5, 3.0 ],
             "rotation": [ 0.0, -90.0, 0.0 ],
             "scale": [ 1.0, 1.0, 1.0 ]
         },
@@ -795,7 +795,7 @@
             "name": "balony",
             "position": [
                 -18.0,
-                0.0,
+                2.0,
                 -3.5
             ],
             "rotation": [
@@ -815,7 +815,7 @@
             "name": "balony",
             "position": [
                 -30.0,
-                0.5,
+                2.0,
                 6.0
             ],
             "rotation": [
@@ -835,7 +835,7 @@
             "name": "balony",
             "position": [
                 -31.0,
-                0.2,
+                2.0,
                 -3.0
             ],
             "rotation": [
@@ -855,7 +855,7 @@
             "name": "balony",
             "position": [
                 -19.0,
-                0.3,
+                2.0,
                 7.0
             ],
             "rotation": [

@@ -21,9 +21,6 @@ void main()
     // Szachownica na pod³odze
     if (FragPos.y < 0.0) 
     {
-        vec3 lightBrown = vec3(0.812, 0.596, 0.576);
-        
-        baseColor = lightBrown;
         float gridSize = 2.0; 
         float cellX = floor(FragPos.x / gridSize);
         float cellZ = floor(FragPos.z / gridSize);
