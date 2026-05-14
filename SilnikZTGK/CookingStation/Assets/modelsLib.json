@@ -319,6 +319,14 @@
     {
       "name": "ziarnokawy",
       "path": "CookingStation/Assets/models/skladniki/napoje/ziarnokawy.gltf"
+    },
+    {
+      "name": "ekspres",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/ekspres/ekspres.gltf"
+    },
+    {
+      "name": "szafka",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/szafka/szafka.gltf"
     }
   ]
 }
