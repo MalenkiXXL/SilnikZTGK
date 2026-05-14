@@ -41,26 +41,36 @@ void main()
     vec4 totalPosition = vec4(0.0);
     vec3 totalNormal = vec3(0.0);
 
-    if (u_Animated)
+   if (u_Animated)
     {
+        float totalWeight = 0.0; // Zmienna licz¹ca ³¹czn¹ wagê
+
         for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
         {
             if(aBoneIDs[i] == -1) 
                 continue;
                 
             if(aBoneIDs[i] >= MAX_BONES) 
-            {
-                totalPosition = vec4(aPos, 1.0);
-                totalNormal = aNormal;
-                break;
-            }
+                continue;
 
             mat4 boneTransform = finalBonesMatrices[aBoneIDs[i]];
             vec4 localPosition = boneTransform * vec4(aPos, 1.0);
+            
             totalPosition += localPosition * aWeights[i];
             
             vec3 localNormal = mat3(boneTransform) * aNormal;
             totalNormal += localNormal * aWeights[i];
+
+            // Dodajemy wagê, aby wiedzieæ, czy cokolwiek ruszy³o ten wierzcho³ek
+            totalWeight += aWeights[i]; 
+        }
+
+        // Jeœli ³¹czna waga wynosi zero (b³¹d malowania wag w Blenderze),
+        // shader u¿ywa domyœlnej pozycji wierzcho³ka
+        if (totalWeight < 0.01) 
+        {
+            totalPosition = vec4(aPos, 1.0);
+            totalNormal = aNormal;
         }
     }
     else
