@@ -221,52 +221,28 @@
       "path": "CookingStation/Assets/models/wystroj/balony.gltf"
     },
     {
-      "name": "jajko_w_skorupce",
-      "path": "CookingStation/Assets/models/skladniki/jajko_w_skorupce/egg_withshell.gltf"
+      "name": "pomidorowa",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/pomidorowa.gltf"
     },
     {
-      "name": "jajko_bez_skorupki",
-      "path": "CookingStation/Assets/models/skladniki/jajko_bez/egg_withoutshell.gltf"
+      "name": "caprese",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/caprese.gltf"
     },
     {
-      "name": "jajko_pokrojone",
-      "path": "CookingStation/Assets/models/skladniki/jajko_pokrojone/egg_cut.gltf"
+      "name": "bazylia",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/bazylia.gltf"
     },
     {
-      "name": "mleko",
-      "path": "CookingStation/Assets/models/skladniki/mleko/milk.gltf"
+      "name": "mozzarella",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/mozzarella.gltf"
     },
     {
-      "name": "pieczarka",
-      "path": "CookingStation/Assets/models/skladniki/pieczarka/pieczarka.gltf"
+      "name": "mozzarella-pokrojona",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/mozzarella-pokrojona.gltf"
     },
     {
-      "name": "truskawka",
-      "path": "CookingStation/Assets/models/skladniki/truskawka/strawberry.gltf"
-    },
-    {
-      "name": "mailna",
-      "path": "CookingStation/Assets/models/skladniki/malina/malina.gltf"
-    },
-    {
-      "name": "wok",
-      "path": "CookingStation/Assets/models/przybory_kuchenne/wok/wok.gltf"
-    },
-    {
-      "name": "mikser",
-      "path": "CookingStation/Assets/models/przybory_kuchenne/mikser/blender.gltf"
-    },
-    {
-      "name": "frytkownica",
-      "path": "CookingStation/Assets/models/przybory_kuchenne/frytkownica/frytkownica.gltf"
-    },
-    {
-      "name": "dlugi_talerz",
-      "path": "CookingStation/Assets/models/przybory_kuchenne/dlugi_talerz/plate_long.gltf"
-    },
-    {
-      "name": "koszyk",
-      "path": "CookingStation/Assets/models/przybory_kuchenne/koszyk/basket.gltf"
+      "name": "woda",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/woda.gltf"
     }
   ]
 }
