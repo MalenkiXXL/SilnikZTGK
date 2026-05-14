@@ -303,6 +303,22 @@
     {
       "name": "flaga",
       "path": "CookingStation/Assets/models/wystroj/flaga.gltf"
+    },
+    {
+      "name": "kubek",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/kubek/kubek.gltf"
+    },
+    {
+      "name": "kawa",
+      "path": "CookingStation/Assets/models/skladniki/napoje/kawa.gltf"
+    },
+    {
+      "name": "kawa-mleko",
+      "path": "CookingStation/Assets/models/skladniki/napoje/kawa-mleko.gltf"
+    },
+    {
+      "name": "ziarnokawy",
+      "path": "CookingStation/Assets/models/skladniki/napoje/ziarnokawy.gltf"
     }
   ]
 }
