@@ -87,7 +87,7 @@ protected:
             if (!myTransform) return;
 
             auto builder = GetScene()->GetWorld().BuildEntity();
-            builder.With<TagComponent>({ "UgotowaneDanie" });
+            builder.With<TagComponent>({ "W_Garnku" });
 
             TransformComponent tc;
             tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f)); // Unosi siê o 1 metr nad garnkiem
@@ -119,19 +119,23 @@ protected:
         {
             auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
 
+            // --- NOWOŒÆ: Pobieramy komponent tagu z kanapki ---
+            auto* foodTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_SpawnedFood);
+
             if (foodTransform)
             {
-                // 1. Ustawiamy pozycjê LOKALN¥ (czyli œrodek talerza to teraz punkt 0,0,0 dla kanapki)
-                // Wystarczy lekko unieœæ j¹ w osi Y (0.15f), ¿eby le¿a³a na dnie talerza
                 foodTransform->SetPosition(glm::vec3(0.0f, 0.15f, 0.0f));
-
-                // --- 2. MAGICZNA LINIJKA: PRZYKLEJAMY KANAPKÊ DO TALERZA! ---
                 GetScene()->SetParent(m_SpawnedFood, plate);
 
-                spdlog::info("Gotowe jedzenie zostalo przyklejone do talerza i odjezdza!");
+                // --- NOWOŒÆ: Zmieniamy tag na ten w³aœciwy! ---
+                if (foodTag)
+                {
+                    foodTag->Tag = "UgotowaneDanie";
+                }
+
+                spdlog::info("Gotowe jedzenie zostalo przyklejone do talerza i czeka na kelnera!");
             }
 
-            // Wa¿ne: Zapominamy o kanapce w skrypcie garnka. 
             m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
         }
     }

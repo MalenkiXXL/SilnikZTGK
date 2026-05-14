@@ -38,6 +38,7 @@
     <ClCompile Include="CookingStation\Layers\RenderLayer\RendererLayer.cpp" />
     <ClCompile Include="CookingStation\Scene\SceneManager.cpp" />
     <ClCompile Include="CookingStation\Layers\HudLayer\HUDLayer.cpp" />
+    <ClCompile Include="CookingStation\Scripts\src\PlateSpawnerScript.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Core\AudioEngine.h" />
@@ -93,6 +94,10 @@
     <ClInclude Include="CookingStation\Scripts\BeltVisualScript.h" />
     <ClInclude Include="CookingStation\Scripts\ScriptRegistry.h" />
     <ClInclude Include="CookingStation\Scripts\DragAndDropScript.h" />
+    <ClInclude Include="CookingStation\Scripts\ParticleEmitterScript.h" />
+    <ClInclude Include="CookingStation\Scripts\PlateSpawnerScript.h" />
+    <ClInclude Include="CookingStation\Scripts\CustomerManagerScript.h" />
+    <ClInclude Include="CookingStation\Scripts\CustomerScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />
@@ -102,5 +107,6 @@
     <None Include="CookingStation\Shaders\vsShaders\lightCubeShader.vs" />
     <None Include="CookingStation\Shaders\fragShaders\shader.frag" />
     <None Include="CookingStation\Shaders\vsShaders\shader.vs" />
+    <None Include="CookingStation\Assets\prefabs\plate.json" />
   </ItemGroup>
 </Project>

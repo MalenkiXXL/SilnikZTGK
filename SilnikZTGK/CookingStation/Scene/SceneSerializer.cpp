@@ -19,6 +19,7 @@
 #include "CookingStation/Layers/AssetLayer/Animation.h"
 #include "CookingStation/Layers/GameLayer/Animator.h"
 #include "CookingStation/Scripts/DragAndDropScript.h"
+#include "CookingStation/Scripts/CustomerManagerScript.h"
 
 
 using json = nlohmann::json;
