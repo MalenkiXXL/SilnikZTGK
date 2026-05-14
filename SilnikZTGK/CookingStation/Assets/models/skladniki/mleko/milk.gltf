@@ -81,7 +81,7 @@
 		{
 			"mimeType":"image/png",
 			"name":"palette",
-			"uri":"palette.png"
+			"uri": "../../../textures/palette.png"
 		},
 		{
 			"mimeType":"image/png",
