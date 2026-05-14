@@ -1161,7 +1161,7 @@
 		{
 			"mimeType":"image/png",
 			"name":"palette",
-			"uri":"palette.png"
+			"uri": "../../../textures/palette.png"
 		}
 	],
 	"skins":[
@@ -2255,7 +2255,7 @@
 	"buffers":[
 		{
 			"byteLength":552648,
-			"uri":"grzybek-animacja.bin"
+			"uri":"grzybek_walk.bin"
 		}
 	]
 }
