@@ -219,6 +219,30 @@
     {
       "name": "balony",
       "path": "CookingStation/Assets/models/wystroj/balony.gltf"
+    },
+    {
+      "name": "pomidorowa",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/pomidorowa.gltf"
+    },
+    {
+      "name": "caprese",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/caprese.gltf"
+    },
+    {
+      "name": "bazylia",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/bazylia.gltf"
+    },
+    {
+      "name": "mozzarella",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/mozzarella.gltf"
+    },
+    {
+      "name": "mozzarella-pokrojona",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/mozzarella-pokrojona.gltf"
+    },
+    {
+      "name": "woda",
+      "path": "CookingStation/Assets/models/skladniki/pomidor/woda.gltf"
     }
   ]
 }
