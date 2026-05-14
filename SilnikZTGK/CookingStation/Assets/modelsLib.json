@@ -145,6 +145,10 @@
       "path": "CookingStation/Assets/models/dostawa/dostawczak.gltf"
     },
     {
+      "name": "opony",
+      "path": "CookingStation/Assets/models/dostawa/opony.gltf"
+    },
+    {
       "name": "podloga",
       "path": "CookingStation/Assets/models/wystroj/podloga.gltf"
     },
@@ -155,6 +159,10 @@
     {
       "name": "chmura",
       "path": "CookingStation/Assets/models/wystroj/chmura.gltf"
+    },
+    {
+      "name": "chmura-dziura",
+      "path": "CookingStation/Assets/models/wystroj/chmura-dziura.gltf"
     },
     {
       "name": "anim-grzybek",
@@ -291,6 +299,10 @@
     {
       "name": "koszyk",
       "path": "CookingStation/Assets/models/przybory_kuchenne/koszyk/basket.gltf"
+    },
+    {
+      "name": "flaga",
+      "path": "CookingStation/Assets/models/wystroj/flaga.gltf"
     }
   ]
 }
