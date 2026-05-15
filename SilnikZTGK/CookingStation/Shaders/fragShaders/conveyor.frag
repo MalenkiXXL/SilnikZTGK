@@ -5,16 +5,15 @@ in vec2 TexCoords;
 in vec3 Normal;
 in vec3 FragPos;
 
-// ODBIERAMY ATRYBUT Z VERTEX SHADERA (Zamiast uniformu!)
+// ODBIERAMY ATRYBUT Z VERTEX SHADERA
 in float v_uvOffset;
 
-uniform sampler2D texture_diffuse1; // cube (belt.png)
-uniform sampler2D texture_diffuse2; // plane (a.png)
+uniform sampler2D texture_diffuse1; 
+uniform sampler2D texture_diffuse2; 
 uniform bool useTexture2;
 
-// Ujednolicone parametry œwiat³a z g³ównego shadera
 uniform vec3 lightColor;
-uniform vec3 sunDir; // Zast¹pi³o lightPos!
+uniform vec3 sunDir;
 uniform vec3 viewPos;
 
 void main()
@@ -43,13 +42,13 @@ void main()
 
     vec3 result = (ambient + diffuse) * baseColor + specular;
 
-    // Mo¿liwoœæ na³o¿enia drugiej tekstury (jak w Twoim oryginale)
+    // Mo¿liwoœæ na³o¿enia drugiej tekstury
     if(useTexture2) {
         vec3 emissiveColor = texture(texture_diffuse2, TexCoords).rgb;
         result += emissiveColor;
     }
 
-    // 4. KOREKCJA GAMMA (Im wy¿sza, tym bardziej blade - ujednolicone na 1.4)
+    // 4. KOREKCJA GAMMA
     float gammaParam = 1.4;
     result = pow(result, vec3(1.0 / gammaParam));
 

@@ -8,11 +8,10 @@ struct AngleDirection {
     glm::vec3 direction;
 };
 
-// Poprawione mapowanie - upewnij siê, ¿e osie pasuj¹ do Twojego œwiata
 static constexpr AngleDirection s_Mappings[] = {
     {  90.0f, { 0.0f, 0.0f,  1.0f } },
     { 270.0f, { 0.0f, 0.0f, -1.0f } },
-    { 180.0f, { 1.0f, 0.0f,  0.0f } }, // Poprawiono z {1,0,1} na {1,0,0}
+    { 180.0f, { 1.0f, 0.0f,  0.0f } },
     {   0.0f, {-1.0f, 0.0f,  0.0f } },
 };
 
@@ -68,7 +67,7 @@ public:
 
         for (auto& m : s_Mappings)
         {
-            // Klucz mapy to pozycja w kratkach (zak³adaj¹c CELL_SIZE = 2.0)
+            // Klucz mapy to pozycja w kratkach
             GridPos neighborKey{
                 (int)std::round((myPos.x + m.direction.x * 2.0f) / 2.0f),
                 (int)std::round((myPos.z + m.direction.z * 2.0f) / 2.0f)

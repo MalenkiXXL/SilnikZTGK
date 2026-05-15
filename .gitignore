@@ -16,3 +16,4 @@ Release/
 *.pch
 
 .idea
+cmake-build-debug
