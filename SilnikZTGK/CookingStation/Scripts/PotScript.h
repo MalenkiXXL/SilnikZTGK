@@ -10,17 +10,30 @@ private:
     // Pamiêtamy wygenerowane jedzenie, ¿eby móc je zniszczyæ lub przenieœæ na talerz
     Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
-    void SetSmoking(bool state)
+    void SetSmoking(bool state, bool clearInstatly = false)
     {
         auto* scriptComp = GetComponent<NativeScriptComponent>();
         if (scriptComp)
         {
+            bool foundScript = false;
             for (auto& s : scriptComp->Scripts)
             {
-                if (s.Name == "ParticleEmitterScript" && s.Instance)
+                if (s.Name == "SteamEmitterScript" && s.Instance)
                 {
                     auto* emitter = static_cast<ParticleEmitterScript*>(s.Instance);
-                    emitter->IsEmitting = state;
+                    if (state)
+                    {
+                        emitter->Play();
+                    }
+                    else
+                    {
+                        emitter->Stop();
+                    }
+                    if (clearInstatly)
+                    {
+                        emitter->Clear();
+                    }
+                    foundScript = true;
                     break;
                 }
             }
@@ -72,8 +85,11 @@ public:
             if (m_CurrentTime >= m_CookTime)
             {
                 m_IsReady = true;
-                SetSmoking(true);
                 UpdateVisuals();
+            }
+            if (m_CookTime - m_CurrentTime <= 0.8f)
+            {
+                SetSmoking(false);
             }
         }
 

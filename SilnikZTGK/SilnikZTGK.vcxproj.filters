@@ -99,6 +99,7 @@
     <ClInclude Include="CookingStation\Scripts\CustomerManagerScript.h" />
     <ClInclude Include="CookingStation\Scripts\CustomerScript.h" />
     <ClInclude Include="CookingStation\Core\GameProgress.h" />
+    <ClInclude Include="CookingStation\Scripts\SteamEmitterScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

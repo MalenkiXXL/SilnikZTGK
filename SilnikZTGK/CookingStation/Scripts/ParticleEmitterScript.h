@@ -9,14 +9,14 @@
 struct ParticleProps
 {
     glm::vec3 PositionOffset = { 0.0f, 0.0f, 0.0f }; // Sk¹d wylatuje (wzglêdem obiektu)
-    glm::vec3 Velocity = { 0.0f, 2.0f, 0.0f };       // Bazowy kierunek (np. w górê)
-    glm::vec3 VelocityVariation = { 1.0f, 0.5f, 1.0f }; // Rozrzut na boki
+    glm::vec3 Velocity = { 0.0f, 1.0f, 0.0f };       // Bazowy kierunek (np. w górê)
+    glm::vec3 VelocityVariation = { 0.5f, 0.5f, 0.5f }; // Rozrzut na boki
 
-    glm::vec4 ColorBegin = { 0.8f, 0.8f, 0.8f, 1.0f };  // Kolor startowy (np. bia³a para)
-    glm::vec4 ColorEnd = { 1.0f, 1.0f, 1.0f, 0.0f };    // Kolor koñcowy (np. zanika do przezroczystoœci)
+    glm::vec4 ColorBegin = { 1.0f, 1.0f, 1.0f, 1.0f };
+    glm::vec4 ColorEnd = { 1.0f, 1.0f, 1.0f, 0.0f };
 
     float SizeBegin = 0.5f, SizeVariation = 0.1f, SizeEnd = 0.0f;
-    float LifeTime = 2.0f; // Ile sekund ¿yje
+    float LifeTime = 1.0f; // Ile sekund ¿yje
 
     // Kolekcja tekstur 
     std::vector<std::shared_ptr<Texture2D>> Textures;
@@ -33,18 +33,16 @@ struct Particle
     float LifeTime = 1.0f;
     float LifeRemaining = 0.0f;
 
-    bool Active = false; // Czy jest aktualnie wyœwietlana?
-
+    bool Active = false;
     uint32_t TextureID = 0;
 };
-
 
 class ParticleEmitterScript : public ScriptableEntity
 {
 public:
     ParticleProps ParticleTemplate;
     bool IsEmitting = false;
-    float EmitRate = 0.05f; // Czas w sekundach miêdzy kolejnymi cz¹steczkami
+    float EmitRate = 0.05f;
 
 private:
     std::vector<Particle> m_ParticlePool;
@@ -54,35 +52,25 @@ private:
 public:
     void OnCreate() override
     {
-        // Inicjalizujemy pulê obiektów na sztywno
+        // TYLKO alokacja pamiêci dla puli
         m_ParticlePool.resize(1000);
         m_PoolIndex = 999;
-
-        ParticleTemplate.Textures.push_back(std::make_shared<Texture2D>("CookingStation/Assets"));
-        ParticleTemplate.Textures.push_back(std::make_shared<Texture2D>("CookingStation/Assets"));
-        ParticleTemplate.Textures.push_back(std::make_shared<Texture2D>("CookingStation/Assets"));
-
-        ParticleTemplate.SizeBegin = 1.0f;
-        ParticleTemplate.SizeEnd = 0.1f;
-        ParticleTemplate.Velocity = { 0.0f, 3.0f, 0.0f };
-
-        // Z góry zak³adamy, ¿e dany obiekt od razu dymi
         IsEmitting = false;
     }
 
-    void Play()
-    {
-        IsEmitting = true;
-    }
+    void Play() { IsEmitting = true; }
+    void Stop() { IsEmitting = false; }
 
-    void Stop()
+    void Clear()
     {
-        IsEmitting = false;
+        for (auto& particle : m_ParticlePool)
+        {
+            particle.Active = false;
+        }
     }
 
     void OnUpdate(Timestep ts) override
     {
-        // 1. SPRAWDZAMY CZY TRZEBA WYPUŒCIÆ NOW¥ CZ¥STECZKÊ
         if (IsEmitting) {
             m_TimeSinceLastEmit += ts.GetSeconds();
             while (m_TimeSinceLastEmit > EmitRate) {
@@ -91,7 +79,6 @@ public:
             }
         }
 
-        // 2. AKTUALIZUJEMY FIZYKÊ ¯YJ¥CYCH CZ¥STECZEK
         for (auto& particle : m_ParticlePool)
         {
             if (!particle.Active) continue;
@@ -103,20 +90,13 @@ public:
             }
 
             particle.LifeRemaining -= ts.GetSeconds();
-
-            // Prosta fizyka - ruch jednostajny z ewentualnym opadem grawitacyjnym
             particle.Position += particle.Velocity * ts.GetSeconds();
-
-            // Opcjonalnie: Symulacja zanikania prêdkoœci (opór powietrza)
-            // particle.Velocity.x *= 0.98f;
-            // particle.Velocity.z *= 0.98f;
         }
     }
 
     const std::vector<Particle>& GetParticles() const { return m_ParticlePool; }
 
 private:
-    // Szybka funkcja do losowania floatów od -1.0 do 1.0
     float RandomFloat() {
         return ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
     }
@@ -128,7 +108,6 @@ private:
         particle.LifeRemaining = ParticleTemplate.LifeTime;
         particle.LifeTime = ParticleTemplate.LifeTime;
 
-        //losowanie tekstury z dostepnych
         if (!ParticleTemplate.Textures.empty())
         {
             int texIndex = rand() % ParticleTemplate.Textures.size();
@@ -136,37 +115,30 @@ private:
             {
                 particle.TextureID = ParticleTemplate.Textures[texIndex]->GetRendererID();
             }
-            else
-            {
-                particle.TextureID = 0;
-            }
+            else particle.TextureID = 0;
         }
-        else
-        {
-            particle.TextureID = 0;
-        }
+        else particle.TextureID = 0;
 
-        // Jeœli obiekt siê przesuwa (np. maszyna leci na taœmie), dym leci z nim
         auto* transform = GetComponent<TransformComponent>();
-        glm::vec3 globalPos = transform ? transform->GetPosition() : glm::vec3(0.0f);
+        glm::vec3 globalPos = glm::vec3(0.0f);
+        if (transform) {
+            // Wyci¹gamy wektor translacji prosto z wymno¿onej macierzy œwiata
+            globalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
+        }
 
         particle.Position = globalPos + ParticleTemplate.PositionOffset;
 
-        // Dodajemy losowoœæ do kierunku wylotu
         particle.Velocity = ParticleTemplate.Velocity;
         particle.Velocity.x += ParticleTemplate.VelocityVariation.x * RandomFloat();
         particle.Velocity.y += ParticleTemplate.VelocityVariation.y * RandomFloat();
         particle.Velocity.z += ParticleTemplate.VelocityVariation.z * RandomFloat();
 
-        // Kolory i rozmiary
         particle.ColorBegin = ParticleTemplate.ColorBegin;
         particle.ColorEnd = ParticleTemplate.ColorEnd;
         particle.SizeBegin = ParticleTemplate.SizeBegin + ParticleTemplate.SizeVariation * RandomFloat();
         particle.SizeEnd = ParticleTemplate.SizeEnd;
 
-        // Indeks schodzi w dó³ (999, 998, 997...).
-        // Kiedy dojdzie do zera i spróbuje wejœæ na -1, modulo (%) zawinie go z powrotem na górê listy!
-        // Nadpisujemy zawsze najstarsz¹ cz¹steczkê now¹.
-        m_PoolIndex = --m_PoolIndex % m_ParticlePool.size();
+        if (m_PoolIndex == 0) m_PoolIndex = m_ParticlePool.size() - 1;
+        else m_PoolIndex--;
     }
 };

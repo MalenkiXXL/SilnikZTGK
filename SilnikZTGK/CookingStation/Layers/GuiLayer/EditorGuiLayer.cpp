@@ -456,7 +456,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 currentY += 25.0f;
 
                 if (Gui::Button("+ BeltVis", { padX, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<BeltVisualScript>("BeltVisualScript");
-                if (Gui::Button("+ Particle", { padX + 70.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<ParticleEmitterScript>("ParticleEmitterScript");
+                if (Gui::Button("+ SteamParticle", { padX + 70.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<SteamEmitterScript>("SteamEmitterScript");
                 currentY += 25.0f;
                 if (Gui::Button("WYCZYSC SKRYPTY", { padX, currentY }, { elementW - 90.0f, 20.0f })) {
                     scriptComp->Scripts.clear();

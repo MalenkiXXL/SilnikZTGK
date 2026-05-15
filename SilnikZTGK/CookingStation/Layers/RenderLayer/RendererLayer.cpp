@@ -243,7 +243,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
             {
                 for (auto& scriptEl : scriptComp.Scripts)
                 {
-                    if (scriptEl.Name == "ParticleEmitterScript" && scriptEl.Instance)
+                    if((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript") && scriptEl.Instance)
                     {
                         ParticleEmitterScript* emitter = static_cast<ParticleEmitterScript*>(scriptEl.Instance);
 
