@@ -183,7 +183,7 @@ bool SceneSerializer::Deserialize(const std::string& path) {
                 pendingRelationships.push_back({ newEntity, oldParentId });
             }
 
-            spdlog::info("[SceneLoader] Dodano: {}", name);
+           // spdlog::info("[SceneLoader] Dodano: {}", name);
         }
 
         // ODBUDOWA RELACJI

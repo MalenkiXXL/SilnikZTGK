@@ -4,6 +4,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 void HUDLayer::OnAttach() {
+    Renderer::Init();
     Renderer2D::Init();
 
     // Liczymy startow¹ macierz 

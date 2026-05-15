@@ -33,6 +33,7 @@ namespace {
 }
 
 void EditorGuiLayer::OnAttach() {
+    Renderer::Init();
     Renderer2D::Init();
 
     // pobieramy aktualny rozmiar okna

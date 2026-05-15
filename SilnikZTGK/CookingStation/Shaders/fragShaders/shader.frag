@@ -1,24 +1,33 @@
-#version 330 core
+#version 420 core
 out vec4 FragColor;
 
+// Dane wejÅ›ciowe z Vertex Shadera (muszÄ… pasowaÄ‡ do out w VS)
+in float v_uvOffset;
 in vec2 TexCoords;
 in vec2 TexCoords2; 
 in vec3 Normal;
 in vec3 FragPos;
 
+layout (std140, binding = 0) uniform SceneData {
+    mat4 u_ViewProjection;
+    vec3 u_SunDir;
+    float _pad0;
+    vec3 u_LightColor;
+    float _pad1;
+    vec3 u_ViewPos;
+    float _pad2;
+};
+
+// Tekstury i flagi (Per-Material, zostajÄ… jako zwykÅ‚e uniformy)
 uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_diffuse2;
 uniform bool useTexture2; 
-
-uniform vec3 lightColor;
-uniform vec3 sunDir;      
-uniform vec3 viewPos;
 
 void main()
 {    
     vec3 baseColor = texture(texture_diffuse1, TexCoords).rgb;
 
-    // Szachownica na pod³odze
+    // Szachownica na podÅ‚odze (logika bez zmian)
     if (FragPos.y < 0.0) 
     {
         float gridSize = 2.0; 
@@ -29,40 +38,42 @@ void main()
         
         if (checker > 0.5) 
         {
-            baseColor *= 0.90; // Jasnoœæ ciemniejszych pól -> wiêksza liczba to jaœniejsze 
+            baseColor *= 0.90; 
         }
     }
 
-   // Directional light z korekcj¹
-   // Ambient
+    // OÅ›wietlenie kierunkowe (Directional light)
+    
+    // Ambient
     float ambientStrength = 0.55; 
     vec3 ambient = ambientStrength * vec3(1.0); 
 
-    // Diffuse
+    // Diffuse - uÅ¼ywamy u_SunDir i u_LightColor z UBO
     vec3 norm = normalize(Normal);
-    vec3 lightDir = normalize(-sunDir); 
+    vec3 lightDir = normalize(-u_SunDir); 
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = (diff * 0.45) * lightColor; 
+    vec3 diffuse = (diff * 0.45) * u_LightColor; 
 
-    // Specular
-    float specularStrength = 0.5; // Si³a odblasku 
-    int shininess = 16;           // "Ostroœæ" odblasku
+    // Specular - uÅ¼ywamy u_ViewPos i u_LightColor z UBO
+    float specularStrength = 0.5; 
+    int shininess = 16;           
     
-    vec3 viewDir = normalize(viewPos - FragPos); 
+    vec3 viewDir = normalize(u_ViewPos - FragPos); 
     vec3 reflectDir = reflect(-lightDir, norm);
     
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-    vec3 specular = specularStrength * spec * lightColor;  
+    vec3 specular = specularStrength * spec * u_LightColor;  
 
-    // Z³o¿enie œwiat³a
+    // ZÅ‚oÅ¼enie oÅ›wietlenia
     vec3 result = (ambient + diffuse) * baseColor + specular;
 
+    // ObsÅ‚uga drugiej tekstury (np. Emissive)
     if(useTexture2) {
         vec3 emissiveColor = texture(texture_diffuse2, TexCoords2).rgb;
         result += emissiveColor;
     }
 
-    // Korekcja gamma -> Im wiêksza tym bardziej blade
+    // Korekcja gamma
     float gammaParam = 1.4; 
     result = pow(result, vec3(1.0 / gammaParam)); 
 
