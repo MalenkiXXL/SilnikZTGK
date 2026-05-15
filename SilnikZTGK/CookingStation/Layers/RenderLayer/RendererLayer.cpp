@@ -4,7 +4,7 @@
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Layers/CameraLayer/Camera.h" 
 #include <glm/gtc/matrix_transform.hpp>
-// Potrzebujemy dostêpu do GUI i Renderera2D, ¿eby rysowaæ tekst jako obiekt
+// Potrzebujemy dostï¿½pu do GUI i Renderera2D, ï¿½eby rysowaï¿½ tekst jako obiekt
 #include "CookingStation/Layers/GuiLayer/Renderer2D.h"
 #include "CookingStation/Layers/GuiLayer/Gui.h"
 #include "CookingStation/Core/Input.h"
@@ -59,7 +59,7 @@ void RendererLayer::LoadQuestFromFile(const std::string& filepath) {
 }
 
 void RendererLayer::OnUpdate(Timestep ts) {
-    // 1. Odbieranie powiadomienia od Pythona z w¹tku w tle
+    // 1. Odbieranie powiadomienia od Pythona z wï¿½tku w tle
     if (m_GenerationDone) {
         LoadQuestFromFile("C:\\Inzynierka\\PlikPython\\wygenerowane_quests.json");
         m_IsGenerating = false;
@@ -71,7 +71,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
     // Bindowanie FBO MSAA
     if (m_TargetFBO) m_TargetFBO->Bind();
 
-    // POPRAWKA: Jeœli wychodzimy wczesnym returnem, MUSIMY odpi¹æ FBO!
+    // POPRAWKA: Jeï¿½li wychodzimy wczesnym returnem, MUSIMY odpiï¿½ï¿½ FBO!
     if (!activeScene) {
         if (m_TargetFBO) m_TargetFBO->Unbind();
         return;
@@ -87,7 +87,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
     auto* transformStorage = world.GetComponentVector<TransformComponent>();
     auto* scrollStorage = world.GetComponentVector<UVScrollComponent>();
 
-    // POBIERAMY MAGAZYN KOMPONENTÓW ANIMATORA
+    // POBIERAMY MAGAZYN KOMPONENTï¿½W ANIMATORA
     auto* animatorStorage = world.GetComponentVector<AnimatorComponent>();
 
     glm::vec4 clearColor = { 0.1f, 0.1f, 0.1f, 1.0f };
@@ -100,15 +100,15 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
     glDisable(GL_DEPTH_TEST);
 
-    // Tworzymy projekcjê ortograficzn¹, która idealnie pokrywa nasz ekran
+    // Tworzymy projekcjï¿½ ortograficznï¿½, ktï¿½ra idealnie pokrywa nasz ekran
     glm::mat4 bgProjection = glm::ortho(0.0f, fboWidth, 0.0f, fboHeight, -1.0f, 1.0f);
 
     Renderer2D::BeginScene(bgProjection);
-    // Rysujemy quada na ca³y ekran. Rozmiar X to aspectRatio * 2, rozmiar Y to 2.0f
+    // Rysujemy quada na caï¿½y ekran. Rozmiar X to aspectRatio * 2, rozmiar Y to 2.0f
     Renderer2D::DrawQuad(glm::vec2(0.0f, 0.0f), glm::vec2(fboWidth, fboHeight), m_BackgroundTexture->GetRendererID());
     Renderer2D::EndScene();
 
-    // W³¹czamy test g³êbokoœci z powrotem, aby modele 3D poprawnie siê nak³ada³y
+    // Wï¿½ï¿½czamy test gï¿½ï¿½bokoï¿½ci z powrotem, aby modele 3D poprawnie siï¿½ nakï¿½adaï¿½y
     glEnable(GL_DEPTH_TEST);
 
     // ------- RYSOWANIE MODELI 3D ----------
@@ -118,7 +118,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
         glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
         glm::mat4 viewProjection = projection * view;
 
-        // WA¯NE: Upewniamy siê, ¿e macierze œwiata s¹ aktualne przed cullingiem
+        // WAï¿½NE: Upewniamy siï¿½, ï¿½e macierze ï¿½wiata sï¿½ aktualne przed cullingiem
         activeScene->CalculateTransforms();
 
         Renderer::BeginScene(viewProjection);
@@ -127,7 +127,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
         auto stdShader = m_ShaderLibrary.Get(Renderer::ActiveShader);
         auto conveyorShader = m_ShaderLibrary.Get("Conveyor");
 
-        // 2. USTAWIAMY WSPÓLNE DANE DLA OBU SHADERÓW
+        // 2. USTAWIAMY WSPï¿½LNE DANE DLA OBU SHADERï¿½W
         std::vector<std::shared_ptr<Shader>> shaders = { stdShader, conveyorShader };
         for (auto& s : shaders) {
             if (!s) continue;
@@ -157,7 +157,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
             };
             std::vector<AnimatedDrawCmd> animatedDraws;
 
-            // SEGREGACJA OBIEKTÓW
+            // SEGREGACJA OBIEKTï¿½W
             for (size_t i = 0; i < meshStorage->dense.size(); i++) {
                 auto& meshComp = meshStorage->dense[i];
                 Entity owner = meshStorage->reverse[i];
@@ -188,7 +188,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
                     AnimatorComponent* animComp = animatorStorage ? animatorStorage->Get(owner) : nullptr;
 
                     if (animComp && animComp->AnimatorInstance) {
-                        // Obiekt animowany - l¹duje w oddzielnej kolejce
+                        // Obiekt animowany - lï¿½duje w oddzielnej kolejce
                         animatedDraws.push_back({ shaderToUse, meshComp.ModelPtr.get(), { transform->WorldMatrix, currentUVOffset }, animComp });
                     }
                     else {
@@ -203,35 +203,35 @@ void RendererLayer::OnUpdate(Timestep ts) {
             // 3. RYSOWANIE PACZEK INSTANCJONOWANYCH (TYLKO STATYCZNE)
             for (auto& [modelPtr, batchData] : instancedBatches) {
                 batchData.first->use();
-                batchData.first->setBool("u_Animated", false); // Bezwzglêdnie wy³¹czamy u_Animated!
+                batchData.first->setBool("u_Animated", false); // Bezwzglï¿½dnie wyï¿½ï¿½czamy u_Animated!
 
                 Renderer::SubmitInstanced(batchData.first, modelPtr, batchData.second);
             }
 
-            // 4. RYSOWANIE OBIEKTÓW ANIMOWANYCH (Pojedynczo, by klatki siê nie nadpisywa³y)
+            // 4. RYSOWANIE OBIEKTï¿½W ANIMOWANYCH (Pojedynczo, by klatki siï¿½ nie nadpisywaï¿½y)
             for (auto& animDraw : animatedDraws) {
                 animDraw.shader->use();
-                animDraw.shader->setBool("u_Animated", true); // W³¹czamy flagê dla shadera
+                animDraw.shader->setBool("u_Animated", true); // Wï¿½ï¿½czamy flagï¿½ dla shadera
 
-                // Pobranie i wys³anie transformacji koœci
+                // Pobranie i wysï¿½anie transformacji koï¿½ci
                 const auto& finalBones = animDraw.animComp->AnimatorInstance->GetFinalBoneMatrices();
                 for (int j = 0; j < finalBones.size(); ++j) {
                     animDraw.shader->setMat4("finalBonesMatrices[" + std::to_string(j) + "]", finalBones[j]);
                 }
 
-                // Genialny trick: Rysujemy go poprzez system SubmitInstanced z paczk¹ o rozmiarze 1!
+                // Genialny trick: Rysujemy go poprzez system SubmitInstanced z paczkï¿½ o rozmiarze 1!
                 std::vector<InstanceData> singleInstance = { animDraw.instanceData };
                 Renderer::SubmitInstanced(animDraw.shader, animDraw.model, singleInstance);
 
-                // Wy³¹czenie flagi animacji na wszelki wypadek
+                // Wyï¿½ï¿½czenie flagi animacji na wszelki wypadek
                 animDraw.shader->setBool("u_Animated", false);
             }
         }
         Renderer::EndScene();
 
-        // RENDEROWANIE SYSTEMU CZ¥STECZEK
+        // RENDEROWANIE SYSTEMU CZï¿½STECZEK
 
-      // 1. Zabezpieczenia dla przezroczystoœci (Alpha Blending)
+      // 1. Zabezpieczenia dla przezroczystoï¿½ci (Alpha Blending)
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthMask(GL_FALSE);
@@ -250,15 +250,15 @@ void RendererLayer::OnUpdate(Timestep ts) {
             {
                 for (auto& scriptEl : scriptComp.Scripts)
                 {
-                    if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript") && scriptEl.Instance)
+                    if((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript" || scriptEl.Name == "DustEmitterScript") && scriptEl.Instance)
                     {
                         ParticleEmitterScript* emitter = static_cast<ParticleEmitterScript*>(scriptEl.Instance);
 
                         for (const auto& particle : emitter->GetParticles())
                         {
-                            if (!particle.Active) continue; // Nie rysuj uœpionych!
+                            if (!particle.Active) continue; // Nie rysuj uï¿½pionych!
 
-                            // 3. Interpolacja (p³ynne przejœcia w trakcie ¿ycia cz¹steczki)
+                            // 3. Interpolacja (pï¿½ynne przejï¿½cia w trakcie ï¿½ycia czï¿½steczki)
                             float lifeRatio = particle.LifeRemaining / particle.LifeTime;
 
                             float currentSize = glm::mix(particle.SizeEnd, particle.SizeBegin, lifeRatio);
@@ -277,7 +277,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
                             }
                             else
                             {
-                                // wyrysowanie cz¹steczki za pomoc¹ shadera UI
+                                // wyrysowanie czï¿½steczki za pomocï¿½ shadera UI
                                 Renderer2D::DrawQuad(transform, currentColor);
                             }
                         }
@@ -287,16 +287,16 @@ void RendererLayer::OnUpdate(Timestep ts) {
         }
 
         Renderer2D::EndScene();
-        glDepthMask(GL_TRUE); // Koniecznie w³¹czamy zapis g³êbi z powrotem dla kolejnej klatki!
+        glDepthMask(GL_TRUE); // Koniecznie wï¿½ï¿½czamy zapis gï¿½ï¿½bi z powrotem dla kolejnej klatki!
     }
 
     if (m_TargetFBO) {
-        // Jeœli mamy cel uœredniania (czyli m_ViewportFBO do którego rysuje GUI)
+        // Jeï¿½li mamy cel uï¿½redniania (czyli m_ViewportFBO do ktï¿½rego rysuje GUI)
         if (m_ResolveFBO) {
             m_TargetFBO->ResolveTo(m_ResolveFBO);
         }
 
-        // ZAWSZE odpinamy FBO po zakoñczeniu pracy warstwy!
+        // ZAWSZE odpinamy FBO po zakoï¿½czeniu pracy warstwy!
         m_TargetFBO->Unbind();
     }
 }
