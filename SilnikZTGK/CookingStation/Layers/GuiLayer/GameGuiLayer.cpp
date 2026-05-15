@@ -197,74 +197,64 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     // --- KSI¥¯KA Z PRZEPISAMI ---
     if (m_BookIcon) {
         glm::vec2 cloudSize = { 280.0f * baseScale, 280.0f * baseScale };
-        glm::vec2 cloudPos = { gameX + 10.0f * baseScale, gameY + 2.0f * baseScale };
+        glm::vec2 cloudPos = { gameX + 20.0f * baseScale, gameY + 20.0f * baseScale };
+        glm::vec2 actualCloudSize = cloudSize * 1.3f;
+        float dt = ts.GetSeconds(); // Upewnij siê, ¿e dt jest dostêpne
+
+        // 1. CHMURKA - Rysujemy j¹ ZAWSZE, niezale¿nie od tego czy ksi¹¿ka jest otwarta
+        if (m_BookCloudIcon) {
+            DrawBubblyImage("BookCloud", m_BookCloudIcon, cloudPos, actualCloudSize, dt, 1.1f, false);
+        }
 
         if (!m_IsRecipeBookOpen) {
-            // Rozmiar chmury
-            glm::vec2 actualCloudSize = cloudSize * 1.3f;
-
-            // Chmurka w tle 
-            if (m_BookCloudIcon) DrawBubblyImage("BookCloud", m_BookCloudIcon, cloudPos, actualCloudSize, dt, 1.1f, false, 0.55f);
-
-            // Ksi¹¿ka
+            // 2. KSI¥¯KA - Rysujemy tylko gdy zamkniêta
             glm::vec2 bookSize = cloudSize * 1.1f;
             glm::vec2 bookPos = {
                 cloudPos.x + (actualCloudSize.x - bookSize.x) * 0.5f,
                 cloudPos.y + (actualCloudSize.y - bookSize.y) * 0.5f
             };
 
-            if (DrawBubblyImage("BookIcon", m_BookIcon, bookPos, bookSize, dt, 1.2f, true, 0.25f)) {
+            if (DrawBubblyImage("BookIcon", m_BookIcon, bookPos, bookSize, dt, 1.15f, true, 0.35f)) {
                 m_IsRecipeBookOpen = true;
                 spdlog::info("UI: Otwarto ksiazke z przepisami!");
             }
 
-            // Gwiazdki na wierzchu 
-            if (m_BookStarsIcon) DrawBubblyImage("BookStars", m_BookStarsIcon, cloudPos, actualCloudSize, dt, 1.15f, false, 0.55f);
+            // 3. GWIAZDKI - Rysujemy tylko gdy zamkniêta
+            if (m_BookStarsIcon) {
+                DrawBubblyImage("BookStars", m_BookStarsIcon, cloudPos, actualCloudSize, dt, 1.15f, false);
+            }
         }
         else {
             // =========================================================
-            // --- 1. WNÊTRZE KSI¥¯KI (NAPRAWA SP£ASZCZENIA) ---
+            // --- WNÊTRZE KSI¥¯KI (Gdy otwarta) ---
             // =========================================================
-
-            // Zamiast rozci¹gaæ szerokoœæ na 0.7f z gameWidth (co sp³aszcza³o obraz),
-            // robimy na twardo 85% wysokoœci ekranu i wyliczamy szerokoœæ z proporcji pliku!
             float rawWidth = (float)m_BookInsideIcon->GetWidth();
             float rawHeight = (float)m_BookInsideIcon->GetHeight();
             float aspect = rawWidth / rawHeight;
 
             glm::vec2 insideSize;
-            insideSize.y = gameHeight * 1.0f; // Twarda wysokoœæ na œrodku
-            insideSize.x = insideSize.y * aspect; // Wyliczona, niesp³aszczona szerokoœæ!
+            insideSize.y = gameHeight * 1.0f;
+            insideSize.x = insideSize.y * aspect;
 
             float yOffset = 50.0f * baseScale;
 
-            // Centrujemy niesp³aszczone wnêtrze ksi¹¿ki idealnie na œrodku
             glm::vec2 insidePos = {
                 gameX + (gameWidth - insideSize.x) * 0.5f,
                 gameY + (gameHeight - insideSize.y) * 0.5f + yOffset
             };
 
             if (m_BookInsideIcon) {
-                // T³o ksi¹¿ki (wyg³adzanie hover=false, skala=1.0)
                 DrawBubblyImage("BookInside", m_BookInsideIcon, insidePos, insideSize, dt, 1.0f, false);
             }
 
-            // =========================================================
-            // --- 2. X DO ZAMYKANIA (NAPRAWA MA£EJ WIELKOŒCI I POZYCJI) ---
-            // =========================================================
-
-            // 2.1 Powiekszamy X: Zmieni³em z 60.0f na 110.0f, ¿eby by³ du¿y i czytelny (jak na Twoim screenshocie).
-            glm::vec2 xSize = { 400.0f * baseScale, 400.0f * baseScale };
-
-            // 2.2 Naprawa pozycji: Poniewa¿ szerokoœæ ksi¹¿ki nie jest ju¿ rozci¹gniêta, standardowe pozycjonowanie dzia³a idealnie.
-            // Odsuwamy X lekko od prawej krawêdzi i góry, ¿eby ³adnie le¿a³ wewn¹trz ksi¹¿ki.
+            // --- PRZYCISK X ---
+            glm::vec2 xSize = { 60.0f * baseScale, 60.0f * baseScale };
             glm::vec2 xPos = {
-                insidePos.x + insideSize.x - xSize.x * 1.5f,
-                insidePos.y + xSize.y * 0.5f
+                insidePos.x + insideSize.x - xSize.x * 2.6f,
+                insidePos.y + xSize.y * 2.6f
             };
 
             if (m_BookXIcon) {
-                // Klikniêcie w X zamyka panel, reaguje na najechanie z ciemnieniem (true) i ma mniejszy kolizyjny promieñ (0.4f)
                 if (DrawBubblyImage("BookX", m_BookXIcon, xPos, xSize, dt, 1.2f, true, 0.4f)) {
                     m_IsRecipeBookOpen = false;
                     spdlog::info("UI: Zamknieto ksiazke z przepisami!");
