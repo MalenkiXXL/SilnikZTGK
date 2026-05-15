@@ -67,8 +67,15 @@ void RendererLayer::OnUpdate(Timestep ts) {
     }
 
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+
+    // Bindowanie FBO MSAA
     if (m_TargetFBO) m_TargetFBO->Bind();
-    if (!activeScene) return;
+
+    // POPRAWKA: Jeœli wychodzimy wczesnym returnem, MUSIMY odpi¹æ FBO!
+    if (!activeScene) {
+        if (m_TargetFBO) m_TargetFBO->Unbind();
+        return;
+    }
 
     auto& world = activeScene->GetWorld();
     float fboWidth = m_TargetFBO ? (float)m_TargetFBO->GetSpecification().Width : m_ViewportWidth;
@@ -226,8 +233,8 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
       // 1. Zabezpieczenia dla przezroczystoœci (Alpha Blending)
         glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Standardowe równanie: "na³ó¿ mój kolor pó³przezroczysty na to, co ju¿ jest za mn¹"
-        glDepthMask(GL_FALSE); // Zabraniamy cz¹steczkom zapisywania siê do bufora g³êbokoœci (Z-Buffer). Dziêki temu kwadratowa obwiednia dymu nie zas³oni "twardo" innej chmurki dymu z ty³u.
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDepthMask(GL_FALSE);
 
         // 2. Otwieramy Renderer2D, ale dajemy mu macierz z 3D!
         Renderer2D::BeginScene(viewProjection);
@@ -243,7 +250,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
             {
                 for (auto& scriptEl : scriptComp.Scripts)
                 {
-                    if((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript") && scriptEl.Instance)
+                    if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript") && scriptEl.Instance)
                     {
                         ParticleEmitterScript* emitter = static_cast<ParticleEmitterScript*>(scriptEl.Instance);
 
@@ -252,7 +259,6 @@ void RendererLayer::OnUpdate(Timestep ts) {
                             if (!particle.Active) continue; // Nie rysuj uœpionych!
 
                             // 3. Interpolacja (p³ynne przejœcia w trakcie ¿ycia cz¹steczki)
-                            // lifeRatio = 1.0 (start), 0.0 (œmieræ)
                             float lifeRatio = particle.LifeRemaining / particle.LifeTime;
 
                             float currentSize = glm::mix(particle.SizeEnd, particle.SizeBegin, lifeRatio);
@@ -282,6 +288,16 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
         Renderer2D::EndScene();
         glDepthMask(GL_TRUE); // Koniecznie w³¹czamy zapis g³êbi z powrotem dla kolejnej klatki!
+    }
+
+    if (m_TargetFBO) {
+        // Jeœli mamy cel uœredniania (czyli m_ViewportFBO do którego rysuje GUI)
+        if (m_ResolveFBO) {
+            m_TargetFBO->ResolveTo(m_ResolveFBO);
+        }
+
+        // ZAWSZE odpinamy FBO po zakoñczeniu pracy warstwy!
+        m_TargetFBO->Unbind();
     }
 }
 
