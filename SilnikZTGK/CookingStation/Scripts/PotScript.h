@@ -2,6 +2,7 @@
 #include "MachineScript.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h" 
 #include "CookingStation/Core/GameProgress.h"
+#include "CookingStation/Scripts/ParticleEmitterScript.h"
 
 class PotScript : public MachineScript
 {
@@ -9,10 +10,28 @@ private:
     // Pamiêtamy wygenerowane jedzenie, ¿eby móc je zniszczyæ lub przenieœæ na talerz
     Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
+    void SetSmoking(bool state)
+    {
+        auto* scriptComp = GetComponent<NativeScriptComponent>();
+        if (scriptComp)
+        {
+            for (auto& s : scriptComp->Scripts)
+            {
+                if (s.Name == "ParticleEmitterScript" && s.Instance)
+                {
+                    auto* emitter = static_cast<ParticleEmitterScript*>(s.Instance);
+                    emitter->IsEmitting = state;
+                    break;
+                }
+            }
+        }
+    }
+
 public:
     void OnCreate() override
     {
         m_CookTime = 3.0f; // Czas gotowania 
+        SetSmoking(false);
     }
 
     void OnUpdate(Timestep ts) override
@@ -53,6 +72,7 @@ public:
             if (m_CurrentTime >= m_CookTime)
             {
                 m_IsReady = true;
+                SetSmoking(true);
                 UpdateVisuals();
             }
         }
@@ -70,6 +90,7 @@ public:
 
         m_Ingredients.push_back(type);
         m_IsReady = false;
+        SetSmoking(true);
         m_CurrentTime = 0.0f;
         UpdateVisuals();
 

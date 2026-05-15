@@ -37,6 +37,8 @@ public:
 
 	static void DrawQuad(const glm::mat4& transform, const glm::vec4& color);
 
+	static void DrawQuad(const glm::mat4& transform, uint32_t textureID, const glm::vec4& tintColor = glm::vec4(1.0f));
+
 private:
 	struct Renderer2DData {
 		std::unique_ptr<Shader> UI_Shader;

@@ -120,3 +120,19 @@ void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color) {
     Renderer::GetStats().DrawCallsUI++;
     Renderer::GetStats().TriangleCountUI += 2;
 }
+
+void Renderer2D::DrawQuad(const glm::mat4& transform, uint32_t textureID, const glm::vec4& tintColor)
+{
+    //aktywowanie odpowiedniego slota i zbindowanie tekstury
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, textureID);
+
+    //uniformy dla ui_shadera/shadera2d
+    s_Data->UI_Shader->use();
+    s_Data->UI_Shader->setMat4("u_Transform", transform);
+    s_Data->UI_Shader->setVec4("u_Color", tintColor);
+    
+    //rysowanie quada
+    s_Data->QuadVAO->Bind();
+    glDrawElements(GL_TRIANGLES, s_Data->QuadVAO->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
+}
