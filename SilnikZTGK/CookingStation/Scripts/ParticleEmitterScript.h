@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
+#include "CookingStation/Renderer/Texture.h"
 #include <vector>
 #include <glm/glm.hpp>
 #include <cstdlib> // dla funkcji rand()
@@ -16,6 +17,9 @@ struct ParticleProps
 
     float SizeBegin = 0.5f, SizeVariation = 0.1f, SizeEnd = 0.0f;
     float LifeTime = 2.0f; // Ile sekund ¿yje
+
+    // Kolekcja tekstur 
+    std::vector<std::shared_ptr<Texture2D>> Textures;
 };
 
 // Fizyczna cz¹steczka, która ¿yje w pamiêci
@@ -30,6 +34,8 @@ struct Particle
     float LifeRemaining = 0.0f;
 
     bool Active = false; // Czy jest aktualnie wyœwietlana?
+
+    uint32_t TextureID = 0;
 };
 
 
@@ -52,8 +58,26 @@ public:
         m_ParticlePool.resize(1000);
         m_PoolIndex = 999;
 
+        ParticleTemplate.Textures.push_back(std::make_shared<Texture2D>("CookingStation/Assets"));
+        ParticleTemplate.Textures.push_back(std::make_shared<Texture2D>("CookingStation/Assets"));
+        ParticleTemplate.Textures.push_back(std::make_shared<Texture2D>("CookingStation/Assets"));
+
+        ParticleTemplate.SizeBegin = 1.0f;
+        ParticleTemplate.SizeEnd = 0.1f;
+        ParticleTemplate.Velocity = { 0.0f, 3.0f, 0.0f };
+
         // Z góry zak³adamy, ¿e dany obiekt od razu dymi
+        IsEmitting = false;
+    }
+
+    void Play()
+    {
         IsEmitting = true;
+    }
+
+    void Stop()
+    {
+        IsEmitting = false;
     }
 
     void OnUpdate(Timestep ts) override
@@ -103,6 +127,24 @@ private:
         particle.Active = true;
         particle.LifeRemaining = ParticleTemplate.LifeTime;
         particle.LifeTime = ParticleTemplate.LifeTime;
+
+        //losowanie tekstury z dostepnych
+        if (!ParticleTemplate.Textures.empty())
+        {
+            int texIndex = rand() % ParticleTemplate.Textures.size();
+            if (ParticleTemplate.Textures[texIndex])
+            {
+                particle.TextureID = ParticleTemplate.Textures[texIndex]->GetRendererID();
+            }
+            else
+            {
+                particle.TextureID = 0;
+            }
+        }
+        else
+        {
+            particle.TextureID = 0;
+        }
 
         // Jeœli obiekt siê przesuwa (np. maszyna leci na taœmie), dym leci z nim
         auto* transform = GetComponent<TransformComponent>();
