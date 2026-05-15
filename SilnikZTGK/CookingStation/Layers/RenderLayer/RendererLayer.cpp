@@ -4,7 +4,6 @@
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Layers/CameraLayer/Camera.h" 
 #include <glm/gtc/matrix_transform.hpp>
-// Potrzebujemy dostêpu do GUI i Renderera2D, ¿eby rysowaæ tekst jako obiekt
 #include "CookingStation/Layers/GuiLayer/Renderer2D.h"
 #include "CookingStation/Layers/GuiLayer/Gui.h"
 #include "CookingStation/Core/Input.h"
@@ -209,7 +208,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
             {
                 for (auto& scriptEl : scriptComp.Scripts)
                 {
-                    if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript") && scriptEl.Instance)
+                    if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript" || scriptEl.Name == "DustEmitterScript") && scriptEl.Instance)
                     {
                         ParticleEmitterScript* emitter = static_cast<ParticleEmitterScript*>(scriptEl.Instance);
 

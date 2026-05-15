@@ -228,6 +228,7 @@
     <ClInclude Include="CookingStation\Scripts\CustomerManagerScript.h" />
     <ClInclude Include="CookingStation\Scripts\CustomerScript.h" />
     <ClInclude Include="CookingStation\Scripts\DragAndDropScript.h" />
+    <ClInclude Include="CookingStation\Scripts\DustEmitterScript.h" />
     <ClInclude Include="CookingStation\Scripts\ItemScript.h" />
     <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
     <ClInclude Include="CookingStation\Scripts\ParticleEmitterScript.h" />
