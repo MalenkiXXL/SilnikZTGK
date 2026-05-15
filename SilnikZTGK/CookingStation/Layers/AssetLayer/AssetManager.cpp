@@ -27,7 +27,7 @@ std::shared_ptr<Model> AssetManager::GetModel(const std::string& path) {
 		return it->second;
 	}
 
-	spdlog::info("[AssetManager] Laduje: {}", path);
+	//spdlog::info("[AssetManager] Laduje: {}", path);
 
 	auto newModel = std::make_shared<Model>(path);
 	m_Models[path] = newModel;

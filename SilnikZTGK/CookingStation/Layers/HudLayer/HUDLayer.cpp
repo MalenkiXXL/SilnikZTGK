@@ -4,8 +4,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 void HUDLayer::OnAttach() {
-    Renderer2D::Init();
-
     // Liczymy startow¹ macierz 
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = windowSize.first;

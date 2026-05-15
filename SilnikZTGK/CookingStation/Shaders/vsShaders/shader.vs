@@ -1,20 +1,30 @@
-#version 330 core
+#version 420 core
 
-// 1. STANDARDOWE ATRYBUTY
+layout (std140, binding = 0) uniform SceneData {
+    mat4 u_ViewProjection;
+    vec3 u_SunDir;
+    float _pad0;
+    vec3 u_LightColor;
+    float _pad1;
+    vec3 u_ViewPos;
+    float _pad2;
+};
+
+// 2. STANDARDOWE ATRYBUTY
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
 layout (location = 3) in vec2 aTexCoords2;
 
-// 2. NOWE ATRYBUTY ASSIMP
+// 3. NOWE ATRYBUTY ASSIMP
 layout (location = 4) in vec3 aTangent;
 layout (location = 5) in vec3 aBitangent;
 
-// 3. ANIMACJA SZKIELETOWA (ivec4 dla Int4!)
+// 4. ANIMACJA SZKIELETOWA
 layout (location = 6) in ivec4 aBoneIDs; 
 layout (location = 7) in vec4 aWeights;
 
-// 4. INSTANCJONOWANIE 
+// 5. INSTANCJONOWANIE 
 layout (location = 8) in mat4 aInstanceMatrix; // zajmuje 8, 9, 10, 11
 layout (location = 12) in float a_uvOffset;
 
@@ -24,9 +34,7 @@ out vec2 TexCoords2;
 out vec3 Normal;
 out vec3 FragPos;
 
-uniform mat4 viewProjection;
-
-// UNIFORMY ANIMACJI
+// POZOSTA≈ÅE UNIFORMY (Per-Draw Call, nie do UBO)
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 finalBonesMatrices[MAX_BONES];
@@ -41,32 +49,20 @@ void main()
     vec4 totalPosition = vec4(0.0);
     vec3 totalNormal = vec3(0.0);
 
-   if (u_Animated)
+    if (u_Animated)
     {
-        float totalWeight = 0.0; // Zmienna liczπca ≥πcznπ wagÍ
-
+        float totalWeight = 0.0;
         for(int i = 0 ; i < MAX_BONE_INFLUENCE ; i++)
         {
-            if(aBoneIDs[i] == -1) 
-                continue;
-                
-            if(aBoneIDs[i] >= MAX_BONES) 
-                continue;
+            if(aBoneIDs[i] == -1) continue;
+            if(aBoneIDs[i] >= MAX_BONES) continue;
 
             mat4 boneTransform = finalBonesMatrices[aBoneIDs[i]];
-            vec4 localPosition = boneTransform * vec4(aPos, 1.0);
-            
-            totalPosition += localPosition * aWeights[i];
-            
-            vec3 localNormal = mat3(boneTransform) * aNormal;
-            totalNormal += localNormal * aWeights[i];
-
-            // Dodajemy wagÍ, aby wiedzieÊ, czy cokolwiek ruszy≥o ten wierzcho≥ek
+            totalPosition += (boneTransform * vec4(aPos, 1.0)) * aWeights[i];
+            totalNormal += (mat3(boneTransform) * aNormal) * aWeights[i];
             totalWeight += aWeights[i]; 
         }
 
-        // Jeúli ≥πczna waga wynosi zero (b≥πd malowania wag w Blenderze),
-        // shader uøywa domyúlnej pozycji wierzcho≥ka
         if (totalWeight < 0.01) 
         {
             totalPosition = vec4(aPos, 1.0);
@@ -79,7 +75,8 @@ void main()
         totalNormal = aNormal;
     }
 
+    // U≈ºywamy u_ViewProjection z bloku UBO
     Normal = mat3(transpose(inverse(aInstanceMatrix))) * totalNormal;
     FragPos = vec3(aInstanceMatrix * totalPosition);
-    gl_Position = viewProjection * aInstanceMatrix * totalPosition;
+    gl_Position = u_ViewProjection * aInstanceMatrix * totalPosition;
 }

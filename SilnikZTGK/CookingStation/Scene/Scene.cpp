@@ -167,7 +167,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 				if (Physics::Intersects(dataA.box, dataB.box))
 				{
 					// Kolizja 
-					spdlog::info("kolizja miedzy ID: {} a ID: {}", dataA.ent.id, dataB.ent.id);
+					//spdlog::info("kolizja miedzy ID: {} a ID: {}", dataA.ent.id, dataB.ent.id);
 
 					auto* scriptA = m_ECSWorld.GetComponent<NativeScriptComponent>(dataA.ent);
 					if (scriptA) {
@@ -357,7 +357,7 @@ void Scene::SetParent(Entity child, Entity parent) {
 	parentRel->FirstChild = child.id;
 	parentRel->ChildrenCount++;
 
-	spdlog::info("Podpieto encje {} do rodzica {}", child.id, parent.id);
+	//spdlog::info("Podpieto encje {} do rodzica {}", child.id, parent.id);
 
 	UpdateSpatialGrid();
 }

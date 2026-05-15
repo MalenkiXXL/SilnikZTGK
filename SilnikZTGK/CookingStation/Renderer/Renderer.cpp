@@ -2,169 +2,179 @@
 #include "RenderCommand.h"
 #include "Model.h"
 #include <chrono>
+#include <unordered_set>
+#include <spdlog/spdlog.h>
 
-Renderer::SceneData* Renderer::s_SceneData = new Renderer::SceneData;
+// Inicjalizacja statycznych sk³adowych
+Renderer::SceneData* Renderer::s_SceneData = nullptr;
 RendererStatistics Renderer::s_Stats;
 uint32_t Renderer::s_GPUQueryID = 0;
 bool Renderer::s_GPUQueryInitialized = false;
 std::string Renderer::ActiveShader = "Standard";
+std::unique_ptr<UniformBuffer> Renderer::s_SceneUBO = nullptr;
 
-void Renderer::BeginScene(const glm::mat4& viewProjectionMatrix)
+void Renderer::Init()
 {
-	ResetStats(); // reset statystyk na pocz¹tku klatki
+    s_SceneData = new Renderer::SceneData();
 
-	//  jeœli nie wygenerowaliœmy jeszcze zapytania w OpenGL, robimy to raz
-	if (!s_GPUQueryInitialized)
-	{
-		glGenQueries(1, &s_GPUQueryID);
-		s_GPUQueryInitialized = true;
-	}
+    // Tworzymy bufor UBO o rozmiarze struktury SceneUBO na zdefiniowanym punkcie wi¹zania
+    s_SceneUBO = std::make_unique<UniformBuffer>(sizeof(SceneUBO), UBOBindings::Scene);
 
-	// startujemy stoper na karcie graficznej
-	glBeginQuery(GL_TIME_ELAPSED, s_GPUQueryID);
+    spdlog::info("Renderer: Bufor UBO gotowy ({} bajtów).", sizeof(SceneUBO));
+}
 
-	//zapisuje macierz kamery zeby nie podawac dla kazdego modelu
-	s_SceneData->ViewProjectionMatrix = viewProjectionMatrix;
-	s_SceneData->ActiveFrustum = ExtractFrustum(viewProjectionMatrix);
+void Renderer::Shutdown()
+{
+    if (s_GPUQueryInitialized)
+    {
+        glDeleteQueries(1, &s_GPUQueryID);
+    }
+
+    delete s_SceneData;
+    s_SceneUBO.reset();
+}
+
+void Renderer::BeginScene(const glm::mat4& viewProjectionMatrix, const glm::vec3& viewPos)
+{
+    ResetStats();
+
+    // 1. Obs³uga zapytañ GPU (Profiling)
+    if (!s_GPUQueryInitialized)
+    {
+        glGenQueries(1, &s_GPUQueryID);
+        s_GPUQueryInitialized = true;
+    }
+    glBeginQuery(GL_TIME_ELAPSED, s_GPUQueryID);
+
+    // 2. Aktualizacja danych pomocniczych procesora
+    s_SceneData->ViewProjectionMatrix = viewProjectionMatrix;
+    s_SceneData->ActiveFrustum = ExtractFrustum(viewProjectionMatrix);
+
+    // 3. WYSY£KA DANYCH DO UBO (std140)
+    // Dziêki temu ka¿dy shader ma dostêp do macierzy kamery i œwiate³ bez glUniform!
+    SceneUBO uboData;
+    uboData.ViewProjection = viewProjectionMatrix;
+    uboData.ViewPos = viewPos;
+    uboData.SunDir = glm::vec3(-0.321f, -0.766f, -0.557f);
+    uboData.LightColor = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    // Explicitne czyszczenie paddingu (dla bezpieczeñstwa)
+    uboData._pad0 = 0.0f;
+    uboData._pad1 = 0.0f;
+    uboData._pad2 = 0.0f;
+
+    s_SceneUBO->SetData(&uboData, sizeof(SceneUBO));
 }
 
 void Renderer::EndScene()
 {
-	// zatrzymujemy stoper
-	glEndQuery(GL_TIME_ELAPSED);
+    glEndQuery(GL_TIME_ELAPSED);
 
-	// wyci¹gamy czas w nanosekundach i zamieniamy na milisekundy
-	GLuint64 timeElapsed = 0;
-	glGetQueryObjectui64v(s_GPUQueryID, GL_QUERY_RESULT, &timeElapsed);
-	s_Stats.GPURenderTime = timeElapsed / 1000000.0f;
+    GLuint64 timeElapsed = 0;
+    glGetQueryObjectui64v(s_GPUQueryID, GL_QUERY_RESULT, &timeElapsed);
+    s_Stats.GPURenderTime = timeElapsed / 1000000.0f;
 }
 
 void Renderer::Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vertexArray, const glm::mat4 transform)
 {
-	//uzywaj tego konkretnego shaedra
-	shader->use();
-	//wysylamy kamere
-	shader->setMat4("viewProjection", s_SceneData->ViewProjectionMatrix);
-	//wysylamy pozycje obrot i skale
-	shader->setMat4("model", transform);
-	//mowimy vao zeby przygotowal buffory i instrukcje
-	vertexArray->Bind();
-	//rysuje
+    shader->use();
 
-	class ProfileTimer {
-	public:
-		ProfileTimer(float& outTime) : m_OutTime(outTime) {
-			m_StartTime = std::chrono::high_resolution_clock::now();
-		}
-		~ProfileTimer() {
-			auto endTime = std::chrono::high_resolution_clock::now();
-			m_OutTime = std::chrono::duration<float, std::chrono::milliseconds::period>(endTime - m_StartTime).count();
-		}
-	private:
-		float& m_OutTime;
-		std::chrono::time_point<std::chrono::high_resolution_clock> m_StartTime;
-	};
-	RenderCommand::DrawIndexed(vertexArray);
+    // UWAGA: viewProjection nie jest ju¿ potrzebne - shader bierze je z UBO!
+    shader->setMat4("u_Transform", transform); // Zmienione na u_Transform dla spójnoœci z shader.vs
 
-	uint32_t indexCount = vertexArray->GetIndexBuffer()->GetCount();
-	s_Stats.DrawCalls3D++;
-	s_Stats.TriangleCount3D += (indexCount / 3);
+    vertexArray->Bind();
+    RenderCommand::DrawIndexed(vertexArray);
+
+    uint32_t indexCount = vertexArray->GetIndexBuffer()->GetCount();
+    s_Stats.DrawCalls3D++;
+    s_Stats.TriangleCount3D += (indexCount / 3);
 }
 
 void Renderer::Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<Model>& model, const glm::mat4& transform) {
-	shader->use(); 
-	shader->setMat4("viewProjection", s_SceneData->ViewProjectionMatrix);
-	shader->setMat4("model", transform);
+    shader->use();
 
-	for (auto& mesh : model->meshes) {
-		// Obliczamy gdzie fizycznie w œwiecie le¿y ten konkretny Mesh
-		AABB worldAABB = mesh.GetWorldAABB(transform);
+    // Dane sta³e (ViewProjection) lec¹ z UBO, ustawiamy tylko macierz modelu
+    shader->setMat4("u_Transform", transform);
 
-		// Test przeciêcia (Culling)
-		if (IsOnFrustum(s_SceneData->ActiveFrustum, worldAABB)) {
-			// Widaæ go Renderujemy
-			mesh.Draw(*shader);
-			s_Stats.DrawCalls3D++;
-			s_Stats.TriangleCount3D += (mesh.indices.size() / 3);
-		}
-		else {
-			// Ukryty, pomijamy GPU
-			s_Stats.CulledObjects3D++;
-		}
-	}
+    for (auto& mesh : model->meshes) {
+        AABB worldAABB = mesh.GetWorldAABB(transform);
+
+        if (IsOnFrustum(s_SceneData->ActiveFrustum, worldAABB)) {
+            mesh.Draw(*shader);
+            s_Stats.DrawCalls3D++;
+            s_Stats.TriangleCount3D += (mesh.indices.size() / 3);
+        }
+        else {
+            s_Stats.CulledObjects3D++;
+        }
+    }
 }
 
 void Renderer::SubmitInstanced(std::shared_ptr<Shader> shader, Model* model, const std::vector<InstanceData>& instanceData)
 {
-	// ZMIANA: Sprawdzamy now¹ listê instanceData
-	if (instanceData.empty() || !model || !shader) return;
+    if (instanceData.empty() || !model || !shader) return;
 
-	shader->use();
-	// Wysy³amy macierz kamery, ¿eby instancje wiedzia³y jak siê wyœwietliæ na ekranie
-	shader->setMat4("viewProjection", s_SceneData->ViewProjectionMatrix);
+    shader->use();
+    // Brak shader->setMat4("viewProjection", ...)! Obs³u¿one przez UBO.
 
-	// Dla ka¿dego sub-mesha w modelu
-	for (auto& mesh : model->meshes)
-	{
-		// 1. Przesy³amy zaktualizowane dane (Macierze + UVOffsety) do naszego Instance VBO
-		glBindBuffer(GL_ARRAY_BUFFER, mesh.m_InstanceVBO);
-		// ZMIANA: U¿ywamy sizeof(InstanceData) zamiast sizeof(glm::mat4) oraz instanceData.data()
-		glBufferSubData(GL_ARRAY_BUFFER, 0, instanceData.size() * sizeof(InstanceData), instanceData.data());
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+    for (auto& mesh : model->meshes)
+    {
+        // 1. Przesy³amy paczkê danych instancji
+        glBindBuffer(GL_ARRAY_BUFFER, mesh.m_InstanceVBO);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, instanceData.size() * sizeof(InstanceData), instanceData.data());
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		// 2. Bindowanie tekstur
-		unsigned int diffuseNr = 1;
-		unsigned int specularNr = 1;
-		unsigned int normalNr = 1;
-		unsigned int heightNr = 1;
+        // 2. Bindowanie tekstur
+        unsigned int diffuseNr = 1;
+        unsigned int specularNr = 1;
+        unsigned int normalNr = 1;
+        unsigned int heightNr = 1;
 
-		int diffuseCount = 0;
-		for (const auto& t : mesh.textures) {
-			if (t.type == "texture_diffuse") diffuseCount++;
-		}
+        int diffuseCount = 0;
+        for (const auto& t : mesh.textures) {
+            if (t.type == "texture_diffuse") diffuseCount++;
+        }
 
-		shader->SetBool("useTexture2", diffuseCount > 1);
+        shader->setBool("useTexture2", diffuseCount > 1);
 
-		for (unsigned int i = 0; i < mesh.textures.size(); i++)
-		{
-			glActiveTexture(GL_TEXTURE0 + i);
-			std::string number;
-			std::string name = mesh.textures[i].type;
+        for (unsigned int i = 0; i < mesh.textures.size(); i++)
+        {
+            glActiveTexture(GL_TEXTURE0 + i);
+            std::string number;
+            std::string name = mesh.textures[i].type;
 
-			if (name == "texture_diffuse") number = std::to_string(diffuseNr++);
-			else if (name == "texture_specular") number = std::to_string(specularNr++);
-			else if (name == "texture_normal") number = std::to_string(normalNr++);
-			else if (name == "texture_height") number = std::to_string(heightNr++);
+            if (name == "texture_diffuse") number = std::to_string(diffuseNr++);
+            else if (name == "texture_specular") number = std::to_string(specularNr++);
+            else if (name == "texture_normal") number = std::to_string(normalNr++);
+            else if (name == "texture_height") number = std::to_string(heightNr++);
 
-			glUniform1i(glGetUniformLocation(shader->ID, (name + number).c_str()), i);
-			mesh.textures[i].Texture2DPtr->Bind(i);
-		}
+            glUniform1i(glGetUniformLocation(shader->ID, (name + number).c_str()), i);
+            mesh.textures[i].Texture2DPtr->Bind(i);
+        }
 
-		mesh.m_VertexArray->Bind();
-		// ZMIANA: Iloœæ instancji do narysowania bierzemy z instanceData.size()
-		glDrawElementsInstanced(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0, instanceData.size());
-		mesh.m_VertexArray->Unbind();
+        mesh.m_VertexArray->Bind();
+        glDrawElementsInstanced(GL_TRIANGLES, (GLsizei)mesh.indices.size(), GL_UNSIGNED_INT, 0, (GLsizei)instanceData.size());
+        mesh.m_VertexArray->Unbind();
 
-		// 4. Sprz¹tanie jednostek teksturuj¹cych
-		for (unsigned int i = 0; i < mesh.textures.size(); i++)
-		{
-			glActiveTexture(GL_TEXTURE0 + i);
-			glBindTexture(GL_TEXTURE_2D, 0);
-		}
+        // 4. Sprz¹tanie
+        for (unsigned int i = 0; i < mesh.textures.size(); i++)
+        {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, 0);
+        }
 
-		// 5. Aktualizacja statystyk dla Twojego GUI
-		s_Stats.DrawCalls3D++;
-		s_Stats.InstanceBatches++;
-		// ZMIANA: Obliczenia na podstawie instanceData.size()
-		s_Stats.TriangleCount3D += (mesh.indices.size() / 3) * instanceData.size();
-	}
-	static std::unordered_set<std::string> s_LoggedModels;
+        s_Stats.DrawCalls3D++;
+        s_Stats.InstanceBatches++;
+        s_Stats.TriangleCount3D += (uint32_t)(mesh.indices.size() / 3) * (uint32_t)instanceData.size();
+    }
 
-	if (s_LoggedModels.find(model->FilePath) == s_LoggedModels.end())
-	{
-		// ZMIANA: instanceData.size() w logach
-		spdlog::info("Batch: Model {} ma {} siatek, rysuje {} instancji",
-			model->FilePath, model->meshes.size(), instanceData.size());
-		s_LoggedModels.insert(model->FilePath);
-	}
+    // Logowanie jednorazowe dla modelu
+    static std::unordered_set<std::string> s_LoggedModels;
+    if (s_LoggedModels.find(model->FilePath) == s_LoggedModels.end())
+    {
+        // ZMIANA: instanceData.size() w logach
+        spdlog::info("Batch: Model {} ma {} siatek, rysuje {} instancji",
+            model->FilePath, model->meshes.size(), instanceData.size());
+        s_LoggedModels.insert(model->FilePath);
+    }
 }
