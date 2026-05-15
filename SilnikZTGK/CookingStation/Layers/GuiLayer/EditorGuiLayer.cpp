@@ -33,9 +33,6 @@ namespace {
 }
 
 void EditorGuiLayer::OnAttach() {
-    Renderer::Init();
-    Renderer2D::Init();
-
     // pobieramy aktualny rozmiar okna
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = (float)windowSize.first;

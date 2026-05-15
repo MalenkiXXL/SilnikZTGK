@@ -20,7 +20,7 @@ void Renderer::Init()
     // Tworzymy bufor UBO o rozmiarze struktury SceneUBO na zdefiniowanym punkcie wi¹zania
     s_SceneUBO = std::make_unique<UniformBuffer>(sizeof(SceneUBO), UBOBindings::Scene);
 
-    spdlog::info("Renderer initialized: UBO created (size: {} bytes)", sizeof(SceneUBO));
+    spdlog::info("Renderer: Bufor UBO gotowy ({} bajtów).", sizeof(SceneUBO));
 }
 
 void Renderer::Shutdown()
@@ -172,7 +172,9 @@ void Renderer::SubmitInstanced(std::shared_ptr<Shader> shader, Model* model, con
     static std::unordered_set<std::string> s_LoggedModels;
     if (s_LoggedModels.find(model->FilePath) == s_LoggedModels.end())
     {
-        spdlog::info("Batching: Model {} instantiated {} times.", model->FilePath, instanceData.size());
+        // ZMIANA: instanceData.size() w logach
+        spdlog::info("Batch: Model {} ma {} siatek, rysuje {} instancji",
+            model->FilePath, model->meshes.size(), instanceData.size());
         s_LoggedModels.insert(model->FilePath);
     }
 }

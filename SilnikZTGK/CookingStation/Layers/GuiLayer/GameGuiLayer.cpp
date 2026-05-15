@@ -31,8 +31,6 @@ namespace {
 }
 
 void GameGuiLayer::OnAttach() {
-    Renderer::Init();
-    Renderer2D::Init();
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;

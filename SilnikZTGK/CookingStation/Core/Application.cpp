@@ -38,7 +38,10 @@ Application::Application()
 	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
 
 	SceneManager::NewScene();
-	// DODAJEMY WARSTWY DO STOSU
+	
+	Renderer::Init();
+	Renderer2D::Init();
+
 	PushLayer(new CameraLayer());
 	PushLayer(new AssetLayer());
 
