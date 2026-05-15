@@ -32,6 +32,7 @@ public:
 	void SetTargetFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_TargetFBO = fbo; }
 
 	void LoadQuestFromFile(const std::string& filepath);
+	void SetResolveTarget(const std::shared_ptr<Framebuffer>& fbo) { m_ResolveFBO = fbo; }
 
 private:
 	bool OnWindowResize(WindowResizeEvent& e);
@@ -50,4 +51,5 @@ private:
 	std::shared_ptr<Texture2D> m_RampTexture;
 	std::shared_ptr<Texture2D> m_BackgroundTexture;
 	unsigned int m_RepeatSampler = 0;
+	std::shared_ptr<Framebuffer> m_ResolveFBO;
 };

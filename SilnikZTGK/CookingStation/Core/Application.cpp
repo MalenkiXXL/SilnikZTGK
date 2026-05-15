@@ -18,30 +18,50 @@ Application::Application()
 	s_Instance = this;
 	m_Window = new Window(800, 600, "Silnik");
 	m_Window->Init();
-	m_Window->SetEventCallback([this](Event& e) { OnEvent(e); }); 
+	m_Window->SetEventCallback([this](Event& e) { OnEvent(e); });
 
+	// W³¹cz obs³ugê MSAA na poziomie sterownika OpenGL!
+	glEnable(GL_MULTISAMPLE);
+
+	// 1. ZWYK£Y FBO (Wykorzystywany przez interfejs GUI ImGui do wyœwietlenia ostatecznego obrazu)
 	FramebufferSpecification fbSpec;
 	fbSpec.Width = m_Window->GetWidth();
 	fbSpec.Height = m_Window->GetHeight();
+	fbSpec.Samples = 1; // Brak MSAA dla UI
 	m_ViewportFBO = std::make_shared<Framebuffer>(fbSpec);
-	SceneManager::NewScene();
 
+	// 2. FBO z MSAA (Do niego RendererLayer bêdzie rysowa³ wszystkie modele 3D)
+	FramebufferSpecification msaaSpec;
+	msaaSpec.Width = m_Window->GetWidth();
+	msaaSpec.Height = m_Window->GetHeight();
+	msaaSpec.Samples = 4; // Ustawiamy 4 próbki wyg³adzania
+	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
+
+	SceneManager::NewScene();
 	// DODAJEMY WARSTWY DO STOSU
 	PushLayer(new CameraLayer());
 	PushLayer(new AssetLayer());
+
 	auto gameLayer = new GameLayer();
 	PushLayer(gameLayer);
+
 	auto renderLayer = new RendererLayer();
-	renderLayer->SetTargetFramebuffer(m_ViewportFBO);
+	renderLayer->SetTargetFramebuffer(m_MsaaFBO); // Tu rysujemy (MSAA)
+	renderLayer->SetResolveTarget(m_ViewportFBO); // Tu kopiujemy (Resolve)
 	PushLayer(renderLayer);
+
 	auto editorLayer = new EditorLayer();
 	editorLayer->SetTargetFramebuffer(m_ViewportFBO);
 	PushLayer(editorLayer);
+
 	auto hudLayer = new HUDLayer();
 	PushLayer(hudLayer);
+
 	auto editorGuiLayer = new EditorGuiLayer();
 	editorGuiLayer->SetViewportFramebuffer(m_ViewportFBO);
+	editorGuiLayer->SetMsaaFramebuffer(m_MsaaFBO); // Przeka¿ MSAA do edytora, ¿eby móg³ go resizowaæ
 	PushLayer(editorGuiLayer);
+
 	auto gameGuiLayer = new GameGuiLayer();
 	gameGuiLayer->SetViewportFramebuffer(m_ViewportFBO);
 	PushLayer(gameGuiLayer);
@@ -92,6 +112,8 @@ void Application::Run()
 			// gdy wychodzimy z klamerek { }, timer jest niszczony (destruktor).
 			// oblicza miniony czas i wpisuje go do zmiennej CPULogicTime
 		}
+
+		m_MsaaFBO->ResolveTo(m_ViewportFBO);
 
 		// 4. AKTUALIZACJA OKNA I WEJŒCIA
 		m_Window->OnUpdate(); // To wywo³a m.in. glfwSwapBuffers i glfwPollEvents

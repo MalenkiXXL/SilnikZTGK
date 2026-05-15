@@ -74,7 +74,13 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             if (m_ViewportFBO->GetSpecification().Width != (uint32_t)viewportSize.x ||
                 m_ViewportFBO->GetSpecification().Height != (uint32_t)viewportSize.y)
             {
+                // Zmieniamy rozmiar zwykłego bufora (dla UI)
                 m_ViewportFBO->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+
+                // DODANE: Zmieniamy rozmiar bufora MSAA (dla 3D), żeby idealnie pasował!
+                if (m_MsaaFBO) {
+                    m_MsaaFBO->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+                }
             }
 
             uint32_t textureID = m_ViewportFBO->GetColorAttachmentRendererID();
@@ -209,12 +215,13 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
     }
 
     // --- PANEL OTOCZENIA (ANCHOR: BOTTOM LEFT) ---
+    // --- PANEL OTOCZENIA (ANCHOR: BOTTOM LEFT) ---
     if (m_ShowEnvironmentPanel) {
-        glm::vec2 envSize = { 180.f, 300.f };
+        glm::vec2 envSize = { 180.f, 350.f };
         glm::vec2 envPos = GetAnchoredPosition(Anchor::BottomLeft, 10.f, 10.f, envSize.x, envSize.y, m_ViewportWidth, m_ViewportHeight);
 
         Gui::Panel(envPos, envSize, { 0.15f, 0.15f, 0.15f, 0.9f });
-        Gui::DrawGuiText("Kolor tla:", { envPos.x + 5.f, envPos.y + 15.f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
+        Gui::DrawGuiText("Kolor tla:", { envPos.x + 5.f, envPos.y + 12.f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
         auto* colorStorage = world.GetComponentVector<ClearColorComponent>();
         if (colorStorage && !colorStorage->dense.empty()) {
@@ -232,6 +239,16 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("Fake BRDF", { envPos.x + 5.f, envPos.y + 195.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "FakeBRDF"))) Renderer::ActiveShader = "FakeBRDF";
         if (Gui::Button("Blinn-Phong", { envPos.x + 90.f, envPos.y + 195.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "BlinnPhong"))) Renderer::ActiveShader = "BlinnPhong";
         if (Gui::Button("Rim", { envPos.x + 5.f, envPos.y + 225.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "Rim"))) Renderer::ActiveShader = "Rim";
+
+        // --- NOWA SEKCJA: Ustawienia MSAA ---
+        Gui::DrawGuiText("Wygładzanie MSAA:", { envPos.x + 5.f, envPos.y + 255.f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+        uint32_t currentMsaa = Application::Get().GetMsaaSamples();
+        if (Gui::Button("Wył", { envPos.x + 5.f, envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 1)) Application::Get().SetMsaaSamples(1);
+        if (Gui::Button("2x", { envPos.x + 48.f, envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 2)) Application::Get().SetMsaaSamples(2);
+        if (Gui::Button("4x", { envPos.x + 91.f, envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 4)) Application::Get().SetMsaaSamples(4);
+        if (Gui::Button("8x", { envPos.x + 134.f, envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 8)) Application::Get().SetMsaaSamples(8);
+        if (Gui::Button("16x", { envPos.x + 5.f, envPos.y + 305.f }, { 32.f, 20.f }, currentMsaa == 16)) Application::Get().SetMsaaSamples(16);
     }
 
     // --- HIERARCHIA SCENY (ANCHOR: TOP LEFT) ---

@@ -23,7 +23,7 @@ public:
     virtual void OnEvent(Event& e) override;
     bool OnWindowResize(WindowResizeEvent& e);
     void SetViewportFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_ViewportFBO = fbo; }
-
+    void SetMsaaFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_MsaaFBO = fbo; }
     void ReloadQuests();
 
 private:
@@ -81,4 +81,5 @@ private:
     std::vector<QuestData> m_CurrentQuests;
     int m_CurrentQuestIndex = 0;
     bool m_ShowPrefabsPanel = false;
+    std::shared_ptr<Framebuffer> m_MsaaFBO;
 };
