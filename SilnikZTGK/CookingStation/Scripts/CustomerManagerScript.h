@@ -13,7 +13,7 @@ private:
     float m_SpawnInterval = 5.0f; // Co 5 sekund sprawdza, czy mo¿na stworzyæ klienta
     int m_TotalSpawned = 0;
 
-    // Lista dostêpnych modeli klientów (zgodna z tym co pisa³aœ)
+    // Lista dostêpnych modeli klientów 
     std::vector<std::string> m_CustomerModels = {
         "CookingStation/Assets/models/klienci/klient.gltf",
         "CookingStation/Assets/models/klienci/klient2.gltf",
@@ -61,9 +61,7 @@ private:
         auto* chairTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(targetChair);
         TransformComponent tc;
 
-        // --- SKALOWANIE I POZYCJA ---
-        // Obni¿y³em wysokoœæ spawnu (Y z 1.0 na 0.5) i zmniejszy³em skalê na 0.4.
-        // Dopasuj te wartoœci tak, ¿eby ludziki ³adnie siedzia³y!
+        // Skalowanie i pozycja
         tc.SetPosition(chairTransform->GetPosition() + glm::vec3(0.0f, 2.0f, 0.0f));
         tc.SetScale(glm::vec3(0.3f, 0.3f, 0.3f));
 
@@ -81,10 +79,10 @@ private:
         NativeScriptComponent nsc;
 
         if (isHelper) {
-            // nsc.AddScript<HelperScript>("HelperScript"); // Zrobimy potem
+            // nsc.AddScript<HelperScript>("HelperScript"); -> do dodania
         }
         else {
-            nsc.AddScript<CustomerScript>("CustomerScript"); // <--- BEZPOŒREDNIO!
+            nsc.AddScript<CustomerScript>("CustomerScript"); 
         }
 
         builder.With<NativeScriptComponent>(nsc);
@@ -105,7 +103,7 @@ private:
                 Entity chairEntity = tags->reverse[i];
                 if (IsChairEmpty(chairEntity))
                 {
-                    return chairEntity; // Zwracamy PIERWSZE WOLNE krzes³o
+                    return chairEntity; 
                 }
             }
         }
@@ -118,7 +116,7 @@ private:
         if (!chairTransform) return false;
 
         glm::vec3 chairPos = chairTransform->GetPosition();
-        glm::vec2 chairPos2D = { chairPos.x, chairPos.z }; // Ignorujemy wysokoœæ Y
+        glm::vec2 chairPos2D = { chairPos.x, chairPos.z }; 
 
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
@@ -138,7 +136,7 @@ private:
                 {
                     glm::vec2 custPos2D = { custTransform->GetPosition().x, custTransform->GetPosition().z };
 
-                    // Jeœli jakiœ klient jest bli¿ej ni¿ pó³ metra od krzes³a, to krzes³o jest ZAJÊTE
+                    // Jeœli jakiœ klient jest bli¿ej ni¿ pó³ metra od krzes³a, to krzes³o jest zajête
                     if (glm::distance(chairPos2D, custPos2D) < 0.5f)
                     {
                         return false;
@@ -146,6 +144,6 @@ private:
                 }
             }
         }
-        return true; // Krzes³o jest puste!
+        return true; // Krzes³o jest puste
     }
 };

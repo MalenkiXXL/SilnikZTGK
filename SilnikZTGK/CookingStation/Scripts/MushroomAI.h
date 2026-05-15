@@ -2,11 +2,10 @@
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Core/Input.h"
-#include "CustomerScript.h" // POTRZEBNE DO KOMUNIKACJI Z KLIENTEM
+#include "CustomerScript.h" 
 #include <spdlog/spdlog.h>
 #include <glm/glm.hpp>
 
-// Odpowiednik Twojego enum State z Unity
 enum class WaiterState { Idle, FetchingFood, DeliveringFood };
 
 class MushroomAI : public ScriptableEntity
@@ -27,7 +26,7 @@ public:
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        // MASZYNA STANÓW GRZYBKA
+        // Maszyna stanów grzybola
         if (m_State == WaiterState::Idle)
         {
             // Zatrzymujemy animacjê, gdy stoi
@@ -64,7 +63,7 @@ public:
         {
             auto* customerTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetCustomer);
             if (!customerTransform) {
-                m_State = WaiterState::Idle; // Klient znikn¹³ (np. wyszed³)
+                m_State = WaiterState::Idle; // Klient znikn¹³ 
                 return;
             }
 
@@ -81,21 +80,20 @@ public:
     }
 
 private:
-    // ODPOWIEDNIK NAVMESH AGENT (Ruch po prostej i obracanie siê)
     void MoveTowards(TransformComponent* myTransform, glm::vec3 targetPos, float dt)
     {
         glm::vec3 myPos = myTransform->GetPosition();
         glm::vec3 direction = targetPos - myPos;
-        direction.y = 0; // Grzybek nie umie lataæ, porusza siê tylko po pod³odze (X i Z)
+        direction.y = 0; // Grzybek chodzi tylko po pod³odze
 
         if (glm::length(direction) > 0.01f)
         {
-            // Normalizujemy kierunek (¿eby prêdkoœæ by³a zawsze taka sama)
+            // Normalizujemy kierunek ¿eby mia³ sta³¹ prêdkoœæ  
             direction = glm::normalize(direction);
             myPos += direction * m_Speed * dt;
             myTransform->SetPosition(myPos);
 
-            // MAGICZNA MATEMATYKA: Grzybek obraca siê twarz¹ w stronê, w któr¹ idzie
+			// Grzybek patrzy w kierunku ruchu
             float angle = glm::degrees(atan2(direction.x, direction.z));
             myTransform->SetRotation(glm::vec3(0.0f, angle, 0.0f));
         }
@@ -111,7 +109,7 @@ private:
 
         if (!tags || !scripts) return;
 
-        // 1. Szukamy gotowego jedzenia (nasza kanapka, któr¹ stworzy³ garnek)
+        // Szukamy gotowego dania
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
             if (tags->dense[i].Tag == "UgotowaneDanie")
@@ -131,7 +129,6 @@ private:
                     auto* nsc = scripts->Get(custEntity);
                     if (nsc)
                     {
-                        // --- NOWY SPOSÓB SZUKANIA SKRYPTU ---
                         CustomerScript* custScript = nullptr;
 
                         // Przeszukujemy listê podpiêtych skryptów w tym kliencie
@@ -139,8 +136,6 @@ private:
                         {
                             if (s.Name == "CustomerScript")
                             {
-                                // UWAGA: Za³o¿y³em, ¿e wskaŸnik nazywa siê "Instance". 
-                                // Jeœli u Ciebie nazywa siê inaczej (np. Script, Ptr, Obj), zmieñ to poni¿ej!
                                 custScript = (CustomerScript*)s.Instance;
                                 break;
                             }
@@ -161,7 +156,7 @@ private:
             }
         }
 
-        // Jeœli mamy komplet (jedzenie + chêtny), ruszamy w trasê!
+        // Jeœli mamy gotowe danie i klienta który na nie czeka, to grzybek rusza
         if (foundFood.id != std::numeric_limits<std::size_t>::max() && foundCustomer.id != std::numeric_limits<std::size_t>::max())
         {
             m_TargetFood = foundFood;
@@ -175,13 +170,13 @@ private:
     {
         spdlog::info("Grzybek wrzucil jedzenie na kapelusz!");
 
-        // Magiczna funkcja, która odpina kanapkê od talerza i przypina do Grzybka
+        // Odpina kanapkê od talerza i przypina do Grzybka
         GetScene()->SetParent(m_TargetFood, m_Entity);
 
         auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetFood);
         if (foodTransform)
         {
-            // Unosimy kanapkê lokalnie o 2 metry do góry (na g³owê)
+            // Unosimy kanapkê lokalnie o 2 metry do góry -> tymczasowo na g³owie 
             foodTransform->SetPosition(glm::vec3(0.0f, 2.0f, 0.0f));
         }
 
@@ -192,7 +187,7 @@ private:
     {
         spdlog::info("Grzybek dostarczyl zamowienie! Klient szczesliwy.");
 
-        // --- OBEJŒCIE B£ÊDU SILNIKA (Soft Deletion dla kanapki) ---
+        // Soft Deletion dla dania
         auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetFood);
         if (foodTransform) foodTransform->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
 
@@ -201,7 +196,7 @@ private:
 
         m_TargetFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
-        // Wywo³ujemy u klienta ReceiveFood(), ¿eby znikn¹³ (zap³aci³)
+        // Wywo³ujemy u klienta ReceiveFood(), ¿eby znikn¹³ 
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
         if (scripts)
         {
@@ -220,12 +215,12 @@ private:
 
                 if (custScript)
                 {
-                    custScript->ReceiveFood(); // Kasa leci, klient spada pod mapê!
+                    custScript->ReceiveFood(); 
                 }
             }
         }
 
         m_TargetCustomer = { std::numeric_limits<std::size_t>::max(), 0 };
-        m_State = WaiterState::Idle; // Kelner wraca do szukania roboty
+        m_State = WaiterState::Idle; 
     }
 };

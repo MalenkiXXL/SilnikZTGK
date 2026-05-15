@@ -98,6 +98,7 @@
     <ClInclude Include="CookingStation\Scripts\PlateSpawnerScript.h" />
     <ClInclude Include="CookingStation\Scripts\CustomerManagerScript.h" />
     <ClInclude Include="CookingStation\Scripts\CustomerScript.h" />
+    <ClInclude Include="CookingStation\Core\GameProgress.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

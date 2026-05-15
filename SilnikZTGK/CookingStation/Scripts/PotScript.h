@@ -1,17 +1,18 @@
 #pragma once
 #include "MachineScript.h"
-#include "CookingStation/Layers/AssetLayer/AssetManager.h" // POTRZEBNE DO MODELU KANAPKI
+#include "CookingStation/Layers/AssetLayer/AssetManager.h" 
+#include "CookingStation/Core/GameProgress.h"
 
 class PotScript : public MachineScript
 {
 private:
-    // Pamiêtamy wygenerowan¹ kanapkê, ¿eby móc j¹ zniszczyæ lub przenieœæ na talerz
+    // Pamiêtamy wygenerowane jedzenie, ¿eby móc je zniszczyæ lub przenieœæ na talerz
     Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
 public:
     void OnCreate() override
     {
-        m_CookTime = 3.0f; // Zmniejszone do 3 sekund dla szybszych testów!
+        m_CookTime = 3.0f; // Czas gotowania 
     }
 
     void OnUpdate(Timestep ts) override
@@ -20,7 +21,6 @@ public:
 
         if (m_IsHeld) return;
 
-        // --- RÊCZNE KLIKANIE W KANAPKÊ ---
         // Jeœli jest gotowe i w³aœnie wciœniêto lewy przycisk myszy
         if (m_IsReady && Input::IsMouseButtonJustPressed(0))
         {
@@ -31,22 +31,21 @@ public:
                 {
                     glm::vec3 mousePos = GetMouseWorldPosition();
 
-                    // Ignorujemy wysokoœæ (Y), ¿eby ³atwo trafiaæ w obiekt z góry kamer¹
+                    // Ignorujemy wysokoœæ, ¿eby ³atwo trafiaæ w obiekt z góry kamer¹
                     glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
                     glm::vec2 foodPos2D = { foodTransform->GetPosition().x, foodTransform->GetPosition().z };
 
-                    // Skoro kanapka ma skalê 7.0, promieñ klikniêcia 3.0f bêdzie idealny
+                    // Promieñ klikniêcia dopasowany do dania
                     if (glm::distance(mousePos2D, foodPos2D) < 3.0f)
                     {
-                        spdlog::info("Kliknieto prosto w apetyczna kanapke!");
+                        spdlog::info("Kliknieto w danie!");
                         TryTransferToPlate();
                     }
                 }
             }
         }
-        // ---------------------------------
 
-        // LOGIKA GOTOWANIA
+        // Logika gotowania
         if (!m_Ingredients.empty() && !m_IsReady)
         {
             m_CurrentTime += ts.GetSeconds();
@@ -58,7 +57,7 @@ public:
             }
         }
 
-        // AUTOMATYZACJA
+        // Automatyzacja 
         if (m_IsAutomated && m_IsReady)
         {
             TryTransferToPlate();
@@ -82,7 +81,13 @@ protected:
     {
         if (m_IsReady)
         {
-            // Zbuduj model kanapki!
+            if (!GameProgress::IsRecipeUnlocked("TomatoSoup"))
+            {
+                GameProgress::UnlockRecipe("TomatoSoup");
+                spdlog::info("Zupa pomidorowa odblokowana po raz pierwszy!");
+            }
+
+            // Zbuduj model dania
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
@@ -90,8 +95,8 @@ protected:
             builder.With<TagComponent>({ "W_Garnku" });
 
             TransformComponent tc;
-            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f)); // Unosi siê o 1 metr nad garnkiem
-            tc.SetScale(glm::vec3(0.7f, 0.7f, 0.7f)); // Rozmiar kanapki
+            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f)); // Jak wysoko nad garnkiem
+            tc.SetScale(glm::vec3(0.7f, 0.7f, 0.7f)); // Rozmiar dania
             builder.With<TransformComponent>(tc);
 
             MeshComponent mesh;
@@ -103,7 +108,6 @@ protected:
         }
         else
         {
-            // Jeœli garnek zresetowano przed prze³o¿eniem na talerz (np. wyrzucono zupê do kosza), chowamy kanapkê
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
                 auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
@@ -119,7 +123,7 @@ protected:
         {
             auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
 
-            // --- NOWOŒÆ: Pobieramy komponent tagu z kanapki ---
+            // Pobieramy tag z dania 
             auto* foodTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_SpawnedFood);
 
             if (foodTransform)
@@ -127,13 +131,13 @@ protected:
                 foodTransform->SetPosition(glm::vec3(0.0f, 0.15f, 0.0f));
                 GetScene()->SetParent(m_SpawnedFood, plate);
 
-                // --- NOWOŒÆ: Zmieniamy tag na ten w³aœciwy! ---
+                // Zmiana tagu na gotowy -> dla kelnera 
                 if (foodTag)
                 {
                     foodTag->Tag = "UgotowaneDanie";
                 }
 
-                spdlog::info("Gotowe jedzenie zostalo przyklejone do talerza i czeka na kelnera!");
+                spdlog::info("Gotowe jedzenie podane na talerz - czeka na kelnera!");
             }
 
             m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };

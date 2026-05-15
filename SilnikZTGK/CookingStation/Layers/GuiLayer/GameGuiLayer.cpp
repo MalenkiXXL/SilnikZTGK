@@ -9,8 +9,9 @@
 #include <fstream>
 #include "CookingStation/json.hpp"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
-#include <algorithm> // dla std::max
+#include <algorithm> 
 #include "CookingStation/Scripts/DragAndDropScript.h"
+#include "CookingStation/Core/GameProgress.h"
 
 bool GameGuiLayer::s_NeedsQuestReload = false;
 
@@ -41,10 +42,12 @@ void GameGuiLayer::OnAttach() {
     m_BookStarsIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookStars.png");
     m_BookInsideIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookInside.png");
     m_BookXIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookX.png");
+    m_TomatoSoupIcon = AssetManager::GetTexture("CookingStation/Assets/UI/tomatoSoup.png");
+
 }
 
 
-bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier)
+bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier, glm::vec4 tintColor)
 {
     if (!icon) return false;
 
@@ -53,7 +56,6 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Textur
     float animSpeed = 15.0f;
 
     glm::vec2 center = { basePos.x + baseSize.x * 0.5f, basePos.y + baseSize.y * 0.5f };
-
     float hitRadius = std::min(baseSize.x, baseSize.y) * hitRadiusMultiplier;
 
     float distX = mousePos.first - center.x;
@@ -62,13 +64,14 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Textur
     bool isHovered = (distX * distX + distY * distY) <= (hitRadius * hitRadius);
 
     float targetScale = isHovered ? hoverScale : 1.0f;
-    glm::vec4 targetColor = (isHovered && darkenOnHover) ? glm::vec4(0.8f, 0.8f, 0.8f, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+
+    // Kolor tintu potrzebny do wyciemnienia w ksi¹¿ce kucharskiej
+    glm::vec4 targetColor = (isHovered && darkenOnHover) ? tintColor * glm::vec4(0.8f, 0.8f, 0.8f, 1.0f) : tintColor;
 
     state.scale += (targetScale - state.scale) * dt * animSpeed;
     state.color.r += (targetColor.r - state.color.r) * dt * animSpeed;
     state.color.g += (targetColor.g - state.color.g) * dt * animSpeed;
     state.color.b += (targetColor.b - state.color.b) * dt * animSpeed;
-
     glm::vec2 size = baseSize * state.scale;
     glm::vec2 pos = {
         basePos.x + (baseSize.x * 0.5f) - (size.x * 0.5f),
@@ -199,15 +202,15 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         glm::vec2 cloudSize = { 280.0f * baseScale, 280.0f * baseScale };
         glm::vec2 cloudPos = { gameX + 20.0f * baseScale, gameY + 20.0f * baseScale };
         glm::vec2 actualCloudSize = cloudSize * 1.3f;
-        float dt = ts.GetSeconds(); // Upewnij siê, ¿e dt jest dostêpne
+        float dt = ts.GetSeconds(); 
 
-        // 1. CHMURKA - Rysujemy j¹ ZAWSZE, niezale¿nie od tego czy ksi¹¿ka jest otwarta
+        // 1. CHMURKA
         if (m_BookCloudIcon) {
             DrawBubblyImage("BookCloud", m_BookCloudIcon, cloudPos, actualCloudSize, dt, 1.1f, false);
         }
 
         if (!m_IsRecipeBookOpen) {
-            // 2. KSI¥¯KA - Rysujemy tylko gdy zamkniêta
+            // 2. KSI¥¯KA 
             glm::vec2 bookSize = cloudSize * 1.1f;
             glm::vec2 bookPos = {
                 cloudPos.x + (actualCloudSize.x - bookSize.x) * 0.5f,
@@ -219,15 +222,13 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                 spdlog::info("UI: Otwarto ksiazke z przepisami!");
             }
 
-            // 3. GWIAZDKI - Rysujemy tylko gdy zamkniêta
+            // 3. GWIAZDKI 
             if (m_BookStarsIcon) {
                 DrawBubblyImage("BookStars", m_BookStarsIcon, cloudPos, actualCloudSize, dt, 1.15f, false);
             }
         }
         else {
-            // =========================================================
-            // --- WNÊTRZE KSI¥¯KI (Gdy otwarta) ---
-            // =========================================================
+			// -- WNÊTRZE KSI¥¯KI ---
             float rawWidth = (float)m_BookInsideIcon->GetWidth();
             float rawHeight = (float)m_BookInsideIcon->GetHeight();
             float aspect = rawWidth / rawHeight;
@@ -259,6 +260,31 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                     m_IsRecipeBookOpen = false;
                     spdlog::info("UI: Zamknieto ksiazke z przepisami!");
                 }
+            }
+
+            if (m_TomatoSoupIcon) {
+                float soupWidth = (float)m_TomatoSoupIcon->GetWidth();
+                float soupHeight = (float)m_TomatoSoupIcon->GetHeight();
+                float soupAspect = soupWidth / soupHeight;
+
+                // Ustalamy po¿¹dan¹ wysokoœæ, a szerokoœæ wylicza sie na podstawie pliku
+                glm::vec2 recipeSize;
+                recipeSize.y = 120.0f * baseScale;
+                recipeSize.x = recipeSize.y * soupAspect;
+
+                glm::vec2 recipePos = {
+                    insidePos.x + insideSize.x * 0.12f, // Im mniejsza liczba, tym bardziej w lewo
+                    insidePos.y + insideSize.y * 0.15f  // Im mniejsza liczba, tym wy¿ej
+                };
+
+                // Sprawdzamy w globalnej pamiêci, czy zupa jest odblokowana
+                bool isSoupUnlocked = GameProgress::IsRecipeUnlocked("TomatoSoup");
+
+                // Jeœli tak -> normalny kolor. Jeœli nie -> prawie czarna ikonka
+                glm::vec4 iconTint = isSoupUnlocked ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
+
+                // Rysujemy z nowym parametrem koloru na koñcu
+                (DrawBubblyImage("RecipeTomatoSoup", m_TomatoSoupIcon, recipePos, recipeSize, dt, 1.15f, true, 0.5f, iconTint));
             }
         }
     }

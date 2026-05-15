@@ -180,6 +180,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Core\AudioEngine.h" />
+    <ClInclude Include="CookingStation\Core\GameProgress.h" />
     <ClInclude Include="CookingStation\Core\GridSystem.h" />
     <ClInclude Include="CookingStation\Core\Physics.h" />
     <ClInclude Include="CookingStation\Core\Texture.h" />

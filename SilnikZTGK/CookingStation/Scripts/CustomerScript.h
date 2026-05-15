@@ -11,12 +11,12 @@ public:
 
     void OnCreate() override
     {
-        // Na razie "na sztywno" chcemy pomidora, tak jak prosi³aœ
+        // Na razie mamy tylko pomidora
         WantedIngredient = "Tomato";
 
         spdlog::info("Klient nr {} usiadl i chce: {}", m_Entity.id, WantedIngredient);
 
-        // TODO: PóŸniej dodamy tutaj Renderer2D rysuj¹cy ikonkê chmurki nad jego g³ow¹
+        // TODO: ikonki nad g³owami
     }
 
     // Ta funkcja bêdzie wywo³ywana póŸniej przez Kelnera
@@ -34,12 +34,10 @@ public:
         IsServed = true;
         spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
 
-        // --- OBEJŒCIE B£ÊDU SILNIKA (Soft Deletion) ---
-        // 1. Zrzucamy klienta 1000 metrów pod mapê
+        // Soft Deletion 
         auto* tf = GetComponent<TransformComponent>();
         if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
-
-        // 2. Zmieniamy tag. Dziêki temu Manager uzna, ¿e krzes³o jest znowu puste!
+        // Zmiana tagu na zadowolenie -> mo¿na uzyæ do efeków wizualnych 
         auto* tag = GetComponent<TagComponent>();
         if (tag) tag->Tag = "ZadowolonyKlient";
     }
