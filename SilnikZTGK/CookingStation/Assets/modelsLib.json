@@ -145,6 +145,10 @@
       "path": "CookingStation/Assets/models/dostawa/dostawczak.gltf"
     },
     {
+      "name": "opony",
+      "path": "CookingStation/Assets/models/dostawa/opony.gltf"
+    },
+    {
       "name": "podloga",
       "path": "CookingStation/Assets/models/wystroj/podloga.gltf"
     },
@@ -155,6 +159,10 @@
     {
       "name": "chmura",
       "path": "CookingStation/Assets/models/wystroj/chmura.gltf"
+    },
+    {
+      "name": "chmura-dziura",
+      "path": "CookingStation/Assets/models/wystroj/chmura-dziura.gltf"
     },
     {
       "name": "anim-grzybek",
@@ -291,6 +299,34 @@
     {
       "name": "koszyk",
       "path": "CookingStation/Assets/models/przybory_kuchenne/koszyk/basket.gltf"
+    },
+    {
+      "name": "flaga",
+      "path": "CookingStation/Assets/models/wystroj/flaga.gltf"
+    },
+    {
+      "name": "kubek",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/kubek/kubek.gltf"
+    },
+    {
+      "name": "kawa",
+      "path": "CookingStation/Assets/models/skladniki/napoje/kawa.gltf"
+    },
+    {
+      "name": "kawa-mleko",
+      "path": "CookingStation/Assets/models/skladniki/napoje/kawa-mleko.gltf"
+    },
+    {
+      "name": "ziarnokawy",
+      "path": "CookingStation/Assets/models/skladniki/napoje/ziarnokawy.gltf"
+    },
+    {
+      "name": "ekspres",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/ekspres/ekspres.gltf"
+    },
+    {
+      "name": "szafka",
+      "path": "CookingStation/Assets/models/przybory_kuchenne/szafka/szafka.gltf"
     }
   ]
 }

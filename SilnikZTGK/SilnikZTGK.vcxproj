@@ -180,6 +180,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Core\AudioEngine.h" />
+    <ClInclude Include="CookingStation\Core\GameProgress.h" />
     <ClInclude Include="CookingStation\Core\GridSystem.h" />
     <ClInclude Include="CookingStation\Core\Physics.h" />
     <ClInclude Include="CookingStation\Core\Texture.h" />
@@ -236,6 +237,7 @@
     <ClInclude Include="CookingStation\Layers\GameLayer\GameLayer.h" />
     <ClInclude Include="CookingStation\Layers\HudLayer\HUDLayer.h" />
     <ClInclude Include="CookingStation\Scripts\ScriptRegistry.h" />
+    <ClInclude Include="CookingStation\Scripts\SteamEmitterScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\Assets\prefabs\plate.json" />

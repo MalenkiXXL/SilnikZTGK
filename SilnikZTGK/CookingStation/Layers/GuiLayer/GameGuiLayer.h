@@ -46,6 +46,7 @@ private:
     std::shared_ptr<Texture> m_BookStarsIcon;
     std::shared_ptr<Texture> m_BookInsideIcon;
     std::shared_ptr<Texture> m_BookXIcon;
+    std::shared_ptr<Texture> m_TomatoSoupIcon;
 
     struct BubblyState {
         float scale = 1.0f;
@@ -54,6 +55,6 @@ private:
 
     std::unordered_map<std::string, BubblyState> m_BubblyStates;
 
-    bool DrawBubblyImage(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier = 0.5f);
+    bool DrawBubblyImage(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier = 0.5f, glm::vec4 tintColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     bool m_IsRecipeBookOpen = false;
 };

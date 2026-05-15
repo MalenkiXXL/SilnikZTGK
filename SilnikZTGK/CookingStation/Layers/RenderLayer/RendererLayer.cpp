@@ -243,7 +243,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
             {
                 for (auto& scriptEl : scriptComp.Scripts)
                 {
-                    if (scriptEl.Name == "ParticleEmitterScript" && scriptEl.Instance)
+                    if((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript") && scriptEl.Instance)
                     {
                         ParticleEmitterScript* emitter = static_cast<ParticleEmitterScript*>(scriptEl.Instance);
 
@@ -264,8 +264,16 @@ void RendererLayer::OnUpdate(Timestep ts) {
                             transform[1] = glm::vec4(camUp * currentSize, 0.0f);
                             transform[2] = glm::vec4(glm::cross(camRight, camUp) * currentSize, 0.0f);
 
-                            // 5. Wyrysowanie cz¹steczki za pomoc¹ Twojego szybkiego shadera UI
-                            Renderer2D::DrawQuad(transform, currentColor);
+                            //wyrysowanie czasteczki
+                            if (particle.TextureID != 0)
+                            {
+                                Renderer2D::DrawQuad(transform, particle.TextureID, currentColor);
+                            }
+                            else
+                            {
+                                // wyrysowanie cz¹steczki za pomoc¹ shadera UI
+                                Renderer2D::DrawQuad(transform, currentColor);
+                            }
                         }
                     }
                 }

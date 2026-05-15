@@ -51,7 +51,7 @@ public:
 
     virtual void OnClick() override
     {
-        if (!m_IsHeld && Input::IsKeyPressed(340)) // GLFW_KEY_LEFT_SHIFT
+        if (!m_IsHeld && Input::IsKeyPressed(340)) 
         {
             m_IsHeld = true;
             spdlog::info("Podniesiono maszyne!");
@@ -106,10 +106,10 @@ protected:
 
                     if (plateTransform)
                     {
-                        // 2. Pobieramy pozycjê talerza na SIATCE
+                        // Pobieramy pozycjê talerza na siatce
                         glm::ivec2 plateCell = GridSystem::WorldToCell(plateTransform->GetPosition());
 
-                        // 3. MATEMATYKA: Czy talerz jest o max 1 pole dalej w osi X i 1 w osi Y? (8 pól dooko³a)
+                        // Czy talerz jest o max 1 pole dalej w osi X i 1 w osi Y? (8 pól dooko³a)
                         if (std::abs(myCell.x - plateCell.x) <= 1 && std::abs(myCell.y - plateCell.y) <= 1)
                         {
                             // Jeœli jest kilka talerzy w s¹siedztwie, wybierz fizycznie najbli¿szy
@@ -136,7 +136,6 @@ protected:
         }
     }
 
-    // Pusta funkcja bazowa - garnki sobie j¹ nadpisz¹, ¿eby przenieœæ model
     virtual void OnTransferToPlate(Entity plateEntity) {}
 
     virtual void ResetMachineState()

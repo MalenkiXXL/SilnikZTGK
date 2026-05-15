@@ -29,12 +29,10 @@ public:
 
         glm::vec3 mousePos = GetMouseWorldPosition();
 
-        // --- ZMIANA NA SETTER ---
         transform->SetPosition(mousePos + glm::vec3(0.0f, 0.5f, 0.0f));
 
         if (Input::IsMouseButtonJustPressed(0))
         {
-            // --- ZMIANA NA GETTER ---
             TryDropIngredient(transform->GetPosition());
         }
         else if (Input::IsMouseButtonJustPressed(1))
@@ -54,7 +52,6 @@ public:
         auto builder = ActiveScene->GetWorld().BuildEntity();
         builder.With<TagComponent>({ "DraggedIngredient" });
 
-        // --- ZMIANA NA SETTERY PRZY TWORZENIU ---
         TransformComponent tc;
         tc.SetPosition(glm::vec3(0.0f, -100.0f, 0.0f));
         tc.SetScale(glm::vec3(0.6f, 0.6f, 0.6f));
@@ -72,8 +69,6 @@ public:
         IsDragging = false;
         if (DraggedEntity.id != std::numeric_limits<std::size_t>::max() && ActiveScene) {
             auto* transform = ActiveScene->GetWorld().GetComponent<TransformComponent>(DraggedEntity);
-
-            // --- ZMIANA NA SETTER ---
             if (transform) transform->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
 
             DraggedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -107,7 +102,6 @@ private:
                     auto* potTransform = transforms->Get(potEntity);
 
                     if (potTransform) {
-                        // --- ZMIANA NA GETTER (To tutaj wywala³o b³¹d glm::distance!) ---
                         float dist = glm::distance(dropPos, potTransform->GetPosition());
                         if (dist < closestDist) {
                             closestDist = dist;
