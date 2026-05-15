@@ -1717,8 +1717,7 @@
                 1.0
             ],
             "scripts": [
-                "BeltVisualScript",
-                "SteamEmitterScript"
+                "BeltVisualScript"
             ]
         },
         {
@@ -1785,9 +1784,9 @@
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot/small_pot.gltf",
             "name": "GarnekTestowy_77",
             "position": [
-                3.0,
+                -5.0,
                 0.5,
-                7.0
+                0.0
             ],
             "rotation": [
                 0.0,
@@ -1800,8 +1799,7 @@
                 1.0
             ],
             "scripts": [
-                "PotScript",
-                "SteamEmitterScript"
+                "PotScript"
             ]
         },
         {

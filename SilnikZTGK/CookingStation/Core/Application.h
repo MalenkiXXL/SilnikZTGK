@@ -32,6 +32,14 @@ public:
 	std::vector<Layer*> m_LayerStack;
 
 	std::shared_ptr<Framebuffer> GetViewportFBO() { return m_ViewportFBO; }
+	
+	void SetMsaaSamples(uint32_t samples) {
+		if (m_MsaaFBO) m_MsaaFBO->SetSamples(samples);
+	}
+
+	uint32_t GetMsaaSamples() const {
+		return m_MsaaFBO ? m_MsaaFBO->GetSpecification().Samples : 1;
+	}
 
 private:
 	bool OnWindowClose(WindowCloseEvent& e);
@@ -44,4 +52,5 @@ private:
 	float m_LastFrameTime = 0.0f;
 	std::shared_ptr<Framebuffer> m_ViewportFBO;
 	static Application* s_Instance;
+	std::shared_ptr<Framebuffer> m_MsaaFBO;
 };

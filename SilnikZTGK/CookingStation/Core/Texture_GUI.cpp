@@ -1,5 +1,14 @@
 #include "Texture.h"
-#include <stb_image.h> 
+#include <stb_image.h>
+#include <glm/glm.hpp>
+
+// Sta³e anizotropii — definiujemy rêcznie jeœli GLAD ich nie eksponuje
+#ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
+#endif
+#ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
+#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
+#endif
 
 Texture::Texture(const std::string& path) : m_FilePath(path) {
     int width, height, channels;
@@ -16,10 +25,26 @@ Texture::Texture(const std::string& path) : m_FilePath(path) {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST); 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height,
+            0, m_DataFormat, GL_UNSIGNED_BYTE, data);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_DataFormat, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+        // Anizotropowe filtrowanie — sprawdzamy przez string rozszerzeñ
+        const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
+        bool hasAniso = extensions && strstr(extensions, "GL_EXT_texture_filter_anisotropic");
+        if (hasAniso) {
+            float maxAniso = 0.0f;
+            glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAniso);
+            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT,
+                glm::min(maxAniso, 8.0f));
+        }
+
         stbi_image_free(data);
     }
 }
@@ -34,22 +59,21 @@ Texture::Texture(uint32_t width, uint32_t height)
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_RendererID);
 
-    // Ustawianie arametrow, ¿eby tekstura nie by³a rozmyta
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-    // Rezerwowanie na GPU
-    glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height, 0, m_DataFormat, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height,
+        0, m_DataFormat, GL_UNSIGNED_BYTE, nullptr);
 }
 
 void Texture::SetData(void* data, uint32_t size) {
-    // Sprawdzenie,czy przesy³ane dane pasuj¹ do rozmiaru tekstury (np. 1x1 piksel * 4 bajty)
     uint32_t bpp = m_DataFormat == GL_RGBA ? 4 : 3;
     if (size == m_Width * m_Height * bpp) {
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, m_DataFormat, GL_UNSIGNED_BYTE, data);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height,
+            m_DataFormat, GL_UNSIGNED_BYTE, data);
     }
 }
 
