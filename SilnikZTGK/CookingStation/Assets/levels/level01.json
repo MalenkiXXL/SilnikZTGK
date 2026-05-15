@@ -763,7 +763,10 @@
                     "Walk": "CookingStation/Assets/models/animacje/grzybek/grzybek_walk.gltf"
                 }
             },
-            "scripts": [ "MushroomAI" ]
+          "scripts": [
+            "MushroomAI",
+            "DustEmitterScript"
+          ]
         },
         {
             "id": 81,

@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
+#include "CookingStation/Scripts/ParticleEmitterScript.h"
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Core/Input.h"
 #include "CustomerScript.h" 
@@ -19,6 +20,24 @@ private:
     float m_Speed = 5.0f;         // Prêdkoœæ chodzenia
     float m_InteractRange = 0.1f; // Zasiêg r¹k kelnera
 
+    void SetDusting(bool state)
+    {
+        auto* scriptComp = GetComponent<NativeScriptComponent>();
+        if (scriptComp)
+        {
+            for (auto& s : scriptComp->Scripts)
+            {
+                if (s.Name == "DustEmitterScript" && s.Instance)
+                {
+                    auto* emitter = static_cast<ParticleEmitterScript*>(s.Instance);
+                    if (state) emitter->Play();
+                    else emitter->Stop();
+                    break;
+                }
+            }
+        }
+    }
+
 public:
     void OnUpdate(Timestep ts) override
     {
@@ -31,6 +50,8 @@ public:
         {
             // Zatrzymujemy animacjê, gdy stoi
             if (animComp && animComp->AnimatorInstance) animComp->IsPlaying = false;
+
+            SetDusting(false);
 
             LookForOrders();
         }
@@ -96,6 +117,12 @@ private:
 			// Grzybek patrzy w kierunku ruchu
             float angle = glm::degrees(atan2(direction.x, direction.z));
             myTransform->SetRotation(glm::vec3(0.0f, angle, 0.0f));
+
+            SetDusting(true);
+        }
+        else
+        {
+            SetDusting(false);
         }
     }
 
