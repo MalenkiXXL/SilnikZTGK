@@ -1,17 +1,25 @@
-#version 420 core
+#version 330 core
 layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec2 aTexCoord;
-
-out vec2 v_TexCoord;
-out vec2 v_LocalPos; // LOKALNA POZYCJA (od 0.0 do 1.0) do liczenia zaokr�gle�
+layout (location = 1) in vec4 aColor;
+layout (location = 2) in vec2 aTexCoord;
+layout (location = 3) in float aTexIndex;
+layout (location = 4) in vec2 aQuadSize;
+layout (location = 5) in float aRadius;
 
 uniform mat4 u_ViewProjection;
-uniform mat4 u_Transform;
-uniform vec2 u_UVMin;
-uniform vec2 u_UVMax;
+
+out vec4 v_Color;
+out vec2 v_TexCoord;
+out float v_TexIndex;
+out vec2 v_QuadSize;
+out float v_Radius;
 
 void main() {
-    v_TexCoord = u_UVMin + aTexCoord * (u_UVMax - u_UVMin);
-    v_LocalPos = aPos.xy; // Przekazujemy pozycj� czystego quada w d� do Fragment Shadera
-    gl_Position = u_ViewProjection * u_Transform * vec4(aPos, 1.0);
+    v_Color = aColor;
+    v_TexCoord = aTexCoord;
+    v_TexIndex = aTexIndex;
+    v_QuadSize = aQuadSize;
+    v_Radius = aRadius;
+    
+    gl_Position = u_ViewProjection * vec4(aPos, 1.0);
 }

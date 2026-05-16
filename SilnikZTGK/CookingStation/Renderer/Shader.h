@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <CookingStation/Core/VFS/VFS.h>
 
 #include <string>
 #include <fstream>
@@ -21,38 +22,25 @@ public:
     // konstruktor czyta i buduje shader na podstawie œcie¿ek do plików
     Shader(const char* vertexPath, const char* fragmentPath)
     {
-        // 1. Pobieranie kodu Ÿród³owego z plików
-        std::string vertexCode;
-        std::string fragmentCode;
-        std::ifstream vShaderFile;
-        std::ifstream fShaderFile;
+        // 1. Pobieranie kodu Ÿród³owego z VFS (jako surowe bajty)
+        std::vector<uint8_t> vFileData = VFS::ReadFile(vertexPath);
+        std::vector<uint8_t> fFileData = VFS::ReadFile(fragmentPath);
 
-        // rzucanie wyj¹tków przy problemach z plikami
-        vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-        try
+        // Zabezpieczenie przed brakiem pliku
+        if (vFileData.empty() || fFileData.empty())
         {
-            // Otwórz pliki
-            vShaderFile.open(vertexPath);
-            fShaderFile.open(fragmentPath);
-            std::stringstream vShaderStream, fShaderStream;
-            // Wczytaj zawartoœæ pliku do strumieni
-            vShaderStream << vShaderFile.rdbuf();
-            fShaderStream << fShaderFile.rdbuf();
-            // Zamknij pliki
-            vShaderFile.close();
-            fShaderFile.close();
-            // Skonwertuj strumienie na stringi
-            vertexCode = vShaderStream.str();
-            fragmentCode = fShaderStream.str();
+            std::cout << "ERROR::SHADER::VFS_FILE_NOT_FOUND: " << vertexPath << " lub " << fragmentPath << std::endl;
+            return;
         }
-        catch (std::ifstream::failure& e)
-        {
-            std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
-        }
+
+        // 2. Magia C++: Rzutujemy surowe bajty w pamiêci RAM bezpoœrednio na ³añcuchy znaków (std::string)
+        std::string vertexCode(vFileData.begin(), vFileData.end());
+        std::string fragmentCode(fFileData.begin(), fFileData.end());
+
         const char* vShaderCode = vertexCode.c_str();
         const char* fShaderCode = fragmentCode.c_str();
 
-        // 2. Kompilacja shaderów
+        // 3. Kompilacja shaderów (Ten fragment zostaje ca³kowicie bez zmian!)
         unsigned int vertex, fragment;
 
         // Vertex Shader

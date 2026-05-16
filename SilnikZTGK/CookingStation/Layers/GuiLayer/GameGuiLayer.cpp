@@ -1,4 +1,4 @@
-#include "GameGuiLayer.h"
+ï»¿#include "GameGuiLayer.h"
 #include "EditorGuiLayer.h"
 #include "Gui.h"
 #include "Renderer2D.h"
@@ -6,12 +6,15 @@
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Events/EditorEvents.h" 
 #include "CookingStation/Core/Application.h"
-#include <fstream>
 #include "CookingStation/json.hpp"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include <algorithm> 
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Core/GameProgress.h"
+
+// Dodajemy VFS
+#include "CookingStation/Core/VFS/VFS.h"
+#include <spdlog/spdlog.h> // W razie gdyby nie bylo zaciÄ…gniete wczesniej
 
 bool GameGuiLayer::s_NeedsQuestReload = false;
 
@@ -34,17 +37,18 @@ void GameGuiLayer::OnAttach() {
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
-    m_CornerIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bottomCornerClouds.png");
-    m_TomatoIcon = AssetManager::GetTexture("CookingStation/Assets/UI/tomato.png");
-    m_BookCloudIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookCloud.png");
-    m_BookIcon = AssetManager::GetTexture("CookingStation/Assets/UI/book.png");
-    m_BookStarsIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookStars.png");
-    m_BookInsideIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookInside.png");
-    m_BookXIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookX.png");
-    m_TomatoSoupIcon = AssetManager::GetTexture("CookingStation/Assets/UI/tomatoSoup.png");
 
+    // ZMIANA VFS: Zamiast fizycznej Å›cieÅ¼ki "CookingStation/Assets/..." 
+    // korzystamy z podmontowanego dysku wirtualnego "assets://"
+    m_CornerIcon = AssetManager::GetTexture("assets://UI/bottomCornerClouds.png");
+    m_TomatoIcon = AssetManager::GetTexture("assets://UI/tomato.png");
+    m_BookCloudIcon = AssetManager::GetTexture("assets://UI/bookCloud.png");
+    m_BookIcon = AssetManager::GetTexture("assets://UI/book.png");
+    m_BookStarsIcon = AssetManager::GetTexture("assets://UI/bookStars.png");
+    m_BookInsideIcon = AssetManager::GetTexture("assets://UI/bookInside.png");
+    m_BookXIcon = AssetManager::GetTexture("assets://UI/bookX.png");
+    m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
 }
-
 
 bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier, glm::vec4 tintColor)
 {
@@ -64,7 +68,7 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Textur
 
     float targetScale = isHovered ? hoverScale : 1.0f;
 
-    // Kolor tintu potrzebny do wyciemnienia w ksi¹¿ce kucharskiej
+    // Kolor tintu potrzebny do wyciemnienia w ksiÄ…Å¼ce kucharskiej
     glm::vec4 targetColor = (isHovered && darkenOnHover) ? tintColor * glm::vec4(0.8f, 0.8f, 0.8f, 1.0f) : tintColor;
 
     state.scale += (targetScale - state.scale) * dt * animSpeed;
@@ -78,10 +82,10 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Textur
     };
 
     if (id == "CloudRight") {
-        Renderer2D::DrawQuad(pos, size, icon, state.color, { 1.0f, 1.0f }, { 0.0f, 0.0f });
+        Renderer2D::DrawQuad(pos, size, icon->GetRendererID(), state.color, glm::vec2(1.0f, 1.0f), glm::vec2(0.0f, 0.0f));
     }
     else {
-        Renderer2D::DrawQuad(pos, size, icon, state.color, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        Renderer2D::DrawQuad(pos, size, icon->GetRendererID(), state.color, glm::vec2(0.0f, 1.0f), glm::vec2(1.0f, 0.0f));
     }
 
     return (Input::IsMouseButtonJustPressed(0) && isHovered);
@@ -109,7 +113,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     if (gameWidth <= 0.0f || gameHeight <= 0.0f) return;
 
     // --- DYNAMICZNA SKALA ---
-    // Obliczamy skalê wzglêdem wysokoœci 1080p, z progiem bezpieczeñstwa 0.5
+    // Obliczamy skalÄ™ wzglÄ™dem wysokoÅ›ci 1080p, z progiem bezpieczeÅ„stwa 0.5
     float baseScale = std::max(gameHeight / 1080.0f, 0.5f);
 
     glDisable(GL_DEPTH_TEST);
@@ -123,7 +127,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     glScissor((int)gameX, scissorY, (int)gameWidth, (int)gameHeight);
     Renderer2D::BeginScene(uiProj);
 
-    // --- PANEL QUESTÓW ---
+    // --- PANEL QUESTÃ“W ---
     if (!m_CurrentQuests.empty()) {
         glm::vec2 qpSize = { 380.0f * baseScale, 220.0f * baseScale }; // Skalujemy rozmiar panelu
         float margin = 20.0f * baseScale; // Skalujemy margines
@@ -137,7 +141,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
 
         const auto& q = m_CurrentQuests[m_CurrentQuestIndex];
 
-        // Skalujemy pozycje tekstu wewn¹trz panelu oraz skalê czcionki
+        // Skalujemy pozycje tekstu wewnÄ…trz panelu oraz skalÄ™ czcionki
         float textX = qpPos.x + 15.f * baseScale;
         std::string header = "ZADANIE (" + std::to_string(m_CurrentQuestIndex + 1) + "/" + std::to_string(m_CurrentQuests.size()) + ")";
         Gui::DrawGuiText(header, { textX, qpPos.y + 15.f * baseScale }, 0.6f * baseScale, { 1.0f, 0.5f, 0.2f, 1.0f });
@@ -167,7 +171,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- CHMURY I SK£ADNIKI ---
+    // --- CHMURY I SKÅADNIKI ---
     if (m_CornerIcon) {
         float iconH = gameHeight * 0.30f;
         float iconW = iconH * (1239.0f / 1024.0f);
@@ -180,7 +184,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
         DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
 
-        // Rysujemy sk³adniki na lewej chmurze
+        // Rysujemy skÅ‚adniki na lewej chmurze
         if (m_TomatoIcon) {
             float tomatoBaseH = baseIconSize.y * 0.3f;
             glm::vec2 tomatoBaseSize = { tomatoBaseH, tomatoBaseH };
@@ -189,19 +193,19 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                 leftPosBase.y + (baseIconSize.y * 0.5f) - (tomatoBaseSize.y * 0.5f)
             };
             if (DrawBubblyImage("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, 1.30f, true)) {
-                spdlog::info("UI: Wyci¹gniêto pomidora!");
-                DragAndDropScript::StartDrag(IngredientType::Tomato, "CookingStation/Assets/models/skladniki/pomidor/pomidor.gltf");
+                spdlog::info("UI: WyciÄ…gniÄ™to pomidora!");
+                // ZMIANA VFS: Zmieniono twardÄ… Å›cieÅ¼kÄ™ na VFS
+                DragAndDropScript::StartDrag(IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf");
             }
         }
     }
 
-
-    // --- KSI¥¯KA Z PRZEPISAMI ---
+    // --- KSIÄ„Å»KA Z PRZEPISAMI ---
     if (m_BookIcon) {
         glm::vec2 cloudSize = { 280.0f * baseScale, 280.0f * baseScale };
         glm::vec2 cloudPos = { gameX + 20.0f * baseScale, gameY + 20.0f * baseScale };
         glm::vec2 actualCloudSize = cloudSize * 1.3f;
-        float dt = ts.GetSeconds(); 
+        float dt = ts.GetSeconds();
 
         // 1. CHMURKA
         if (m_BookCloudIcon) {
@@ -209,7 +213,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         }
 
         if (!m_IsRecipeBookOpen) {
-            // 2. KSI¥¯KA 
+            // 2. KSIÄ„Å»KA 
             glm::vec2 bookSize = cloudSize * 1.1f;
             glm::vec2 bookPos = {
                 cloudPos.x + (actualCloudSize.x - bookSize.x) * 0.5f,
@@ -227,7 +231,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
             }
         }
         else {
-			// -- WNÊTRZE KSI¥¯KI ---
+            // -- WNÄ˜TRZE KSIÄ„Å»KI ---
             float rawWidth = (float)m_BookInsideIcon->GetWidth();
             float rawHeight = (float)m_BookInsideIcon->GetHeight();
             float aspect = rawWidth / rawHeight;
@@ -266,23 +270,23 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                 float soupHeight = (float)m_TomatoSoupIcon->GetHeight();
                 float soupAspect = soupWidth / soupHeight;
 
-                // Ustalamy po¿¹dan¹ wysokoœæ, a szerokoœæ wylicza sie na podstawie pliku
+                // Ustalamy poÅ¼Ä…danÄ… wysokoÅ›Ä‡, a szerokoÅ›Ä‡ wylicza sie na podstawie pliku
                 glm::vec2 recipeSize;
                 recipeSize.y = 120.0f * baseScale;
                 recipeSize.x = recipeSize.y * soupAspect;
 
                 glm::vec2 recipePos = {
                     insidePos.x + insideSize.x * 0.12f, // Im mniejsza liczba, tym bardziej w lewo
-                    insidePos.y + insideSize.y * 0.15f  // Im mniejsza liczba, tym wy¿ej
+                    insidePos.y + insideSize.y * 0.15f  // Im mniejsza liczba, tym wyÅ¼ej
                 };
 
-                // Sprawdzamy w globalnej pamiêci, czy zupa jest odblokowana
+                // Sprawdzamy w globalnej pamiÄ™ci, czy zupa jest odblokowana
                 bool isSoupUnlocked = GameProgress::IsRecipeUnlocked("TomatoSoup");
 
-                // Jeœli tak -> normalny kolor. Jeœli nie -> prawie czarna ikonka
+                // JeÅ›li tak -> normalny kolor. JeÅ›li nie -> prawie czarna ikonka
                 glm::vec4 iconTint = isSoupUnlocked ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
 
-                // Rysujemy z nowym parametrem koloru na koñcu
+                // Rysujemy z nowym parametrem koloru na koÅ„cu
                 (DrawBubblyImage("RecipeTomatoSoup", m_TomatoSoupIcon, recipePos, recipeSize, dt, 1.15f, true, 0.5f, iconTint));
             }
         }
@@ -325,10 +329,14 @@ bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
 
 void GameGuiLayer::ReloadQuests() {
     m_CurrentQuests.clear();
-    std::ifstream file("CookingStation/Assets/wygenerowane_quests.json");
-    if (file.is_open()) {
+
+    // ZMIANA VFS: Pobieramy plik do RAM za pomoca VFS
+    std::vector<uint8_t> fileData = VFS::ReadFile("assets://wygenerowane_quests.json");
+
+    if (!fileData.empty()) {
         try {
-            nlohmann::json data = nlohmann::json::parse(file);
+            // nlohmann::json swietnie radzi sobie z wczytywaniem iterujac po wektorze!
+            nlohmann::json data = nlohmann::json::parse(fileData.begin(), fileData.end());
             for (auto& q : data) {
                 m_CurrentQuests.push_back({
                     q.value("title", "Brak tytulu"),
@@ -338,10 +346,13 @@ void GameGuiLayer::ReloadQuests() {
                     });
             }
             m_CurrentQuestIndex = 0;
-            spdlog::info("GameUiLayer: Questy zaladowane responsywnie.");
+            spdlog::info("GameUiLayer: Questy zaladowane responsywnie przez VFS.");
         }
-        catch (...) {
-            spdlog::error("GameUiLayer: Blad JSON.");
+        catch (nlohmann::json::parse_error& e) {
+            spdlog::error("GameUiLayer: Blad parsowania JSON z VFS: {}", e.what());
         }
+    }
+    else {
+        spdlog::error("GameUiLayer: Nie udalo sie otworzyc pliku z questami przez VFS!");
     }
 }

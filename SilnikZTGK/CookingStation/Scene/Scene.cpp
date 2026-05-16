@@ -213,12 +213,12 @@ std::shared_ptr<Scene> Scene::Copy(std::shared_ptr<Scene> other)
 	// 2. U¿ywamy serializera, aby zapisaæ obecn¹ scenê do pliku temp
 	SceneSerializer serializer(other.get());
 
-	// Zapisujemy w folderze saves jako plik tymczasowy
-	serializer.Serialize("CookingStation/Assets/saves/temp_play_scene.json");
+	// Zapisujemy w folderze saves jako plik tymczasowy przez system VFS
+	serializer.Serialize("assets://saves/temp_play_scene.json");
 
-	// 3. Wczytujemy dok³adnie ten sam plik do nowej sceny
+	// 3. Wczytujemy dok³adnie ten sam plik do nowej sceny przez system VFS
 	SceneSerializer deserializer(newScene.get());
-	deserializer.Deserialize("CookingStation/Assets/saves/temp_play_scene.json");
+	deserializer.Deserialize("assets://saves/temp_play_scene.json");
 
 	// 4. Zwracamy now¹, gotow¹ do gry scenê, która jest dok³adnym klonem edytora
 	return newScene;

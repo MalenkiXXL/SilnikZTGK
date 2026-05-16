@@ -16,15 +16,15 @@
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
 
 void RendererLayer::OnAttach() {
-    m_ShaderLibrary.Load("Standard", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/shader.frag");
-    m_ShaderLibrary.Load("RAMP", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/RAMP.frag");
-    m_ShaderLibrary.Load("FakeBRDF", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/FakeBRDF.frag");
-    m_ShaderLibrary.Load("BlinnPhong", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/BlinnPhong.frag");
-    m_ShaderLibrary.Load("Rim", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/Rim.frag");
-    m_ShaderLibrary.Load("Conveyor", "CookingStation/Shaders/vsShaders/shader.vs", "CookingStation/Shaders/fragShaders/conveyor.frag");
+    m_ShaderLibrary.Load("Standard", "shaders://vsShaders/shader.vs", "shaders://fragShaders/shader.frag");
+    m_ShaderLibrary.Load("RAMP", "shaders://vsShaders/shader.vs", "shaders://fragShaders/RAMP.frag");
+    m_ShaderLibrary.Load("FakeBRDF", "shaders://vsShaders/shader.vs", "shaders://fragShaders/FakeBRDF.frag");
+    m_ShaderLibrary.Load("BlinnPhong", "shaders://vsShaders/shader.vs", "shaders://fragShaders/BlinnPhong.frag");
+    m_ShaderLibrary.Load("Rim", "shaders://vsShaders/shader.vs", "shaders://fragShaders/Rim.frag");
+    m_ShaderLibrary.Load("Conveyor", "shaders://vsShaders/shader.vs", "shaders://fragShaders/conveyor.frag");
 
-    m_RampTexture = std::make_shared<Texture2D>("CookingStation/Assets/textures/RAMP_texture.png");
-    m_BackgroundTexture = std::make_shared<Texture2D>("CookingStation/Assets/background/background.png");
+    m_RampTexture = std::make_shared<Texture2D>("assets://textures/RAMP_texture.png");
+    m_BackgroundTexture = std::make_shared<Texture2D>("assets://background/background.png");
 
     auto rampShader = m_ShaderLibrary.Get("RAMP");
     rampShader->use();
@@ -94,7 +94,14 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
     glm::mat4 bgProjection = glm::ortho(0.0f, fboWidth, 0.0f, fboHeight, -1.0f, 1.0f);
     Renderer2D::BeginScene(bgProjection);
-    Renderer2D::DrawQuad(glm::vec2(0.0f, 0.0f), glm::vec2(fboWidth, fboHeight), m_BackgroundTexture->GetRendererID());
+    Renderer2D::DrawQuad(
+        glm::vec2(0.0f, 0.0f),
+        glm::vec2(fboWidth, fboHeight),
+        m_BackgroundTexture->GetRendererID(),
+        glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+        glm::vec2(0.0f, 0.0f),
+        glm::vec2(1.0f, 1.0f)
+    );
     Renderer2D::EndScene();
 
     glEnable(GL_DEPTH_TEST);

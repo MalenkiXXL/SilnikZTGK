@@ -7,7 +7,7 @@ public:
     Texture(const std::string& path);
     Texture(uint32_t width, uint32_t height); 
     ~Texture();
-
+    inline uint32_t GetRendererID() const { return m_RendererID; }
     void Bind(uint32_t slot = 0) const;
 
     void SetData(void* data, uint32_t size);

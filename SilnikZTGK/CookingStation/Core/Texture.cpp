@@ -1,8 +1,12 @@
 #include "Texture.h"
 #include <stb_image.h>
 #include <glm/glm.hpp>
+#include <spdlog/spdlog.h>
 
-// Sta³e anizotropii — definiujemy rêcznie jeœli GLAD ich nie eksponuje
+// ZMIANA VFS: Dodajemy includa do systemu
+#include "CookingStation/Core/VFS/VFS.h"
+
+// Sta³e anizotropii
 #ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
 #endif
@@ -13,7 +17,19 @@
 Texture::Texture(const std::string& path) : m_FilePath(path) {
     int width, height, channels;
     stbi_set_flip_vertically_on_load(1);
-    unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 4);
+
+    // VFS: Zamiast dysku, ³adujemy do RAMu
+    std::vector<uint8_t> fileData = VFS::ReadFile(path);
+    if (fileData.empty()) {
+        spdlog::error("[Texture_GUI] Brak pliku lub blad VFS dla tekstury: {}", path);
+        return;
+    }
+
+    // Odczyt z pamiêci
+    unsigned char* data = stbi_load_from_memory(
+        fileData.data(),
+        static_cast<int>(fileData.size()),
+        &width, &height, &channels, 4);
 
     if (data) {
         m_Width = width;
@@ -35,7 +51,6 @@ Texture::Texture(const std::string& path) : m_FilePath(path) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        // Anizotropowe filtrowanie — sprawdzamy przez string rozszerzeñ
         const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
         bool hasAniso = extensions && strstr(extensions, "GL_EXT_texture_filter_anisotropic");
         if (hasAniso) {
@@ -46,6 +61,9 @@ Texture::Texture(const std::string& path) : m_FilePath(path) {
         }
 
         stbi_image_free(data);
+    }
+    else {
+        spdlog::error("[Texture_GUI] Blad STB Image: {} (Plik: {})", stbi_failure_reason(), path);
     }
 }
 

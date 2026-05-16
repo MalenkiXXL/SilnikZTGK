@@ -1,5 +1,7 @@
 #pragma once
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
+#include "CookingStation/Layers/AssetLayer/AssetManager.h"
+
 
 class DustEmitterScript : public ParticleEmitterScript
 {
@@ -8,8 +10,7 @@ public:
     {
         ParticleEmitterScript::OnCreate();
 
-        ParticleTemplate.Textures.push_back(std::make_shared<Texture2D>("CookingStation/Assets/particles/PotParticle.png"));
-
+        ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle.png"));
         // parametry:
         ParticleTemplate.PositionOffset = { 0.0f, -0.5f, 0.0f }; 
 

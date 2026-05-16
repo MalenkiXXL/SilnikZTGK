@@ -9,6 +9,9 @@
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Core/AudioEngine.h"
+#include "CookingStation/Core/VFS/IFileSystem.h"
+#include "CookingStation/Core/VFS/PhysicalFileSystem.h"
+#include "CookingStation/Core/VFS/VFS.h"
 #include <iostream>
 
 Application* Application::s_Instance = nullptr;
@@ -37,8 +40,13 @@ Application::Application()
 	msaaSpec.Samples = 4; // Ustawiamy 4 próbki wyg³adzania
 	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
 
-	SceneManager::NewScene();
+	std::shared_ptr<PhysicalFileSystem> physicalFS = std::make_shared<PhysicalFileSystem>("CookingStation/Assets");
+	VFS::Mount("assets", physicalFS);
+	std::shared_ptr<PhysicalFileSystem> shaderFS = std::make_shared<PhysicalFileSystem>("CookingStation/Shaders");
+	VFS::Mount("shaders", shaderFS);
 	
+	SceneManager::NewScene();
+
 	Renderer::Init();
 	Renderer2D::Init();
 

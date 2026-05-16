@@ -175,9 +175,7 @@ void EditorLayer::OnUpdate(Timestep ts)
                 spawnPosition = GridSystem::SnapToGrid(spawnPosition);
             }
 
-            // --- LOGIKA ROZPOZNAWANIA PREFABÓW (ODBLOKOWANA) ---
             if (m_PendingModelPath.find(".json") != std::string::npos) {
-                // Wywołujemy deserializację, aby postawić prefab z pliku
                 PrefabSerializer::Deserialize(activeScene.get(), m_PendingModelPath, spawnPosition);
                 spdlog::info("EditorLayer: Postawiono prefab z pliku: {}", m_PendingModelPath);
             }
@@ -225,18 +223,18 @@ void EditorLayer::OnUpdate(Timestep ts)
         {
             Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
 
-            auto* meshStorage = world.GetComponentVector<MeshComponent>();
+            // Zmiana: pobieramy Component Storage colliderów a nie meshy
+            auto* colliderStorage = world.GetComponentVector<BoxColliderComponent>();
             auto* transformStorage = world.GetComponentVector<TransformComponent>();
 
             auto start = std::chrono::high_resolution_clock::now();
 
-            // ZMIENNE DO SORTOWANIA GŁĘBOKOŚCI
             Entity closestEntity = { std::numeric_limits<std::size_t>::max(), 0 };
             float closestDist = std::numeric_limits<float>::max();
 
             if (s_UseSSA)
             {
-                if (meshStorage && transformStorage && std::abs(ray.Direction.y) > 1e-6f)
+                if (colliderStorage && transformStorage && std::abs(ray.Direction.y) > 1e-6f)
                 {
                     float yMax = 15.0f;
                     float yMin = -5.0f;
@@ -261,7 +259,6 @@ void EditorLayer::OnUpdate(Timestep ts)
                         int minZ = std::min(cellTop.y, cellBottom.y) - 1;
                         int maxZ = std::max(cellTop.y, cellBottom.y) + 1;
 
-                        // USUNIĘTO zmienną hitFound! Sprawdzamy wszystko!
                         for (int cx = minX; cx <= maxX; cx++)
                         {
                             for (int cz = minZ; cz <= maxZ; cz++)
@@ -273,38 +270,36 @@ void EditorLayer::OnUpdate(Timestep ts)
                                 {
                                     for (Entity entity : *entitiesInCell)
                                     {
-                                        if (!meshStorage->Get(entity)) continue;
+                                        BoxColliderComponent* collider = colliderStorage->Get(entity);
+                                        if (!collider) continue; // Decoupled od Mesha
+
                                         TransformComponent* transform = transformStorage->Get(entity);
                                         if (transform)
                                         {
                                             glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
-                                            AABB box;
-                                            auto* collider = world.GetComponent<BoxColliderComponent>(entity);
-                                            glm::vec3 extents = transform->GetScale();
-
-                                            if (collider) {
-                                                box.center = globalPos + collider->Offset;
-                                                extents *= collider->Size;
-                                            }
-                                            else {
-                                                box.center = globalPos;
-                                            }
+                                            glm::vec3 center = globalPos + collider->Offset;
+                                            glm::vec3 extents = transform->GetScale() * collider->Size;
 
                                             glm::vec3 rot = transform->GetRotation();
                                             glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), { 1, 0, 0 })
                                                 * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
                                                 * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
 
-                                            box.extents = glm::vec3(
-                                                std::abs(rotMat[0][0]) * extents.x + std::abs(rotMat[1][0]) * extents.y + std::abs(rotMat[2][0]) * extents.z,
-                                                std::abs(rotMat[0][1]) * extents.x + std::abs(rotMat[1][1]) * extents.y + std::abs(rotMat[2][1]) * extents.z,
-                                                std::abs(rotMat[0][2]) * extents.x + std::abs(rotMat[1][2]) * extents.y + std::abs(rotMat[2][2]) * extents.z
-                                            );
+                                            // Precyzyjne przecięcie Ray-OBB
+                                            glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rotMat;
+                                            glm::mat4 invTransform = glm::inverse(obbTransform);
 
-                                            if (Physics::Intersects(ray, box))
+                                            Ray localRay;
+                                            localRay.Origin = glm::vec3(invTransform * glm::vec4(ray.Origin, 1.0f));
+                                            localRay.Direction = glm::normalize(glm::vec3(invTransform * glm::vec4(ray.Direction, 0.0f)));
+
+                                            AABB localAABB;
+                                            localAABB.center = glm::vec3(0.0f);
+                                            localAABB.extents = extents;
+
+                                            if (Physics::Intersects(localRay, localAABB))
                                             {
-                                                // Trik rzutowania: liczymy dystans wzdłuż promienia
-                                                float dist = glm::dot(box.center - ray.Origin, ray.Direction);
+                                                float dist = glm::dot(center - ray.Origin, ray.Direction);
                                                 if (dist < closestDist)
                                                 {
                                                     closestDist = dist;
@@ -319,44 +314,41 @@ void EditorLayer::OnUpdate(Timestep ts)
                     }
                 }
             }
-            else
+            else // Brute-Force Raycast OBB
             {
-                if (meshStorage && transformStorage)
+                if (colliderStorage && transformStorage)
                 {
-                    for (size_t it = 0; it < meshStorage->dense.size(); it++)
+                    for (size_t it = 0; it < colliderStorage->dense.size(); it++)
                     {
-                        Entity entity = meshStorage->reverse[it];
+                        Entity entity = colliderStorage->reverse[it];
+                        BoxColliderComponent* collider = &colliderStorage->dense[it];
                         TransformComponent* transform = transformStorage->Get(entity);
 
                         if (transform)
                         {
                             glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
-                            AABB box;
-                            auto* collider = world.GetComponent<BoxColliderComponent>(entity);
-                            glm::vec3 extents = transform->GetScale();
-
-                            if (collider) {
-                                box.center = globalPos + collider->Offset;
-                                extents *= collider->Size;
-                            }
-                            else {
-                                box.center = globalPos;
-                            }
+                            glm::vec3 center = globalPos + collider->Offset;
+                            glm::vec3 extents = transform->GetScale() * collider->Size;
 
                             glm::vec3 rot = transform->GetRotation();
                             glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), { 1, 0, 0 })
                                 * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
                                 * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
 
-                            box.extents = glm::vec3(
-                                std::abs(rotMat[0][0]) * extents.x + std::abs(rotMat[1][0]) * extents.y + std::abs(rotMat[2][0]) * extents.z,
-                                std::abs(rotMat[0][1]) * extents.x + std::abs(rotMat[1][1]) * extents.y + std::abs(rotMat[2][1]) * extents.z,
-                                std::abs(rotMat[0][2]) * extents.x + std::abs(rotMat[1][2]) * extents.y + std::abs(rotMat[2][2]) * extents.z
-                            );
+                            glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rotMat;
+                            glm::mat4 invTransform = glm::inverse(obbTransform);
 
-                            if (Physics::Intersects(ray, box))
+                            Ray localRay;
+                            localRay.Origin = glm::vec3(invTransform * glm::vec4(ray.Origin, 1.0f));
+                            localRay.Direction = glm::normalize(glm::vec3(invTransform * glm::vec4(ray.Direction, 0.0f)));
+
+                            AABB localAABB;
+                            localAABB.center = glm::vec3(0.0f);
+                            localAABB.extents = extents;
+
+                            if (Physics::Intersects(localRay, localAABB))
                             {
-                                float dist = glm::dot(box.center - ray.Origin, ray.Direction);
+                                float dist = glm::dot(center - ray.Origin, ray.Direction);
                                 if (dist < closestDist)
                                 {
                                     closestDist = dist;
@@ -368,7 +360,6 @@ void EditorLayer::OnUpdate(Timestep ts)
                 }
             }
 
-            // NA KOŃCU: Zaznaczamy tylko obiekt najbliżej kamery
             if (closestEntity.id != std::numeric_limits<std::size_t>::max())
             {
                 activeScene->SetSelectedEntity(closestEntity);
@@ -379,7 +370,6 @@ void EditorLayer::OnUpdate(Timestep ts)
 
             spdlog::info("Wyszukiwanie obiektu (SSA: {}): {:.4f} ms", s_UseSSA ? "ON" : "OFF", timeMs);
         }
-
 
         if (validEntity)
         {
@@ -403,6 +393,7 @@ void EditorLayer::OnUpdate(Timestep ts)
                     * glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.y), { 0, 1, 0 })
                     * glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.z), { 0, 0, 1 });
 
+                // Macierz dla renderowania Quadów
                 glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rot;
 
                 float t = 0.05f;
@@ -460,7 +451,8 @@ void EditorLayer::OnUpdate(Timestep ts)
             Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
 
             auto& world = activeScene->GetWorld();
-            auto* meshStorage = world.GetComponentVector<MeshComponent>();
+            // Tryb Play: pobieramy Component Storage colliderów a nie meshy
+            auto* colliderStorage = world.GetComponentVector<BoxColliderComponent>();
             auto* transformStorage = world.GetComponentVector<TransformComponent>();
             auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
 
@@ -469,7 +461,7 @@ void EditorLayer::OnUpdate(Timestep ts)
 
             if (s_UseSSA)
             {
-                if (meshStorage && transformStorage && std::abs(ray.Direction.y) > 1e-6f)
+                if (colliderStorage && transformStorage && std::abs(ray.Direction.y) > 1e-6f)
                 {
                     float yMax = 15.0f;
                     float yMin = -5.0f;
@@ -505,37 +497,35 @@ void EditorLayer::OnUpdate(Timestep ts)
                                 {
                                     for (Entity entity : *entitiesInCell)
                                     {
-                                        if (!meshStorage->Get(entity)) continue;
+                                        BoxColliderComponent* collider = colliderStorage->Get(entity);
+                                        if (!collider) continue;
+
                                         TransformComponent* transform = transformStorage->Get(entity);
                                         if (transform)
                                         {
                                             glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
-                                            AABB box;
-                                            auto* collider = world.GetComponent<BoxColliderComponent>(entity);
-                                            glm::vec3 extents = transform->GetScale();
-
-                                            if (collider) {
-                                                box.center = globalPos + collider->Offset;
-                                                extents *= collider->Size;
-                                            }
-                                            else {
-                                                box.center = globalPos;
-                                            }
+                                            glm::vec3 center = globalPos + collider->Offset;
+                                            glm::vec3 extents = transform->GetScale() * collider->Size;
 
                                             glm::vec3 rot = transform->GetRotation();
                                             glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), { 1, 0, 0 })
                                                 * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
                                                 * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
 
-                                            box.extents = glm::vec3(
-                                                std::abs(rotMat[0][0]) * extents.x + std::abs(rotMat[1][0]) * extents.y + std::abs(rotMat[2][0]) * extents.z,
-                                                std::abs(rotMat[0][1]) * extents.x + std::abs(rotMat[1][1]) * extents.y + std::abs(rotMat[2][1]) * extents.z,
-                                                std::abs(rotMat[0][2]) * extents.x + std::abs(rotMat[1][2]) * extents.y + std::abs(rotMat[2][2]) * extents.z
-                                            );
+                                            glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rotMat;
+                                            glm::mat4 invTransform = glm::inverse(obbTransform);
 
-                                            if (Physics::Intersects(ray, box))
+                                            Ray localRay;
+                                            localRay.Origin = glm::vec3(invTransform * glm::vec4(ray.Origin, 1.0f));
+                                            localRay.Direction = glm::normalize(glm::vec3(invTransform * glm::vec4(ray.Direction, 0.0f)));
+
+                                            AABB localAABB;
+                                            localAABB.center = glm::vec3(0.0f);
+                                            localAABB.extents = extents;
+
+                                            if (Physics::Intersects(localRay, localAABB))
                                             {
-                                                float dist = glm::dot(box.center - ray.Origin, ray.Direction);
+                                                float dist = glm::dot(center - ray.Origin, ray.Direction);
                                                 if (dist < closestDist)
                                                 {
                                                     closestDist = dist;
@@ -552,42 +542,39 @@ void EditorLayer::OnUpdate(Timestep ts)
             }
             else
             {
-                if (meshStorage && transformStorage)
+                if (colliderStorage && transformStorage)
                 {
-                    for (size_t it = 0; it < meshStorage->dense.size(); it++)
+                    for (size_t it = 0; it < colliderStorage->dense.size(); it++)
                     {
-                        Entity entity = meshStorage->reverse[it];
+                        Entity entity = colliderStorage->reverse[it];
+                        BoxColliderComponent* collider = &colliderStorage->dense[it];
                         TransformComponent* transform = transformStorage->Get(entity);
 
                         if (transform)
                         {
                             glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
-                            AABB box;
-                            auto* collider = world.GetComponent<BoxColliderComponent>(entity);
-                            glm::vec3 extents = transform->GetScale();
-
-                            if (collider) {
-                                box.center = globalPos + collider->Offset;
-                                extents *= collider->Size;
-                            }
-                            else {
-                                box.center = globalPos;
-                            }
+                            glm::vec3 center = globalPos + collider->Offset;
+                            glm::vec3 extents = transform->GetScale() * collider->Size;
 
                             glm::vec3 rot = transform->GetRotation();
                             glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), { 1, 0, 0 })
                                 * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
                                 * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
 
-                            box.extents = glm::vec3(
-                                std::abs(rotMat[0][0]) * extents.x + std::abs(rotMat[1][0]) * extents.y + std::abs(rotMat[2][0]) * extents.z,
-                                std::abs(rotMat[0][1]) * extents.x + std::abs(rotMat[1][1]) * extents.y + std::abs(rotMat[2][1]) * extents.z,
-                                std::abs(rotMat[0][2]) * extents.x + std::abs(rotMat[1][2]) * extents.y + std::abs(rotMat[2][2]) * extents.z
-                            );
+                            glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rotMat;
+                            glm::mat4 invTransform = glm::inverse(obbTransform);
 
-                            if (Physics::Intersects(ray, box))
+                            Ray localRay;
+                            localRay.Origin = glm::vec3(invTransform * glm::vec4(ray.Origin, 1.0f));
+                            localRay.Direction = glm::normalize(glm::vec3(invTransform * glm::vec4(ray.Direction, 0.0f)));
+
+                            AABB localAABB;
+                            localAABB.center = glm::vec3(0.0f);
+                            localAABB.extents = extents;
+
+                            if (Physics::Intersects(localRay, localAABB))
                             {
-                                float dist = glm::dot(box.center - ray.Origin, ray.Direction);
+                                float dist = glm::dot(center - ray.Origin, ray.Direction);
                                 if (dist < closestDist)
                                 {
                                     closestDist = dist;
@@ -599,7 +586,6 @@ void EditorLayer::OnUpdate(Timestep ts)
                 }
             }
 
-            // NA KOŃCU: Odpalenie skryptu dla najbliższego obiektu!
             if (closestEntity.id != std::numeric_limits<std::size_t>::max())
             {
                 if (scriptStorage)
@@ -704,15 +690,13 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
                 // 3. Dodajemy Transform
                 TransformComponent trans;
                 trans.SetPosition(spawnPos);
-                trans.SetScale(glm::vec3(1.0f)); 
+                trans.SetScale(glm::vec3(1.0f));
                 world.AddComponent<TransformComponent>(e, trans);
 
-                // 4. pusty MeshComponent 
-                // Raycast myszki tego wymaga, ale dzięki "nullptr" 
-                // RendererLayer to zignoruje i nie obciąży karty graficznej GPU.
-                MeshComponent dummyMesh;
-                dummyMesh.ModelPtr = nullptr;
-                world.AddComponent<MeshComponent>(e, dummyMesh);
+                // ZMIANA ZWIĄZANA Z NOWĄ ARCHITEKTURĄ FIZYKI
+                // Usunięto dodawanie MeshComponent z modelem nullptr!
+                // Fizyka iteruje teraz po colliderach, a nie meszach, 
+                // dzięki czemu ten stres test naturalnie stał się "niewidzialny".
 
                 BoxColliderComponent bc;
                 bc.Size = glm::vec3(1.0f);
