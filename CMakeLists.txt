@@ -4,7 +4,7 @@ project(SilnikZTGK CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# NOWE: Wyciszenie ostrzeżeń o polskich znakach (C4828)
+# Wyciszenie ostrzeżeń o polskich znakach (C4828)
 if(MSVC)
     add_compile_options(/utf-8 /wd4828)
 endif()
@@ -23,10 +23,9 @@ list(FILTER SOURCES EXCLUDE REGEX "build/.*")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # ==========================================
-# NOWE: Wskazanie ścieżek do plików nagłówkowych (.h)
+# Wskazanie ścieżek do plików nagłówkowych (.h)
 # ==========================================
 # Ścieżka ${CMAKE_SOURCE_DIR} to główny folder Twojego projektu.
-# Dodajemy też podfolder SilnikZTGK, bo z logów wynika, że tam masz folder CookingStation.
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/SilnikZTGK
@@ -39,7 +38,7 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(glm CONFIG REQUIRED)
 find_package(assimp CONFIG REQUIRED)
-find_package(glad CONFIG REQUIRED) # Przypominam: usuń tę linię i glad::glad na dole, jeśli masz glad.c w projekcie
+find_package(glad CONFIG REQUIRED)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         OpenGL::GL
