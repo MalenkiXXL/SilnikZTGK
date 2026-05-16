@@ -327,6 +327,10 @@
     {
       "name": "szafka",
       "path": "CookingStation/Assets/models/przybory_kuchenne/szafka/szafka.gltf"
+    },
+    {
+      "name": "Krzeslo",
+      "path": "CookingStation/Assets/models/wystroj/krzeslo.gltf"
     }
   ]
 }

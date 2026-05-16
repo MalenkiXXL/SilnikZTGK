@@ -15,7 +15,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube"
+			"name":"Circle.001"
 		}
 	],
 	"materials":[
@@ -33,7 +33,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.001",
+			"name":"Circle.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -64,61 +64,61 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":328,
+			"count":400,
 			"max":[
-				1.246293067932129,
-				1.432953119277954,
-				1.246293067932129
+				0.4694068431854248,
+				0.8870255947113037,
+				0.47083863615989685
 			],
 			"min":[
-				-1.246293067932129,
-				-0.007317483425140381,
-				-1.246293067932129
+				-0.47227025032043457,
+				0.016153305768966675,
+				-0.47083863615989685
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":328,
+			"count":400,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":328,
+			"count":400,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":1020,
+			"count":1116,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":3936,
+			"byteLength":4800,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3936,
-			"byteOffset":3936,
+			"byteLength":4800,
+			"byteOffset":4800,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2624,
-			"byteOffset":7872,
+			"byteLength":3200,
+			"byteOffset":9600,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2040,
-			"byteOffset":10496,
+			"byteLength":2232,
+			"byteOffset":12800,
 			"target":34963
 		}
 	],
@@ -130,8 +130,8 @@
 	],
 	"buffers":[
 		{
-			"byteLength":12536,
-			"uri":"stolik.bin"
+			"byteLength":15032,
+			"uri":"krzeslo.bin"
 		}
 	]
 }
