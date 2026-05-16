@@ -13,7 +13,7 @@ class PlateSpawnerScript : public ScriptableEntity
 public:
     void OnCreate() override;
     void OnUpdate(Timestep ts) override;
-    void OnPlateDespawned() { m_ActivePlates--; }
+    void onPlateDeSpawned() { m_ActivePlates--; }
 private:
     void SpawnPrefab();
 };

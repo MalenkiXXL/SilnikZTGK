@@ -4,8 +4,11 @@
 
 class BeltVisualScript : public ScriptableEntity
 {
-public:
+private:
     float Speed = 2.0f;
+    ConveyorScript* m_ParentConveyor = nullptr;
+
+public:
 
     void OnCreate() override
     {
@@ -18,6 +21,8 @@ public:
             scroll.Offset = 0.0f;
             AddComponent<UVScrollComponent>(scroll);
         }
+
+        m_ParentConveyor = GetParentScript<ConveyorScript>();
     }
 
     void OnUpdate(Timestep ts) override
@@ -36,5 +41,13 @@ public:
 
         if (scroll->Offset > 1.0f) scroll->Offset -= 1.0f;
         if (scroll->Offset < 0.0f) scroll->Offset += 1.0f;
+    }
+
+    void OnClick() override
+    {
+        if (m_ParentConveyor)
+        {
+            m_ParentConveyor->OnClick();
+        }
     }
 };
