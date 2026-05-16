@@ -48,7 +48,6 @@ void CameraLayer::OnUpdate(Timestep ts) {
 
     // --- RMB Pan ---
     auto [mouseX, mouseY] = Input::GetMousePosition();
-    auto [windowW, windowH] = Input::GetWindowSize();
 
     // 1. OBLICZAMY FAKTYCZNY ROZMIAR EKRANU GRY (na podstawie GUI)
     float viewportW = (float) activeScene->GetViewportWidth();
@@ -109,6 +108,10 @@ void CameraLayer::OnEvent(Event &event) {
     dispatcher.Dispatch<MouseScrolledEvent>(
             [this](MouseScrolledEvent &e) { return OnMouseScrolled(e); }
     );
+
+    dispatcher.Dispatch<KeyPressedEvent>(
+            [this](KeyPressedEvent &e) { return OnKeyPressed(e); }
+    );
 }
 
 bool CameraLayer::OnMouseScrolled(MouseScrolledEvent &e) {
@@ -117,4 +120,37 @@ bool CameraLayer::OnMouseScrolled(MouseScrolledEvent &e) {
     // ProcessMouseScroll teraz zmienia OrthoSize zamiast FOV
     m_Camera.ProcessMouseScroll((float) e.GetYOffset());
     return false; // nie pochlaniac eventu - inne warstwy tez moga go potrzebowac
+}
+
+bool CameraLayer::OnKeyPressed(KeyPressedEvent& e) {
+    if (Gui::AnyItemActive()) return false;
+
+    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+    if (!activeScene) return false;
+
+    if (activeScene->GetState() == SceneState::Edit) {
+
+        if (e.GetKeyCode() == GLFW_KEY_T) {
+            m_IsTopDown = !m_IsTopDown;
+
+            if (m_IsTopDown) {
+                m_Camera.Pitch = -89.9f;
+                m_Camera.Yaw = -90.0f;
+            } else {
+                m_Camera.Pitch = ISO_PITCH;
+                m_Camera.Yaw = ISO_YAW;
+            }
+
+            m_Camera.TargetPosition = m_Camera.Position;
+
+            m_Camera.Pitch = m_Camera.Pitch;
+            m_Camera.Yaw = m_Camera.Yaw;
+
+            m_Camera.updateCameraVectors();
+
+            return true;
+        }
+    }
+
+    return false;
 }

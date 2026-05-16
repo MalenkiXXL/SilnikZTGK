@@ -136,14 +136,6 @@ public:
         UpdateFrustum();
     }
 
-private:
-    Frustum m_Frustum;
-    void UpdateFrustum()
-    {
-        // Generujemy po��czon� macierz P * V i wyci�gamy z niej p�aszczyzny
-        glm::mat4 viewProj = GetProjectionMatrix() * GetViewMatrix();
-        m_Frustum = ExtractFrustum(viewProj);
-    }
     void updateCameraVectors()
     {
         glm::vec3 front;
@@ -155,6 +147,14 @@ private:
         Up = glm::normalize(glm::cross(Right, Front));
 
         UpdateFrustum();
+    }
+private:
+    Frustum m_Frustum;
+    void UpdateFrustum()
+    {
+        // Generujemy po��czon� macierz P * V i wyci�gamy z niej p�aszczyzny
+        glm::mat4 viewProj = GetProjectionMatrix() * GetViewMatrix();
+        m_Frustum = ExtractFrustum(viewProj);
     }
 };
 #endif

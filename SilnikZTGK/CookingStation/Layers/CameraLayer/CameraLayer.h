@@ -5,6 +5,7 @@
 #include "CookingStation/Events/Event.h"
 #include "CookingStation/Events/MouseEvent.h"
 #include "CookingStation/Core/Timestep.h"
+#include "CookingStation/Events/KeyEvent.h"
 
 class CameraLayer : public Layer
 {
@@ -16,6 +17,8 @@ public:
 
 private:
     bool OnMouseScrolled(MouseScrolledEvent& e);
+    bool m_IsTopDown = false;
+    bool OnKeyPressed(KeyPressedEvent& e);
     Camera m_Camera;
 
     // --- RMB Pan ---
