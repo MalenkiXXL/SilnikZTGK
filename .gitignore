@@ -17,4 +17,5 @@ Release/
 
 .idea
 cmake-build-debug
+cmake-build-release
 SilnikZTGK/CookingStation/Assets/saves/temp_play_scene.json

@@ -245,6 +245,10 @@
             "script": "BeltVisualScript"
         },
         {
+            "collider": {
+                "offset": [ 0.0, 0.0, 0.0 ],
+                "size": [ 1.0, 1.0, 1.0 ]
+            },
             "id": 27,
             "name": "Tasma_27_Podstawa",
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
@@ -435,6 +439,10 @@
             "script": "BeltVisualScript"
         },
         {
+            "collider": {
+                "offset": [ 0.0, 0.0, 0.0 ],
+                "size": [ 1.0, 1.0, 1.0 ]
+            },
             "id": 47,
             "name": "Tasma_47_Podstawa",
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
