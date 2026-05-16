@@ -44,15 +44,24 @@ public:
 
 	SceneState GetState() const { return m_State; };
 	void SetState(SceneState state) { m_State = state; };
+
+    void SetViewportSize(uint32_t width, uint32_t height) {
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+    }
+
+    uint32_t GetViewportWidth() const { return m_ViewportWidth; }
+    uint32_t GetViewportHeight() const { return m_ViewportHeight; }
+
 	static std::shared_ptr<Scene> Copy(std::shared_ptr<Scene> other);
 
 	void OnRuntimeStart(); // inicjalizacja silnika fizycznego i skryptow C#
-	void OnRuntimeStop();  // czyszczenie pamiêci z  C# i niszczenie œwiata fizyki
+	void OnRuntimeStop();  // czyszczenie pamiï¿½ci z  C# i niszczenie ï¿½wiata fizyki
 
-	// Wywo³ywane z Twojego GameLayer::OnUpdate
+	// Wywoï¿½ywane z Twojego GameLayer::OnUpdate
 	void OnUpdateRuntime(Timestep ts);
 
-	// Wywo³ywane z EditorLayer::OnUpdate (jeœli macie edytor)
+	// Wywoï¿½ywane z EditorLayer::OnUpdate (jeï¿½li macie edytor)
 	//void OnUpdateEditor(Timestep ts, EditorCamera& camera);
 
 	World& GetWorld() { return m_ECSWorld;  }
@@ -86,6 +95,9 @@ private:
 
 	std::unordered_map<GridPos, ConveyorScript*, GridPosHash> ConveyorMap;
 	bool m_ConveyorCacheReady = false;
+
+    uint32_t m_ViewportWidth = 0;
+    uint32_t m_ViewportHeight = 0;
 
 	//struktura SSA: komorka siatki -> lista encji wewnatrz niej
 	std::unordered_map<glm::ivec2, std::vector<Entity>, IVec2Hash> m_SpartialGrid;

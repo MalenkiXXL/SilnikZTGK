@@ -17,4 +17,9 @@ public:
 private:
     bool OnMouseScrolled(MouseScrolledEvent& e);
     Camera m_Camera;
+
+    // --- RMB Pan ---
+    bool m_Panning = false;
+    float m_LastMouseX = 0.0f;
+    float m_LastMouseY = 0.0f;
 };

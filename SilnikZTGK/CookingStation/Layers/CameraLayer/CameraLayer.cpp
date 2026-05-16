@@ -6,6 +6,7 @@
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Scene/SceneSerializer.h"
 #include "CookingStation/Scene/SceneManager.h"
+#include "CookingStation/Core/Application.h"
 
 
 // Izometryczny kat kamery 
@@ -45,13 +46,51 @@ void CameraLayer::OnUpdate(Timestep ts) {
 
     if (Gui::AnyItemActive()) return;
 
-    // Poruszamy sie wzdluz Right i Up kamery (nie Forward!) - to daje
-    // "przesuwanie widoku" bez zmiany k�ta patrzenia (klasyczny pan izometryczny).
-    //
-    // W efekcie:
-    //   W / S    przesuwa widok w gore / dol ekranu
-    //   A / D   przesuwa widok w lewo / prawo ekranu
+    // --- RMB Pan ---
+    auto [mouseX, mouseY] = Input::GetMousePosition();
+    auto [windowW, windowH] = Input::GetWindowSize();
 
+    // 1. OBLICZAMY FAKTYCZNY ROZMIAR EKRANU GRY (na podstawie GUI)
+    float viewportW = (float) activeScene->GetViewportWidth();
+    float viewportH = (float) activeScene->GetViewportHeight();
+
+    // Zabezpieczenie przed minimalizacją
+    if (viewportW <= 0.0f || viewportH <= 0.0f) return;
+
+    if (Input::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
+        m_Panning = true;
+        m_LastMouseX = mouseX;
+        m_LastMouseY = mouseY;
+
+        m_Camera.TargetPosition = m_Camera.Position;
+    }
+
+    if (Input::IsMouseButtonJustReleased(GLFW_MOUSE_BUTTON_RIGHT)) {
+        m_Panning = false;
+    }
+
+    if (m_Panning) {
+        float dx = mouseX - m_LastMouseX;
+        float dy = mouseY - m_LastMouseY;
+        m_LastMouseX = mouseX;
+        m_LastMouseY = mouseY;
+
+        // 2. LICZYMY PROPORCJE WZGLĘDEM VIEWPORTU GRY, A NIE CAŁEGO OKNA
+        float currentAspect = viewportW / viewportH;
+
+        float worldH = m_Camera.OrthoSize * 2.0f;
+        float worldW = worldH * currentAspect;
+
+        // 3. UŻYWAMY VIEWPORTU DO WYLICZENIA UŁAMKA PRZESUNIĘCIA
+        float worldDx = (dx / viewportW) * worldW;
+        float worldDy = (dy / viewportH) * worldH;
+
+        glm::vec3 delta = -m_Camera.Right * worldDx + m_Camera.Up * worldDy;
+        m_Camera.Position += delta;
+        m_Camera.TargetPosition += delta;
+    }
+
+    // --- WASD ---
     glm::vec3 dir(0.0f);
 
     if (Input::IsKeyPressed(GLFW_KEY_W)) dir += m_Camera.Up;

@@ -69,6 +69,10 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         glm::vec2 viewportSize = { m_ViewportWidth - 500.0f, m_ViewportHeight - 230.0f };
 
         if (viewportSize.x > 0.0f && viewportSize.y > 0.0f) {
+
+            //Informacja o rozmiarze okna gry potrzebna do wyliczania ruchu kamery
+            activeScene->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
+
             if (m_ViewportFBO->GetSpecification().Width != (uint32_t)viewportSize.x ||
                 m_ViewportFBO->GetSpecification().Height != (uint32_t)viewportSize.y)
             {
