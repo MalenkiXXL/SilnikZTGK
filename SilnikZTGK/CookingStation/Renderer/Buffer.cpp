@@ -1,52 +1,65 @@
 #include "Buffer.h"
-#include <glad/glad.h>
 
+// --- VERTEX BUFFER ---
 
-VertexBuffer::VertexBuffer(float* verticies, uint32_t size)
+VertexBuffer::VertexBuffer(float* vertices, uint32_t size)
 {
-	//karta tworzy buffor i daje id 
-	glGenBuffers(1, &m_RenderID);
-	//aktywujemy buffor jako tablica wierzcholkow
-	glBindBuffer(GL_ARRAY_BUFFER, m_RenderID);
-	//wysylamy fizyczne bajty do karty
-	glBufferData(GL_ARRAY_BUFFER, size, verticies, GL_STATIC_DRAW);
+    glGenBuffers(1, &m_RendererID);
+    glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
+    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_STATIC_DRAW);
 }
+
+// NOWY KONSTRUKTOR: Tworzy pusty bufor przygotowany na czêste zmiany (GL_DYNAMIC_DRAW)
+VertexBuffer::VertexBuffer(uint32_t size)
+{
+    glGenBuffers(1, &m_RendererID);
+    glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
+    glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+}
+
 VertexBuffer::~VertexBuffer()
 {
-	//zwalnia zajmujace miejsce
-	glDeleteBuffers(1, &m_RenderID);
+    glDeleteBuffers(1, &m_RendererID);
 }
 
 void VertexBuffer::Bind() const
 {
-	//przypina buffor przed rysowaniem
-	glBindBuffer(GL_ARRAY_BUFFER, m_RenderID);
+    glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
 }
 
 void VertexBuffer::Unbind() const
 {
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-IndexBuffer::IndexBuffer(uint32_t* indicies, uint32_t count)
-	: m_Count(count)
+// NOWA METODA: Wrzucanie paczki cz¹steczek prosto na kartê
+void VertexBuffer::SetData(const void* data, uint32_t size)
 {
-	glGenBuffers(1, &m_RenderID);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RenderID);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indicies, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
 }
+
+// --- INDEX BUFFER ---
+
+IndexBuffer::IndexBuffer(uint32_t* indices, uint32_t count)
+    : m_Count(count)
+{
+    glGenBuffers(1, &m_RendererID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, count * sizeof(uint32_t), indices, GL_STATIC_DRAW);
+}
+
 IndexBuffer::~IndexBuffer()
 {
-	glDeleteBuffers(1, &m_RenderID);
+    glDeleteBuffers(1, &m_RendererID);
 }
 
 void IndexBuffer::Bind() const
 {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RenderID);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_RendererID);
 }
 
 void IndexBuffer::Unbind() const
 {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
-

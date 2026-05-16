@@ -4,6 +4,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <spdlog/spdlog.h>
+#include "CookingStation/Core/VFS/VFS.h"
 
 using json = nlohmann::json;
 
@@ -19,15 +20,13 @@ class QuestManager {
 public:
     static std::vector<Quest> LoadQuests(const std::string& filepath) {
         std::vector<Quest> quests;
-        std::ifstream file(filepath);
-
-        if (!file.is_open()) {
-            spdlog::error("Nie udao sie otworzyc pliku z questami: {}", filepath);
+        std::vector<uint8_t> fileData = VFS::ReadFile(filepath);
+        if (fileData.empty()) {
+            spdlog::error("Nie udao sie otworzyc pliku z questami przez VFS: {}", filepath);
             return quests;
         }
-
         try {
-            json data = json::parse(file);
+            json data = json::parse(fileData.begin(), fileData.end());
             for (auto& item : data) {
                 Quest q;
                 q.Title = item["title"].get<std::string>();

@@ -19,7 +19,7 @@ AssetLayer::~AssetLayer() {};
 void AssetLayer::OnAttach() {
 
 	// wczytujemy definicje modeli do biblioteki z pliku
-    AssetManager::LoadModelLibrary("CookingStation/Assets/modelsLib.json");
+	AssetManager::LoadModelLibrary("assets://modelsLib.json");
 	AssetManager::InitCoreAssets();
 
 
@@ -39,7 +39,7 @@ void AssetLayer::OnAttach() {
 
 	// wczytujemy konkretne obiekty i ich stan z pliku zapisu
 	SceneSerializer serializer(activeScene.get());
-	serializer.Deserialize("CookingStation/Assets/levels/level01.json");
+	serializer.Deserialize("assets://levels/level01.json");
 
 };
 

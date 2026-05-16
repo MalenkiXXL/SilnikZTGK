@@ -17,6 +17,9 @@
 #include <limits>
 #include "CookingStation/Scripts/PotScript.h"
 
+#include "CookingStation/Core/VFS/VFS.h"
+#include <spdlog/spdlog.h>
+
 namespace {
     enum class Anchor { TopLeft, TopRight, BottomLeft, BottomRight, Center };
 
@@ -33,7 +36,6 @@ namespace {
 }
 
 void EditorGuiLayer::OnAttach() {
-    // pobieramy aktualny rozmiar okna
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
@@ -41,15 +43,12 @@ void EditorGuiLayer::OnAttach() {
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // aktualizacja rozmiaru ekranu 
     Gui::UpdateScreenSize(m_ViewportWidth, m_ViewportHeight);
-
-    // wczytanie czcionki
-    Gui::Init("CookingStation/Assets/fonts/ARIAL.ttf", 32);
+    Gui::Init("assets://fonts/ARIAL.TTF", 32);
 }
 
 void EditorGuiLayer::OnUpdate(Timestep ts) {
-    Gui::BeginFrame(); // Reset flagi przechwytywania myszy
+    Gui::BeginFrame();
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
 
     if (!activeScene) {
@@ -59,6 +58,8 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
 
     auto& world = activeScene->GetWorld();
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_DEPTH_TEST);
 
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
@@ -72,10 +73,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             if (m_ViewportFBO->GetSpecification().Width != (uint32_t)viewportSize.x ||
                 m_ViewportFBO->GetSpecification().Height != (uint32_t)viewportSize.y)
             {
-                // Zmieniamy rozmiar zwykłego bufora (dla UI)
                 m_ViewportFBO->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
-
-                // DODANE: Zmieniamy rozmiar bufora MSAA (dla 3D), żeby idealnie pasował!
                 if (m_MsaaFBO) {
                     m_MsaaFBO->Resize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
                 }
@@ -87,7 +85,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
     }
 
     // --- GŁÓWNY PASEK ZADAŃ ---
-    Gui::Panel({ 0.0f, 0.0f }, { m_ViewportWidth, 30.0f }, { 0.15f, 0.15f, 0.15f, 1.0f });
+    Gui::Panel({ 0.0f, 0.0f }, { m_ViewportWidth, 30.0f }, { 0.15f, 0.15f, 0.15f, 1.0f }, 15.0f);
 
     if (Gui::Button("Plik", { 10.0f, 5.0f }, { 80.0f, 20.0f })) {
         m_ShowFileMenu = !m_ShowFileMenu;
@@ -121,7 +119,8 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
     }
 
     if (m_ShowFileMenu) {
-        Gui::Panel({ 10.0f, 30.0f }, { 150.0f, 90.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
+        Gui::Panel({ 10.0f, 30.0f }, { 150.0f, 120.0f }, { 0.2f, 0.2f, 0.2f, 0.9f }, 15.0f);
+
         if (Gui::Button("Zapisz", { 15.0f, 35.0f }, { 140.0f, 25.0f })) {
             m_ShowSaveDialog = true;
             m_ShowFileMenu = false;
@@ -129,6 +128,159 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("Wczytaj", { 15.0f, 65.0f }, { 140.0f, 25.0f })) {
             m_ShowLoadDialog = true;
             m_ShowFileMenu = false;
+        }
+
+        if (Gui::Button("Eksportuj", { 15.0f, 95.0f }, { 140.0f, 25.0f })) {
+            spdlog::info("[BuildTool] Rozpoczynam automatyczny proces eksportu...");
+
+            namespace fs = std::filesystem;
+            std::error_code ec;
+
+            // Zapisujemy oryginalną ścieżkę PRZED jakimkolwiek current_path()
+            fs::path originalPath = fs::current_path();
+
+            // Absolutne ścieżki do zasobów — niezależne od current_path
+            fs::path absAssetsPath = originalPath / "CookingStation/Assets";
+            fs::path absShadersPath = originalPath / "CookingStation/Shaders";
+            fs::path absExportDir = originalPath / "Builds/CookingStation_Dystrybucja";
+
+            // Szukamy .sln idąc w górę drzewa katalogów
+            fs::path rootDir = originalPath;
+            bool foundSln = false;
+            std::string slnFilename = "";
+
+            spdlog::info("[BuildTool] Szukam .sln od: {}", originalPath.string());
+
+            for (int i = 0; i < 6; ++i) {
+                if (fs::is_directory(rootDir, ec)) {
+                    for (const auto& entry : fs::directory_iterator(rootDir, ec)) {
+                        if (entry.path().extension() == ".sln") {
+                            slnFilename = entry.path().filename().string();
+                            foundSln = true;
+                            break;
+                        }
+                    }
+                }
+                if (foundSln) break;
+                if (rootDir.has_parent_path() && rootDir != rootDir.parent_path())
+                    rootDir = rootDir.parent_path();
+                else
+                    break;
+            }
+
+            if (!foundSln) {
+                spdlog::error("[BuildTool] Nie znaleziono pliku .sln!");
+                m_ShowFileMenu = false;
+            }
+            else {
+                fs::current_path(rootDir);
+                spdlog::info("[BuildTool] Znaleziono: {} w {}", slnFilename, rootDir.string());
+
+                // Szukamy vcvars64.bat
+                std::string vcvarsScript = "";
+                std::vector<std::string> suspectedVCVarsPaths = {
+                    "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
+                    "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
+                    "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat\""
+                };
+                for (const auto& rawPath : suspectedVCVarsPaths) {
+                    std::string cleanPath = rawPath;
+                    cleanPath.erase(std::remove(cleanPath.begin(), cleanPath.end(), '\"'), cleanPath.end());
+                    if (fs::exists(cleanPath)) { vcvarsScript = rawPath; break; }
+                }
+
+                std::string fullCommand;
+                if (!vcvarsScript.empty()) {
+                    fullCommand = "call " + vcvarsScript + " && msbuild " + slnFilename + " /p:Configuration=Release /p:Platform=x64 /t:Rebuild > msbuild_log.txt 2>&1";
+                    spdlog::info("[BuildTool] Inicjalizuję środowisko MSVC...");
+                }
+                else {
+                    fullCommand = "msbuild " + slnFilename + " /p:Configuration=Release /p:Platform=x64 /t:Rebuild > msbuild_log.txt 2>&1";
+                    spdlog::warn("[BuildTool] Nie znaleziono vcvars64.bat, próba uproszczona.");
+                }
+
+                spdlog::info("[BuildTool] Uruchamiam kompilację...");
+                int compileResult = std::system(fullCommand.c_str());
+
+                // Przywracamy ścieżkę ZARAZ po kompilacji, przed operacjami na plikach
+                fs::current_path(originalPath);
+
+                if (compileResult != 0) {
+                    spdlog::error("[BuildTool] Błąd kompilacji! Kod: {}", compileResult);
+                    std::system("notepad msbuild_log.txt");
+                }
+                else {
+                    spdlog::info("[BuildTool] Kompilacja OK! Generuję paczkę...");
+
+                    try {
+                        fs::remove_all(absExportDir);
+                        fs::create_directories(absExportDir);
+
+                        // Szukamy .exe rekurencyjnie w całym rootDir (nie tylko bin/)
+                        // Filtrujemy po "Release" w ścieżce żeby nie wziąć Debug
+                        std::string foundExePath = "";
+                        for (const auto& entry : fs::recursive_directory_iterator(rootDir, ec)) {
+                            if (ec) break;
+                            std::string pathStr = entry.path().string();
+                            if (entry.path().extension() == ".exe" &&
+                                pathStr.find("Release") != std::string::npos) {
+                                foundExePath = pathStr;
+                                spdlog::info("[BuildTool] Znaleziono .exe: {}", foundExePath);
+                                break;
+                            }
+                        }
+
+                        if (foundExePath.empty()) {
+                            spdlog::error("[BuildTool] Nie znaleziono .exe z 'Release' w ścieżce!");
+                            spdlog::error("[BuildTool] Sprawdź Output Directory w ustawieniach projektu VS.");
+                        }
+                        else {
+                            // Kopiuj .exe
+                            fs::copy_file(foundExePath,
+                                absExportDir / "CookingStation.exe",
+                                fs::copy_options::overwrite_existing);
+
+                            // Kopiuj .dll z tego samego folderu co .exe
+                            fs::path exeDir = fs::path(foundExePath).parent_path();
+                            for (const auto& entry : fs::directory_iterator(exeDir, ec)) {
+                                if (entry.path().extension() == ".dll") {
+                                    fs::copy_file(entry.path(),
+                                        absExportDir / entry.path().filename(),
+                                        fs::copy_options::overwrite_existing);
+                                }
+                            }
+                            spdlog::info("[BuildTool] Skopiowano .exe i .dll.");
+                        }
+
+                        // Kopiuj Assets i Shaders - używamy absolutnych ścieżek
+                        if (fs::exists(absAssetsPath)) {
+                            fs::copy(absAssetsPath, absExportDir / "Assets",
+                                fs::copy_options::recursive | fs::copy_options::overwrite_existing);
+                            spdlog::info("[BuildTool] Skopiowano Assets.");
+                        }
+                        else {
+                            spdlog::error("[BuildTool] Nie znaleziono Assets pod: {}", absAssetsPath.string());
+                        }
+
+                        if (fs::exists(absShadersPath)) {
+                            fs::copy(absShadersPath, absExportDir / "Shaders",
+                                fs::copy_options::recursive | fs::copy_options::overwrite_existing);
+                            spdlog::info("[BuildTool] Skopiowano Shaders.");
+                        }
+                        else {
+                            spdlog::error("[BuildTool] Nie znaleziono Shaders pod: {}", absShadersPath.string());
+                        }
+
+                        spdlog::info("[BuildTool] Paczka gotowa w: {}", absExportDir.string());
+                        std::system(("explorer \"" + absExportDir.string() + "\"").c_str());
+                    }
+                    catch (const fs::filesystem_error& e) {
+                        spdlog::error("[BuildTool] Błąd operacji plikowych: {}", e.what());
+                    }
+                }
+
+                m_ShowFileMenu = false;
+            }
         }
     }
 
@@ -144,7 +296,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             system("python CookingStation/Tools/QuestGenerator/main.py");
             GameGuiLayer::s_NeedsQuestReload = true;
         }
-
         if (Gui::Button("Generuj (Nowe Newsy)", { questPanelPos.x + 5.f, questPanelPos.y + 55.f }, { 170.f, 20.f })) {
             spdlog::info("Czyszczenie cache i pobieranie nowych newsow...");
             std::remove("CookingStation/Assets/news_cache.json");
@@ -169,7 +320,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             m_CpuText = "CPU Logika: " + formatFloat(stats.CPULogicTime) + " ms";
             m_GpuText = "GPU Render: " + formatFloat(stats.GPURenderTime) + " ms";
             m_DrawCalls3DText = "Draw Calls (3D): " + std::to_string(stats.DrawCalls3D);
-
             m_InstanceBatchesText = "Instanced Batches: " + std::to_string(stats.InstanceBatches);
             m_MatrixCalcText = "CPU Matrix Calcs: " + std::to_string(stats.MatrixCalculations);
 
@@ -184,41 +334,37 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             m_StatsUpdateTimer = 0.0f;
         }
 
-        glm::vec2 panelSize(300.0f, 350.0f); 
+        glm::vec2 panelSize(300.0f, 350.0f);
         glm::vec2 panelPos = GetAnchoredPosition(Anchor::BottomRight, 0.0f, 10.0f, panelSize.x, panelSize.y, m_ViewportWidth, m_ViewportHeight);
 
-        Gui::Panel(panelPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.85f });
+        Gui::Panel(panelPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.85f }, 15.0f);
 
         float textX = panelPos.x + 15.0f; float textY = panelPos.y + 5.0f; float lineOffset = 25.0f; float scale = 0.6f;
         glm::vec4 textColor(1.0f, 1.0f, 1.0f, 1.0f);
         glm::vec4 highlightColor(1.0f, 0.8f, 0.2f, 1.0f);
-        glm::vec4 optColor(0.2f, 0.9f, 0.8f, 1.0f); 
+        glm::vec4 optColor(0.2f, 0.9f, 0.8f, 1.0f);
 
         Gui::DrawGuiText("Diagnostyka Projektu:", { textX, textY }, scale + 0.1f, { 0.2f, 0.8f, 0.2f, 1.0f }); textY += lineOffset + 5.0f;
-        Gui::DrawGuiText(m_FpsText, { textX, textY }, scale, textColor); textY += lineOffset;
-        Gui::DrawGuiText(m_FrameTimeText, { textX, textY }, scale, textColor); textY += lineOffset;
+        Gui::DrawGuiText(m_FpsText, { textX, textY }, scale, textColor);     textY += lineOffset;
+        Gui::DrawGuiText(m_FrameTimeText, { textX, textY }, scale, textColor);     textY += lineOffset;
         Gui::DrawGuiText(m_CpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
         Gui::DrawGuiText(m_GpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
-
-        // Wyświetlanie nowych statystyk
-        Gui::DrawGuiText(m_DrawCalls3DText, { textX, textY }, scale, textColor); textY += lineOffset;
-        Gui::DrawGuiText(m_InstanceBatchesText, { textX, textY }, scale, optColor); textY += lineOffset;
-        Gui::DrawGuiText(m_MatrixCalcText, { textX, textY }, scale, optColor); textY += lineOffset;
-        Gui::DrawGuiText(m_CpuSavingsText, { textX, textY }, scale, optColor); textY += lineOffset;
-
-        Gui::DrawGuiText(m_Tris3DText, { textX, textY }, scale, textColor); textY += lineOffset;
-        Gui::DrawGuiText(m_Culled3DText, { textX, textY }, scale, textColor); textY += lineOffset;
-        Gui::DrawGuiText(m_DrawCallsUIText, { textX, textY }, scale, textColor); textY += lineOffset;
+        Gui::DrawGuiText(m_DrawCalls3DText, { textX, textY }, scale, textColor);     textY += lineOffset;
+        Gui::DrawGuiText(m_InstanceBatchesText, { textX, textY }, scale, optColor);     textY += lineOffset;
+        Gui::DrawGuiText(m_MatrixCalcText, { textX, textY }, scale, optColor);      textY += lineOffset;
+        Gui::DrawGuiText(m_CpuSavingsText, { textX, textY }, scale, optColor);      textY += lineOffset;
+        Gui::DrawGuiText(m_Tris3DText, { textX, textY }, scale, textColor);     textY += lineOffset;
+        Gui::DrawGuiText(m_Culled3DText, { textX, textY }, scale, textColor);     textY += lineOffset;
+        Gui::DrawGuiText(m_DrawCallsUIText, { textX, textY }, scale, textColor);     textY += lineOffset;
         Gui::DrawGuiText(m_TrisUIText, { textX, textY }, scale, textColor);
     }
 
-    // --- PANEL OTOCZENIA (ANCHOR: BOTTOM LEFT) ---
     // --- PANEL OTOCZENIA (ANCHOR: BOTTOM LEFT) ---
     if (m_ShowEnvironmentPanel) {
         glm::vec2 envSize = { 180.f, 350.f };
         glm::vec2 envPos = GetAnchoredPosition(Anchor::BottomLeft, 10.f, 10.f, envSize.x, envSize.y, m_ViewportWidth, m_ViewportHeight);
 
-        Gui::Panel(envPos, envSize, { 0.15f, 0.15f, 0.15f, 0.9f });
+        Gui::Panel(envPos, envSize, { 0.15f, 0.15f, 0.15f, 0.9f }, 15.0f);
         Gui::DrawGuiText("Kolor tla:", { envPos.x + 5.f, envPos.y + 12.f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
         auto* colorStorage = world.GetComponentVector<ClearColorComponent>();
@@ -232,21 +378,19 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
 
         Gui::DrawGuiText("Model Oswietlenia:", { envPos.x + 5.f, envPos.y + 145.f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
-        if (Gui::Button("Standard", { envPos.x + 5.f, envPos.y + 165.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "Standard"))) Renderer::ActiveShader = "Standard";
-        if (Gui::Button("RAMP", { envPos.x + 90.f, envPos.y + 165.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "RAMP"))) Renderer::ActiveShader = "RAMP";
-        if (Gui::Button("Fake BRDF", { envPos.x + 5.f, envPos.y + 195.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "FakeBRDF"))) Renderer::ActiveShader = "FakeBRDF";
+        if (Gui::Button("Standard", { envPos.x + 5.f,  envPos.y + 165.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "Standard")))   Renderer::ActiveShader = "Standard";
+        if (Gui::Button("RAMP", { envPos.x + 90.f, envPos.y + 165.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "RAMP")))       Renderer::ActiveShader = "RAMP";
+        if (Gui::Button("Fake BRDF", { envPos.x + 5.f,  envPos.y + 195.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "FakeBRDF")))   Renderer::ActiveShader = "FakeBRDF";
         if (Gui::Button("Blinn-Phong", { envPos.x + 90.f, envPos.y + 195.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "BlinnPhong"))) Renderer::ActiveShader = "BlinnPhong";
-        if (Gui::Button("Rim", { envPos.x + 5.f, envPos.y + 225.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "Rim"))) Renderer::ActiveShader = "Rim";
+        if (Gui::Button("Rim", { envPos.x + 5.f,  envPos.y + 225.f }, { 80.f, 20.f }, (Renderer::ActiveShader == "Rim")))        Renderer::ActiveShader = "Rim";
 
-        // --- NOWA SEKCJA: Ustawienia MSAA ---
         Gui::DrawGuiText("Wygładzanie MSAA:", { envPos.x + 5.f, envPos.y + 255.f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
-
         uint32_t currentMsaa = Application::Get().GetMsaaSamples();
-        if (Gui::Button("Wył", { envPos.x + 5.f, envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 1)) Application::Get().SetMsaaSamples(1);
-        if (Gui::Button("2x", { envPos.x + 48.f, envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 2)) Application::Get().SetMsaaSamples(2);
-        if (Gui::Button("4x", { envPos.x + 91.f, envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 4)) Application::Get().SetMsaaSamples(4);
-        if (Gui::Button("8x", { envPos.x + 134.f, envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 8)) Application::Get().SetMsaaSamples(8);
-        if (Gui::Button("16x", { envPos.x + 5.f, envPos.y + 305.f }, { 32.f, 20.f }, currentMsaa == 16)) Application::Get().SetMsaaSamples(16);
+        if (Gui::Button("Wył", { envPos.x + 5.f,   envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 1))  Application::Get().SetMsaaSamples(1);
+        if (Gui::Button("2x", { envPos.x + 48.f,  envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 2))  Application::Get().SetMsaaSamples(2);
+        if (Gui::Button("4x", { envPos.x + 91.f,  envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 4))  Application::Get().SetMsaaSamples(4);
+        if (Gui::Button("8x", { envPos.x + 134.f, envPos.y + 275.f }, { 38.f, 20.f }, currentMsaa == 8))  Application::Get().SetMsaaSamples(8);
+        if (Gui::Button("16x", { envPos.x + 5.f,   envPos.y + 305.f }, { 32.f, 20.f }, currentMsaa == 16)) Application::Get().SetMsaaSamples(16);
     }
 
     // --- HIERARCHIA SCENY (ANCHOR: TOP LEFT) ---
@@ -256,26 +400,21 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             glm::vec2 panelSize = { 180.0f, 300.0f };
             glm::vec2 startPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 80.0f, panelSize.x, panelSize.y, m_ViewportWidth, m_ViewportHeight);
 
-            Gui::Panel(startPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.8f });
+            Gui::Panel(startPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.8f }, 15.0f);
             Gui::DrawGuiText("Hierarchia sceny:", { startPos.x + 5.0f, startPos.y + 15.0f }, 0.5f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
             Renderer2D::EndScene();
             glEnable(GL_SCISSOR_TEST);
-
             int scissorY = (int)(m_ViewportHeight - (startPos.y + panelSize.y));
             glScissor((int)startPos.x, scissorY, (int)panelSize.x, (int)panelSize.y);
-
             Renderer2D::BeginScene(uiProj);
 
             for (size_t i = 0; i < tagStorage->dense.size(); i++) {
                 glm::vec2 currentItemPos = { startPos.x, startPos.y + 35.0f + (i * 30.0f) - m_HierarchyScrollY };
-
                 auto& tagComp = tagStorage->dense[i];
                 Entity owner = tagStorage->reverse[i];
-
-                if (Gui::Button(tagComp.Tag, currentItemPos, { 180.0f, 25.0f })) {
+                if (Gui::Button(tagComp.Tag, currentItemPos, { 180.0f, 25.0f }))
                     activeScene->SetSelectedEntity(owner);
-                }
             }
 
             Renderer2D::EndScene();
@@ -289,7 +428,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         glm::vec2 libSize = { m_ViewportWidth - 500.0f, 200.0f };
         glm::vec2 libPos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, libSize.x, libSize.y, m_ViewportWidth, m_ViewportHeight);
 
-        Gui::Panel(libPos, libSize, { 0.14f, 0.14f, 0.14f, 0.95f });
+        Gui::Panel(libPos, libSize, { 0.14f, 0.14f, 0.14f, 0.95f }, 15.0f);
         Gui::DrawGuiText("Zasoby:", { libPos.x + 10.0f, libPos.y + 15.0f }, 0.45f, { 1, 1, 1, 1 });
 
         Renderer2D::EndScene();
@@ -307,7 +446,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 request.Name = entry.Name; request.Path = entry.Path; request.Active = true;
             }
             xOffset += 130.0f;
-
             if (xOffset + 120.0f > libPos.x + libSize.x) {
                 xOffset = libPos.x + 10.0f;
                 yOffset += 40.0f;
@@ -324,7 +462,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         glm::vec2 prefSize = { m_ViewportWidth - 500.0f, 120.0f };
         glm::vec2 prefPos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, prefSize.x, prefSize.y, m_ViewportWidth, m_ViewportHeight);
 
-        Gui::Panel(prefPos, prefSize, { 0.15f, 0.25f, 0.3f, 0.95f });
+        Gui::Panel(prefPos, prefSize, { 0.15f, 0.25f, 0.3f, 0.95f }, 15.0f);
         Gui::DrawGuiText("Gotowe Prefaby:", { prefPos.x + 10.0f, prefPos.y + 15.0f }, 0.45f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
         float xOffset = prefPos.x + 10.0f;
@@ -334,16 +472,14 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             for (const auto& entry : std::filesystem::directory_iterator("CookingStation/Assets/prefabs")) {
                 if (entry.path().extension() == ".json") {
                     std::string prefabName = entry.path().stem().string();
-                    std::string prefabPath = entry.path().string();
-                    std::replace(prefabPath.begin(), prefabPath.end(), '\\', '/');
+                    std::string virtualPrefabPath = "assets://prefabs/" + prefabName + ".json";
 
                     if (Gui::Button(prefabName, { xOffset, yOffset }, { 120, 30 })) {
                         auto& request = activeScene->GetPlacementRequest();
                         request.Name = prefabName;
-                        request.Path = prefabPath;
+                        request.Path = virtualPrefabPath;
                         request.Active = true;
                     }
-
                     xOffset += 130.0f;
                     if (xOffset + 120.0f > prefPos.x + prefSize.x) {
                         xOffset = prefPos.x + 10.0f;
@@ -358,24 +494,21 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
     if (m_ShowInspectorPanel) {
         Entity selected = activeScene->GetSelectedEntity();
         if (selected.id != std::numeric_limits<std::size_t>::max()) {
-            glm::vec2 inspSize = { 300.0f, 750.0f }; // Delikatnie powiększone tło na nowe sekcje
-            glm::vec2 inspPos = GetAnchoredPosition(Anchor::TopRight, 10.0f, 70.0f, inspSize.x, inspSize.y, m_ViewportWidth, m_ViewportHeight);
+            glm::vec2 inspSize = { 300.0f, 750.0f };
+            glm::vec2 inspPos = GetAnchoredPosition(Anchor::TopRight, 0.0f, 70.0f, inspSize.x, inspSize.y, m_ViewportWidth, m_ViewportHeight);
 
-            // Rysujemy tło panelu
-            Gui::Panel(inspPos, inspSize, { 0.15f, 0.15f, 0.15f, 0.95f });
+            Gui::Panel(inspPos, inspSize, { 0.15f, 0.15f, 0.15f, 0.95f }, 15.0f);
 
-            float currentY = inspPos.y + 10.0f; // Dynamiczny kursor Y
+            float currentY = inspPos.y + 10.0f;
             float padX = inspPos.x + 5.0f;
             float elementW = 290.0f;
 
-            // --- SEKCJA TAG ---
             auto* tag = world.GetComponent<TagComponent>(selected);
             if (tag) {
                 Gui::InputGuiText("Nazwa", tag->Tag, { padX, currentY }, { elementW, 25.0f });
                 currentY += 35.0f;
             }
 
-            // --- SEKCJA TRANSFORM ---
             auto* transform = world.GetComponent<TransformComponent>(selected);
             if (transform) {
                 glm::vec3 pos = transform->GetPosition();
@@ -385,8 +518,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 float dS = 0.05f; float rS = 0.5f;
 
                 Gui::DrawGuiText("Transform:", { padX, currentY }, 0.4f, { 1.0f, 0.8f, 0.2f, 1.0f }); currentY += 20.0f;
-
-                // Zmniejszyłem wysokość sliderów z 30 do 20, żeby zaoszczędzić miejsce!
                 Gui::DragFloat("Pos X", &pos.x, dS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
                 Gui::DragFloat("Pos Y", &pos.y, dS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
                 Gui::DragFloat("Pos Z", &pos.z, dS, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
@@ -410,7 +541,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 }
             }
 
-            // --- SEKCJA BOX COLLIDERA ---
             auto* collider = world.GetComponent<BoxColliderComponent>(selected);
             if (collider) {
                 Gui::DrawGuiText("Box Collider:", { padX, currentY }, 0.4f, { 1.0f, 0.8f, 0.2f, 1.0f }); currentY += 20.0f;
@@ -420,10 +550,8 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 Gui::DragFloat("Off X", &collider->Offset.x, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
                 Gui::DragFloat("Off Y", &collider->Offset.y, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 22.0f;
                 Gui::DragFloat("Off Z", &collider->Offset.z, 0.05f, { padX, currentY }, { elementW, 20 }); currentY += 25.0f;
-
-                if (Gui::Button("USUN COLLIDER", { padX, currentY }, { elementW, 25.0f })) {
+                if (Gui::Button("USUN COLLIDER", { padX, currentY }, { elementW, 25.0f }))
                     world.RemoveComponent<BoxColliderComponent>(selected);
-                }
                 currentY += 35.0f;
             }
             else {
@@ -435,20 +563,17 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 currentY += 35.0f;
             }
 
-            // --- SEKCJA SKRYPTÓW ---
             auto* scriptComp = world.GetComponent<NativeScriptComponent>(selected);
             if (!scriptComp) {
-                if (Gui::Button("+ Dodaj System Skryptow", { padX, currentY }, { elementW, 25.0f })) {
+                if (Gui::Button("+ Dodaj System Skryptow", { padX, currentY }, { elementW, 25.0f }))
                     world.AddComponent<NativeScriptComponent>(selected, NativeScriptComponent{});
-                }
                 currentY += 35.0f;
             }
             else {
                 Gui::DrawGuiText("Skrypty:", { padX, currentY }, 0.4f, { 1.0f, 0.8f, 0.2f, 1.0f }); currentY += 20.0f;
 
                 std::string scriptList = "";
-                for (const auto& s : scriptComp->Scripts) 
-                {
+                for (const auto& s : scriptComp->Scripts) {
                     scriptList += "- " + s.Name + "\n";
                     if (s.Name == "ParticleEmitterScript" && s.Instance) {
                         auto* emitter = static_cast<ParticleEmitterScript*>(s.Instance);
@@ -464,31 +589,24 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                     currentY += (scriptComp->Scripts.size() * 15.0f) + 10.0f;
                 }
 
-                if (Gui::Button("+ Rot", { padX, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<RotationScript>("RotationScript");
+                if (Gui::Button("+ Rot", { padX,         currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<RotationScript>("RotationScript");
                 if (Gui::Button("+ Conv", { padX + 70.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<ConveyorScript>("ConveyorScript");
-                if (Gui::Button("+ Item", { padX + 140.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<ItemScript>("ItemScript");
-                if (Gui::Button("+ Pot", { padX + 210.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<PotScript>("PotScript");
+                if (Gui::Button("+ Item", { padX + 140.0f,currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<ItemScript>("ItemScript");
+                if (Gui::Button("+ Pot", { padX + 210.0f,currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<PotScript>("PotScript");
                 currentY += 25.0f;
-
-                if (Gui::Button("+ BeltVis", { padX, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<BeltVisualScript>("BeltVisualScript");
+                if (Gui::Button("+ BeltVis", { padX,         currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<BeltVisualScript>("BeltVisualScript");
                 if (Gui::Button("+ SteamParticle", { padX + 70.0f, currentY }, { 65.0f, 20.0f })) scriptComp->AddScript<SteamEmitterScript>("SteamEmitterScript");
                 currentY += 25.0f;
-                if (Gui::Button("WYCZYSC SKRYPTY", { padX, currentY }, { elementW - 90.0f, 20.0f })) {
-                    scriptComp->Scripts.clear();
-                }
+                if (Gui::Button("WYCZYSC SKRYPTY", { padX, currentY }, { elementW - 90.0f, 20.0f })) scriptComp->Scripts.clear();
                 currentY += 25.0f;
-
-                if (Gui::Button("USUN SYSTEM SKRYPTOW", { padX, currentY }, { elementW, 25.0f })) {
-                    world.RemoveComponent<NativeScriptComponent>(selected);
-                }
+                if (Gui::Button("USUN SYSTEM SKRYPTOW", { padX, currentY }, { elementW, 25.0f })) world.RemoveComponent<NativeScriptComponent>(selected);
                 currentY += 35.0f;
             }
 
-            // --- PRZYCISKI ZARZĄDZANIA ---
             currentY += 10.0f;
             if (Gui::Button("ZAPISZ JAKO PREFAB", { padX, currentY }, { elementW, 30.0f })) {
                 std::string prefabName = tag ? tag->Tag : "NowyPrefab";
-                std::string path = "CookingStation/Assets/prefabs/" + prefabName + ".json";
+                std::string path = "assets://prefabs/" + prefabName + ".json";
                 PrefabSerializer::Serialize(activeScene.get(), selected, path);
             }
             currentY += 35.0f;
@@ -501,74 +619,56 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- OKNO ZAPISU (ANCHOR: CENTER) ---
+    // --- OKNO ZAPISU ---
     if (m_ShowSaveDialog) {
         glm::vec2 dialogSize = { 350.0f, 150.0f };
         glm::vec2 dialogPos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, dialogSize.x, dialogSize.y, m_ViewportWidth, m_ViewportHeight);
 
-        Gui::Panel(dialogPos, dialogSize, { 0.2f, 0.2f, 0.25f, 1.0f });
+        Gui::Panel(dialogPos, dialogSize, { 0.2f, 0.2f, 0.25f, 1.0f }, 15.0f);
         Gui::DrawGuiText("Zapisz scene jako:", { dialogPos.x + 10.0f, dialogPos.y + 10.0f }, 0.5f, { 1.0f, 1.0f, 1.0f, 1.0f });
         Gui::InputGuiText("Nazwa", m_SaveFileName, { dialogPos.x + 10.0f, dialogPos.y + 50.0f }, { 330.0f, 30.0f });
 
-        if (Gui::Button("Zapisz plik", { dialogPos.x + 10.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) {
-            std::string path = "CookingStation/Assets/saves/" + m_SaveFileName + ".json";
+        if (Gui::Button("Zapisz plik", { dialogPos.x + 10.0f,  dialogPos.y + 100.0f }, { 160.0f, 30.0f })) {
             SceneSerializer serializer(activeScene.get());
-            serializer.Serialize(path);
+            serializer.Serialize("assets://saves/" + m_SaveFileName + ".json");
             m_ShowSaveDialog = false;
         }
         if (Gui::Button("Anuluj", { dialogPos.x + 180.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) m_ShowSaveDialog = false;
     }
 
-    // --- OKNO WCZYTYWANIA (ANCHOR: CENTER) ---
+    // --- OKNO WCZYTYWANIA ---
     if (m_ShowLoadDialog) {
         glm::vec2 dialogSize = { 350.0f, 150.0f };
         glm::vec2 dialogPos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, dialogSize.x, dialogSize.y, m_ViewportWidth, m_ViewportHeight);
 
-        Gui::Panel(dialogPos, dialogSize, { 0.25f, 0.2f, 0.2f, 1.0f });
+        Gui::Panel(dialogPos, dialogSize, { 0.25f, 0.2f, 0.2f, 1.0f }, 15.0f);
         Gui::DrawGuiText("Wczytaj scene:", { dialogPos.x + 10.0f, dialogPos.y + 10.0f }, 0.5f, { 1.0f, 1.0f, 1.0f, 1.0f });
         Gui::InputGuiText("Nazwa", m_LoadFileName, { dialogPos.x + 10.0f, dialogPos.y + 50.0f }, { 330.0f, 30.0f });
 
-        if (Gui::Button("Wczytaj plik", { dialogPos.x + 10.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) {
-            std::string path = "CookingStation/Assets/saves/" + m_LoadFileName + ".json";
+        if (Gui::Button("Wczytaj plik", { dialogPos.x + 10.0f,  dialogPos.y + 100.0f }, { 160.0f, 30.0f })) {
             std::shared_ptr<Scene> newScene = SceneManager::NewScene();
             SceneSerializer serializer(newScene.get());
-            serializer.Deserialize(path);
+            serializer.Deserialize("assets://saves/" + m_LoadFileName + ".json");
             m_ShowLoadDialog = false;
         }
         if (Gui::Button("Anuluj", { dialogPos.x + 180.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) m_ShowLoadDialog = false;
     }
 
+    // --- MENU WIDOKU ---
     if (m_ShowViewMenu) {
-        Renderer2D::DrawQuad({ 100.0f, 30.0f }, { 160.0f, 220.0f }, { 0.2f, 0.2f, 0.2f, 0.9f });
-        if (Gui::Button("Panel Otoczenia", { 105.0f, 35.0f }, { 150.0f, 25.0f }, m_ShowEnvironmentPanel)) {
-            m_ShowEnvironmentPanel = !m_ShowEnvironmentPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Hierarchia", { 105.0f, 65.0f }, { 150.0f, 25.0f }, m_ShowHierarchyPanel)) {
-            m_ShowHierarchyPanel = !m_ShowHierarchyPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Biblioteka", { 105.0f, 95.0f }, { 150.0f, 25.0f }, m_ShowLibraryPanel)) {
-            m_ShowLibraryPanel = !m_ShowLibraryPanel;
-            if (m_ShowPrefabsPanel) m_ShowPrefabsPanel = false;
-            m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Inspektor", { 105.0f, 125.0f }, { 150.0f, 25.0f }, m_ShowInspectorPanel)) {
-            m_ShowInspectorPanel = !m_ShowInspectorPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Diagnostyka", { 105.0f, 155.0f }, { 150.0f, 25.0f }, m_ShowDiagnosticPanel)) {
-            m_ShowDiagnosticPanel = !m_ShowDiagnosticPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Questy", { 105.0f, 185.0f }, { 150.0f, 25.0f }, m_ShowQuestsPanel)) {
-            m_ShowQuestsPanel = !m_ShowQuestsPanel; m_ShowViewMenu = false;
-        }
-        if (Gui::Button("Prefaby", { 105.0f, 215.0f }, { 150.0f, 25.0f }, m_ShowPrefabsPanel)) {
-            m_ShowPrefabsPanel = !m_ShowPrefabsPanel;
-            if (m_ShowLibraryPanel) m_ShowLibraryPanel = false;
-            m_ShowViewMenu = false;
-        }
+        Gui::Panel({ 100.0f, 30.0f }, { 160.0f, 220.0f }, { 0.2f, 0.2f, 0.2f, 0.9f }, 15.0f);
+        if (Gui::Button("Panel Otoczenia", { 105.0f, 35.0f }, { 150.0f, 25.0f }, m_ShowEnvironmentPanel)) { m_ShowEnvironmentPanel = !m_ShowEnvironmentPanel; m_ShowViewMenu = false; }
+        if (Gui::Button("Hierarchia", { 105.0f, 65.0f }, { 150.0f, 25.0f }, m_ShowHierarchyPanel)) { m_ShowHierarchyPanel = !m_ShowHierarchyPanel;   m_ShowViewMenu = false; }
+        if (Gui::Button("Biblioteka", { 105.0f, 95.0f }, { 150.0f, 25.0f }, m_ShowLibraryPanel)) { m_ShowLibraryPanel = !m_ShowLibraryPanel;     if (m_ShowPrefabsPanel) m_ShowPrefabsPanel = false; m_ShowViewMenu = false; }
+        if (Gui::Button("Inspektor", { 105.0f, 125.0f }, { 150.0f, 25.0f }, m_ShowInspectorPanel)) { m_ShowInspectorPanel = !m_ShowInspectorPanel;   m_ShowViewMenu = false; }
+        if (Gui::Button("Diagnostyka", { 105.0f, 155.0f }, { 150.0f, 25.0f }, m_ShowDiagnosticPanel)) { m_ShowDiagnosticPanel = !m_ShowDiagnosticPanel;  m_ShowViewMenu = false; }
+        if (Gui::Button("Questy", { 105.0f, 185.0f }, { 150.0f, 25.0f }, m_ShowQuestsPanel)) { m_ShowQuestsPanel = !m_ShowQuestsPanel;      m_ShowViewMenu = false; }
+        if (Gui::Button("Prefaby", { 105.0f, 215.0f }, { 150.0f, 25.0f }, m_ShowPrefabsPanel)) { m_ShowPrefabsPanel = !m_ShowPrefabsPanel;     if (m_ShowLibraryPanel) m_ShowLibraryPanel = false; m_ShowViewMenu = false; }
     }
 
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);
+    glDisable(GL_BLEND);
     Gui::EndFrame();
 }
 

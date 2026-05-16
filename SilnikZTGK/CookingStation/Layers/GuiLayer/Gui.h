@@ -21,7 +21,7 @@ public:
     static bool DragFloat(const std::string& label, float* value, float dragSpeed, const glm::vec2& pos, const glm::vec2& size);
     static void BeginFrame();
     static bool WantCaptureMouse() { return s_WantCaptureMouse; }
-    static void Panel(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, float radius = 0.0f);
+    static void Panel(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, float radius = 15.0f);
 
 private:
     static std::shared_ptr<Font> s_Font;

@@ -26,14 +26,14 @@ using json = nlohmann::json;
 
 // Wczytuje dane z pliku do pamięci i buduje świat w silniku
 bool SceneSerializer::Deserialize(const std::string& path) {
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        spdlog::error("Nie udalo sie otworzyc pliku {}", path);
+    std::vector<uint8_t> fileData = VFS::ReadFile(path);
+    if (fileData.empty()) {
+        spdlog::error("[SceneSerializer] Nie udalo sie otworzyc pliku przez VFS: {}", path);
         return false;
     }
 
-    // parsowanie tekstu na obiekt json
-    json data = json::parse(file);
+    // Parsowanie bezpośrednio z bufora pamięci RAM
+    json data = json::parse(fileData.begin(), fileData.end());
 
     if (data.contains("settings")) {
         auto& settings = data["settings"];
@@ -306,7 +306,12 @@ void SceneSerializer::Serialize(const std::string& filepath) {
         data["entities"].push_back(item);
     }
 
-    std::ofstream file(filepath);
+    std::string physicalPath = filepath;
+    if (filepath.rfind("assets://", 0) == 0) {
+        physicalPath = "CookingStation/Assets/" + filepath.substr(9);
+    }
+
+    std::ofstream file(physicalPath);
     if (file.is_open()) {
 #ifdef _DEBUG
         file << data.dump(4);

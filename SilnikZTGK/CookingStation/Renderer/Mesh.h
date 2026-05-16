@@ -17,7 +17,7 @@
 #include "CookingStation/Renderer/Buffer.h"
 #include "CookingStation/Renderer/Renderer.h" // Tutaj znajduje się definicja naszej struktury InstanceData
 #include "CookingStation/Renderer/RenderCommand.h"
-#include "CookingStation/Renderer/Texture.h"
+#include "CookingStation/Renderer/Texture2D.h"
 
 using namespace std;
 

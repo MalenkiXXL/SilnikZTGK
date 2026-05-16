@@ -2,20 +2,30 @@
 #include <iostream>
 #include <fstream>
 #include "nlohmann/json.hpp"
+#include "CookingStation/Core/VFS/VFS.h"
 #include "spdlog/spdlog.h"
 #include "CookingStation/Layers/AssetLayer/Animation.h"
 
 std::vector<ModelLibraryEntry> AssetManager::s_Library;
 ShaderLibrary AssetManager::s_Shaders;
 
-void AssetManager::LoadModelLibrary(const std::string& path){
-	std::ifstream file(path);
-	if (!file.is_open()) return;
-	
-	nlohmann::json data = nlohmann::json::parse(file);
-	s_Library.clear();
-	for (auto& item : data["models"]) {
-		s_Library.push_back({ item["name"], item["path"] });
+void AssetManager::LoadModelLibrary(const std::string& path) {
+	// ZMIANA VFS
+	std::vector<uint8_t> fileData = VFS::ReadFile(path);
+	if (fileData.empty()) {
+		spdlog::error("[AssetManager] Nie znaleziono pliku biblioteki modeli VFS: {}", path);
+		return;
+	}
+
+	try {
+		nlohmann::json data = nlohmann::json::parse(fileData.begin(), fileData.end());
+		s_Library.clear();
+		for (auto& item : data["models"]) {
+			s_Library.push_back({ item["name"], item["path"] });
+		}
+	}
+	catch (nlohmann::json::parse_error& e) {
+		spdlog::error("[AssetManager] Blad JSON przy ladowaniu modeli: {}", e.what());
 	}
 }
 
@@ -49,14 +59,15 @@ std::shared_ptr<Texture> AssetManager::GetTexture(const std::string& path) {
 void AssetManager::Clean() {
 	m_Models.clear();
 	m_Textures.clear();
+	m_Textures2D.clear();
 }
 
 void AssetManager::InitCoreAssets() {
 	s_Shaders.Load("ModelShader",
-		"CookingStation/Shaders/vsShaders/shader.vs",
-		"CookingStation/Shaders/fragShaders/shader.frag");
+		"shaders://vsShaders/shader.vs",
+		"shaders://fragShaders/shader.frag");
 
-	spdlog::info("[AssetManager] Zaladowano bazowe shadery.");
+	spdlog::info("[AssetManager] Zaladowano bazowe shadery z systemu VFS.");
 }
 
 std::unordered_map<std::string, std::shared_ptr<Animation>> AssetManager::s_Animations;
@@ -75,4 +86,19 @@ std::shared_ptr<Animation> AssetManager::GetAnimation(const std::string& name) {
 	if (s_Animations.find(name) != s_Animations.end())
 		return s_Animations[name];
 	return nullptr;
+}
+
+std::unordered_map<std::string, std::shared_ptr<Texture2D>> AssetManager::m_Textures2D;
+
+std::shared_ptr<Texture2D> AssetManager::GetTexture2D(const std::string& path) {
+    // 1. Sprawdzamy, czy tekstura jest ju¿ w pamiêci RAM/VRAM
+    auto it = m_Textures2D.find(path);
+    if (it != m_Textures2D.end()) {
+        return it->second; // Zwracamy gotowy wskaŸnik - zero wczytywania!
+    }
+
+    // 2. Jeœli jej nie ma, wczytujemy z VFS i zapisujemy do pamiêci na przysz³oœæ
+    auto tex = std::make_shared<Texture2D>(path);
+    m_Textures2D[path] = tex;
+    return tex;
 }

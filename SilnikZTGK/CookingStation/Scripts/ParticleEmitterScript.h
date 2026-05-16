@@ -1,6 +1,6 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
-#include "CookingStation/Renderer/Texture.h"
+#include "CookingStation/Renderer/Texture2D.h"
 #include <vector>
 #include <glm/glm.hpp>
 #include <cstdlib> // dla funkcji rand()

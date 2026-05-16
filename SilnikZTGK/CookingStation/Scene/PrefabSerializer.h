@@ -75,12 +75,30 @@ public:
         }
     }
 
-    // ODCZYT: Tworzymy now� encj�, wczytujemy dane i wymuszamy spawnPos
     static Entity Deserialize(Scene* scene, const std::string& filepath, const glm::vec3& spawnPos) {
-        std::ifstream file(filepath);
-        if (!file.is_open()) return { std::numeric_limits<std::size_t>::max(), 0 };
+        // --- KULOODPORNY SANITIZER ŚCIEŻEK ---
+        std::string vfsPath = filepath;
+        std::replace(vfsPath.begin(), vfsPath.end(), '\\', '/'); // Zamiana backslashy na ukośniki
 
-        nlohmann::json item = nlohmann::json::parse(file);
+        // Szukamy słowa "Assets/" w dowolnym miejscu ścieżki
+        size_t pos = vfsPath.find("Assets/");
+        if (pos != std::string::npos) {
+            // Ucinamy wszystko do "Assets/" i doklejamy assets://
+            vfsPath = "assets://" + vfsPath.substr(pos + 7); // 7 to długość słowa "Assets/"
+        }
+        // -------------------------------------
+
+        std::vector<uint8_t> fileData = VFS::ReadFile(vfsPath);
+        if (fileData.empty()) {
+            // Jeśli VFS nadal nie zadziała, ten log powie nam całą prawdę
+            spdlog::error("[PrefabSerializer] Blad VFS!");
+            spdlog::error("   -> Oryginal: {}", filepath);
+            spdlog::error("   -> Przerobiona: {}", vfsPath);
+            return { std::numeric_limits<std::size_t>::max(), 0 };
+        }
+
+        // Parsowanie bezpośrednio z pamięci RAM (VFS)
+        nlohmann::json item = nlohmann::json::parse(fileData.begin(), fileData.end());
         auto builder = scene->GetWorld().BuildEntity();
 
         std::string name = item.contains("name") ? item["name"].get<std::string>() : "Prefab";
@@ -115,13 +133,13 @@ public:
 
         if (item.contains("scripts")) {
             NativeScriptComponent nsc;
-            // Iterujemy po li�cie w JSON i dodajemy do komponentu przez nasz nowy Rejestr
+            // Iterujemy po liście w JSON i dodajemy do komponentu przez nasz nowy Rejestr
             for (const auto& scriptName : item["scripts"]) {
                 ScriptRegistry::AddScriptToComponent(nsc, scriptName.get<std::string>());
             }
             builder.With<NativeScriptComponent>(nsc);
         }
-        // Opcjonalnie: kompatybilno�� wsteczna z Twoimi starymi zapisami scen (stary klucz "script")
+        // Opcjonalnie: kompatybilność wsteczna z Twoimi starymi zapisami scen
         else if (item.contains("script")) {
             NativeScriptComponent nsc;
             ScriptRegistry::AddScriptToComponent(nsc, item["script"].get<std::string>());
@@ -129,5 +147,5 @@ public:
         }
 
         return builder.Build();
-    }
-};
+    } // Koniec funkcji Deserialize
+}; // Koniec klasy PrefabSerializer

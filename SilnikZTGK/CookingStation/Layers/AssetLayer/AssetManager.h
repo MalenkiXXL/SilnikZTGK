@@ -9,6 +9,7 @@
 #include "CookingStation/Core/Texture.h"
 #include "CookingStation/Renderer/ShaderLibrary.h"
 #include "CookingStation/Layers/AssetLayer/Animation.h"
+#include "CookingStation/Renderer/Texture2D.h"
 
 struct ModelLibraryEntry {
 	std::string Name;
@@ -27,6 +28,7 @@ public:
 	static std::shared_ptr<Texture> GetTexture(const std::string& path);
 	static std::shared_ptr<Animation> LoadAnimation(const std::string& name, const std::string& path, Model* model);
 	static std::shared_ptr<Animation> GetAnimation(const std::string& name);
+	static std::shared_ptr<Texture2D> GetTexture2D(const std::string& path);
 
 private:
 	static std::unordered_map<std::string, std::shared_ptr<Model>> m_Models;
@@ -34,5 +36,6 @@ private:
 	static ShaderLibrary s_Shaders;
 	static std::unordered_map<std::string, std::shared_ptr<Texture>> m_Textures;
 	static std::unordered_map<std::string, std::shared_ptr<Animation>> s_Animations;
+	static std::unordered_map<std::string, std::shared_ptr<Texture2D>> m_Textures2D;
 };
 

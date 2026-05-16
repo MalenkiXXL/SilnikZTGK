@@ -134,7 +134,7 @@ xcopy /y /d "C:\Silnik\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(Ou
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>CS_DISTRIBUTION;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
@@ -162,7 +162,8 @@ xcopy /y /d "C:\Silnik\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(Ou
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CookingStation\Core\AudioEngine.cpp" />
-    <ClCompile Include="CookingStation\Core\Texture_GUI.cpp" />
+    <ClCompile Include="CookingStation\Core\Texture.cpp" />
+    <ClCompile Include="CookingStation\Core\VFS\PhysicalFileSystem.h" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp" />
     <ClCompile Include="CookingStation\Math\Geometry.cpp" />
@@ -194,7 +195,7 @@ xcopy /y /d "C:\Silnik\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(Ou
     <ClCompile Include="CookingStation\Layers\GuiLayer\Gui.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Renderer2D.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp" />
-    <ClCompile Include="CookingStation\Renderer\Texture.cpp" />
+    <ClCompile Include="CookingStation\Renderer\Texture2D.cpp" />
     <ClCompile Include="CookingStation\Renderer\ShaderLibrary.cpp" />
     <ClCompile Include="CookingStation\Layers\RenderLayer\RendererLayer.cpp" />
     <ClCompile Include="CookingStation\Scene\SceneManager.cpp" />
@@ -207,6 +208,8 @@ xcopy /y /d "C:\Silnik\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(Ou
     <ClInclude Include="CookingStation\Core\Physics.h" />
     <ClInclude Include="CookingStation\Core\Texture.h" />
     <ClInclude Include="CookingStation\Core\Timestep.h" />
+    <ClInclude Include="CookingStation\Core\VFS\IFileSystem.h" />
+    <ClInclude Include="CookingStation\Core\VFS\VFS.h" />
     <ClInclude Include="CookingStation\Events\EditorEvents.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\Command.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\CommandHistory.h" />
@@ -241,7 +244,7 @@ xcopy /y /d "C:\Silnik\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(Ou
     <ClInclude Include="CookingStation\Layers\GuiLayer\Renderer2D.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\Font.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.h" />
-    <ClInclude Include="CookingStation\Renderer\Texture.h" />
+    <ClInclude Include="CookingStation\Renderer\Texture2D.h" />
     <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h" />
     <ClInclude Include="CookingStation\Layers\RenderLayer\RendererLayer.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\EditorLayer.h" />

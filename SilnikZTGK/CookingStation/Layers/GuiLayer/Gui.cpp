@@ -6,7 +6,7 @@
 std::shared_ptr<Font> Gui::s_Font = nullptr;
 float Gui::s_ScreenWidth = 800.0f;
 float Gui::s_ScreenHeight = 600.0f;
-std::string Gui::s_ActiveWidgetID = ""; 
+std::string Gui::s_ActiveWidgetID = "";
 std::string Gui::s_CharacterBuffer = "";
 static std::string s_FloatEditBuffer = "";
 static float s_DragFloatStartMouseX = 0.0f;
@@ -32,10 +32,8 @@ bool Gui::IsMouseOver(const glm::vec2& pos, const glm::vec2& size) {
 		mappedMouse.y >= pos.y && mappedMouse.y <= pos.y + size.y);
 }
 
-
 //przelicza pozycje myszki na wspó³rzêdne GUI
 glm::vec2 Gui::GetMappedMousePos() {
-
 	// pobiera pozycje kursora w pikselach
 	auto mousePos = Input::GetMousePosition();
 
@@ -63,8 +61,6 @@ bool Gui::SliderFloat(const std::string& label, float* value, float min, float m
 			// obliczamy w ktorym miejscu szerokosci jest suwak
 			float t = (mappedMouse.x - pos.x) / size.x;
 
-			// mapujemy wartoœæ t na zakres min-max
-
 			*value = min + t * (max - min);
 
 			// sprawdzamy, czy wartosc nie wyszla poza zakres
@@ -78,59 +74,46 @@ bool Gui::SliderFloat(const std::string& label, float* value, float min, float m
 	// rysowanie podpisu suwaka
 	DrawGuiText(label, { pos.x, pos.y - 15.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-	// rysowanie tla
-	Renderer2D::DrawQuad(pos, size, { 0.2f, 0.2f, 0.2f, 1.0f });
+	// rysowanie tla z wymuszonym zaokr¹gleniem 15.0f
+	Renderer2D::DrawQuad(pos, size, { 0.2f, 0.2f, 0.2f, 1.0f }, 15.0f);
 
 	// obliczanie pozycji uchwytu
 	float handleWidth = 10.0f;
 	float handlePos = ((*value - min) / (max - min)) * size.x;
 
-	// rysowanie uchwytu
-	Renderer2D::DrawQuad({ pos.x + handlePos - (handleWidth / 2.0f), pos.y }, { handleWidth, size.y }, { 0.8f, 0.8f, 0.8f, 1.0f });
+	// rysowanie uchwytu (uchwyt suwaka delikatnie zaokr¹glamy dla spójnoœci)
+	Renderer2D::DrawQuad({ pos.x + handlePos - (handleWidth / 2.0f), pos.y }, { handleWidth, size.y }, { 0.8f, 0.8f, 0.8f, 1.0f }, 4.0f);
 
 	return changed;
 }
 
-
 // rysowanie tekstu na ekranie
-// korzysta z atlasu tekstur czcionki i wspolrzednych UV dla kazdej litery
 void Gui::DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const glm::vec4& color) {
-	// Obliczamy przesuniêcie linii bazowej w dó³. 
-	// czcionka ma rozmiar bazowy 32px, a baseline to ok. 80% jej wysokoœci.
 	float baselineOffset = 32.0f * 0.8f * scale;
 
-	// iterujemy przez ka¿d¹ literê w tekœcie
 	for (char c : text) {
 		if (s_Font->GetCharacters().find(c) != s_Font->GetCharacters().end()) {
 			auto& ch = s_Font->GetChar(c);
 			glm::vec2 size = { ch.Size.x * scale, ch.Size.y * scale };
 
-			// Do pos.y dodajemy baselineOffset, aby opuœciæ w dó³
 			glm::vec2 charPos = {
 				pos.x + (ch.Offset.x * scale),
 				pos.y + baselineOffset + (ch.Offset.y * scale)
 			};
 
-			// Rysujemy quada w obliczonej pozycji
-			Renderer2D::DrawQuad(charPos, size, s_Font->GetTexture(), color, ch.UV_Min, ch.UV_Max);
+			uint32_t fontTextureID = s_Font->GetTexture()->GetRendererID();
+			Renderer2D::DrawQuad(charPos, size, fontTextureID, color, ch.UV_Min, ch.UV_Max);
 
-			// Przesuniêcie pozycji X dla nastêpnego znaku pozostaje bez zmian
 			pos.x += ch.Advance * scale;
 		}
 	}
 }
 
-
 // obs³uguje pola tekstowe, do których mo¿na wpisywaæ dane 
 bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::vec2& pos, const glm::vec2& size) {
-	// detekcja kursora
 	bool hovered = IsMouseOver(pos, size);
-
-	// Unikalny identyfikator tego konkretnego pola (po³¹czenie labela i ewentualnie pozycji, by unikn¹æ duplikatów nazw)
-	// W profesjonalnych silnikach u¿ywa siê do tego hashowania, ale dla nas to wystarczy:
 	std::string widgetID = label + std::to_string(pos.x) + std::to_string(pos.y);
 
-	// Jesli kliknieto lewym przyciskiem myszy...
 	if (Input::IsMouseButtonPressed(0)) {
 		if (hovered) {
 			s_ActiveWidgetID = widgetID;
@@ -144,30 +127,22 @@ bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::
 	}
 
 	bool isActive = (s_ActiveWidgetID == widgetID);
-
-
-	// zmiana koloru tla w zaleznosci od stanu
 	glm::vec4 bgColor = isActive ? glm::vec4(0.2f, 0.2f, 0.2f, 1.0f) : glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
 
-	// rysowanie tla
-	Renderer2D::DrawQuad(pos, size, bgColor);
+	// Rysowanie t³a pola tekstowego z zaokr¹gleniem 15.0f
+	Renderer2D::DrawQuad(pos, size, bgColor, 15.0f);
 
-	// rysowanie podpisu z zawratoœci¹ tekstu (margin 5px)
-	DrawGuiText(label + ": " + value, { pos.x + 5.0f, pos.y + 5.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
+	DrawGuiText(label + ": " + value, { pos.x + 10.0f, pos.y + 5.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-	// jezeli pole jest aktywne, to obsluguje klawiature
 	if (isActive) {
-		// backspace czysci calosc 
 		if (Input::IsKeyPressed(259)) {
 			if (!value.empty()) {
 				value.pop_back();
 			}
 		}
 
-		// obsluga znakow wpisywanych
 		if (!s_CharacterBuffer.empty()) {
 			value += s_CharacterBuffer;
-			// czyscimy bufor, zeby inne rzeczy nie dostaly tych liter
 			s_CharacterBuffer.clear();
 		}
 	}
@@ -175,41 +150,33 @@ bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::
 	return isActive;
 }
 
-
 bool Gui::Button(const std::string& label, const glm::vec2& pos, const glm::vec2& size, bool isActive) {
-
 	bool hovered = IsMouseOver(pos, size);
 	bool clicked = false;
 
-	// Je¿eli przycisk jest aktywny, dajemy mu inny bazowy kolor 
 	glm::vec4 color = isActive ? glm::vec4(0.5f, 0.5f, 0.6f, 1.0f) : glm::vec4(0.3f, 0.3f, 0.3f, 1.0f);
 
-	// Reakcja na najechanie myszk¹ - te¿ rozró¿niamy w³¹czony vs wy³¹czony
 	if (hovered) {
 		color = isActive ? glm::vec4(0.6f, 0.6f, 0.7f, 1.0f) : glm::vec4(0.4f, 0.4f, 0.4f, 1.0f);
 		s_WantCaptureMouse = true;
 	}
 
-	// Reakcja na fizyczne wciœniêcie 
 	if (hovered && Input::IsMouseButtonPressed(0)) {
 		color = glm::vec4(0.2f, 0.2f, 0.2f, 1.0f);
 	}
 
-	// Rejestracja klikniêcia z wykorzystaniem JustPressed
 	if (hovered && Input::IsMouseButtonJustPressed(0)) {
 		clicked = true;
 	}
 
-	// rysujemy tlo 
-	Renderer2D::DrawQuad(pos, size, color);
+	// Rysujemy t³o przycisku z wymuszonym zaokr¹gleniem 15.0f
+	Renderer2D::DrawQuad(pos, size, color, 15.0f);
 
-	// podpisujemy
 	DrawGuiText(label, { pos.x + 10.f, pos.y + 5.f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
 	return clicked;
 }
 
-// dopisuje znak z klawiatury do bufora, który jest potem wykorzystywany przez pola InputGuiText
 void Gui::OnCharTyped(int charcode) {
 	s_CharacterBuffer += (char)charcode;
 }
@@ -223,7 +190,6 @@ bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, con
 	bool changed = false;
 	glm::vec2 mousePos = GetMappedMousePos();
 
-	// 1. Wyjœcie z trybu edycji, jeœli klikniêto gdzieœ indziej
 	if (Input::IsMouseButtonJustPressed(0) && !hovered && s_ActiveWidgetID == widgetID) {
 		if (s_IsInTextMode) {
 			try { *value = std::stof(s_FloatEditBuffer); changed = true; }
@@ -233,7 +199,6 @@ bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, con
 		s_IsInTextMode = false;
 	}
 
-	// 2. Klikniêcie w nasz widget
 	if (Input::IsMouseButtonJustPressed(0) && hovered) {
 		s_ActiveWidgetID = widgetID;
 		s_IsDraggingFloat = false;
@@ -244,10 +209,8 @@ bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, con
 
 	bool isActive = (s_ActiveWidgetID == widgetID);
 
-	// 3. Obs³uga wciœniêtego przycisku (Drag)
 	if (isActive && Input::IsMouseButtonPressed(0) && !s_IsInTextMode) {
 		float delta = mousePos.x - s_DragFloatStartMouseX;
-		// Jeœli przesunêliœmy choæ trochê myszkê - to jest przeci¹ganie
 		if (std::abs(delta) > 2.0f) {
 			s_IsDraggingFloat = true;
 			*value = s_DragFloatStartValue + (delta * dragSpeed);
@@ -255,31 +218,24 @@ bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, con
 		}
 	}
 
-	// 4. Puszczenie przycisku (Wejœcie w tryb tekstowy, jeœli nie by³o przeci¹gania)
 	if (isActive && !Input::IsMouseButtonPressed(0)) {
 		if (!s_IsDraggingFloat && !s_IsInTextMode) {
-			// Zwyk³e, krótkie klikniêcie! W³¹czamy wpisywanie
 			s_IsInTextMode = true;
 			char buffer[32];
 			snprintf(buffer, sizeof(buffer), "%.2f", *value);
 			s_FloatEditBuffer = buffer;
 		}
 		else if (s_IsDraggingFloat) {
-			// Koniec przeci¹gania myszk¹
 			s_ActiveWidgetID = "";
 			s_IsDraggingFloat = false;
 		}
 	}
 
-	// 5. Tryb tekstowy (Wpisywanie z klawiatury)
 	if (isActive && s_IsInTextMode) {
-
-		// Backspace
 		if (Input::IsKeyPressed(259) && !s_FloatEditBuffer.empty()) {
 			s_FloatEditBuffer.pop_back();
 		}
 
-		// Enter - Zatwierdzenie wartoœci
 		if (Input::IsKeyPressed(257)) {
 			try { *value = std::stof(s_FloatEditBuffer); changed = true; }
 			catch (...) {}
@@ -287,7 +243,6 @@ bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, con
 			s_IsInTextMode = false;
 		}
 
-		// Przyjmowanie znaków (tylko cyfry, kropka i minus)
 		if (!s_CharacterBuffer.empty()) {
 			for (char c : s_CharacterBuffer) {
 				if (std::isdigit(c) || c == '.' || c == '-') {
@@ -298,40 +253,35 @@ bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, con
 		}
 	}
 
-	// --- RYSOWANIE WIDGETU ---
-	// Kolor t³a zale¿ny od stanu
 	glm::vec4 bgColor = (isActive && s_IsInTextMode) ? glm::vec4(0.1f, 0.1f, 0.1f, 1.0f) :
 		(hovered ? glm::vec4(0.3f, 0.3f, 0.3f, 1.0f) : glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
 
-	Renderer2D::DrawQuad(pos, size, bgColor);
+	// Rysujemy pole DragFloat z zaokr¹gleniem 15.0f
+	Renderer2D::DrawQuad(pos, size, bgColor, 15.0f);
 
-	// Wyœwietlany tekst
 	std::string displayStr;
 	if (isActive && s_IsInTextMode) {
-		displayStr = s_FloatEditBuffer; // Tryb pisania (pokazujemy bufor w czasie rzeczywistym)
+		displayStr = s_FloatEditBuffer;
 	}
 	else {
 		char buffer[32];
-		snprintf(buffer, sizeof(buffer), "%.2f", *value); // Tryb normalny (zaokr¹glone do 2 miejsc po przecinku)
+		snprintf(buffer, sizeof(buffer), "%.2f", *value);
 		displayStr = buffer;
 	}
 
-	DrawGuiText(label + ": " + displayStr, { pos.x + 5.0f, pos.y + 5.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
+	DrawGuiText(label + ": " + displayStr, { pos.x + 10.0f, pos.y + 5.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
 	return changed;
 }
 
 void Gui::BeginFrame() {
-	// Resetujemy flagê na pocz¹tku ka¿dej klatki
 	s_WantCaptureMouse = false;
 }
 
 void Gui::Panel(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, float radius) {
-	// Je¿eli myszka jest nad panelem, GUI "po³yka" klikniêcie
 	if (IsMouseOver(pos, size)) {
 		s_WantCaptureMouse = true;
 	}
-	// Rysujemy fizyczne t³o
-	if (radius > 0.0f) Renderer2D::DrawQuad(pos, size, color, radius);
-	else Renderer2D::DrawQuad(pos, size, color);
+	// Zawsze przekazujemy promieñ do quada
+	Renderer2D::DrawQuad(pos, size, color, radius);
 }
