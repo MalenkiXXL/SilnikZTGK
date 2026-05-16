@@ -52,19 +52,39 @@ public:
     AABB localAABB;
 
     AABB GetWorldAABB(const glm::mat4& transform) const {
-        glm::vec3 globalCenter = transform * glm::vec4(localAABB.center, 1.0f);
+        // --- POPRAWKA OPTYMALIZACYJNA FPS #2: Transformacja 8 rożków zamiast całej siatki ---
 
-        // Wyciągamy macierz 3x3 dla samej rotacji i skali
-        glm::mat3 m = glm::mat3(transform);
-        // Tworzymy macierz wartości bezwzględnych dla poprawnego skalowania extents
-        glm::mat3 absM(
-            std::abs(m[0][0]), std::abs(m[0][1]), std::abs(m[0][2]),
-            std::abs(m[1][0]), std::abs(m[1][1]), std::abs(m[1][2]),
-            std::abs(m[2][0]), std::abs(m[2][1]), std::abs(m[2][2])
-        );
-        glm::vec3 globalExtents = absM * localAABB.extents;
+        // 1. Odtwarzamy granice Min/Max w Local Space za pomocą środka (center) i wielkości (extents)
+        glm::vec3 minLocal = localAABB.center - localAABB.extents;
+        glm::vec3 maxLocal = localAABB.center + localAABB.extents;
 
-        return { globalCenter, globalExtents };
+        // 2. Definiujemy 8 narożników lokalnego pudełka
+        glm::vec3 corners[8] = {
+            glm::vec3(minLocal.x, minLocal.y, minLocal.z),
+            glm::vec3(maxLocal.x, minLocal.y, minLocal.z),
+            glm::vec3(minLocal.x, maxLocal.y, minLocal.z),
+            glm::vec3(maxLocal.x, maxLocal.y, minLocal.z),
+            glm::vec3(minLocal.x, minLocal.y, maxLocal.z),
+            glm::vec3(maxLocal.x, minLocal.y, maxLocal.z),
+            glm::vec3(minLocal.x, maxLocal.y, maxLocal.z),
+            glm::vec3(maxLocal.x, maxLocal.y, maxLocal.z)
+        };
+
+        // 3. Transformujemy te punkty do przestrzeni świata i wyciągamy nowe skrajne współrzędne
+        glm::vec3 worldMin(std::numeric_limits<float>::max());
+        glm::vec3 worldMax(std::numeric_limits<float>::lowest());
+
+        for (int i = 0; i < 8; i++) {
+            glm::vec3 transformedCorner = glm::vec3(transform * glm::vec4(corners[i], 1.0f));
+            worldMin = glm::min(worldMin, transformedCorner);
+            worldMax = glm::max(worldMax, transformedCorner);
+        }
+
+        AABB resultAABB;
+        resultAABB.center = (worldMin + worldMax) * 0.5f;
+        resultAABB.extents = (worldMax - worldMin) * 0.5f;
+
+        return resultAABB;
     }
 
     // Dane siatki
@@ -80,7 +100,7 @@ public:
         this->indices = indices;
         this->textures = textures;
 
-        // --- ZABEZPIECZONE WYLICZANIE AABB ---
+        // --- ZABEZPIECZONE WYLICZANIE LOKALNEGO AABB (WYKONUJE SIĘ TYLKO RAZ PRZY LOADINGU) ---
         if (vertices.empty()) {
             localAABB.center = glm::vec3(0.0f);
             localAABB.extents = glm::vec3(0.0f);
@@ -97,7 +117,7 @@ public:
             localAABB.center = (minP + maxP) * 0.5f;
             localAABB.extents = (maxP - minP) * 0.5f;
         }
-        // -------------------------------------
+        // -----------------------------------------------------------------------------------
 
         // Po otrzymaniu danych konfigurujemy bufory OpenGL
         setupMesh();

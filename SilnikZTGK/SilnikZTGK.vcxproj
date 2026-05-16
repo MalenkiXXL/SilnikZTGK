@@ -116,6 +116,17 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>xcopy /y /d "C:\Silnik\vcpkg\packages\assimp_x64-windows\bin\assimp-vc143-mt.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\glfw3_x64-windows\bin\glfw3.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\jhasse-poly2tri_x64-windows\bin\poly2tri.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\minizip_x64-windows\bin\minizip.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\zlib_x64-windows\bin\zlib1.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\kubazip_x64-windows\bin\kubazip.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"
+
+</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -137,6 +148,17 @@
       <Command>
       </Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>xcopy /y /d "C:\Silnik\vcpkg\packages\assimp_x64-windows\bin\assimp-vc143-mt.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\glfw3_x64-windows\bin\glfw3.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\jhasse-poly2tri_x64-windows\bin\poly2tri.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\minizip_x64-windows\bin\minizip.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\zlib_x64-windows\bin\zlib1.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\kubazip_x64-windows\bin\kubazip.dll" "$(OutDir)"
+xcopy /y /d "C:\Silnik\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"
+
+</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="CookingStation\Core\AudioEngine.cpp" />

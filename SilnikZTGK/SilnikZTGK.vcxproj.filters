@@ -101,6 +101,7 @@
     <ClInclude Include="CookingStation\Core\GameProgress.h" />
     <ClInclude Include="CookingStation\Scripts\SteamEmitterScript.h" />
     <ClInclude Include="CookingStation\Renderer\UniformBuffer.h" />
+    <ClInclude Include="CookingStation\Scripts\DustEmitterScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

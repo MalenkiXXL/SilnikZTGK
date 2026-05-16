@@ -10,6 +10,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <vector> // <-- DODANE DO OBS£UGI TABLIC MACIERZY
 
 class Shader
 {
@@ -28,7 +29,6 @@ public:
 
         // rzucanie wyj¹tków przy problemach z plikami
         vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-        fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
         try
         {
             // Otwórz pliki
@@ -38,25 +38,22 @@ public:
             // Wczytaj zawartoœæ pliku do strumieni
             vShaderStream << vShaderFile.rdbuf();
             fShaderStream << fShaderFile.rdbuf();
-            // Zamknij uchwyty
+            // Zamknij pliki
             vShaderFile.close();
             fShaderFile.close();
-            // Przekonwertuj strumienie na stringi
+            // Skonwertuj strumienie na stringi
             vertexCode = vShaderStream.str();
             fragmentCode = fShaderStream.str();
         }
-        catch (std::ifstream::failure e)
+        catch (std::ifstream::failure& e)
         {
-            std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+            std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ: " << e.what() << std::endl;
         }
-
         const char* vShaderCode = vertexCode.c_str();
         const char* fShaderCode = fragmentCode.c_str();
 
-        // 2. Kompilacja Shaderów
+        // 2. Kompilacja shaderów
         unsigned int vertex, fragment;
-        int success;
-        char infoLog[512];
 
         // Vertex Shader
         vertex = glCreateShader(GL_VERTEX_SHADER);
@@ -70,14 +67,14 @@ public:
         glCompileShader(fragment);
         checkCompileErrors(fragment, "FRAGMENT");
 
-        // Program Shader (³¹czenie)
+        // Program cieniuj¹cy
         ID = glCreateProgram();
         glAttachShader(ID, vertex);
         glAttachShader(ID, fragment);
         glLinkProgram(ID);
         checkCompileErrors(ID, "PROGRAM");
 
-        // Usuwamy obiekty, bo s¹ ju¿ po³¹czone w Program
+        // Usuñ shadery, bo s¹ ju¿ w³¹czone w program i nie bêd¹ potrzebne
         glDeleteShader(vertex);
         glDeleteShader(fragment);
     }
@@ -88,15 +85,17 @@ public:
         glUseProgram(ID);
     }
 
-    // --- Narzêdzia do ustawiania UNIFORMÓW ---
+    // Funkcje u³atwiaj¹ce wysy³anie danych uniform
     void setBool(const std::string& name, bool value) const
     {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
     }
+
     void setInt(const std::string& name, int value) const
     {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
     }
+
     void setFloat(const std::string& name, float value) const
     {
         glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
@@ -125,6 +124,16 @@ public:
     void SetBool(const std::string& name, bool value) const
     {
         glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+    }
+
+    // ===========================================================================
+    // --- NOWA FUNKCJA: WYSY£ANIE TABLICY MACIERZY W JEDNYM WYO£ANIU (OPTYMALIZACJA FPS) ---
+    // ===========================================================================
+    void setMat4Array(const std::string& name, const std::vector<glm::mat4>& matrices) const
+    {
+        if (matrices.empty()) return;
+        // Wysy³amy ca³¹ zawartoœæ wektora jednym zapytaniem unikaj¹c pêtli
+        glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), (GLsizei)matrices.size(), GL_FALSE, glm::value_ptr(matrices[0]));
     }
 
 private:

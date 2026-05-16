@@ -101,19 +101,19 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
     if (activeScene->GetCamera()) {
         glm::mat4 view = activeScene->GetCamera()->GetViewMatrix();
-        float orthoSize = 10.0f * (activeScene->GetCamera()->Zoom / 45.0f);
+
+        float safeZoom = std::max(activeScene->GetCamera()->Zoom, 1.0f);
+        float orthoSize = 10.0f * (safeZoom / 45.0f);
         glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
         glm::mat4 viewProjection = projection * view;
 
         activeScene->CalculateTransforms();
 
-        // Wysy³amy viewProjection + pozycjê kamery do UBO - shadery dostaj¹ dane automatycznie
         Renderer::BeginScene(viewProjection, activeScene->GetCamera()->Position);
 
         auto stdShader = m_ShaderLibrary.Get(Renderer::ActiveShader);
         auto conveyorShader = m_ShaderLibrary.Get("Conveyor");
 
-        // Jedyna rzecz wymagaj¹ca rêcznego ustawienia per-shader: tekstura rampy (slot tekstury, nie UBO)
         if (Renderer::ActiveShader == "RAMP") {
             m_RampTexture->Bind(10);
         }
@@ -122,7 +122,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
         if (meshStorage && transformStorage) {
 
-            std::unordered_map<Model*, std::pair<std::shared_ptr<Shader>, std::vector<InstanceData>>> instancedBatches;
+            std::unordered_map<Model*, std::unordered_map<std::shared_ptr<Shader>, std::vector<InstanceData>>> instancedBatches;
 
             struct AnimatedDrawCmd {
                 std::shared_ptr<Shader> shader;
@@ -163,16 +163,17 @@ void RendererLayer::OnUpdate(Timestep ts) {
                     }
                     else {
                         Model* modelKey = meshComp.ModelPtr.get();
-                        instancedBatches[modelKey].first = shaderToUse;
-                        instancedBatches[modelKey].second.push_back({ transform->WorldMatrix, currentUVOffset });
+                        instancedBatches[modelKey][shaderToUse].push_back({ transform->WorldMatrix, currentUVOffset });
                     }
                 }
             }
 
-            for (auto& [modelPtr, batchData] : instancedBatches) {
-                batchData.first->use();
-                batchData.first->setBool("u_Animated", false);
-                Renderer::SubmitInstanced(batchData.first, modelPtr, batchData.second);
+            for (auto& [modelPtr, shaderMap] : instancedBatches) {
+                for (auto& [shaderPtr, batchData] : shaderMap) {
+                    shaderPtr->use();
+                    shaderPtr->setBool("u_Animated", false);
+                    Renderer::SubmitInstanced(shaderPtr, modelPtr, batchData);
+                }
             }
 
             for (auto& animDraw : animatedDraws) {
@@ -180,9 +181,11 @@ void RendererLayer::OnUpdate(Timestep ts) {
                 animDraw.shader->setBool("u_Animated", true);
 
                 const auto& finalBones = animDraw.animComp->AnimatorInstance->GetFinalBoneMatrices();
-                for (int j = 0; j < (int)finalBones.size(); ++j) {
-                    animDraw.shader->setMat4("finalBonesMatrices[" + std::to_string(j) + "]", finalBones[j]);
-                }
+
+                // ==========================================================
+                // --- POPRAWKA: Wysy³anie ca³ej tablicy naraz zamiast pêtli!
+                // ==========================================================
+                animDraw.shader->setMat4Array("finalBonesMatrices", finalBones);
 
                 std::vector<InstanceData> singleInstance = { animDraw.instanceData };
                 Renderer::SubmitInstanced(animDraw.shader, animDraw.model, singleInstance);
@@ -210,25 +213,28 @@ void RendererLayer::OnUpdate(Timestep ts) {
                 {
                     if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript" || scriptEl.Name == "DustEmitterScript") && scriptEl.Instance)
                     {
-                        ParticleEmitterScript* emitter = static_cast<ParticleEmitterScript*>(scriptEl.Instance);
+                        ParticleEmitterScript* emitter = dynamic_cast<ParticleEmitterScript*>(scriptEl.Instance);
 
-                        for (const auto& particle : emitter->GetParticles())
+                        if (emitter)
                         {
-                            if (!particle.Active) continue;
+                            for (const auto& particle : emitter->GetParticles())
+                            {
+                                if (!particle.Active || particle.LifeTime <= 0.0001f) continue;
 
-                            float lifeRatio = particle.LifeRemaining / particle.LifeTime;
-                            float currentSize = glm::mix(particle.SizeEnd, particle.SizeBegin, lifeRatio);
-                            glm::vec4 currentColor = glm::mix(particle.ColorEnd, particle.ColorBegin, lifeRatio);
+                                float lifeRatio = particle.LifeRemaining / particle.LifeTime;
+                                float currentSize = glm::mix(particle.SizeEnd, particle.SizeBegin, lifeRatio);
+                                glm::vec4 currentColor = glm::mix(particle.ColorEnd, particle.ColorBegin, lifeRatio);
 
-                            glm::mat4 transform = glm::translate(glm::mat4(1.0f), particle.Position);
-                            transform[0] = glm::vec4(camRight * currentSize, 0.0f);
-                            transform[1] = glm::vec4(camUp * currentSize, 0.0f);
-                            transform[2] = glm::vec4(glm::cross(camRight, camUp) * currentSize, 0.0f);
+                                glm::mat4 transform = glm::translate(glm::mat4(1.0f), particle.Position);
+                                transform[0] = glm::vec4(camRight * currentSize, 0.0f);
+                                transform[1] = glm::vec4(camUp * currentSize, 0.0f);
+                                transform[2] = glm::vec4(glm::cross(camRight, camUp) * currentSize, 0.0f);
 
-                            if (particle.TextureID != 0)
-                                Renderer2D::DrawQuad(transform, particle.TextureID, currentColor);
-                            else
-                                Renderer2D::DrawQuad(transform, currentColor);
+                                if (particle.TextureID != 0)
+                                    Renderer2D::DrawQuad(transform, particle.TextureID, currentColor);
+                                else
+                                    Renderer2D::DrawQuad(transform, currentColor);
+                            }
                         }
                     }
                 }
