@@ -44,6 +44,10 @@ public:
     float MouseSensitivity;
     float Zoom; // zachowujemy dla kompatybilnosci, ale ortho uzywa OrthoSize
 
+    glm::vec3 TargetPosition;
+    float     TargetOrthoSize = 10.0f;
+
+
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f),
         glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f),
         float yaw = YAW, float pitch = PITCH)
@@ -51,6 +55,7 @@ public:
         MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
     {
         Position = position;
+        TargetPosition = position;
         WorldUp = up;
         Yaw = yaw;
         Pitch = pitch;
@@ -64,6 +69,7 @@ public:
         MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
     {
         Position = glm::vec3(posX, posY, posZ);
+        TargetPosition = Position;
         WorldUp = glm::vec3(upX, upY, upZ);
         Yaw = yaw;
         Pitch = pitch;
@@ -89,15 +95,22 @@ public:
         return m_Frustum;
     }
 
+    void UpdateLerp(float deltaTime, float lerpSpeed = 5.0f)
+    {
+        Position  = glm::mix(Position,  TargetPosition,  glm::clamp(lerpSpeed * deltaTime, 0.0f, 1.0f));
+        OrthoSize = glm::mix(OrthoSize, TargetOrthoSize, glm::clamp(lerpSpeed * deltaTime, 0.0f, 1.0f));
+        UpdateFrustum();
+    }
+
+
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
-        float velocity = MovementSpeed * deltaTime;
-        if (direction == FORWARD)  Position += Front * velocity;
-        if (direction == BACKWARD) Position -= Front * velocity;
-        if (direction == LEFT)     Position -= Right * velocity;
-        if (direction == RIGHT)    Position += Right * velocity;
-        if (direction == UP)       Position += Up * velocity;
-        if (direction == DOWN)     Position -= Up * velocity;
+        if (direction == FORWARD)  TargetPosition += Front * deltaTime;
+        if (direction == BACKWARD) TargetPosition -= Front * deltaTime;
+        if (direction == LEFT)     TargetPosition -= Right * deltaTime;
+        if (direction == RIGHT)    TargetPosition += Right * deltaTime;
+        if (direction == UP)       TargetPosition += Up * deltaTime;
+        if (direction == DOWN)     TargetPosition -= Up * deltaTime;
         UpdateFrustum();
     }
 
@@ -117,9 +130,9 @@ public:
 
     void ProcessMouseScroll(float yoffset)
     {
-        OrthoSize -= yoffset * 0.8f;
-        if (OrthoSize < 2.0f)  OrthoSize = 2.0f;
-        if (OrthoSize > 40.0f) OrthoSize = 40.0f;
+        TargetOrthoSize -= yoffset * 0.8f;
+        if (TargetOrthoSize <  2.0f) TargetOrthoSize =  2.0f;
+        if (TargetOrthoSize > 40.0f) TargetOrthoSize = 40.0f;
         UpdateFrustum();
     }
 
@@ -127,7 +140,7 @@ private:
     Frustum m_Frustum;
     void UpdateFrustum()
     {
-        // Generujemy po³¹czon¹ macierz P * V i wyci¹gamy z niej p³aszczyzny
+        // Generujemy poï¿½ï¿½czonï¿½ macierz P * V i wyciï¿½gamy z niej pï¿½aszczyzny
         glm::mat4 viewProj = GetProjectionMatrix() * GetViewMatrix();
         m_Frustum = ExtractFrustum(viewProj);
     }
