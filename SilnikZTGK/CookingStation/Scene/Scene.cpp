@@ -10,10 +10,10 @@
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Renderer/Model.h"          
 #include "glm/gtc/matrix_transform.hpp"
-#include "CookingStation/Scripts/ConveyorScript.h"
+#include "SilnikZTGK/CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
 #include "CookingStation/Layers/AssetLayer/Animation.h"
 #include "CookingStation/Layers/GameLayer/Animator.h"
-#include "CookingStation/Scripts/GameManagerScript.h"
+#include "SilnikZTGK/CookingStation/Scripts/Managers/GameManagerScript.h"
 
 #include <iostream> 
 

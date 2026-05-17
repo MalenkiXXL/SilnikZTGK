@@ -47,6 +47,7 @@ private:
     std::shared_ptr<Texture> m_BookInsideIcon;
     std::shared_ptr<Texture> m_BookXIcon;
     std::shared_ptr<Texture> m_TomatoSoupIcon;
+    std::shared_ptr<Texture> m_CheeseIcon;
 
     struct BubblyState {
         float scale = 1.0f;

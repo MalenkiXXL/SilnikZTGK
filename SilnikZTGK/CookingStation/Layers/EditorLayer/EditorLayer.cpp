@@ -16,7 +16,7 @@
 #include <functional> 
 #include <chrono>
 #include "CookingStation/Core/GridSystem.h"
-#include <CookingStation/Scripts/ConveyorScript.h>
+#include "SilnikZTGK/CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
 
 float GridSystem::CELL_SIZE = 2.0f;

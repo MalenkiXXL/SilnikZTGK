@@ -1,7 +1,7 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include <glm/glm.hpp>
-#include <CookingStation/Core/Input.h>
+#include "SilnikZTGK/CookingStation/Core/Input.h"
 
 struct AngleDirection {
     float angle;
@@ -58,7 +58,7 @@ public:
 
         auto& conveyorMap = GetScene()->GetConveyorMap();
 
-        // Logika szukania s¹siadów do zwrotnicy
+        // Logika szukania sï¿½siadï¿½w do zwrotnicy
         float validAngles[4];
         int validCount = 0;
         int neighborCount = 0;
@@ -78,7 +78,7 @@ public:
 
             neighborCount++;
 
-            // Nie skrêcajmy "pod pr¹d" s¹siada (czo³ówka)
+            // Nie skrï¿½cajmy "pod prï¿½d" sï¿½siada (czoï¿½ï¿½wka)
             ConveyorScript* neighbor = it->second;
             bool isHeadOn = (glm::dot(m.direction, neighbor->PushDirection) < -0.9f);
 
@@ -88,7 +88,7 @@ public:
             }
         }
 
-        // Zmiana kierunku tylko jeœli to faktycznie skrzy¿owanie/zwrotnica
+        // Zmiana kierunku tylko jeï¿½li to faktycznie skrzyï¿½owanie/zwrotnica
         if (neighborCount >= 3 && validCount > 0)
         {
             float currentRot = transform->GetRotation().y;

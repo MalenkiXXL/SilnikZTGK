@@ -10,9 +10,9 @@
 #include <nlohmann/json.hpp>
 
 #include "CookingStation/Scripts/RotationScript.h"
-#include "CookingStation/Scripts/ConveyorScript.h"
-#include "CookingStation/Scripts/BeltVisualScript.h"
-#include "CookingStation/Scripts/ItemScript.h"
+#include "SilnikZTGK/CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
+#include "SilnikZTGK/CookingStation/Scripts/ConveyorBelt/BeltVisualScript.h"
+#include "SilnikZTGK/CookingStation/Scripts/Plates/ItemScript.h"
 #include "CookingStation/Scripts/PotScript.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
 // DODANO NAGŁÓWKI ANIMACJI

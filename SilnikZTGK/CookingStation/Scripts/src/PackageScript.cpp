@@ -1,5 +1,5 @@
-#include "CookingStation/Scripts/PackageScript.h"
-#include "CookingStation/Scripts/GameManagerScript.h"
+#include "SilnikZTGK/CookingStation/Scripts/Delivery/PackageScript.h"
+#include "SilnikZTGK/CookingStation/Scripts/Managers/GameManagerScript.h"
 #include <spdlog/spdlog.h>
 
 void PackageScript::OnClick()
@@ -8,7 +8,7 @@ void PackageScript::OnClick()
     if (GameManagerScript::s_Instance != nullptr)
     {
         // 2. Dodajemy wybraną ilość składników
-        GameManagerScript::s_Instance->AddIngredients(m_IngredientAmount);
+        GameManagerScript::s_Instance->AddIngredients(m_Type, m_IngredientAmount);
 
         spdlog::info("Gracz zebrał paczkę!");
 

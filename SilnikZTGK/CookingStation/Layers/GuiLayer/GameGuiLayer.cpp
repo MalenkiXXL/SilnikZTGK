@@ -11,7 +11,7 @@
 #include <algorithm> 
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Core/GameProgress.h"
-#include "CookingStation/Scripts/GameManagerScript.h"
+#include "SilnikZTGK/CookingStation/Scripts/Managers/GameManagerScript.h"
 
 // Dodajemy VFS
 #include "CookingStation/Core/VFS/VFS.h"
@@ -49,6 +49,7 @@ void GameGuiLayer::OnAttach() {
     m_BookInsideIcon = AssetManager::GetTexture("assets://UI/bookInside.png");
     m_BookXIcon = AssetManager::GetTexture("assets://UI/bookX.png");
     m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
+    m_CheeseIcon = AssetManager::GetTexture("assets://UI/Cheese.png");
 }
 
 bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier, glm::vec4 tintColor)
@@ -185,25 +186,45 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
         DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
 
+
+        float ingredientSizeXY = baseIconSize.y * 0.3f;
+        glm::vec2 ingredientSize = { ingredientSizeXY, ingredientSizeXY };
+
+        // Zaczynamy tam, gdzie wcześniej był pomidor
+        glm::vec2 currentPos = {
+                leftPosBase.x + (baseIconSize.x * 0.5f) - (ingredientSize.x * 0.5f),
+                leftPosBase.y + (baseIconSize.y * 0.5f) - (ingredientSize.y * 0.5f)
+        };
+
+        float spacing = 15.0f * baseScale;
+
         // Rysujemy składniki na lewej chmurze
+        // --- 1. POMIDOR ---
         if (m_TomatoIcon) {
-            float tomatoBaseH = baseIconSize.y * 0.3f;
-            glm::vec2 tomatoBaseSize = { tomatoBaseH, tomatoBaseH };
-            glm::vec2 tomatoBasePos = {
-                leftPosBase.x + (baseIconSize.x * 0.5f) - (tomatoBaseSize.x * 0.5f),
-                leftPosBase.y + (baseIconSize.y * 0.5f) - (tomatoBaseSize.y * 0.5f)
-            };
+            int count = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(IngredientType::Tomato) : 0;
 
-            //Licznik
-            int tomatoCount = 0;
-            if (GameManagerScript::s_Instance != nullptr) {
-                tomatoCount = GameManagerScript::s_Instance->m_CurrentIngredients;
-            }
-
-            if (DrawIngredientIcon("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, baseScale, tomatoCount)) {
+            if (DrawIngredientIcon("BtnTomato", m_TomatoIcon, currentPos, ingredientSize, dt, baseScale, count)) {
                 spdlog::info("UI: Wyciągnięto pomidora!");
                 DragAndDropScript::StartDrag(IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf");
             }
+
+            // Przesuwamy pozycję w prawo dla następnego
+            currentPos.x += ingredientSize.x + spacing;
+            currentPos.y += 100.0f * baseScale;
+        }
+
+        // --- 2. SER ---
+        if (m_CheeseIcon) {
+            int count = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(IngredientType::Cheese) : 0;
+
+            if (DrawIngredientIcon("BtnCheese", m_CheeseIcon, currentPos, ingredientSize, dt, baseScale, count)) {
+                spdlog::info("UI: Wyciągnięto ser!");
+                DragAndDropScript::StartDrag(IngredientType::Cheese, "assets://models/skladniki/ser/ser.gltf");
+            }
+
+            // Przesuwamy pozycję w prawo dla następnego
+            currentPos.x += ingredientSize.x + spacing;
+            currentPos.y += 100.0f * baseScale;
         }
     }
 

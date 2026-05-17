@@ -1,5 +1,5 @@
-#include "CookingStation/Scripts/GameManagerScript.h"
-#include "CookingStation/Scripts/DeliveryCarScript.h"
+#include "SilnikZTGK/CookingStation/Scripts/Managers/GameManagerScript.h"
+#include "SilnikZTGK/CookingStation/Scripts/Delivery/DeliveryCarScript.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
 #include <spdlog/spdlog.h>
 
@@ -11,27 +11,35 @@ void GameManagerScript::OnCreate()
 
 void GameManagerScript::OnUpdate(Timestep ts)
 {
-    if (m_CurrentIngredients <= 0 && !m_IsDeliveryOnTheWay)
+    if (GetIngredientCount(IngredientType::Tomato) <= 0 && !m_IsDeliveryOnTheWay)
     {
         CallForDelivery();
     }
 }
 
-void GameManagerScript::AddIngredients(int amount)
+void GameManagerScript::AddIngredients(IngredientType type, int amount)
 {
-    m_CurrentIngredients += amount;
+    m_Inventory[type] += amount;
     m_IsDeliveryOnTheWay = false;
-    spdlog::info("Dodano składniki! Obecnie: {}", m_CurrentIngredients);
+    spdlog::info("Dodano składniki! Obecnie: {}",  m_Inventory[type]);
 }
 
-void GameManagerScript::UseIngredient()
+void GameManagerScript::UseIngredient(IngredientType type, int amount)
 {
-    if (m_CurrentIngredients > 0)
+    if (m_Inventory[type] >= amount)
     {
-        m_CurrentIngredients--;
-        spdlog::info("Zużyto składnik! Zostało: {}", m_CurrentIngredients);
+        m_Inventory[type] -= amount;
     }
 }
+int GameManagerScript::GetIngredientCount(IngredientType type)
+{
+    if (m_Inventory.count(type) > 0)
+    {
+        return m_Inventory[type];
+    }
+    return 0;
+}
+
 
 void GameManagerScript::CallForDelivery()
 {

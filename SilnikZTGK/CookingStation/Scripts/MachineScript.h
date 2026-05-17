@@ -4,10 +4,9 @@
 #include "CookingStation/Core/GridSystem.h"
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Layers/CameraLayer/Camera.h"
+#include "CookingStation/Scripts/Managers/IngredientType.h"
 #include <vector>
 #include <glm/glm.hpp>
-
-enum class IngredientType { Tomato, None };
 
 class MachineScript : public ScriptableEntity
 {
@@ -91,7 +90,7 @@ protected:
         Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 999.0f;
 
-        // 1. Pobieramy pozycjê garnka na SIATCE
+        // 1. Pobieramy pozycjï¿½ garnka na SIATCE
         glm::ivec2 myCell = GridSystem::WorldToCell(myTransform->GetPosition());
 
         auto* tagSet = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -106,13 +105,13 @@ protected:
 
                     if (plateTransform)
                     {
-                        // Pobieramy pozycjê talerza na siatce
+                        // Pobieramy pozycjï¿½ talerza na siatce
                         glm::ivec2 plateCell = GridSystem::WorldToCell(plateTransform->GetPosition());
 
-                        // Czy talerz jest o max 1 pole dalej w osi X i 1 w osi Y? (8 pól dooko³a)
+                        // Czy talerz jest o max 1 pole dalej w osi X i 1 w osi Y? (8 pï¿½l dookoï¿½a)
                         if (std::abs(myCell.x - plateCell.x) <= 1 && std::abs(myCell.y - plateCell.y) <= 1)
                         {
-                            // Jeœli jest kilka talerzy w s¹siedztwie, wybierz fizycznie najbli¿szy
+                            // Jeï¿½li jest kilka talerzy w sï¿½siedztwie, wybierz fizycznie najbliï¿½szy
                             float dist = glm::distance(myTransform->GetPosition(), plateTransform->GetPosition());
                             if (dist < closestDist)
                             {
