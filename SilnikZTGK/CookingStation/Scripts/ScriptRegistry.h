@@ -17,6 +17,7 @@
 #include "CookingStation/Scripts/DustEmitterScript.h"
 #include "CookingStation/Scripts/DeliveryCarScript.h"
 #include "CookingStation/Scripts/GameManagerScript.h"
+#include "CookingStation/Scripts/PackageScript.h"
 #include "DragAndDropScript.h"
 #include "MushroomAI.h"
 #include "CustomerManagerScript.h"
@@ -60,6 +61,7 @@ public:
         Register<DustEmitterScript>("DustEmitterScript");
         Register<DeliveryCarScript>("DeliveryCarScript");
         Register<GameManagerScript>("GameManagerScript");
+        Register<PackageScript>("PackageScript");
     }
 
     static void AddScriptToComponent(NativeScriptComponent& nsc, const std::string& name)

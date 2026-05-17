@@ -5,6 +5,8 @@
 class GameManagerScript : public ScriptableEntity
 {
 public:
+    inline static GameManagerScript* s_Instance = nullptr;
+
     int m_CurrentIngredients = 0;
     bool m_IsDeliveryOnTheWay = false;
 

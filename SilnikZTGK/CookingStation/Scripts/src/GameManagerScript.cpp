@@ -5,7 +5,8 @@
 
 void GameManagerScript::OnCreate()
 {
-    spdlog::info("GameManager uruchomiony! Tworzę dostawczaka...");
+    s_Instance = this;
+    spdlog::info("GameManager uruchomiony!");
 }
 
 void GameManagerScript::OnUpdate(Timestep ts)
