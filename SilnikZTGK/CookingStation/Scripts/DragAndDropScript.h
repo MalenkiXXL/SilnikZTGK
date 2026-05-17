@@ -5,6 +5,7 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Scripts/MachineScript.h"
 #include "CookingStation/Scripts/PotScript.h"
+#include "CookingStation/Scripts/GameManagerScript.h"
 #include <glm/glm.hpp>
 #include <limits> 
 
@@ -116,6 +117,9 @@ private:
         if (closestPot.id != std::numeric_limits<std::size_t>::max() && targetPotScript) {
             if (targetPotScript->AddIngredient(CurrentIngredient)) {
                 spdlog::info("Skladnik pomyslnie wrzucony do garnka!");
+                if (GameManagerScript::s_Instance != nullptr) {
+                    GameManagerScript::s_Instance->UseIngredient();
+                }
                 CancelDrag();
             }
             else {

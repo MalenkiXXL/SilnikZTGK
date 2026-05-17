@@ -4,7 +4,7 @@
 
 void PackageScript::OnClick()
 {
-    // 1. Sprawdzamy czy Manager gry istnieje
+    // 1. Sprawdzamy, czy Manager gry istnieje
     if (GameManagerScript::s_Instance != nullptr)
     {
         // 2. Dodajemy wybraną ilość składników
@@ -12,7 +12,19 @@ void PackageScript::OnClick()
 
         spdlog::info("Gracz zebrał paczkę!");
 
-        // 3. Usuwamy paczkę ze sceny, żeby zniknęła
+        std::vector<Entity> allPackages = s_ActivePackages;
+        s_ActivePackages.clear();
+
+        // 3. Niszczymy WSZYSTKIE INNE paczki
+        for (Entity e : allPackages)
+        {
+            if (e.id != m_Entity.id)
+            {
+                GetScene()->GetWorld().DestroyEntity(e);
+            }
+        }
+
+        // 4. Usuwamy paczkę ze sceny, żeby zniknęła
         GetScene()->GetWorld().DestroyEntity(m_Entity);
     }
     else

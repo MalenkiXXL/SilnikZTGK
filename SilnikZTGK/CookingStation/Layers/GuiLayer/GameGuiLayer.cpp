@@ -11,6 +11,7 @@
 #include <algorithm> 
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Core/GameProgress.h"
+#include "CookingStation/Scripts/GameManagerScript.h"
 
 // Dodajemy VFS
 #include "CookingStation/Core/VFS/VFS.h"
@@ -192,9 +193,15 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                 leftPosBase.x + (baseIconSize.x * 0.5f) - (tomatoBaseSize.x * 0.5f),
                 leftPosBase.y + (baseIconSize.y * 0.5f) - (tomatoBaseSize.y * 0.5f)
             };
-            if (DrawBubblyImage("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, 1.30f, true)) {
+
+            //Licznik
+            int tomatoCount = 0;
+            if (GameManagerScript::s_Instance != nullptr) {
+                tomatoCount = GameManagerScript::s_Instance->m_CurrentIngredients;
+            }
+
+            if (DrawIngredientIcon("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, baseScale, tomatoCount)) {
                 spdlog::info("UI: Wyciągnięto pomidora!");
-                // ZMIANA VFS: Zmieniono twardą ścieżkę na VFS
                 DragAndDropScript::StartDrag(IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf");
             }
         }
@@ -355,4 +362,39 @@ void GameGuiLayer::ReloadQuests() {
     else {
         spdlog::error("GameUiLayer: Nie udalo sie otworzyc pliku z questami przez VFS!");
     }
+}
+
+
+bool GameGuiLayer::DrawIngredientIcon(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float baseScale, int count)
+{
+    bool isClicked = DrawBubblyImage(id, icon, basePos, baseSize, dt, 1.30f, true);
+
+    auto mousePos = Input::GetMousePosition();
+    glm::vec2 center = { basePos.x + baseSize.x * 0.5f, basePos.y + baseSize.y * 0.5f };
+
+    float hitRadius = std::min(baseSize.x, baseSize.y) * 0.5f;
+
+    float distX = mousePos.first - center.x;
+    float distY = mousePos.second - center.y;
+    bool isHovered = (distX * distX + distY * distY) <= (hitRadius * hitRadius);
+
+    if (isHovered) {
+        std::string countText = "x" + std::to_string(count);
+        float textScale = 1.2f * baseScale;
+
+        // LEWY GÓRNY RÓG pomidora
+        glm::vec2 textPos = {
+                basePos.x + (baseSize.x * 0.05f),
+                basePos.y + (baseSize.y * 0.25f)
+        };
+
+        // Cień
+        glm::vec2 shadowPos = { textPos.x + 3.0f, textPos.y + 3.0f };
+        Gui::DrawGuiText(countText, shadowPos, textScale, { 0.1f, 0.1f, 0.1f, 0.9f });
+
+        // Jasny tekst na wierzchu
+        Gui::DrawGuiText(countText, textPos, textScale, { 1.0f, 0.95f, 0.9f, 1.0f });
+    }
+
+    return isClicked;
 }
