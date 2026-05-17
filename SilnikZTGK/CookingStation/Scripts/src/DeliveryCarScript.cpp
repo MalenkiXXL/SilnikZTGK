@@ -7,12 +7,7 @@
 
 void DeliveryCarScript::OnCreate()
 {
-    s_Instance = this;
-
-    auto* transform = GetComponent<TransformComponent>();
-    if (transform) {
-        transform->SetPosition(m_StartPos);
-    }
+    spdlog::info("Dostawczak wyruszył w drogę!");
 }
 
 void DeliveryCarScript::OnUpdate(Timestep ts)
@@ -24,17 +19,6 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
     switch (m_State)
     {
-        case DeliveryState::IDLE:
-        {
-            if (NeedsDelivery)
-            {
-                m_State = DeliveryState::DRIVING_IN;
-                NeedsDelivery = false;
-                spdlog::info("Dostawczak wyruszył w drogę!");
-            }
-            break;
-        }
-
         case DeliveryState::DRIVING_IN:
         {
             glm::vec3 dir = m_DropPos - currentPos;
@@ -73,9 +57,8 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
             if (dist < 0.1f)
             {
-                transform->SetPosition(m_ExitPos);
-                m_State = DeliveryState::IDLE;
-                spdlog::info("Dostawczak opuścił mapę.");
+                spdlog::info("Dostawczak opuścił mapę. Niszczenie encji...");
+                GetScene()->GetWorld().DestroyEntity(m_Entity);
             }
             else
             {

@@ -6,9 +6,6 @@
 void GameManagerScript::OnCreate()
 {
     spdlog::info("GameManager uruchomiony! Tworzę dostawczaka...");
-
-    glm::vec3 startPos = { -30.0f, 2.0f, 5.0f };
-    PrefabSerializer::Deserialize(GetScene(), m_VanPrefabPath, startPos);
 }
 
 void GameManagerScript::OnUpdate(Timestep ts)
@@ -37,17 +34,9 @@ void GameManagerScript::UseIngredient()
 
 void GameManagerScript::CallForDelivery()
 {
-    if (DeliveryCarScript::s_Instance != nullptr)
-    {
-        if (DeliveryCarScript::s_Instance->m_State == DeliveryState::IDLE)
-        {
-            DeliveryCarScript::s_Instance->NeedsDelivery = true;
-            m_IsDeliveryOnTheWay = true;
-            spdlog::info("GameManager: Brak składników! Zamówiono dostawę.");
-        }
-    }
-    else
-    {
-        spdlog::warn("GameManager: Czekam na wczytanie dostawczaka...");
-    }
+    glm::vec3 startPos = DeliveryCarScript::m_StartPos;
+    PrefabSerializer::Deserialize(GetScene(), m_VanPrefabPath, startPos);
+
+    m_IsDeliveryOnTheWay = true;
+    spdlog::info("GameManager: Brak składników! Wysłano nowego dostawczaka.");
 }
