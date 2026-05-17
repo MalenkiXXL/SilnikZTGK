@@ -15,6 +15,8 @@
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
 #include "CookingStation/Scripts/SteamEmitterScript.h"
 #include "CookingStation/Scripts/DustEmitterScript.h"
+#include "CookingStation/Scripts/DeliveryCarScript.h"
+#include "CookingStation/Scripts/GameManagerScript.h"
 #include "DragAndDropScript.h"
 #include "MushroomAI.h"
 #include "CustomerManagerScript.h"
@@ -42,7 +44,7 @@ public:
 
     static void Init()
     {
-        // Tu dodajesz ka¿dy nowy skrypt
+        // Tu dodajesz kaï¿½dy nowy skrypt
         Register<RotationScript>("RotationScript");
         Register<ConveyorScript>("ConveyorScript");
         Register<ItemScript>("ItemScript");
@@ -56,6 +58,8 @@ public:
         Register<CustomerScript>("CustomerScript");
         Register<SteamEmitterScript>("SteamEmitterScript");
         Register<DustEmitterScript>("DustEmitterScript");
+        Register<DeliveryCarScript>("DeliveryCarScript");
+        Register<GameManagerScript>("GameManagerScript");
     }
 
     static void AddScriptToComponent(NativeScriptComponent& nsc, const std::string& name)

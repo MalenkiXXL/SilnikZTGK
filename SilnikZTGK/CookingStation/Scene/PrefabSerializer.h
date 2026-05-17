@@ -5,10 +5,6 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
-#include "CookingStation/Scripts/RotationScript.h"
-#include "CookingStation/Scripts/ConveyorScript.h"
-#include "CookingStation/Scripts/ItemScript.h"
-#include "CookingStation/Scripts/BeltVisualScript.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
 
 class PrefabSerializer {

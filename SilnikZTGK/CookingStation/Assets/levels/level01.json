@@ -486,7 +486,8 @@
             "model_path": "CookingStation/Assets/models/dostawa/dostawczak.gltf",
             "position": [ -11.0, 2.0, 5.0 ],
             "rotation": [ 0.0, -90.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
+            "scale": [ 1.0, 1.0, 1.0 ],
+            "script": "DeliveryCarScript"
         },
         {
             "id": 52,
@@ -777,22 +778,6 @@
           ]
         },
         {
-            "id": 81,
-            "model_path": "CookingStation/Assets/models/dostawa/paczka.gltf",
-            "name": "paczka_1",
-            "position": [ -9.0, 1.0, 4.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
-        },
-        {
-            "id": 82,
-            "model_path": "CookingStation/Assets/models/dostawa/paczka.gltf",
-            "name": "paczka_2",
-            "position": [ -9.0, 1.0, 6.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
-        },
-        {
             "id": 83,
             "model_path": "CookingStation/Assets/models/wystroj/budka.gltf",
             "name": "budka",
@@ -911,6 +896,14 @@
             "position": [ 9.0, 0.0, -9.0 ],
             "rotation": [ 0.0, 0.0, 0.0 ],
             "scale": [ 1.0, 1.0, 1.0 ]
+        },
+        {
+            "id": 999,
+            "name": "Global_GameManager",
+            "position": [ 0.0, 0.0, 0.0 ],
+            "rotation": [ 0.0, 0.0, 0.0 ],
+            "scale": [ 1.0, 1.0, 1.0 ],
+            "script": "GameManagerScript"
         }
     ]
 }
