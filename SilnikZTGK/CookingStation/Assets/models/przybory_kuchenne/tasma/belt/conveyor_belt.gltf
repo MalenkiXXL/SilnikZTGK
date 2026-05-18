@@ -15,7 +15,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Plane",
+			"name":"Plane.001",
 			"rotation":[
 				0,
 				0.7071068286895752,
@@ -39,7 +39,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Plane",
+			"name":"Plane.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -63,68 +63,68 @@
 		{
 			"mimeType":"image/png",
 			"name":"a",
-			"uri":"a.png"
+			"uri":"../texture/a.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":4,
+			"count":44,
 			"max":[
-				1,
-				1,
-				1
+				0.9593957662582397,
+				1.0010000467300415,
+				1.0017447471618652
 			],
 			"min":[
-				-1,
-				1,
-				-1
+				-0.9602144360542297,
+				0.9303386211395264,
+				-1.0003511905670166
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":4,
+			"count":44,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":4,
+			"count":44,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":6,
+			"count":66,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":48,
+			"byteLength":528,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":48,
-			"byteOffset":48,
+			"byteLength":528,
+			"byteOffset":528,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":32,
-			"byteOffset":96,
+			"byteLength":352,
+			"byteOffset":1056,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":12,
-			"byteOffset":128,
+			"byteLength":132,
+			"byteOffset":1408,
 			"target":34963
 		}
 	],
@@ -136,7 +136,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":140,
+			"byteLength":1540,
 			"uri":"conveyor_belt.bin"
 		}
 	]

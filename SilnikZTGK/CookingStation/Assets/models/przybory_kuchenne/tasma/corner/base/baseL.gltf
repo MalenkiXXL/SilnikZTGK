@@ -1,6 +1,6 @@
 {
 	"asset":{
-		"generator":"Khronos glTF Blender I/O v4.5.48",
+		"generator":"Khronos glTF Blender I/O v5.1.19",
 		"version":"2.0"
 	},
 	"scene":0,
@@ -8,36 +8,14 @@
 		{
 			"name":"Scene",
 			"nodes":[
-				0,
-				1
+				0
 			]
 		}
 	],
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube",
-			"rotation":[
-				0,
-				0.7071068286895752,
-				0,
-				0.7071068286895752
-			]
-		},
-		{
-			"mesh":1,
-			"name":"Plane",
-			"rotation":[
-				0,
-				0.7071068286895752,
-				0,
-				0.7071068286895752
-			],
-			"translation":[
-				0,
-				0.5,
-				0
-			]
+			"name":"Cube"
 		}
 	],
 	"materials":[
@@ -54,7 +32,7 @@
 		},
 		{
 			"doubleSided":true,
-			"name":"Material.001",
+			"name":"Material.008",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":1
@@ -76,12 +54,7 @@
 					},
 					"indices":3,
 					"material":0
-				}
-			]
-		},
-		{
-			"name":"Plane",
-			"primitives":[
+				},
 				{
 					"attributes":{
 						"POSITION":4,
@@ -101,138 +74,133 @@
 		},
 		{
 			"sampler":0,
-			"source":1
+			"source":0
 		}
 	],
 	"images":[
 		{
 			"mimeType":"image/png",
 			"name":"belt",
-			"uri":"belt.png"
-		},
-		{
-			"mimeType":"image/png",
-			"name":"a",
-			"uri":"a.png"
+			"uri":"../../texture/belt.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":24,
+			"count":84,
 			"max":[
+				1.0000007152557373,
 				1,
-				0.5,
-				1
+				1.0000007152557373
 			],
 			"min":[
-				-1,
-				-0.5,
-				-1
+				-1.0000007152557373,
+				0,
+				-1.0000007152557373
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":24,
+			"count":84,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":24,
+			"count":84,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":36,
+			"count":144,
 			"type":"SCALAR"
 		},
 		{
 			"bufferView":4,
 			"componentType":5126,
-			"count":4,
+			"count":5,
 			"max":[
-				1,
-				0,
-				1
+				0.7438883185386658,
+				1.004340648651123,
+				0.747063934803009
 			],
 			"min":[
-				-1,
-				0,
-				-1
+				-0.7965846657752991,
+				1.0040000677108765,
+				-0.7452266216278076
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":5,
 			"componentType":5126,
-			"count":4,
+			"count":5,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":6,
 			"componentType":5126,
-			"count":4,
+			"count":5,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":7,
 			"componentType":5123,
-			"count":6,
+			"count":9,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":288,
+			"byteLength":1008,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
+			"byteLength":1008,
+			"byteOffset":1008,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":672,
+			"byteOffset":2016,
+			"target":34962
+		},
+		{
+			"buffer":0,
 			"byteLength":288,
-			"byteOffset":288,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":192,
-			"byteOffset":576,
-			"target":34962
-		},
-		{
-			"buffer":0,
-			"byteLength":72,
-			"byteOffset":768,
+			"byteOffset":2688,
 			"target":34963
 		},
 		{
 			"buffer":0,
-			"byteLength":48,
-			"byteOffset":840,
+			"byteLength":60,
+			"byteOffset":2976,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":48,
-			"byteOffset":888,
+			"byteLength":60,
+			"byteOffset":3036,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":32,
-			"byteOffset":936,
+			"byteLength":40,
+			"byteOffset":3096,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":12,
-			"byteOffset":968,
+			"byteLength":18,
+			"byteOffset":3136,
 			"target":34963
 		}
 	],
@@ -244,8 +212,8 @@
 	],
 	"buffers":[
 		{
-			"byteLength":980,
-			"uri":"conveyor.bin"
+			"byteLength":3156,
+			"uri":"baseL.bin"
 		}
 	]
 }

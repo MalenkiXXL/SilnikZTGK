@@ -15,19 +15,13 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube.001",
-			"rotation":[
-				0,
-				0.7071068286895752,
-				0,
-				0.7071068286895752
-			]
+			"name":"Plane.003"
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material",
+			"name":"Material.011",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -39,7 +33,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.001",
+			"name":"Plane.005",
 			"primitives":[
 				{
 					"attributes":{
@@ -62,69 +56,69 @@
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"belt",
-			"uri":"../texture/belt.png"
+			"name":"a",
+			"uri":"../../texture/a.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":108,
+			"count":121,
 			"max":[
-				1,
-				1,
-				1
+				1.0000004768371582,
+				1.0034219026565552,
+				0.9619253873825073
 			],
 			"min":[
-				-1,
-				0,
-				-1
+				-0.9608204960823059,
+				0.9601471424102783,
+				-1.0000007152557373
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":108,
+			"count":121,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":108,
+			"count":121,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":204,
+			"count":195,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1296,
+			"byteLength":1452,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1296,
-			"byteOffset":1296,
+			"byteLength":1452,
+			"byteOffset":1452,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":864,
-			"byteOffset":2592,
+			"byteLength":968,
+			"byteOffset":2904,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":408,
-			"byteOffset":3456,
+			"byteLength":390,
+			"byteOffset":3872,
 			"target":34963
 		}
 	],
@@ -136,8 +130,8 @@
 	],
 	"buffers":[
 		{
-			"byteLength":3864,
-			"uri":"conveyor_base.bin"
+			"byteLength":4264,
+			"uri":"beltAL.bin"
 		}
 	]
 }

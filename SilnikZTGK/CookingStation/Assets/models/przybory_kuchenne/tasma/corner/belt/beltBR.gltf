@@ -15,10 +15,10 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube.001",
+			"name":"Plane.006",
 			"rotation":[
 				0,
-				0.7071068286895752,
+				-0.7071068286895752,
 				0,
 				0.7071068286895752
 			]
@@ -27,7 +27,7 @@
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material",
+			"name":"Material.010",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -39,7 +39,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.001",
+			"name":"Plane.006",
 			"primitives":[
 				{
 					"attributes":{
@@ -62,69 +62,69 @@
 	"images":[
 		{
 			"mimeType":"image/png",
-			"name":"belt",
-			"uri":"../texture/belt.png"
+			"name":"a",
+			"uri":"../../texture/a.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":108,
+			"count":69,
 			"max":[
-				1,
-				1,
+				0.9608772397041321,
+				1.0035512447357178,
 				1
 			],
 			"min":[
 				-1,
-				0,
-				-1
+				0.959653913974762,
+				-0.9619248509407043
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":108,
+			"count":69,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":108,
+			"count":69,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":204,
+			"count":105,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1296,
+			"byteLength":828,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1296,
-			"byteOffset":1296,
+			"byteLength":828,
+			"byteOffset":828,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":864,
-			"byteOffset":2592,
+			"byteLength":552,
+			"byteOffset":1656,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":408,
-			"byteOffset":3456,
+			"byteLength":210,
+			"byteOffset":2208,
 			"target":34963
 		}
 	],
@@ -136,8 +136,8 @@
 	],
 	"buffers":[
 		{
-			"byteLength":3864,
-			"uri":"conveyor_base.bin"
+			"byteLength":2420,
+			"uri":"beltBR.bin"
 		}
 	]
 }
