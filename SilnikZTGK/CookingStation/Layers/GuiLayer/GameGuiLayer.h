@@ -47,7 +47,6 @@ private:
     std::shared_ptr<Texture> m_BookInsideIcon;
     std::shared_ptr<Texture> m_BookXIcon;
     std::shared_ptr<Texture> m_TomatoSoupIcon;
-    std::shared_ptr<Texture> m_CheeseIcon;
 
     struct BubblyState {
         float scale = 1.0f;
@@ -56,10 +55,15 @@ private:
 
     std::unordered_map<std::string, BubblyState> m_BubblyStates;
 
-    bool DrawBubblyImage(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize,
-                         float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier = 0.5f,
-                         glm::vec4 tintColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+    bool DrawBubblyImage(const std::string& id, const std::shared_ptr<Texture>& icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier = 0.5f, glm::vec4 tintColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
     bool m_IsRecipeBookOpen = false;
-    bool DrawIngredientIcon(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize,
-                            float dt, float baseScale, int count);
+
+    glm::vec2 CalculateAspectSize(const std::shared_ptr<Texture>& texture, float targetHeight);
+
+    void DrawRecipeIcon(const std::string& recipeId, const std::shared_ptr<Texture>& texture,
+        glm::vec2 relativePos, float targetHeight,
+        glm::vec2 bookPos, glm::vec2 bookSize, float dt);
+    void DrawQuestPanel(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, bool isPlayMode);
+    void DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
+    void DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
 };

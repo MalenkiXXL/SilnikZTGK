@@ -7,7 +7,7 @@
 class PotScript : public MachineScript
 {
 private:
-    // Pamiêtamy wygenerowane jedzenie, ¿eby móc je zniszczyæ lub przenieœæ na talerz
+    // Pamiï¿½tamy wygenerowane jedzenie, ï¿½eby mï¿½c je zniszczyï¿½ lub przenieï¿½ï¿½ na talerz
     Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
     void SetSmoking(bool state, bool clearInstatly = false)
@@ -53,7 +53,7 @@ public:
 
         if (m_IsHeld) return;
 
-        // Jeœli jest gotowe i w³aœnie wciœniêto lewy przycisk myszy
+        // Jeï¿½li jest gotowe i wï¿½aï¿½nie wciï¿½niï¿½to lewy przycisk myszy
         if (m_IsReady && Input::IsMouseButtonJustPressed(0))
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
@@ -63,11 +63,11 @@ public:
                 {
                     glm::vec3 mousePos = GetMouseWorldPosition();
 
-                    // Ignorujemy wysokoœæ, ¿eby ³atwo trafiaæ w obiekt z góry kamer¹
+                    // Ignorujemy wysokoï¿½ï¿½, ï¿½eby ï¿½atwo trafiaï¿½ w obiekt z gï¿½ry kamerï¿½
                     glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
                     glm::vec2 foodPos2D = { foodTransform->GetPosition().x, foodTransform->GetPosition().z };
 
-                    // Promieñ klikniêcia dopasowany do dania
+                    // Promieï¿½ klikniï¿½cia dopasowany do dania
                     if (glm::distance(mousePos2D, foodPos2D) < 3.0f)
                     {
                         spdlog::info("Kliknieto w danie!");
@@ -100,17 +100,24 @@ public:
         }
     }
 
-    bool AddIngredient(IngredientType type)
+    bool AddIngredient(IngredientType type) override
     {
         if (m_IsReady || m_Ingredients.size() >= 2) return false;
 
-        m_Ingredients.push_back(type);
-        m_IsReady = false;
-        SetSmoking(true);
-        m_CurrentTime = 0.0f;
-        UpdateVisuals();
+        // Przyjmuje tylko pokrojonego pomidora
+        if (type == IngredientType::ChoppedTomato)
+        {
+            m_Ingredients.push_back(type);
+            m_IsReady = false;
+            SetSmoking(true);
+            m_CurrentTime = 0.0f;
+            UpdateVisuals();
+            spdlog::info("Garnek: Przyjï¿½to pokrojonego pomidora, zaczynamy gotowanie!");
+            return true;
+        }
 
-        return true;
+        spdlog::warn("Garnek: Nie wrzucaj tego! Najpierw pokrï¿½j na desce!");
+        return false;
     }
 
 protected:
@@ -141,14 +148,14 @@ protected:
             builder.With<MeshComponent>(mesh);
 
             m_SpawnedFood = builder.Build();
-            spdlog::info("Zupa gotowa! Pojawila sie kanapka nad garnkiem.");
+            spdlog::info("Danie gotowe, pojawia siï¿½ nad garnkiem.");
         }
         else
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
                 auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-                if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f)); // Pod mapê
+                if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f)); // Pod mapï¿½
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
         }

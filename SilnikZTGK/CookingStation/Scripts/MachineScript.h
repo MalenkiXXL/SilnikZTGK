@@ -13,15 +13,14 @@ class MachineScript : public ScriptableEntity
 protected:
     float m_CookTime = 10.0f;
     float m_CurrentTime = 0.0f;
-    bool m_IsReady = false;
     bool m_IsAutomated = false;
     float m_AutoDetectRadius = 3.0f;
-
     bool m_IsHeld = false;
 
-    std::vector<IngredientType> m_Ingredients;
-
 public:
+    std::vector<IngredientType> m_Ingredients;
+    bool m_IsReady = false;
+
     virtual void OnUpdate(Timestep ts) override
     {
         if (m_IsHeld)
@@ -61,6 +60,16 @@ public:
         }
     }
 
+    virtual bool AddIngredient(IngredientType type)
+    {
+        if (m_IsReady || m_Ingredients.size() >= 2) return false;
+        m_Ingredients.push_back(type);
+        m_IsReady = false;
+        m_CurrentTime = 0.0f;
+        UpdateVisuals();
+        return true;
+    }
+
 protected:
     bool IsCellOccupied(const glm::vec3& targetPos)
     {
@@ -89,8 +98,6 @@ protected:
 
         Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 999.0f;
-
-        // 1. Pobieramy pozycj� garnka na SIATCE
         glm::ivec2 myCell = GridSystem::WorldToCell(myTransform->GetPosition());
 
         auto* tagSet = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -131,7 +138,7 @@ protected:
         }
         else
         {
-            spdlog::warn("Brak talerza na 8 sasiadujacych polach dookola garnka!");
+            spdlog::warn("Brak talerza na 8 sasiadujacych polach dookola maszyny!");
         }
     }
 
@@ -146,4 +153,5 @@ protected:
     }
 
     virtual void UpdateVisuals() = 0;
+
 };
