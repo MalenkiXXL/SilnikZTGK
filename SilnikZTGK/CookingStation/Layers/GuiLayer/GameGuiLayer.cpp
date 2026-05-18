@@ -35,14 +35,14 @@ void GameGuiLayer::OnAttach() {
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
-    m_CornerIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bottomCornerClouds.png");
-    m_TomatoIcon = AssetManager::GetTexture("CookingStation/Assets/UI/tomato.png");
-    m_BookCloudIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookCloud.png");
-    m_BookIcon = AssetManager::GetTexture("CookingStation/Assets/UI/book.png");
-    m_BookStarsIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookStars.png");
-    m_BookInsideIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookInside.png");
-    m_BookXIcon = AssetManager::GetTexture("CookingStation/Assets/UI/bookX.png");
-    m_TomatoSoupIcon = AssetManager::GetTexture("CookingStation/Assets/UI/tomatoSoup.png");
+    m_CornerIcon = AssetManager::GetTexture("assets://UI/bottomCornerClouds.png");
+    m_TomatoIcon = AssetManager::GetTexture("assets://UI/tomato.png");
+    m_BookCloudIcon = AssetManager::GetTexture("assets://UI/bookCloud.png");
+    m_BookIcon = AssetManager::GetTexture("assets://UI/book.png");
+    m_BookStarsIcon = AssetManager::GetTexture("assets://UI/bookStars.png");
+    m_BookInsideIcon = AssetManager::GetTexture("assets://UI/bookInside.png");
+    m_BookXIcon = AssetManager::GetTexture("assets://UI/bookX.png");
+    m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
 
 }
 
