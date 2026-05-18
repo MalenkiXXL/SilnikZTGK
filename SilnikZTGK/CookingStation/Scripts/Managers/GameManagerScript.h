@@ -22,6 +22,11 @@ public:
 
     int GetIngredientCount(IngredientType type);
 
+    void OnDestroy() override
+    {
+        s_Instance = nullptr;
+    }
+
 private:
     void CallForDelivery();
 

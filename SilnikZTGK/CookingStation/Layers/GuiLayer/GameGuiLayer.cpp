@@ -219,7 +219,14 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
                 leftPosBase.y + (baseIconSize.y * 0.5f) - (tomatoBaseSize.y * 0.5f)
             };
 
-            int tomatoCount = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(IngredientType::Tomato) : 0;
+            int tomatoCount = 0;
+            std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+            if (activeScene && activeScene->GetState() == SceneState::Play)
+            {
+                if (GameManagerScript::s_Instance) {
+                    tomatoCount = GameManagerScript::s_Instance->GetIngredientCount(IngredientType::Tomato);
+                }
+            }
             bool showCountText = true;
 
             if (DrawIngredientIcon("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, baseScale, tomatoCount, showCountText)) {
