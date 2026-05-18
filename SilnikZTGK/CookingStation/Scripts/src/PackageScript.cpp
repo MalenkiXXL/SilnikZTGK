@@ -1,5 +1,5 @@
-#include "SilnikZTGK/CookingStation/Scripts/Delivery/PackageScript.h"
-#include "SilnikZTGK/CookingStation/Scripts/Managers/GameManagerScript.h"
+#include "CookingStation/Scripts/Delivery/PackageScript.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include <spdlog/spdlog.h>
 
 void PackageScript::OnClick()

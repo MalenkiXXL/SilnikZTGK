@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="CookingStation\Core\AudioEngine.cpp" />
-    <ClCompile Include="CookingStation\Core\Texture_GUI.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp" />
     <ClCompile Include="CookingStation\Math\Geometry.cpp" />
@@ -33,12 +32,17 @@
     <ClCompile Include="CookingStation\Layers\GuiLayer\Gui.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Renderer2D.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp" />
-    <ClCompile Include="CookingStation\Renderer\Texture.cpp" />
     <ClCompile Include="CookingStation\Renderer\ShaderLibrary.cpp" />
     <ClCompile Include="CookingStation\Layers\RenderLayer\RendererLayer.cpp" />
     <ClCompile Include="CookingStation\Scene\SceneManager.cpp" />
     <ClCompile Include="CookingStation\Layers\HudLayer\HUDLayer.cpp" />
     <ClCompile Include="CookingStation\Scripts\src\PlateSpawnerScript.cpp" />
+    <ClCompile Include="CookingStation\Core\Texture.cpp" />
+    <ClCompile Include="CookingStation\Core\VFS\PhysicalFileSystem.h" />
+    <ClCompile Include="CookingStation\Renderer\Texture2D.cpp" />
+    <ClCompile Include="CookingStation\Scripts\src\DeliveryCarScript.cpp" />
+    <ClCompile Include="CookingStation\Scripts\src\GameManagerScript.cpp" />
+    <ClCompile Include="CookingStation\Scripts\src\PackageScript.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Core\AudioEngine.h" />
@@ -79,7 +83,6 @@
     <ClInclude Include="CookingStation\Layers\GuiLayer\Renderer2D.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\Font.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.h" />
-    <ClInclude Include="CookingStation\Renderer\Texture.h" />
     <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h" />
     <ClInclude Include="CookingStation\Layers\RenderLayer\RendererLayer.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\EditorLayer.h" />
@@ -102,6 +105,9 @@
     <ClInclude Include="CookingStation\Scripts\SteamEmitterScript.h" />
     <ClInclude Include="CookingStation\Renderer\UniformBuffer.h" />
     <ClInclude Include="CookingStation\Scripts\DustEmitterScript.h" />
+    <ClInclude Include="CookingStation\Core\VFS\IFileSystem.h" />
+    <ClInclude Include="CookingStation\Core\VFS\VFS.h" />
+    <ClInclude Include="CookingStation\Renderer\Texture2D.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

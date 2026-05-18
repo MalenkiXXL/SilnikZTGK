@@ -1,7 +1,7 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include <glm/glm.hpp>
-#include "SilnikZTGK/CookingStation/Core/Input.h"
+#include "CookingStation/Core/Input.h"
 
 struct AngleDirection {
     float angle;

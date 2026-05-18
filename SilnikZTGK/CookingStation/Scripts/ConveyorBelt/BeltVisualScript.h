@@ -1,6 +1,6 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
-#include "SilnikZTGK/CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
+#include "CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
 
 class BeltVisualScript : public ScriptableEntity
 {

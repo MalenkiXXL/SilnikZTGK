@@ -5,7 +5,7 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Scripts/MachineScript.h"
 #include "CookingStation/Scripts/PotScript.h"
-#include "SilnikZTGK/CookingStation/Scripts/Managers/GameManagerScript.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include <glm/glm.hpp>
 #include <limits> 
 

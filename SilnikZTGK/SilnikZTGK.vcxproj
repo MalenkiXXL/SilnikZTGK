@@ -176,6 +176,9 @@ xcopy /y /d "C:\Silnik\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(Ou
     <ClCompile Include="CookingStation\Scene\PrefabSerializer.h" />
     <ClCompile Include="CookingStation\Scene\SceneSerializer.cpp" />
     <ClCompile Include="CookingStation\Layers\CameraLayer\CameraLayer.cpp" />
+    <ClCompile Include="CookingStation\Scripts\src\DeliveryCarScript.cpp" />
+    <ClCompile Include="CookingStation\Scripts\src\GameManagerScript.cpp" />
+    <ClCompile Include="CookingStation\Scripts\src\PackageScript.cpp" />
     <ClCompile Include="CookingStation\Scripts\src\PlateSpawnerScript.cpp" />
     <ClCompile Include="CookingStation\stb_image_impl.cpp" />
     <ClCompile Include="CookingStation\Scene\ecs.cpp" />

@@ -11,7 +11,7 @@
 #include <algorithm> 
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Core/GameProgress.h"
-#include "SilnikZTGK/CookingStation/Scripts/Managers/GameManagerScript.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 
 // Dodajemy VFS
 #include "CookingStation/Core/VFS/VFS.h"

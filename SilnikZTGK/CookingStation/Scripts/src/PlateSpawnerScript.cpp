@@ -1,4 +1,4 @@
-#include "SilnikZTGK/CookingStation/Scripts/Plates/PlateSpawnerScript.h"
+#include "CookingStation/Scripts/Plates/PlateSpawnerScript.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
 
 void PlateSpawnerScript::OnCreate()
