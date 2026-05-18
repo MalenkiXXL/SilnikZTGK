@@ -46,8 +46,8 @@ void GameGuiLayer::OnAttach() {
 
 }
 
-// Funkcja pomocnicza do rysowania "bubbly" ikon z efektem powiêkszenia i opcjonalnego przyciemnienia na hoverze
-bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<Texture>& icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier, glm::vec4 tintColor)
+// Funkcja pomocnicza do rysowania "bubbly" ikon z efektem powiï¿½kszenia i opcjonalnego przyciemnienia na hoverze
+bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<Texture>& icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier, glm::vec4 tintColor, bool* outIsHovered)
 {
     if (!icon) return false;
 
@@ -63,9 +63,13 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<
 
     bool isHovered = (distX * distX + distY * distY) <= (hitRadius * hitRadius);
 
+    if (outIsHovered != nullptr) {
+        *outIsHovered = isHovered;
+    }
+
     float targetScale = isHovered ? hoverScale : 1.0f;
 
-    // Kolor tintu potrzebny do wyciemnienia w ksi¹¿ce kucharskiej
+    // Kolor tintu potrzebny do wyciemnienia w ksiï¿½ï¿½ce kucharskiej
     glm::vec4 targetColor = (isHovered && darkenOnHover) ? tintColor * glm::vec4(0.8f, 0.8f, 0.8f, 1.0f) : tintColor;
 
     state.scale += (targetScale - state.scale) * dt * animSpeed;
@@ -88,6 +92,40 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<
     return (Input::IsMouseButtonJustPressed(0) && isHovered);
 }
 
+bool GameGuiLayer::DrawIngredientIcon(const std::string& id, const std::shared_ptr<Texture>& icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float baseScale, int count, bool showCount)
+{
+    bool isHovered = false;
+
+    // 1. Odpalamy rysowanie ikony i zapisujemy, czy myszka na niÄ… najechaÅ‚a do zmiennej isHovered
+    bool isClicked = DrawBubblyImage(id, icon, basePos, baseSize, dt, 1.30f, true, 0.5f, { 1.0f, 1.0f, 1.0f, 1.0f }, &isHovered);
+
+    // 2. JeÅ›li flaga showCount jest true ORAZ myszka jest na ikonie -> rysujemy tekst
+    if (showCount && isHovered) {
+        DrawIngredientCountText(count, basePos, baseSize, baseScale);
+    }
+
+    return isClicked;
+}
+
+void GameGuiLayer::DrawIngredientCountText(int count, glm::vec2 basePos, glm::vec2 baseSize, float baseScale)
+{
+    std::string countText = "x" + std::to_string(count);
+    float textScale = 1.2f * baseScale;
+
+    // Pozycja w lewym gÃ³rnym rogu ikony
+    glm::vec2 textPos = {
+            basePos.x + (baseSize.x * 0.05f),
+            basePos.y + (baseSize.y * 0.25f)
+    };
+
+    // CieÅ„ pod tekstem
+    glm::vec2 shadowPos = { textPos.x + 3.0f, textPos.y + 3.0f };
+    Gui::DrawGuiText(countText, shadowPos, textScale, { 0.1f, 0.1f, 0.1f, 0.9f });
+
+    // WÅ‚aÅ›ciwy tekst na wierzchu
+    Gui::DrawGuiText(countText, textPos, textScale, { 1.0f, 0.95f, 0.9f, 1.0f });
+}
+
 // Funkcja pomocnicza do obliczania rozmiaru ikony z zachowaniem proporcji
 glm::vec2 GameGuiLayer::CalculateAspectSize(const std::shared_ptr<Texture>& texture, float targetHeight) {
     if (!texture) return { targetHeight, targetHeight }; // Fallback
@@ -95,7 +133,7 @@ glm::vec2 GameGuiLayer::CalculateAspectSize(const std::shared_ptr<Texture>& text
     return { targetHeight * aspect, targetHeight };
 }
 
-// Funkcja do rysowania ikony przepisu w ksi¹¿ce kucharskiej, z obs³ug¹ odblokowania 
+// Funkcja do rysowania ikony przepisu w ksiï¿½ï¿½ce kucharskiej, z obsï¿½ugï¿½ odblokowania 
 void GameGuiLayer::DrawRecipeIcon(const std::string& recipeId, const std::shared_ptr<Texture>& texture,
     glm::vec2 relativePct, float targetHeight,
     glm::vec2 bookPos, glm::vec2 bookSize, float dt)
@@ -130,7 +168,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 
         const auto& q = m_CurrentQuests[m_CurrentQuestIndex];
 
-        // Skalujemy pozycje tekstu wewn¹trz panelu oraz skalê czcionki
+        // Skalujemy pozycje tekstu wewnï¿½trz panelu oraz skalï¿½ czcionki
         float textX = qpPos.x + 15.f * baseScale;
         std::string header = "ZADANIE (" + std::to_string(m_CurrentQuestIndex + 1) + "/" + std::to_string(m_CurrentQuests.size()) + ")";
         Gui::DrawGuiText(header, { textX, qpPos.y + 15.f * baseScale }, 0.6f * baseScale, { 1.0f, 0.5f, 0.2f, 1.0f });
@@ -172,7 +210,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
         DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
         DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
 
-        // Rysujemy sk³adniki na lewej chmurze
+        // Rysujemy skï¿½adniki na lewej chmurze
         if (m_TomatoIcon) {
             float tomatoBaseH = baseIconSize.y * 0.3f;
             glm::vec2 tomatoBaseSize = { tomatoBaseH, tomatoBaseH };
@@ -180,8 +218,12 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
                 leftPosBase.x + (baseIconSize.x * 0.5f) - (tomatoBaseSize.x * 0.5f),
                 leftPosBase.y + (baseIconSize.y * 0.5f) - (tomatoBaseSize.y * 0.5f)
             };
-            if (DrawBubblyImage("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, 1.30f, true)) {
-                spdlog::info("UI: Wyci¹gniêto pomidora!");
+
+            int tomatoCount = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(IngredientType::Tomato) : 0;
+            bool showCountText = true;
+
+            if (DrawIngredientIcon("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, baseScale, tomatoCount, showCountText)) {
+                spdlog::info("UI: Wyciï¿½gniï¿½to pomidora!");
                 DragAndDropScript::StartDrag(IngredientType::Tomato, "CookingStation/Assets/models/skladniki/pomidor/pomidor.gltf");
             }
         }
@@ -189,7 +231,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
 }
 
 void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
-    // --- KSI¥¯KA Z PRZEPISAMI ---
+    // --- KSIï¿½ï¿½KA Z PRZEPISAMI ---
     if (m_BookIcon) {
         glm::vec2 cloudSize = { 280.0f * baseScale, 280.0f * baseScale };
         glm::vec2 cloudPos = { gameX + 20.0f * baseScale, gameY + 20.0f * baseScale };
@@ -201,7 +243,7 @@ void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, flo
         }
 
         if (!m_IsRecipeBookOpen) {
-            // 2. KSI¥¯KA 
+            // 2. KSIï¿½ï¿½KA 
             glm::vec2 bookSize = cloudSize * 1.1f;
             glm::vec2 bookPos = {
                 cloudPos.x + (actualCloudSize.x - bookSize.x) * 0.5f,
@@ -219,7 +261,7 @@ void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, flo
             }
         }
         else {
-            // -- WNÊTRZE KSI¥¯KI ---
+            // -- WNï¿½TRZE KSIï¿½ï¿½KI ---
             glm::vec2 insideSize = CalculateAspectSize(m_BookInsideIcon, gameHeight * 1.0f);
             float yOffset = 50.0f * baseScale;
             glm::vec2 insidePos = {
@@ -245,16 +287,16 @@ void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, flo
                 }
             }
 
-            // Wyœwietlanie przepisów
-            float recipeH = 120.0f * baseScale; // Wysokoœæ dla ka¿dej ikony
+            // Wyï¿½wietlanie przepisï¿½w
+            float recipeH = 120.0f * baseScale; // Wysokoï¿½ï¿½ dla kaï¿½dej ikony
 
-            // 1. Zupa Pomidorowa (Rz¹d 1, Kolumna 1)
+            // 1. Zupa Pomidorowa (Rzï¿½d 1, Kolumna 1)
             DrawRecipeIcon("TomatoSoup", m_TomatoSoupIcon, { 0.12f, 0.15f }, recipeH, insidePos, insideSize, dt);
 
-            // 2. (Przyk³ad na przysz³oœæ) np. Burger (Rz¹d 1, Kolumna 2)
+            // 2. (Przykï¿½ad na przyszï¿½oï¿½ï¿½) np. Burger (Rzï¿½d 1, Kolumna 2)
             // DrawRecipeIcon("Burger", m_BurgerIcon, {0.25f, 0.15f}, recipeH, insidePos, insideSize, dt);
 
-            // 3. (Przyk³ad na przysz³oœæ) np. Sa³atka (Rz¹d 2, Kolumna 1)
+            // 3. (Przykï¿½ad na przyszï¿½oï¿½ï¿½) np. Saï¿½atka (Rzï¿½d 2, Kolumna 1)
             // DrawRecipeIcon("Salad", m_SaladIcon, {0.12f, 0.35f}, recipeH, insidePos, insideSize, dt);
         }
     }
@@ -284,7 +326,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     if (gameWidth <= 0.0f || gameHeight <= 0.0f) return;
 
     // --- DYNAMICZNA SKALA ---
-    // Obliczamy skalê wzglêdem wysokoœci 1080p, z progiem bezpieczeñstwa 0.5
+    // Obliczamy skalï¿½ wzglï¿½dem wysokoï¿½ci 1080p, z progiem bezpieczeï¿½stwa 0.5
     float baseScale = std::max(gameHeight / 1080.0f, 0.5f);
 
     glDisable(GL_DEPTH_TEST);
