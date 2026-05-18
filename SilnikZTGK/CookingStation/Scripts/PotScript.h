@@ -64,16 +64,23 @@ public:
         }
     }
 
-    bool AddIngredient(IngredientType type)
+    bool AddIngredient(IngredientType type) override
     {
         if (m_IsReady || m_Ingredients.size() >= 2) return false;
 
-        m_Ingredients.push_back(type);
-        m_IsReady = false;
-        m_CurrentTime = 0.0f;
-        UpdateVisuals();
+        // Przyjmuje tylko pokrojonego pomidora
+        if (type == IngredientType::ChoppedTomato)
+        {
+            m_Ingredients.push_back(type);
+            m_IsReady = false;
+            m_CurrentTime = 0.0f;
+            UpdateVisuals();
+            spdlog::info("Garnek: Przyjêto pokrojonego pomidora, zaczynamy gotowanie!");
+            return true;
+        }
 
-        return true;
+        spdlog::warn("Garnek: Nie wrzucaj tego! Najpierw pokrój na desce!");
+        return false;
     }
 
 protected:
@@ -104,7 +111,7 @@ protected:
             builder.With<MeshComponent>(mesh);
 
             m_SpawnedFood = builder.Build();
-            spdlog::info("Zupa gotowa! Pojawila sie kanapka nad garnkiem.");
+            spdlog::info("Danie gotowe, pojawia siê nad garnkiem.");
         }
         else
         {

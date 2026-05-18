@@ -17,6 +17,7 @@
 #include "MushroomAI.h"
 #include "CustomerManagerScript.h"
 #include "CustomerScript.h"
+#include "CuttingBoardScript.h"
 
 //globalny slownik ktory mapuke tekst na funkcje
 class ScriptRegistry
@@ -52,6 +53,7 @@ public:
         Register<MushroomAI>("MushroomAI");
         Register<CustomerManagerScript>("CustomerManagerScript");
         Register<CustomerScript>("CustomerScript");
+        Register<CuttingBoardScript>("CuttingBoardScript");
     }
 
     static void AddScriptToComponent(NativeScriptComponent& nsc, const std::string& name)

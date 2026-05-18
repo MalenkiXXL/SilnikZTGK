@@ -46,8 +46,8 @@ void GameGuiLayer::OnAttach() {
 
 }
 
-
-bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Texture> icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier, glm::vec4 tintColor)
+// Funkcja pomocnicza do rysowania "bubbly" ikon z efektem powiêkszenia i opcjonalnego przyciemnienia na hoverze
+bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<Texture>& icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier, glm::vec4 tintColor)
 {
     if (!icon) return false;
 
@@ -88,43 +88,35 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, std::shared_ptr<Textur
     return (Input::IsMouseButtonJustPressed(0) && isHovered);
 }
 
-void GameGuiLayer::OnUpdate(Timestep ts) {
-    Gui::BeginFrame();
-    Gui::UpdateDeltaTime(ts.GetSeconds());
-    float dt = ts.GetSeconds();
+// Funkcja pomocnicza do obliczania rozmiaru ikony z zachowaniem proporcji
+glm::vec2 GameGuiLayer::CalculateAspectSize(const std::shared_ptr<Texture>& texture, float targetHeight) {
+    if (!texture) return { targetHeight, targetHeight }; // Fallback
+    float aspect = (float)texture->GetWidth() / (float)texture->GetHeight();
+    return { targetHeight * aspect, targetHeight };
+}
 
-    if (s_NeedsQuestReload) {
-        ReloadQuests();
-        s_NeedsQuestReload = false;
-    }
+// Funkcja do rysowania ikony przepisu w ksi¹¿ce kucharskiej, z obs³ug¹ odblokowania 
+void GameGuiLayer::DrawRecipeIcon(const std::string& recipeId, const std::shared_ptr<Texture>& texture,
+    glm::vec2 relativePct, float targetHeight,
+    glm::vec2 bookPos, glm::vec2 bookSize, float dt)
+{
+    if (!texture) return;
 
-    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-    bool isPlayMode = (activeScene && activeScene->GetState() == SceneState::Play);
+    glm::vec2 size = CalculateAspectSize(texture, targetHeight);
 
-    // --- WYMIARY OBSZARU GRY ---
-    float gameX = 200.0f;
-    float gameY = 30.0f;
-    float gameWidth = m_ViewportWidth - 500.0f;
-    float gameHeight = m_ViewportHeight - 230.0f;
+    glm::vec2 pos = {
+        bookPos.x + bookSize.x * relativePct.x,
+        bookPos.y + bookSize.y * relativePct.y
+    };
 
-    if (gameWidth <= 0.0f || gameHeight <= 0.0f) return;
 
-    // --- DYNAMICZNA SKALA ---
-    // Obliczamy skalê wzglêdem wysokoœci 1080p, z progiem bezpieczeñstwa 0.5
-    float baseScale = std::max(gameHeight / 1080.0f, 0.5f);
+    bool isUnlocked = GameProgress::IsRecipeUnlocked(recipeId);
+    glm::vec4 tint = isUnlocked ? glm::vec4(1.0f) : glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
 
-    glDisable(GL_DEPTH_TEST);
-    glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
-    Renderer2D::BeginScene(uiProj);
+    DrawBubblyImage("Recipe_" + recipeId, texture, pos, size, dt, 1.15f, true, 0.5f, tint);
+}
 
-    // --- SCISSOR TEST ---
-    Renderer2D::EndScene();
-    glEnable(GL_SCISSOR_TEST);
-    int scissorY = (int)(m_ViewportHeight - (gameY + gameHeight));
-    glScissor((int)gameX, scissorY, (int)gameWidth, (int)gameHeight);
-    Renderer2D::BeginScene(uiProj);
-
-    // --- PANEL QUESTÓW ---
+void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, bool isPlayMode) {
     if (!m_CurrentQuests.empty()) {
         glm::vec2 qpSize = { 380.0f * baseScale, 220.0f * baseScale }; // Skalujemy rozmiar panelu
         float margin = 20.0f * baseScale; // Skalujemy margines
@@ -167,12 +159,11 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
             }
         }
     }
+}
 
-    // --- CHMURY I SK£ADNIKI ---
+void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
     if (m_CornerIcon) {
-        float iconH = gameHeight * 0.30f;
-        float iconW = iconH * (1239.0f / 1024.0f);
-        glm::vec2 baseIconSize = { iconW, iconH };
+        glm::vec2 baseIconSize = CalculateAspectSize(m_CornerIcon, gameHeight * 0.30f);
 
         glm::vec2 leftPosBase = { gameX, gameY + gameHeight - baseIconSize.y };
         glm::vec2 rightPosBase = { gameX + gameWidth - baseIconSize.x, gameY + gameHeight - baseIconSize.y };
@@ -195,14 +186,14 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
             }
         }
     }
+}
 
-
+void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
     // --- KSI¥¯KA Z PRZEPISAMI ---
     if (m_BookIcon) {
         glm::vec2 cloudSize = { 280.0f * baseScale, 280.0f * baseScale };
         glm::vec2 cloudPos = { gameX + 20.0f * baseScale, gameY + 20.0f * baseScale };
         glm::vec2 actualCloudSize = cloudSize * 1.3f;
-        float dt = ts.GetSeconds(); 
 
         // 1. CHMURKA
         if (m_BookCloudIcon) {
@@ -228,17 +219,9 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
             }
         }
         else {
-			// -- WNÊTRZE KSI¥¯KI ---
-            float rawWidth = (float)m_BookInsideIcon->GetWidth();
-            float rawHeight = (float)m_BookInsideIcon->GetHeight();
-            float aspect = rawWidth / rawHeight;
-
-            glm::vec2 insideSize;
-            insideSize.y = gameHeight * 1.0f;
-            insideSize.x = insideSize.y * aspect;
-
+            // -- WNÊTRZE KSI¥¯KI ---
+            glm::vec2 insideSize = CalculateAspectSize(m_BookInsideIcon, gameHeight * 1.0f);
             float yOffset = 50.0f * baseScale;
-
             glm::vec2 insidePos = {
                 gameX + (gameWidth - insideSize.x) * 0.5f,
                 gameY + (gameHeight - insideSize.y) * 0.5f + yOffset
@@ -248,7 +231,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                 DrawBubblyImage("BookInside", m_BookInsideIcon, insidePos, insideSize, dt, 1.0f, false);
             }
 
-            // --- PRZYCISK X ---
+            // Przycisk X do zamykania 
             glm::vec2 xSize = { 60.0f * baseScale, 60.0f * baseScale };
             glm::vec2 xPos = {
                 insidePos.x + insideSize.x - xSize.x * 2.6f,
@@ -262,32 +245,62 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                 }
             }
 
-            if (m_TomatoSoupIcon) {
-                float soupWidth = (float)m_TomatoSoupIcon->GetWidth();
-                float soupHeight = (float)m_TomatoSoupIcon->GetHeight();
-                float soupAspect = soupWidth / soupHeight;
+            // Wyœwietlanie przepisów
+            float recipeH = 120.0f * baseScale; // Wysokoœæ dla ka¿dej ikony
 
-                // Ustalamy po¿¹dan¹ wysokoœæ, a szerokoœæ wylicza sie na podstawie pliku
-                glm::vec2 recipeSize;
-                recipeSize.y = 120.0f * baseScale;
-                recipeSize.x = recipeSize.y * soupAspect;
+            // 1. Zupa Pomidorowa (Rz¹d 1, Kolumna 1)
+            DrawRecipeIcon("TomatoSoup", m_TomatoSoupIcon, { 0.12f, 0.15f }, recipeH, insidePos, insideSize, dt);
 
-                glm::vec2 recipePos = {
-                    insidePos.x + insideSize.x * 0.12f, // Im mniejsza liczba, tym bardziej w lewo
-                    insidePos.y + insideSize.y * 0.15f  // Im mniejsza liczba, tym wy¿ej
-                };
+            // 2. (Przyk³ad na przysz³oœæ) np. Burger (Rz¹d 1, Kolumna 2)
+            // DrawRecipeIcon("Burger", m_BurgerIcon, {0.25f, 0.15f}, recipeH, insidePos, insideSize, dt);
 
-                // Sprawdzamy w globalnej pamiêci, czy zupa jest odblokowana
-                bool isSoupUnlocked = GameProgress::IsRecipeUnlocked("TomatoSoup");
-
-                // Jeœli tak -> normalny kolor. Jeœli nie -> prawie czarna ikonka
-                glm::vec4 iconTint = isSoupUnlocked ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
-
-                // Rysujemy z nowym parametrem koloru na koñcu
-                (DrawBubblyImage("RecipeTomatoSoup", m_TomatoSoupIcon, recipePos, recipeSize, dt, 1.15f, true, 0.5f, iconTint));
-            }
+            // 3. (Przyk³ad na przysz³oœæ) np. Sa³atka (Rz¹d 2, Kolumna 1)
+            // DrawRecipeIcon("Salad", m_SaladIcon, {0.12f, 0.35f}, recipeH, insidePos, insideSize, dt);
         }
     }
+
+}
+
+
+void GameGuiLayer::OnUpdate(Timestep ts) {
+    Gui::BeginFrame();
+    Gui::UpdateDeltaTime(ts.GetSeconds());
+    float dt = ts.GetSeconds();
+
+    if (s_NeedsQuestReload) {
+        ReloadQuests();
+        s_NeedsQuestReload = false;
+    }
+
+    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+    bool isPlayMode = (activeScene && activeScene->GetState() == SceneState::Play);
+
+    // --- WYMIARY OBSZARU GRY ---
+    float gameX = 200.0f;
+    float gameY = 30.0f;
+    float gameWidth = m_ViewportWidth - 500.0f;
+    float gameHeight = m_ViewportHeight - 230.0f;
+
+    if (gameWidth <= 0.0f || gameHeight <= 0.0f) return;
+
+    // --- DYNAMICZNA SKALA ---
+    // Obliczamy skalê wzglêdem wysokoœci 1080p, z progiem bezpieczeñstwa 0.5
+    float baseScale = std::max(gameHeight / 1080.0f, 0.5f);
+
+    glDisable(GL_DEPTH_TEST);
+    glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
+    Renderer2D::BeginScene(uiProj);
+
+    // --- SCISSOR TEST ---
+    Renderer2D::EndScene();
+    glEnable(GL_SCISSOR_TEST);
+    int scissorY = (int)(m_ViewportHeight - (gameY + gameHeight));
+    glScissor((int)gameX, scissorY, (int)gameWidth, (int)gameHeight);
+
+    Renderer2D::BeginScene(uiProj);
+    //DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
+    DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+    DrawRecipeBook(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
