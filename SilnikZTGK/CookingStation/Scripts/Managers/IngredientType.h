@@ -9,5 +9,6 @@ enum class IngredientType {
     Apple,
     Candy,
     Meat,
+    ChoppedTomato,
     // ...
 };
