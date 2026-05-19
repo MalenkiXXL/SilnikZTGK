@@ -46,20 +46,27 @@ void GameGuiLayer::OnAttach() {
 
 }
 
-// Funkcja pomocnicza do rysowania "bubbly" ikon z efektem powi�kszenia i opcjonalnego przyciemnienia na hoverze
-bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<Texture>& icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier, glm::vec4 tintColor, bool* outIsHovered)
+
+bool GameGuiLayer::DrawBubblyImage(const std::string& id,
+    const std::shared_ptr<Texture>& icon,
+    glm::vec2 basePos, glm::vec2 baseSize,
+    float dt, float hoverScale,
+    bool darkenOnHover, float hitRadiusMultiplier,
+    glm::vec4 tintColor, bool* outIsHovered)
 {
     if (!icon) return false;
 
     auto& state = m_BubblyStates[id];
-    auto mousePos = Input::GetMousePosition();
+
+    glm::vec2 mousePos = Gui::GetMappedMousePos();
+
     float animSpeed = 15.0f;
 
     glm::vec2 center = { basePos.x + baseSize.x * 0.5f, basePos.y + baseSize.y * 0.5f };
     float hitRadius = std::min(baseSize.x, baseSize.y) * hitRadiusMultiplier;
 
-    float distX = mousePos.first - center.x;
-    float distY = mousePos.second - center.y;
+    float distX = mousePos.x - center.x;
+    float distY = mousePos.y - center.y;
 
     bool isHovered = (distX * distX + distY * distY) <= (hitRadius * hitRadius);
 
@@ -69,13 +76,15 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<
 
     float targetScale = isHovered ? hoverScale : 1.0f;
 
-    // Kolor tintu potrzebny do wyciemnienia w ksi��ce kucharskiej
-    glm::vec4 targetColor = (isHovered && darkenOnHover) ? tintColor * glm::vec4(0.8f, 0.8f, 0.8f, 1.0f) : tintColor;
+    glm::vec4 targetColor = (isHovered && darkenOnHover)
+        ? tintColor * glm::vec4(0.8f, 0.8f, 0.8f, 1.0f)
+        : tintColor;
 
     state.scale += (targetScale - state.scale) * dt * animSpeed;
     state.color.r += (targetColor.r - state.color.r) * dt * animSpeed;
     state.color.g += (targetColor.g - state.color.g) * dt * animSpeed;
     state.color.b += (targetColor.b - state.color.b) * dt * animSpeed;
+
     glm::vec2 size = baseSize * state.scale;
     glm::vec2 pos = {
         basePos.x + (baseSize.x * 0.5f) - (size.x * 0.5f),
@@ -230,8 +239,8 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
             bool showCountText = true;
 
             if (DrawIngredientIcon("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, baseScale, tomatoCount, showCountText)) {
-                spdlog::info("UI: Wyci�gni�to pomidora!");
-                DragAndDropScript::StartDrag(IngredientType::Tomato, "CookingStation/Assets/models/skladniki/pomidor/pomidor.gltf");
+                spdlog::info("UI: Wyciagnieto pomidora!");
+                DragAndDropScript::StartDrag(IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf");
             }
         }
     }
@@ -325,15 +334,23 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     bool isPlayMode = (activeScene && activeScene->GetState() == SceneState::Play);
 
     // --- WYMIARY OBSZARU GRY ---
+#ifdef CS_DISTRIBUTION
+    // W grze standalone GUI zajmuje CAŁY ekran — brak paneli edytora
+    float gameX = 0.0f;
+    float gameY = 0.0f;
+    float gameWidth = m_ViewportWidth;
+    float gameHeight = m_ViewportHeight;
+#else
+    // W edytorze zostawiamy miejsce na lewy/prawy panel i toolbar
     float gameX = 200.0f;
     float gameY = 30.0f;
     float gameWidth = m_ViewportWidth - 500.0f;
     float gameHeight = m_ViewportHeight - 230.0f;
+#endif
 
     if (gameWidth <= 0.0f || gameHeight <= 0.0f) return;
 
     // --- DYNAMICZNA SKALA ---
-    // Obliczamy skal� wzgl�dem wysoko�ci 1080p, z progiem bezpiecze�stwa 0.5
     float baseScale = std::max(gameHeight / 1080.0f, 0.5f);
 
     glDisable(GL_DEPTH_TEST);
@@ -358,11 +375,17 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     glEnable(GL_DEPTH_TEST);
 }
 
+
 void GameGuiLayer::OnEvent(Event& e) {
     EventDispatcher dispatcher(e);
+
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {
         m_ViewportWidth = (float)ev.GetWidth();
         m_ViewportHeight = (float)ev.GetHeight();
+
+        // POPRAWKA: synchronizujemy przestrzeń logiczną Gui z nowym rozmiarem okna
+        // aby GetMappedMousePos() działało poprawnie po zmianie rozdzielczości
+        Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
         return false;
         });
 
@@ -376,6 +399,7 @@ void GameGuiLayer::OnEvent(Event& e) {
         });
 }
 
+
 bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     if (!activeScene || activeScene->GetState() != SceneState::Play) return false;
@@ -388,7 +412,7 @@ bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
 
 void GameGuiLayer::ReloadQuests() {
     m_CurrentQuests.clear();
-    std::ifstream file("CookingStation/Assets/wygenerowane_quests.json");
+    std::ifstream file("assets://wygenerowane_quests.json");
     if (file.is_open()) {
         try {
             nlohmann::json data = nlohmann::json::parse(file);

@@ -18,7 +18,7 @@ void HUDLayer::OnUpdate(Timestep ts) {
     Renderer2D::BeginScene(m_ProjectionMatrix);
 
     // Przykladowe tlo na dole ekranu
-    Renderer2D::DrawQuad({ 110.0f, m_ViewportHeight - 50.0f }, { 200.0f, 30.0f }, { 0.1f, 0.1f, 0.1f, 0.8f });
+  //  Renderer2D::DrawQuad({ 110.0f, m_ViewportHeight - 50.0f }, { 200.0f, 30.0f }, { 0.1f, 0.1f, 0.1f, 0.8f });
 
     Renderer2D::EndScene();
 }

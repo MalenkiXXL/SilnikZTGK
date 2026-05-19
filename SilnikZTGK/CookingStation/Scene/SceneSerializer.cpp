@@ -58,10 +58,24 @@ bool SceneSerializer::Deserialize(const std::string& path) {
         std::unordered_map<std::size_t, Entity> oldToNew;
         std::vector<std::pair<Entity, std::size_t>> pendingRelationships;
 
+        // =========================================================================
+        // FIX: Funkcja czyszcząca stare ścieżki z edytora na nowe ścieżki z VFS
+        // =========================================================================
+        auto SanitizePath = [](std::string& pathStr) {
+            std::string badPrefix = "CookingStation/Assets/";
+            size_t pos = pathStr.find(badPrefix);
+            if (pos != std::string::npos) {
+                pathStr.replace(pos, badPrefix.length(), "assets://");
+            }
+            };
+
         for (auto& item : data["entities"]) {
 
             std::string name = item.contains("name") ? item["name"].get<std::string>() : "Nowy Obiekt";
             std::string modelPath = item.contains("model_path") ? item["model_path"].get<std::string>() : "";
+
+            // UŻYCIE FIXA DLA MODELU
+            SanitizePath(modelPath);
 
             auto builder = m_Scene->GetWorld().BuildEntity();
             builder.With<TagComponent>({ name });
@@ -127,6 +141,9 @@ bool SceneSerializer::Deserialize(const std::string& path) {
                         std::string clipName = el.key();
                         std::string clipPath = el.value();
 
+                        // UŻYCIE FIXA DLA KLIPU ANIMACJI
+                        SanitizePath(clipPath);
+
                         // Kluczowa zmiana: osobny model dla pliku animacji
                         auto clipModel = AssetManager::GetModel(clipPath);
                         auto clipAnim = std::make_shared<Animation>(clipPath, clipModel.get());
@@ -182,8 +199,6 @@ bool SceneSerializer::Deserialize(const std::string& path) {
                 std::size_t oldParentId = item["parent_id"].get<std::size_t>();
                 pendingRelationships.push_back({ newEntity, oldParentId });
             }
-
-           // spdlog::info("[SceneLoader] Dodano: {}", name);
         }
 
         // ODBUDOWA RELACJI

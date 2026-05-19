@@ -257,6 +257,29 @@ void RendererLayer::OnUpdate(Timestep ts) {
             m_TargetFBO->ResolveTo(m_ResolveFBO);
         }
         m_TargetFBO->Unbind();
+
+#ifdef CS_DISTRIBUTION
+        // =========================================================
+        // FIX STANDALONE: Przenosimy uwiêzione 3D prosto na ekran!
+        // =========================================================
+
+        // Zale¿nie od tego, jak nazwa³eœ swój getter w klasie Framebuffer, 
+        // u¿yj GetRendererID(), GetID() lub GetColorAttachmentRendererID().
+        // W architekturach a'la Cherno zazwyczaj jest to GetRendererID().
+        uint32_t resolveFboId = m_ResolveFBO->GetRendererID();
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFboId); // Czytamy z Viewportu
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);            // Rysujemy na ekran
+
+        uint32_t width = m_ResolveFBO->GetSpecification().Width;
+        uint32_t height = m_ResolveFBO->GetSpecification().Height;
+
+        // Kopiowanie piksel po pikselu z VRAM na ekran
+        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+        // Reset, aby nastêpne w kolejce warstwy (jak Twoje GUI) normalnie rysowa³y po ekranie
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+#endif
     }
 }
 

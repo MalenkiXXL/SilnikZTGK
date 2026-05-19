@@ -22,6 +22,7 @@ public:
     static void BeginFrame();
     static bool WantCaptureMouse() { return s_WantCaptureMouse; }
     static void Panel(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& color, float radius = 15.0f);
+    static void SetScreenSize(float width, float height) { s_ScreenWidth = width; s_ScreenHeight = height; }
 
 private:
     static std::shared_ptr<Font> s_Font;

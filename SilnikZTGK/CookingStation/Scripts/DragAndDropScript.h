@@ -21,7 +21,7 @@ public:
     static inline Entity KnifeVisualEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline bool ShowKnife = false;
     // �cie�ka do Twojego modelu no�a! Popraw, je�li jest inna!
-    const std::string m_KnifeModelPath = "CookingStation/Assets/models/przybory_kuchenne/noz/knife.gltf";
+    const std::string m_KnifeModelPath = "assets://models/przybory_kuchenne/noz/knife.gltf";
     // ---------------------------------
 
     void OnCreate() override {

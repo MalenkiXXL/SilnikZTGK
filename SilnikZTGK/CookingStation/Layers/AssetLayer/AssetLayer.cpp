@@ -16,32 +16,25 @@
 using json = nlohmann::json;
 
 AssetLayer::~AssetLayer() {};
-void AssetLayer::OnAttach() {
+void AssetLayer::OnAttach()
+{
+    AssetManager::LoadModelLibrary("assets://modelsLib.json");
+    AssetManager::InitCoreAssets();
+    ScriptRegistry::Init();
 
-	// wczytujemy definicje modeli do biblioteki z pliku
-	AssetManager::LoadModelLibrary("assets://modelsLib.json");
-	AssetManager::InitCoreAssets();
+    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+    if (!activeScene) {
+        spdlog::error("AssetLayer: Brak aktywnej sceny!");
+        return;
+    }
 
-
-	ScriptRegistry::Init();
-
-	// pobieramy aktualn¹ scenê utworzon¹ w Application.cpp przez SceneManagera
-	std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-
-	// jeœli z jakiegoœ powodu nie ma sceny, to przerywamy
-	if (!activeScene) {
-		spdlog::error("AssetLayer: Brak aktywnej sceny!");
-		return;
-	}
-
-	// pobieramy dostêp do swiata ECS
-	auto& world = activeScene->GetWorld(); 
-
-	// wczytujemy konkretne obiekty i ich stan z pliku zapisu
-	SceneSerializer serializer(activeScene.get());
-	serializer.Deserialize("assets://levels/level01.json");
-
-};
+#ifndef CS_DISTRIBUTION
+    // W trybie edytora deserializujemy tutaj normalnie
+    auto& world = activeScene->GetWorld();
+    SceneSerializer serializer(activeScene.get());
+    serializer.Deserialize("assets://levels/level01.json");
+#endif
+}
 
 void AssetLayer::OnUpdate(Timestep ts)
 {
