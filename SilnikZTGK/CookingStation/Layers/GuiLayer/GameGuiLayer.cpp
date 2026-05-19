@@ -32,6 +32,13 @@ namespace {
 
 void GameGuiLayer::OnAttach() {
     Renderer2D::Init();
+
+
+#ifdef CS_DISTRIBUTION
+    // Skoro EditorGuiLayer jest wyłączony, my musimy odpalić system tekstów
+    Gui::Init("assets://fonts/ARIAL.TTF", 32);
+#endif
+
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;

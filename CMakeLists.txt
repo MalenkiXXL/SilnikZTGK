@@ -49,3 +49,10 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         glm::glm
         assimp::assimp
 )
+
+# ==========================================
+# Tryb Dystrybucji (Eksport Gry bez Edytora)
+# ==========================================
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+    target_compile_definitions(${PROJECT_NAME} PRIVATE CS_DISTRIBUTION)
+endif()
