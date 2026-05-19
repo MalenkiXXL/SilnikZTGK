@@ -15,19 +15,13 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube",
-			"rotation":[
-				0,
-				-0.7071068286895752,
-				0,
-				0.7071068286895752
-			]
+			"name":"Cube.002"
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material",
+			"name":"Material.004",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -38,7 +32,7 @@
 		},
 		{
 			"doubleSided":true,
-			"name":"Material.008",
+			"name":"Material.016",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":1
@@ -50,7 +44,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube",
+			"name":"Cube.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -128,35 +122,35 @@
 		{
 			"bufferView":4,
 			"componentType":5126,
-			"count":5,
+			"count":50,
 			"max":[
-				0.7965850830078125,
-				1.004340648651123,
-				0.7452262043952942
+				0.7565855979919434,
+				1.0097496509552002,
+				0.8063588738441467
 			],
 			"min":[
-				-0.7438887357711792,
-				1.0040000677108765,
-				-0.7470634579658508
+				-0.8083847165107727,
+				0.9442154765129089,
+				-0.7559323310852051
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":5,
 			"componentType":5126,
-			"count":5,
+			"count":50,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":6,
 			"componentType":5126,
-			"count":5,
+			"count":50,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":7,
 			"componentType":5123,
-			"count":9,
+			"count":84,
 			"type":"SCALAR"
 		}
 	],
@@ -187,26 +181,26 @@
 		},
 		{
 			"buffer":0,
-			"byteLength":60,
+			"byteLength":600,
 			"byteOffset":2976,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":60,
-			"byteOffset":3036,
+			"byteLength":600,
+			"byteOffset":3576,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":40,
-			"byteOffset":3096,
+			"byteLength":400,
+			"byteOffset":4176,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":18,
-			"byteOffset":3136,
+			"byteLength":168,
+			"byteOffset":4576,
 			"target":34963
 		}
 	],
@@ -218,7 +212,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":3156,
+			"byteLength":4744,
 			"uri":"baseR.bin"
 		}
 	]
