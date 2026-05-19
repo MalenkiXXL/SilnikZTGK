@@ -148,6 +148,9 @@ void EditorLayer::OnUpdate(Timestep ts)
         float localMouseX = mouseX - viewportPos.x;
         float localMouseY = mouseY - viewportPos.y;
 
+        float mappedMouseX = (localMouseX / viewportSize.x) * fboWidth;
+        float mappedMouseY = (localMouseY / viewportSize.y) * fboHeight;
+
         auto& gridReq = activeScene->GetGridRequest();
 
         auto& request = activeScene->GetPlacementRequest();
@@ -161,7 +164,7 @@ void EditorLayer::OnUpdate(Timestep ts)
 
         if (m_IsPlacing && Input::IsMouseButtonPressed(0) && isMouseInViewport)
         {
-            Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, fboWidth, fboHeight, proj3D, view3D);
+            Ray ray = Physics::CastRayFromMouse(mappedMouseX, mappedMouseY, fboWidth, fboHeight, proj3D, view3D);
             glm::vec3 spawnPosition = glm::vec3(0.0f);
 
             if (std::abs(ray.Direction.y) > 1e-6f) {
@@ -444,13 +447,26 @@ void EditorLayer::OnUpdate(Timestep ts)
         if (Input::IsMouseButtonJustPressed(0))
         {
             auto mousePos = Input::GetMousePosition();
-            float localMouseX = mousePos.first - 200.0f;
-            float localMouseY = mousePos.second - 30.0f;
+            float rawMouseX = mousePos.first;
+            float rawMouseY = mousePos.second;
+
+            float localMouseX = 0.0f;
+            float localMouseY = 0.0f;
+            float currentViewWidth = fboWidth;
+            float currentViewHeight = fboHeight;
+
+            // W edytorze odejmujemy panele boczne (takie same rozmiary jak wyżej)
+            glm::vec2 viewportPos = { 200.0f, 30.0f };
             glm::vec2 viewportSize = { m_ViewportWidth - 500.0f, m_ViewportHeight - 230.0f };
 
-            Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
+            float xOffsetRemoved = rawMouseX - viewportPos.x;
+            float yOffsetRemoved = rawMouseY - viewportPos.y;
 
-            auto& world = activeScene->GetWorld();
+            localMouseX = (xOffsetRemoved / viewportSize.x) * fboWidth;
+            localMouseY = (yOffsetRemoved / viewportSize.y) * fboHeight;
+
+            Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, currentViewWidth, currentViewHeight, proj3D, view3D);
+
             // Tryb Play: pobieramy Component Storage colliderów a nie meshy
             auto* colliderStorage = world.GetComponentVector<BoxColliderComponent>();
             auto* transformStorage = world.GetComponentVector<TransformComponent>();
