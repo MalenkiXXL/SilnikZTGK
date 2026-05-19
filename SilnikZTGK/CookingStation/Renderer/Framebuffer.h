@@ -19,6 +19,7 @@ public:
 
     // Kopiowanie i uœrednianie obrazu z bufora MSAA do docelowego bufora
     void ResolveTo(const std::shared_ptr<Framebuffer>& target);
+    uint32_t GetRendererID() const { return m_RendererID; }
 
     uint32_t GetColorAttachmentRendererID() const { return m_ColorAttachment; }
     const FramebufferSpecification& GetSpecification() const { return m_Specification; }

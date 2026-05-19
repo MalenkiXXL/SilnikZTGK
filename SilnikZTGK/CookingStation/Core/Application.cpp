@@ -12,6 +12,8 @@
 #include "CookingStation/Core/VFS/IFileSystem.h"
 #include "CookingStation/Core/VFS/PhysicalFileSystem.h"
 #include "CookingStation/Core/VFS/VFS.h"
+#include "CookingStation/Layers/GuiLayer/Gui.h"
+#include "CookingStation/Scripts/ScriptRegistry.h"
 #include <iostream>
 
 Application* Application::s_Instance = nullptr;
@@ -23,55 +25,82 @@ Application::Application()
 	m_Window->Init();
 	m_Window->SetEventCallback([this](Event& e) { OnEvent(e); });
 
-	// W³¹cz obs³ugê MSAA na poziomie sterownika OpenGL!
 	glEnable(GL_MULTISAMPLE);
 
-	// 1. ZWYK£Y FBO (Wykorzystywany przez interfejs GUI ImGui do wyœwietlenia ostatecznego obrazu)
+	// 1. ZWYK£Y FBO (GUI)
 	FramebufferSpecification fbSpec;
 	fbSpec.Width = m_Window->GetWidth();
 	fbSpec.Height = m_Window->GetHeight();
-	fbSpec.Samples = 1; // Brak MSAA dla UI
+	fbSpec.Samples = 1;
 	m_ViewportFBO = std::make_shared<Framebuffer>(fbSpec);
 
-	// 2. FBO z MSAA (Do niego RendererLayer bêdzie rysowa³ wszystkie modele 3D)
+	// 2. FBO z MSAA (3D)
 	FramebufferSpecification msaaSpec;
 	msaaSpec.Width = m_Window->GetWidth();
 	msaaSpec.Height = m_Window->GetHeight();
-	msaaSpec.Samples = 4; // Ustawiamy 4 próbki wyg³adzania
+	msaaSpec.Samples = 4;
 	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
 
-	std::shared_ptr<PhysicalFileSystem> physicalFS = std::make_shared<PhysicalFileSystem>("CookingStation/Assets");
-	VFS::Mount("assets", physicalFS);
-	std::shared_ptr<PhysicalFileSystem> shaderFS = std::make_shared<PhysicalFileSystem>("CookingStation/Shaders");
-	VFS::Mount("shaders", shaderFS);
-	
-	SceneManager::NewScene();
+#ifdef CS_DISTRIBUTION
+	std::string assetsPath = "../../SilnikZTGK/CookingStation/Assets";
+	std::string shadersPath = "../../SilnikZTGK/CookingStation/Shaders";
+#else
+	std::string assetsPath = "CookingStation/Assets";
+	std::string shadersPath = "CookingStation/Shaders";
+#endif
 
+	std::shared_ptr<PhysicalFileSystem> physicalFS = std::make_shared<PhysicalFileSystem>(assetsPath);
+	VFS::Mount("assets", physicalFS);
+	std::shared_ptr<PhysicalFileSystem> shaderFS = std::make_shared<PhysicalFileSystem>(shadersPath);
+	VFS::Mount("shaders", shaderFS);
+
+	SceneManager::NewScene();
 	Renderer::Init();
 	Renderer2D::Init();
 
+#ifdef CS_DISTRIBUTION
+	{
+		AssetManager::LoadModelLibrary("assets://modelsLib.json");
+		AssetManager::InitCoreAssets();
+		ScriptRegistry::Init();   
+
+		std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+		SceneSerializer serializer(activeScene.get());
+
+		if (serializer.Deserialize("assets://levels/level01.json"))
+		{
+			spdlog::info("Pomyslnie wczytano domyslna scene startowa!");
+			activeScene->SetState(SceneState::Play);
+			activeScene->OnRuntimeStart();
+		}
+		else
+		{
+			spdlog::error("Blad krytyczny: Nie udalo sie wczytac sceny: assets://levels/level01.json");
+		}
+	}
+#endif
+
 	PushLayer(new CameraLayer());
 	PushLayer(new AssetLayer());
-
-	auto gameLayer = new GameLayer();
-	PushLayer(gameLayer);
+	PushLayer(new GameLayer());   
 
 	auto renderLayer = new RendererLayer();
-	renderLayer->SetTargetFramebuffer(m_MsaaFBO); // Tu rysujemy (MSAA)
-	renderLayer->SetResolveTarget(m_ViewportFBO); // Tu kopiujemy (Resolve)
+	renderLayer->SetTargetFramebuffer(m_MsaaFBO);
+	renderLayer->SetResolveTarget(m_ViewportFBO);
 	PushLayer(renderLayer);
 
+	PushLayer(new HUDLayer());
+
+#ifndef CS_DISTRIBUTION
 	auto editorLayer = new EditorLayer();
 	editorLayer->SetTargetFramebuffer(m_ViewportFBO);
 	PushLayer(editorLayer);
 
-	auto hudLayer = new HUDLayer();
-	PushLayer(hudLayer);
-
 	auto editorGuiLayer = new EditorGuiLayer();
 	editorGuiLayer->SetViewportFramebuffer(m_ViewportFBO);
-	editorGuiLayer->SetMsaaFramebuffer(m_MsaaFBO); // Przeka¿ MSAA do edytora, ¿eby móg³ go resizowaæ
+	editorGuiLayer->SetMsaaFramebuffer(m_MsaaFBO);
 	PushLayer(editorGuiLayer);
+#endif
 
 	auto gameGuiLayer = new GameGuiLayer();
 	gameGuiLayer->SetViewportFramebuffer(m_ViewportFBO);
@@ -168,8 +197,32 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 {
 	int width = e.GetWidth();
 	int height = e.GetHeight();
-	std::cout << "Zmieniam rozmiar okna " << width << " x " << height << std::endl;
+
+	if (width == 0 || height == 0)
+	{
+		return false;
+	}
+
+	// Ta linijka wykonuje siê ZAWSZE (zarówno w Edytorze, jak i w gotowej grze)
 	glViewport(0, 0, width, height);
+
+#ifdef CS_DISTRIBUTION
+
+	// 1. Dopasowujemy rozmiary buforów renderowania do pe³nego okna gry
+	if (m_ViewportFBO) m_ViewportFBO->Resize(width, height);
+	if (m_MsaaFBO) m_MsaaFBO->Resize(width, height);
+
+	// 2. Bezpiecznie aktualizujemy wymiary ekranu dla silnika GUI przez nasz nowy Setter
+	Gui::SetScreenSize((float)width, (float)height);
+
+	// 3. Aktualizujemy Aspect Ratio kamery w œwiecie gry, ¿eby obiekty nie by³y sp³aszczone
+	auto activeScene = SceneManager::GetActiveScene();
+	if (activeScene)
+	{
+		activeScene->SetViewportSize(width, height);
+	}
+#endif
+
 	return false;
 }
 

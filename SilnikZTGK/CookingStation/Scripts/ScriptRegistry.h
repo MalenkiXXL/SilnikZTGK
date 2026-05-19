@@ -46,7 +46,7 @@ public:
 
     static void Init()
     {
-        // Tu dodajesz ka�dy nowy skrypt
+        if (!GetRegistry().empty()) return;
         Register<RotationScript>("RotationScript");
         Register<ConveyorScript>("ConveyorScript");
         Register<ItemScript>("ItemScript");

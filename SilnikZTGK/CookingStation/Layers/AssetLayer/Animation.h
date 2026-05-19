@@ -35,7 +35,7 @@ public:
         // 1. Sprawdzamy czy plik w og�le istnieje i za�adowa� si� poprawnie
         if (!scene || !scene->mRootNode)
         {
-            spdlog::error("Animator B��D: Nie udalo sie wczytac pliku animacji! Sciezka: {}", animationPath);
+            spdlog::error("Animator BLAD: Nie udalo sie wczytac pliku animacji! Sciezka: {}", animationPath);
             return;
         }
 
