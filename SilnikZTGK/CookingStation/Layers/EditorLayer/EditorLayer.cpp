@@ -309,7 +309,6 @@ void EditorLayer::OnUpdate(Timestep ts)
     }
     else // TRYB PLAY
     {
-        activeScene->OnUpdateRuntime(ts);
 
         if (Input::IsMouseButtonJustPressed(0))
         {
