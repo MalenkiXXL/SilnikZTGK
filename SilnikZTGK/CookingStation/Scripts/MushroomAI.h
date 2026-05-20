@@ -82,6 +82,10 @@ public:
         }
         else if (m_State == WaiterState::DeliveringFood)
         {
+            if (animComp && animComp->AnimatorInstance) {
+                animComp->AnimatorInstance->PlayAnimation("Walk");
+                animComp->IsPlaying = true;
+            }
             auto* customerTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetCustomer);
             if (!customerTransform) {
                 m_State = WaiterState::Idle; // Klient znikn¹³ 

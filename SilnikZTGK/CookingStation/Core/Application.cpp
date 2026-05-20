@@ -69,7 +69,11 @@ Application::Application()
 
 		if (serializer.Deserialize("assets://levels/level01.json"))
 		{
-			spdlog::info("Pomyslnie wczytano domyslna scene startowa!");
+			activeScene->SetViewportSize(m_Window->GetWidth(), m_Window->GetHeight());
+
+			// Gui musi znaæ rozmiar ekranu do poprawnego mapowania myszy
+			Gui::SetScreenSize((float)m_Window->GetWidth(), (float)m_Window->GetHeight());
+
 			activeScene->SetState(SceneState::Play);
 			activeScene->OnRuntimeStart();
 		}

@@ -59,17 +59,30 @@ protected:
 		auto* camera = m_Scene->GetCamera();
 		if (!camera) return glm::vec3(0.0f);
 
-		auto mousePos = Input::GetMousePosition();
 		auto windowSize = Input::GetWindowSize();
+		float viewWidth = (float)m_Scene->GetViewportWidth();
+		float viewHeight = (float)m_Scene->GetViewportHeight();
 
+		// Jeœli okno jest zminimalizowane lub ma b³êdy
+		if (viewWidth <= 0 || viewHeight <= 0) return glm::vec3(0.0f);
+
+#ifdef CS_DISTRIBUTION
+		// W dystrybucji okno to ca³y ekran. 
+		// Najlepiej pobieraæ to przez nasz system wejœcia:
+		auto mousePos = Input::GetMousePosition();
+		float localMouseX = mousePos.first;
+		float localMouseY = mousePos.second;
+#else
+		// W edytorze viewport jest poœrodku paneli
+		auto mousePos = Input::GetMousePosition();
 		float localMouseX = mousePos.first - 200.0f;
 		float localMouseY = mousePos.second - 30.0f;
-		float viewWidth = (float)windowSize.first - 500.0f;
-		float viewHeight = (float)windowSize.second - 230.0f;
+#endif
 
 		float orthoSize = 10.0f * (camera->Zoom / 45.0f);
 		float aspectRatio = camera->AspectRatio;
 
+		// Wa¿ne! Projekcja musi siê zgadzaæ z RendererLayer.cpp!
 		glm::mat4 proj3D = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
 		glm::mat4 view3D = camera->GetViewMatrix();
 

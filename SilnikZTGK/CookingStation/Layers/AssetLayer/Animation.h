@@ -30,6 +30,7 @@ public:
     {
         m_Path = animationPath;
         Assimp::Importer importer;
+        importer.SetIOHandler(new VfsIOSystem()); 
         const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
 
         // 1. Sprawdzamy czy plik w og�le istnieje i za�adowa� si� poprawnie
@@ -49,7 +50,7 @@ public:
             ReadHierarchyData(m_RootNode, scene->mRootNode);
             ReadMissingBones(animation, *model);
         }
-        /*else
+       /* else
         {
             spdlog::warn("Animator OSTRZEZENIE: Plik wczytany poprawnie, ale NIE ZNALEZIONO ZADNEJ ANIMACJI: {}", animationPath);
         }*/

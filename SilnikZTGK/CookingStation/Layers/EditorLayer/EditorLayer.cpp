@@ -22,7 +22,7 @@
 float GridSystem::CELL_SIZE = 2.0f;
 static bool s_UseSSA = true;
 
-//Helper: quad leżący płasko na podłodze(płaszczyzna XZ), środek w 'center'.
+// Helper: quad lezacy plasko na podlodze (plaszczyzna XZ), srodek w 'center'.
 static glm::mat4 FlatQuadTransform(const glm::vec3& center, float sizeX, float sizeZ)
 {
     return glm::translate(glm::mat4(1.0f), center)
@@ -68,17 +68,17 @@ void EditorLayer::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos,
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // 1. Podświetlenie hover kafelka
+    // 1. Podswietlenie hover kafelka
     glm::vec3 hoverCenter = { (hoverCell.x + 0.5f) * cell, 0.0f, (hoverCell.y + 0.5f) * cell };
     Renderer2D::DrawQuad(FlatQuadTransform(hoverCenter, cell, cell), hoverColor);
 
-    // 2. Linie poziome 
+    // 2. Linie poziome
     for (int cz = startZ; cz <= endZ; cz++) {
         float z = cz * cell;
         Renderer2D::DrawQuad(FlatQuadTransform({ centerX, 0.0f, z }, gridLenX, t), borderColor);
     }
 
-    // 3. Linie pionowe 
+    // 3. Linie pionowe
     for (int cx = startX; cx <= endX; cx++) {
         float x = cx * cell;
         Renderer2D::DrawQuad(FlatQuadTransform({ x, 0.0f, centerZ }, t, gridLenZ), borderColor);
@@ -88,7 +88,7 @@ void EditorLayer::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos,
     glEnable(GL_DEPTH_TEST);
 }
 
-//obliczanie przeciecia promienia z podloga
+// Obliczanie przeciecia promienia z podloga
 void EditorLayer::UpdateGridPlacement(float localMouseX, float localMouseY, const glm::vec2& viewportSize, const glm::mat4& projection3D, const glm::mat4& view3D)
 {
     Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, projection3D, view3D);
@@ -109,6 +109,20 @@ void EditorLayer::OnUpdate(Timestep ts)
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     if (!activeScene) return;
 
+    // W trybie Play EditorLayer nie robi nic - GameLayer przejmuje kontrole
+    if (m_SceneState == SceneState::Play)
+    {
+        if (m_TargetFBO)
+            m_TargetFBO->Unbind();
+
+        auto windowSize = Input::GetWindowSize();
+        glViewport(0, 0, windowSize.first, windowSize.second);
+        return;
+    }
+
+    // =====================
+    // TRYB EDIT
+    // =====================
     activeScene->CalculateTransforms();
     activeScene->UpdateSpatialGrid();
 
@@ -132,222 +146,178 @@ void EditorLayer::OnUpdate(Timestep ts)
     glDisable(GL_DEPTH_TEST);
     Renderer2D::BeginScene(uiProj);
 
-    if (m_SceneState == SceneState::Edit)
+    glm::vec2 viewportPos = { 200.0f, 30.0f };
+    glm::vec2 viewportSize = { m_ViewportWidth - 500.0f, m_ViewportHeight - 230.0f };
+
+    auto mousePos = Input::GetMousePosition();
+    float mouseX = mousePos.first;
+    float mouseY = mousePos.second;
+
+    bool isMouseInViewport = (
+        mouseX >= viewportPos.x && mouseX <= (viewportPos.x + viewportSize.x) &&
+        mouseY >= viewportPos.y && mouseY <= (viewportPos.y + viewportSize.y));
+
+    float localMouseX = mouseX - viewportPos.x;
+    float localMouseY = mouseY - viewportPos.y;
+
+    float mappedMouseX = (localMouseX / viewportSize.x) * fboWidth;
+    float mappedMouseY = (localMouseY / viewportSize.y) * fboHeight;
+
+    auto& gridReq = activeScene->GetGridRequest();
+
+    auto& request = activeScene->GetPlacementRequest();
+    if (request.Active)
     {
-        glm::vec2 viewportPos = { 200.0f, 30.0f };
-        glm::vec2 viewportSize = { m_ViewportWidth - 500.0f, m_ViewportHeight - 230.0f };
+        m_PendingModelName = request.Name;
+        m_PendingModelPath = request.Path;
+        m_IsPlacing = true;
+        request.Active = false;
+    }
 
-        auto mousePos = Input::GetMousePosition();
-        float mouseX = mousePos.first;
-        float mouseY = mousePos.second;
+    if (m_IsPlacing && Input::IsMouseButtonPressed(0) && isMouseInViewport)
+    {
+        Ray ray = Physics::CastRayFromMouse(mappedMouseX, mappedMouseY, fboWidth, fboHeight, proj3D, view3D);
+        glm::vec3 spawnPosition = glm::vec3(0.0f);
 
-        bool isMouseInViewport = (
-            mouseX >= viewportPos.x && mouseX <= (viewportPos.x + viewportSize.x) &&
-            mouseY >= viewportPos.y && mouseY <= (viewportPos.y + viewportSize.y));
-
-        float localMouseX = mouseX - viewportPos.x;
-        float localMouseY = mouseY - viewportPos.y;
-
-        float mappedMouseX = (localMouseX / viewportSize.x) * fboWidth;
-        float mappedMouseY = (localMouseY / viewportSize.y) * fboHeight;
-
-        auto& gridReq = activeScene->GetGridRequest();
-
-        auto& request = activeScene->GetPlacementRequest();
-        if (request.Active)
-        {
-            m_PendingModelName = request.Name;
-            m_PendingModelPath = request.Path;
-            m_IsPlacing = true;
-            request.Active = false;
-        }
-
-        if (m_IsPlacing && Input::IsMouseButtonPressed(0) && isMouseInViewport)
-        {
-            Ray ray = Physics::CastRayFromMouse(mappedMouseX, mappedMouseY, fboWidth, fboHeight, proj3D, view3D);
-            glm::vec3 spawnPosition = glm::vec3(0.0f);
-
-            if (std::abs(ray.Direction.y) > 1e-6f) {
-                float t = -ray.Origin.y / ray.Direction.y;
-                if (t > 0.0f) {
-                    spawnPosition = ray.Origin + t * ray.Direction;
-                }
-            }
-
-            if (gridReq.Active) {
-                spawnPosition = GridSystem::SnapToGrid(spawnPosition);
-            }
-
-            if (m_PendingModelPath.find(".json") != std::string::npos) {
-                PrefabSerializer::Deserialize(activeScene.get(), m_PendingModelPath, spawnPosition);
-                spdlog::info("EditorLayer: Postawiono prefab z pliku: {}", m_PendingModelPath);
-            }
-            else {
-                std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
-                    &world, m_PendingModelName, m_PendingModelPath, spawnPosition);
-                m_CommandHistory.ExecuteCommand(std::move(cmd));
-            }
-
-            m_IsPlacing = false;
-        }
-
-        Entity selected = activeScene->GetSelectedEntity();
-        bool validEntity = (selected.id != std::numeric_limits<std::size_t>::max());
-
-        if (gridReq.Active && validEntity)
-        {
-            if (isMouseInViewport)
-            {
-                UpdateGridPlacement(localMouseX, localMouseY, viewportSize, proj3D, view3D);
-            }
-
-            DrawGrid(proj3D * view3D, camPos, 40.0f);
-            Renderer2D::BeginScene(uiProj);
-
-            if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport)
-            {
-                auto* transform = world.GetComponent<TransformComponent>(selected);
-                if (transform)
-                {
-                    glm::vec3 oldPos = transform->GetPosition();
-                    glm::vec3 newPos = { m_GridHoverPos.x, oldPos.y, m_GridHoverPos.z };
-
-                    std::unique_ptr<Command> cmd = std::make_unique<MoveEntityCommand>(
-                        &world, selected, oldPos, newPos);
-                    m_CommandHistory.ExecuteCommand(std::move(cmd));
-
-                    spdlog::info("Grid: Przeniesiono encje ID:{} na kafelek", selected.id);
-                }
-                gridReq.Active = false;
+        if (std::abs(ray.Direction.y) > 1e-6f) {
+            float t = -ray.Origin.y / ray.Direction.y;
+            if (t > 0.0f) {
+                spawnPosition = ray.Origin + t * ray.Direction;
             }
         }
 
-        if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport && !m_IsPlacing && !gridReq.Active)
-        {
-            Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
-
-            auto start = std::chrono::high_resolution_clock::now();
-
-            Entity closestEntity = GetHoveredEntity(ray, activeScene, false);
-
-            if (closestEntity.id != std::numeric_limits<std::size_t>::max())
-            {
-                activeScene->SetSelectedEntity(closestEntity);
-            }
-
-            auto end = std::chrono::high_resolution_clock::now();
-            float timeMs = std::chrono::duration<float, std::milli>(end - start).count();
-
-            spdlog::info("Wyszukiwanie obiektu (SSA: {}): {:.4f} ms", s_UseSSA ? "ON" : "OFF", timeMs);
+        if (gridReq.Active) {
+            spawnPosition = GridSystem::SnapToGrid(spawnPosition);
         }
 
-        if (validEntity)
+        if (m_PendingModelPath.find(".json") != std::string::npos) {
+            PrefabSerializer::Deserialize(activeScene.get(), m_PendingModelPath, spawnPosition);
+            spdlog::info("EditorLayer: Postawiono prefab z pliku: {}", m_PendingModelPath);
+        }
+        else {
+            std::unique_ptr<Command> cmd = std::make_unique<CreateEntityCommand>(
+                &world, m_PendingModelName, m_PendingModelPath, spawnPosition);
+            m_CommandHistory.ExecuteCommand(std::move(cmd));
+        }
+
+        m_IsPlacing = false;
+    }
+
+    Entity selected = activeScene->GetSelectedEntity();
+    bool validEntity = (selected.id != std::numeric_limits<std::size_t>::max());
+
+    if (gridReq.Active && validEntity)
+    {
+        if (isMouseInViewport)
+        {
+            UpdateGridPlacement(localMouseX, localMouseY, viewportSize, proj3D, view3D);
+        }
+
+        DrawGrid(proj3D * view3D, camPos, 40.0f);
+        Renderer2D::BeginScene(uiProj);
+
+        if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport)
         {
             auto* transform = world.GetComponent<TransformComponent>(selected);
-            auto* collider = world.GetComponent<BoxColliderComponent>(selected);
-
-            if (transform && collider)
-            {
-                Renderer2D::EndScene();
-                Renderer2D::BeginScene(proj3D * view3D);
-                glEnable(GL_BLEND);
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                glDisable(GL_DEPTH_TEST);
-
-                glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
-                glm::vec3 center = globalPos + collider->Offset;
-                glm::vec3 e = transform->GetScale() * collider->Size;
-
-                glm::vec3 currentRot = transform->GetRotation();
-                glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.x), { 1, 0, 0 })
-                    * glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.y), { 0, 1, 0 })
-                    * glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.z), { 0, 0, 1 });
-
-                // Macierz dla renderowania Quadów
-                glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rot;
-
-                float t = 0.05f;
-                float h = t / 2.0f;
-                glm::vec4 color = { 0.2f, 0.9f, 0.2f, 0.8f };
-
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x,  e.y - h,  e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x, -e.y - h,  e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x,  e.y - h, -e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x, -e.y - h, -e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
-
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y,  e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y,  e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y, -e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y, -e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
-
-                glm::mat4 rotZ = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 0.0f, 1.0f, 0.0f });
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h,  e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h,  e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
-                Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
-
-                Renderer2D::EndScene();
-                glEnable(GL_DEPTH_TEST);
-                Renderer2D::BeginScene(uiProj);
-            }
-
             if (transform)
             {
-                glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
-                glm::vec4 clipSpacePos = proj3D * view3D * glm::vec4(globalPos, 1.0f);
+                glm::vec3 oldPos = transform->GetPosition();
+                glm::vec3 newPos = { m_GridHoverPos.x, oldPos.y, m_GridHoverPos.z };
 
-                if (clipSpacePos.w != 0.0f) {
-                    glm::vec3 ndcSpacePos = glm::vec3(clipSpacePos) / clipSpacePos.w;
-                    float screenX = (ndcSpacePos.x + 1.0f) * 0.5f * fboWidth;
-                    float screenY = (1.0f - ndcSpacePos.y) * 0.5f * fboHeight;
+                std::unique_ptr<Command> cmd = std::make_unique<MoveEntityCommand>(
+                    &world, selected, oldPos, newPos);
+                m_CommandHistory.ExecuteCommand(std::move(cmd));
 
-                    Renderer2D::DrawQuad({ screenX, screenY }, { 50.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
-                    Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
-                }
+                spdlog::info("Grid: Przeniesiono encje ID:{} na kafelek", selected.id);
             }
+            gridReq.Active = false;
         }
     }
-    else // TRYB PLAY
+
+    if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport && !m_IsPlacing && !gridReq.Active)
     {
+        Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
 
-        if (Input::IsMouseButtonJustPressed(0))
+        auto start = std::chrono::high_resolution_clock::now();
+
+        Entity closestEntity = GetHoveredEntity(ray, activeScene, false);
+
+        if (closestEntity.id != std::numeric_limits<std::size_t>::max())
         {
-            auto mousePos = Input::GetMousePosition();
-            float rawMouseX = mousePos.first;
-            float rawMouseY = mousePos.second;
+            activeScene->SetSelectedEntity(closestEntity);
+        }
 
-            float localMouseX = 0.0f;
-            float localMouseY = 0.0f;
-            float currentViewWidth = fboWidth;
-            float currentViewHeight = fboHeight;
+        auto end = std::chrono::high_resolution_clock::now();
+        float timeMs = std::chrono::duration<float, std::milli>(end - start).count();
 
-            // W edytorze odejmujemy panele boczne (takie same rozmiary jak wyżej)
-            glm::vec2 viewportPos = { 200.0f, 30.0f };
-            glm::vec2 viewportSize = { m_ViewportWidth - 500.0f, m_ViewportHeight - 230.0f };
+        spdlog::info("Wyszukiwanie obiektu (SSA: {}): {:.4f} ms", s_UseSSA ? "ON" : "OFF", timeMs);
+    }
 
-            float xOffsetRemoved = rawMouseX - viewportPos.x;
-            float yOffsetRemoved = rawMouseY - viewportPos.y;
+    if (validEntity)
+    {
+        auto* transform = world.GetComponent<TransformComponent>(selected);
+        auto* collider = world.GetComponent<BoxColliderComponent>(selected);
 
-            localMouseX = (xOffsetRemoved / viewportSize.x) * fboWidth;
-            localMouseY = (yOffsetRemoved / viewportSize.y) * fboHeight;
+        if (transform && collider)
+        {
+            Renderer2D::EndScene();
+            Renderer2D::BeginScene(proj3D * view3D);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glDisable(GL_DEPTH_TEST);
 
-            Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, currentViewWidth, currentViewHeight, proj3D, view3D);
+            glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
+            glm::vec3 center = globalPos + collider->Offset;
+            glm::vec3 e = transform->GetScale() * collider->Size;
 
-            Entity closestEntity = GetHoveredEntity(ray, activeScene, true);
+            glm::vec3 currentRot = transform->GetRotation();
+            glm::mat4 rot = glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.x), { 1, 0, 0 })
+                * glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.y), { 0, 1, 0 })
+                * glm::rotate(glm::mat4(1.0f), glm::radians(currentRot.z), { 0, 0, 1 });
 
-            if (closestEntity.id != std::numeric_limits<std::size_t>::max())
-            {
-                auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
-                if (scriptStorage)
-                {
-                    auto* nsc = scriptStorage->Get(closestEntity);
-                    if (nsc) {
-                        for (auto& s : nsc->Scripts) if (s.Instance) s.Instance->OnClick();
-                    }
-                }
+            glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rot;
+
+            float t = 0.05f;
+            float h = t / 2.0f;
+            glm::vec4 color = { 0.2f, 0.9f, 0.2f, 0.8f };
+
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x,  e.y - h,  e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x, -e.y - h,  e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x,  e.y - h, -e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x, -e.y - h, -e.z }) * glm::scale(glm::mat4(1.0f), { e.x * 2.0f, t, 1.0f }), color);
+
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y,  e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y,  e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y, -e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y, -e.z }) * glm::scale(glm::mat4(1.0f), { t, e.y * 2.0f, 1.0f }), color);
+
+            glm::mat4 rotZ = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 0.0f, 1.0f, 0.0f });
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h,  e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h,  e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { e.x - h, -e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
+            Renderer2D::DrawQuad(obbTransform * glm::translate(glm::mat4(1.0f), { -e.x - h, -e.y - h, -e.z }) * rotZ * glm::scale(glm::mat4(1.0f), { e.z * 2.0f, t, 1.0f }), color);
+
+            Renderer2D::EndScene();
+            glEnable(GL_DEPTH_TEST);
+            Renderer2D::BeginScene(uiProj);
+        }
+
+        if (transform)
+        {
+            glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
+            glm::vec4 clipSpacePos = proj3D * view3D * glm::vec4(globalPos, 1.0f);
+
+            if (clipSpacePos.w != 0.0f) {
+                glm::vec3 ndcSpacePos = glm::vec3(clipSpacePos) / clipSpacePos.w;
+                float screenX = (ndcSpacePos.x + 1.0f) * 0.5f * fboWidth;
+                float screenY = (1.0f - ndcSpacePos.y) * 0.5f * fboHeight;
+
+                Renderer2D::DrawQuad({ screenX, screenY }, { 50.0f, 2.0f }, { 1.0f, 0.0f, 0.0f, 1.0f });
+                Renderer2D::DrawQuad({ screenX, screenY }, { 2.0f, 50.0f }, { 0.0f, 1.0f, 0.0f, 1.0f });
             }
         }
     }
+
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);
 
@@ -414,9 +384,7 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
         }
     }
 
-    // SSA
-
-    // F9 Przełączanie algorytmu
+    // F9: Przełączanie algorytmu SSA
     if (e.GetKeyCode() == GLFW_KEY_F9) {
         s_UseSSA = !s_UseSSA;
         spdlog::info("System SSA: {} ", s_UseSSA ? "WLACZONY (Szybki)" : "WYLACZONY (Brute-Force)");
@@ -428,7 +396,6 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
 
         auto& world = activeScene->GetWorld();
 
-        // generujemy potężną siatkę 100x100 obiektów
         for (int x = 0; x < 100; x++) {
             for (int z = 0; z < 100; z++) {
                 glm::vec3 spawnPos = { x * 2.0f, 0.0f, z * 2.0f };
@@ -437,16 +404,10 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
 
                 world.AddComponent<TagComponent>(e, TagComponent{ "StresTest_Pudlo" });
 
-                // 3. Dodajemy Transform
                 TransformComponent trans;
                 trans.SetPosition(spawnPos);
                 trans.SetScale(glm::vec3(1.0f));
                 world.AddComponent<TransformComponent>(e, trans);
-
-                // ZMIANA ZWIĄZANA Z NOWĄ ARCHITEKTURĄ FIZYKI
-                // Usunięto dodawanie MeshComponent z modelem nullptr!
-                // Fizyka iteruje teraz po colliderach, a nie meszach, 
-                // dzięki czemu ten stres test naturalnie stał się "niewidzialny".
 
                 BoxColliderComponent bc;
                 bc.Size = glm::vec3(1.0f);
@@ -475,7 +436,6 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
     }
     return false;
 }
-
 
 Entity EditorLayer::GetHoveredEntity(const Ray& ray, std::shared_ptr<Scene> activeScene, bool requireCollider)
 {
@@ -531,7 +491,6 @@ Entity EditorLayer::GetHoveredEntity(const Ray& ray, std::shared_ptr<Scene> acti
 
                                 BoxColliderComponent* collider = colliderStorage ? colliderStorage->Get(entity) : nullptr;
 
-                                // MAGIA TUTAJ: Jeśli wymagamy collidera, a go nie ma -> skip
                                 if (requireCollider && !collider) continue;
 
                                 glm::vec3 boundsOffset = glm::vec3(0.0f);
@@ -548,8 +507,8 @@ Entity EditorLayer::GetHoveredEntity(const Ray& ray, std::shared_ptr<Scene> acti
 
                                 glm::vec3 rot = transform->GetRotation();
                                 glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), { 1, 0, 0 })
-                                                   * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
-                                                   * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
+                                    * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
+                                    * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
 
                                 glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rotMat;
                                 glm::mat4 invTransform = glm::inverse(obbTransform);
@@ -586,7 +545,6 @@ Entity EditorLayer::GetHoveredEntity(const Ray& ray, std::shared_ptr<Scene> acti
             TransformComponent* transform = &transformStorage->dense[it];
             BoxColliderComponent* collider = colliderStorage ? colliderStorage->Get(entity) : nullptr;
 
-            // Jeśli wymagamy collidera, a go nie ma -> skip
             if (requireCollider && !collider) continue;
 
             glm::vec3 boundsOffset = glm::vec3(0.0f);
@@ -603,8 +561,8 @@ Entity EditorLayer::GetHoveredEntity(const Ray& ray, std::shared_ptr<Scene> acti
 
             glm::vec3 rot = transform->GetRotation();
             glm::mat4 rotMat = glm::rotate(glm::mat4(1.0f), glm::radians(rot.x), { 1, 0, 0 })
-                               * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
-                               * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
+                * glm::rotate(glm::mat4(1.0f), glm::radians(rot.y), { 0, 1, 0 })
+                * glm::rotate(glm::mat4(1.0f), glm::radians(rot.z), { 0, 0, 1 });
 
             glm::mat4 obbTransform = glm::translate(glm::mat4(1.0f), center) * rotMat;
             glm::mat4 invTransform = glm::inverse(obbTransform);
