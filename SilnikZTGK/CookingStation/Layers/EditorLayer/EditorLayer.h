@@ -9,6 +9,7 @@
 #include "CookingStation/Renderer/ShaderLibrary.h"
 #include "CommandHistory.h"
 #include "CookingStation/Renderer/Framebuffer.h"
+#include "CookingStation/Core/Physics.h"
 #include <memory>
 #include <limits>
 
@@ -38,6 +39,7 @@ private:
     bool OnKeyPressed(KeyPressedEvent& e);
     bool OnEntityTransformChanged(EntityTransformChangedEvent& e);
     bool OnEntityDeleted(EntityDeletedEvent& e);
+    Entity GetHoveredEntity(const Ray& ray, std::shared_ptr<Scene> activeScene, bool requireCollider);
 
     void DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, float range);
     void UpdateGridPlacement(float localMouseX, float localMouseY,
