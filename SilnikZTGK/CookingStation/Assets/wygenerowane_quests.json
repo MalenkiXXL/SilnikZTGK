@@ -1,37 +1,10 @@
 [
   {
-    "title": "Sam Neill's Cesnakove Mlieko",
-    "description": "Aktor pil potajemnie czosnkowe mleko dla zdrowia, podaj mu natychmiast! Nie pozwól mu zapasc sie w objecia czosnkowego mleka!",
-    "portions": 10,
-    "frequency": 7,
-    "reward": "1000 Monet, Cudowny Eliksir Zdrowia"
-  },
-  {
-    "title": "Horoskopowa Zupa Gwiazd",
-    "description": "Gwiazdy zapowiadaja nieuchronne zeslanie kosmicznej zupy, przygotuj sie na jej kulinarna interpretacje!",
-    "portions": 15,
-    "frequency": 10,
-    "reward": "750 Monet, Talizman Szczescia Kulinarnego"
-  },
-  {
-    "title": "Polityczna Babeczka Stephena Colberta",
-    "description": "Stephen chce politycznej babeczki, ktora smakiem poruszy sumienia narodu! Zadbaj o wykwintne nadzienie!",
-    "portions": 12,
-    "frequency": 9,
-    "reward": "900 Monet, Zloty Lycha Sprawiedliwosci"
-  },
-  {
-    "title": "Ray J's 12500 Pierogow",
-    "description": "Ray J pozarla 12500 pierogow i chce wiecej! Daj mu nowe danie, zanim jego apetyt wybuchnie!",
-    "portions": 20,
-    "frequency": 12,
-    "reward": "1200 Monet, Wieczny Zapas Pierogow"
-  },
-  {
-    "title": "Krolewski Bulion Harry'ego",
-    "description": "Krol Karol odmowil krolewskiego bulionu Prince'owi Harry'emu, zrob dla niego cos lepszego, aby poczul sie doceniony!",
-    "portions": 18,
-    "frequency": 15,
-    "reward": "1100 Monet, Korona z Jadalnego Zlota"
+    "title": "Zupa dla Karpathyego",
+    "description": "Andrej potrzebuje paliwa do treningu sieci. Podaj mu zupke!",
+    "dish_id": "pomidorowa",
+    "portions": 2,
+    "frequency": 1,
+    "reward": "100 punktow inteligencji, kod zrodlowy"
   }
 ]

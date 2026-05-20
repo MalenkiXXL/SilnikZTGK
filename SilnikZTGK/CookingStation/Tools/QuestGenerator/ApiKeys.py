@@ -1,0 +1,3 @@
+#pragma once
+NEWS_API_KEY = "3d259c682589472b95edf767d9cb39e0"
+GEMINI_API_KEY = "AIzaSyDdIIA93_P68v9AZf0Mtp4UzWifKflyewg"

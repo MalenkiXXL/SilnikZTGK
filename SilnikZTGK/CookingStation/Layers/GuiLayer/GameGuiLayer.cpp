@@ -11,6 +11,7 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include <algorithm> 
 #include "CookingStation/Scripts/DragAndDropScript.h"
+#include "CookingStation/Scripts/Quests/DeliveryBoothScript.h"
 #include "CookingStation/Core/GameProgress.h"
 
 bool GameGuiLayer::s_NeedsQuestReload = false;
@@ -27,6 +28,34 @@ namespace {
         case Anchor::Center:      return { (screenWidth - width) / 2.0f + offsetX, (screenHeight - height) / 2.0f + offsetY };
         }
         return { offsetX, offsetY };
+    }
+
+    void DrawWrappedGuiText(const std::string& text, glm::vec2 startPos, float scale, const glm::vec4& color, float lineSpacing = 24.0f, size_t maxCharsPerLine = 36) {
+        std::stringstream ss(text);
+        std::string word;
+        std::string currentLine = "";
+        glm::vec2 currentPos = startPos;
+
+        while (ss >> word) {
+            if (currentLine.length() + word.length() + 1 > maxCharsPerLine) {
+                if (!currentLine.empty()) {
+                    // Cień tekstu (czarny z alfą dla idealnego kontrastu)
+                    Gui::DrawGuiText(currentLine, { currentPos.x + 2.0f, currentPos.y + 2.0f }, scale, { 0.0f, 0.0f, 0.0f, 0.85f });
+                    // Tekst główny
+                    Gui::DrawGuiText(currentLine, currentPos, scale, color);
+                    currentPos.y += lineSpacing;
+                }
+                currentLine = word;
+            }
+            else {
+                if (!currentLine.empty()) currentLine += " ";
+                currentLine += word;
+            }
+        }
+        if (!currentLine.empty()) {
+            Gui::DrawGuiText(currentLine, { currentPos.x + 2.0f, currentPos.y + 2.0f }, scale, { 0.0f, 0.0f, 0.0f, 0.85f });
+            Gui::DrawGuiText(currentLine, currentPos, scale, color);
+        }
     }
 }
 
@@ -171,48 +200,94 @@ void GameGuiLayer::DrawRecipeIcon(const std::string& recipeId, const std::shared
 }
 
 void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, bool isPlayMode) {
-    if (!m_CurrentQuests.empty()) {
-        glm::vec2 qpSize = { 380.0f * baseScale, 220.0f * baseScale }; // Skalujemy rozmiar panelu
-        float margin = 20.0f * baseScale; // Skalujemy margines
-
-        glm::vec2 qpPos = GetAnchoredPosition(Anchor::TopRight, margin, margin, qpSize.x, qpSize.y, gameWidth, gameHeight);
-        qpPos.x += gameX;
-        qpPos.y += gameY;
-
-        float alpha = isPlayMode ? 0.95f : 0.4f;
-        Gui::Panel(qpPos, qpSize, { 0.12f, 0.12f, 0.12f, alpha }, 15.0f * baseScale);
-
-        const auto& q = m_CurrentQuests[m_CurrentQuestIndex];
-
-        // Skalujemy pozycje tekstu wewn�trz panelu oraz skal� czcionki
-        float textX = qpPos.x + 15.f * baseScale;
-        std::string header = "ZADANIE (" + std::to_string(m_CurrentQuestIndex + 1) + "/" + std::to_string(m_CurrentQuests.size()) + ")";
-        Gui::DrawGuiText(header, { textX, qpPos.y + 15.f * baseScale }, 0.6f * baseScale, { 1.0f, 0.5f, 0.2f, 1.0f });
-        Gui::DrawGuiText(q.title, { textX, qpPos.y + 50.f * baseScale }, 0.55f * baseScale, { 1.0f, 0.8f, 0.2f, 1.0f });
-
-        // Opis z prostym zawijaniem
-        std::string line1 = q.desc, line2 = "";
-        if (line1.length() > 45) {
-            size_t spacePos = line1.find_last_of(' ', 45);
-            if (spacePos != std::string::npos) { line2 = line1.substr(spacePos + 1); line1 = line1.substr(0, spacePos); }
-        }
-
-        Gui::DrawGuiText(line1, { textX, qpPos.y + 85.f * baseScale }, 0.45f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f });
-        if (!line2.empty()) Gui::DrawGuiText(line2, { textX, qpPos.y + 110.f * baseScale }, 0.45f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f });
-
-        Gui::DrawGuiText("Cel: " + std::to_string(q.portions), { textX, qpPos.y + 155.f * baseScale }, 0.5f * baseScale, { 0.5f, 1.0f, 0.5f, 1.0f });
-        Gui::DrawGuiText("Nagroda: " + q.reward, { textX, qpPos.y + 185.f * baseScale }, 0.45f * baseScale, { 0.4f, 0.8f, 1.0f, 1.0f });
-
-        if (isPlayMode) {
-            glm::vec2 btnSize = { 130.f * baseScale, 35.f * baseScale };
-            if (Gui::Button("< Poprz.", { qpPos.x, qpPos.y + qpSize.y + 5.f * baseScale }, btnSize)) {
-                if (m_CurrentQuestIndex > 0) m_CurrentQuestIndex--;
-            }
-            if (Gui::Button("Nast. >", { qpPos.x + qpSize.x - btnSize.x, qpPos.y + qpSize.y + 5.f * baseScale }, btnSize)) {
-                if (m_CurrentQuestIndex < (int)m_CurrentQuests.size() - 1) m_CurrentQuestIndex++;
-            }
-        }
+    // 1. Sprawdzamy czy budka i aktywne zadanie w ogóle istnieją
+    if (!DeliveryBoothScript::s_Instance || !DeliveryBoothScript::s_Instance->HasActiveQuest()) {
+        return;
     }
+
+    const auto* activeQuest = DeliveryBoothScript::s_Instance->GetActiveQuest();
+    if (!activeQuest) return;
+
+    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+    if (!activeScene || !activeScene->GetCamera()) return;
+
+    // 2. Pobieramy TransformComponent budki i wyciągamy jej globalną pozycję 3D ze świata gry
+    auto* transform = activeScene->GetWorld().GetComponent<TransformComponent>(DeliveryBoothScript::s_Instance->GetEntity());
+    if (!transform) return;
+
+    glm::vec3 boothGlobalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
+    // Unosimy punkt projekcji delikatnie w górę (oś Y), aby chmurka unosiła się dumnie NAD dachem budki
+    boothGlobalPos.y += 2.5f;
+
+    // 3. Rekonstruujemy macierze rzutowania 3D kamery identycznie jak w silniku renderującym
+    auto* camera = activeScene->GetCamera();
+    glm::mat4 view = camera->GetViewMatrix();
+    float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+    float orthoSize = camera->OrthoSize;
+    glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+
+    glm::mat4 viewProjection3D = proj3D * view;
+
+    // Przeliczamy współrzędne 3D świata na przestrzeń Clip Space, a następnie na piksele ekranu 2D (NDC mapping)
+    glm::vec4 clipSpacePos = viewProjection3D * glm::vec4(boothGlobalPos, 1.0f);
+    if (clipSpacePos.w == 0.0f) return; // Zabezpieczenie przed dzieleniem przez zero
+
+    glm::vec3 ndcSpacePos = glm::vec3(clipSpacePos) / clipSpacePos.w;
+
+    // Pozycja środka budki zmapowana na Twój ujednolicony system współrzędnych GUI
+    float boothScreenX = gameX + (ndcSpacePos.x + 1.0f) * 0.5f * gameWidth;
+    float boothScreenY = gameY + (1.0f - ndcSpacePos.y) * 0.5f * gameHeight;
+
+    // 4. LOGIKA HOVER: Pobieramy pozycję myszy i sprawdzamy, czy gracz najechał na budkę
+    glm::vec2 mousePos = Gui::GetMappedMousePos();
+    float hoverRadius = 90.0f * baseScale; // Promień wykrywania najechana wokół budki
+
+    float dx = mousePos.x - boothScreenX;
+    float dy = mousePos.y - (boothScreenY + 60.0f * baseScale); // Lekki offset korekcyjny myszy
+    bool isMouseOverBooth = (dx * dx + dy * dy) <= (hoverRadius * hoverRadius);
+
+    // Jeśli gracz NIE najechał myszką na budkę, natychmiast przerywamy rysowanie (chmurka jest schowana!)
+    if (!isMouseOverBooth) {
+        return;
+    }
+
+    // 5. RYSOWANIE PŁYWAJĄCEJ CHMURKI QUESTOWEJ
+    glm::vec2 cloudSize = { 340.0f * baseScale, 225.0f * baseScale };
+    glm::vec2 cloudPos = { boothScreenX - cloudSize.x * 0.5f, boothScreenY - cloudSize.y };
+
+    // Ograniczenia ekranowe krawędzi okna gry
+    if (cloudPos.x < gameX + 10.0f) cloudPos.x = gameX + 10.0f;
+    if (cloudPos.x + cloudSize.x > gameX + gameWidth - 10.0f) cloudPos.x = gameX + gameWidth - cloudSize.x;
+    if (cloudPos.y < gameY + 10.0f) cloudPos.y = gameY + 10.0f;
+
+    // Rysowanie tła chmurki
+    Gui::Panel(cloudPos, cloudSize, { 0.08f, 0.08f, 0.1f, 0.96f }, 20.0f * baseScale);
+
+    float textX = cloudPos.x + 16.0f * baseScale;
+    float currentY = cloudPos.y + 15.0f * baseScale;
+    float spacing = 24.0f * baseScale;
+
+    // Nagłówek okienka
+    Gui::DrawGuiText("AKTYWNY EVENT PRODUKCYJNY AI", { textX, currentY }, 0.42f * baseScale, { 1.0f, 0.5f, 0.1f, 1.0f });
+    currentY += spacing + 5.0f * baseScale;
+
+    // Tytuł wylosowany z newsa przez Gemini
+    Gui::DrawGuiText(activeQuest->Title, { textX, currentY }, 0.52f * baseScale, { 1.0f, 0.85f, 0.2f, 1.0f });
+    currentY += spacing + 8.0f * baseScale;
+
+    // Krótki i deterministyczny opis przefiltrowany przez sędziego LLM z automatycznym zawijaniem wierszy
+    DrawWrappedGuiText(activeQuest->Description, { textX, currentY }, 0.40f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f }, spacing, 30);
+
+    float footerY = cloudPos.y + cloudSize.y - 60.0f * baseScale;
+
+    // Cel z mapowaniem konkretnego ID potrawy
+    std::string goalStr = "Wymagane: " + activeQuest->DishId + " (" +
+        std::to_string(activeQuest->PortionsDelivered) + " / " +
+        std::to_string(activeQuest->PortionsRequired) + " szt.)";
+    Gui::DrawGuiText(goalStr, { textX, footerY }, 0.46f * baseScale, { 0.3f, 1.0f, 0.4f, 1.0f });
+
+    // Nagroda finansowa/rzeczowa
+    Gui::DrawGuiText("Nagroda: " + activeQuest->Reward, { textX, footerY + 24.0f * baseScale }, 0.42f * baseScale, { 0.3f, 0.8f, 1.0f, 1.0f });
 }
 
 void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
@@ -371,12 +446,13 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     glScissor((int)gameX, scissorY, (int)gameWidth, (int)gameHeight);
 
     Renderer2D::BeginScene(uiProj);
-    //DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
+    DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
     DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     DrawRecipeBook(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
+
     Renderer2D::BeginScene(uiProj);
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);
