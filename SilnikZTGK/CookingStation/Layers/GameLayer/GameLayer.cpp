@@ -11,7 +11,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace {
-    // U¿ywamy algorytmu SSA domyœlnie, tak jak w Edytorze
     static bool s_UseSSA = true;
 
     // Przeniesiona funkcja pomocnicza z EditorLayer do wykrywania klikniêtych obiektów
@@ -225,9 +224,7 @@ void GameLayer::OnUpdate(Timestep ts)
         float viewWidth = (float)windowSize.first;
         float viewHeight = (float)windowSize.second;
 
-        // UWAGA: Jesli to Edytor (brak zdefiniowanego CS_DISTRIBUTED), 
-        // przycinamy obszar i wspolrzedne myszy o panele edytora (ImGui).
-#ifndef CS_DISTRIBUTED
+#ifndef CS_DISTRIBUTION
         mouseX -= 200.0f;
         mouseY -= 30.0f;
         viewWidth -= 500.0f;

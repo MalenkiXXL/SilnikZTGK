@@ -118,6 +118,8 @@ void Scene::OnUpdateRuntime(Timestep ts)
 		}
 	}
 
+	UpdateSpatialGrid();
+
 	if (!m_ConveyorCacheReady)
 	{
 		RebuildConveyorCache();
