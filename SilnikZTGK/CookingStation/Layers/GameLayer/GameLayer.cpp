@@ -213,25 +213,35 @@ void GameLayer::OnUpdate(Timestep ts)
         // spdlog::debug("GameLayer: Brak komponentów AnimatorComponent w aktywnej scenie.");
     }
 
-    // ========================================================
-    // NOWA LOGIKA KLIKANIA (Wykrywanie myszy, promieniowanie)
-    // ========================================================
+
     if (Input::IsMouseButtonJustPressed(0))
     {
         auto mousePos = Input::GetMousePosition();
         float mouseX = mousePos.first;
         float mouseY = mousePos.second;
 
-        // Pobieramy rozmiar okna - bez edytora gra jest na ca³ym ekranie
+        // Pobieramy rozmiar okna - domyœlnie pe³ny ekran
         auto windowSize = Input::GetWindowSize();
         float viewWidth = (float)windowSize.first;
         float viewHeight = (float)windowSize.second;
 
+        // UWAGA: Jesli to Edytor (brak zdefiniowanego CS_DISTRIBUTED), 
+        // przycinamy obszar i wspolrzedne myszy o panele edytora (ImGui).
+#ifndef CS_DISTRIBUTED
+        mouseX -= 200.0f;
+        mouseY -= 30.0f;
+        viewWidth -= 500.0f;
+        viewHeight -= 230.0f;
+#endif
+
         auto* camera = m_ActiveScene->GetCamera();
         if (camera)
         {
-            // Obliczamy rzutowanie promienia z kamery
+            // Aktualizujemy AspectRatio by proporcje klikniecia pokrywaly sie w 100% z kamera w grze
             float aspectRatio = viewWidth / (viewHeight > 0.0f ? viewHeight : 1.0f);
+            camera->AspectRatio = aspectRatio;
+
+            // Obliczamy rzutowanie promienia z kamery
             float orthoSize = 10.0f * (camera->Zoom / 45.0f);
 
             glm::mat4 proj3D = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
