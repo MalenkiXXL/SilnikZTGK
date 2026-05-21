@@ -15,19 +15,13 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Plane.006",
-			"rotation":[
-				0,
-				-0.7071068286895752,
-				0,
-				0.7071068286895752
-			]
+			"name":"Plane"
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material.010",
+			"name":"Material.003",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -39,7 +33,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Plane.006",
+			"name":"Plane",
 			"primitives":[
 				{
 					"attributes":{
@@ -61,7 +55,7 @@
 	],
 	"images":[
 		{
-			"mimeType":"image/png",
+            "mimeType":"image/png",
 			"name":"a",
 			"uri":"../../texture/a.png"
 		}
@@ -70,61 +64,61 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":69,
+			"count":116,
 			"max":[
-				0.9608772397041321,
-				1.0035512447357178,
-				1
+				1.0000001192092896,
+				1.003436803817749,
+				0.9619249105453491
 			],
 			"min":[
-				-1,
-				0.959653913974762,
-				-0.9619248509407043
+				-0.9608209729194641,
+				0.9601471424102783,
+				-1.0000001192092896
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":69,
+			"count":116,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":69,
+			"count":116,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":105,
+			"count":180,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":828,
+			"byteLength":1392,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":828,
-			"byteOffset":828,
+			"byteLength":1392,
+			"byteOffset":1392,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":552,
-			"byteOffset":1656,
+			"byteLength":928,
+			"byteOffset":2784,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":210,
-			"byteOffset":2208,
+			"byteLength":360,
+			"byteOffset":3712,
 			"target":34963
 		}
 	],
@@ -136,7 +130,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":2420,
+			"byteLength":4072,
 			"uri":"beltBR.bin"
 		}
 	]

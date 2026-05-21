@@ -15,19 +15,13 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Plane.003",
-			"rotation":[
-				0,
-				-0.7071068286895752,
-				0,
-				0.7071068286895752
-			]
+			"name":"Plane.008"
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material.011",
+			"name":"Material.003",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -39,7 +33,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Plane.005",
+			"name":"Plane.008",
 			"primitives":[
 				{
 					"attributes":{
@@ -59,72 +53,73 @@
 			"source":0
 		}
 	],
-	"images":[
-		{
-			"mimeType":"image/png",
-			"name":"a",
-			"uri":"../../texture/a.png"
-		}
+    "images":[
+        {
+            "mimeType":"image/png",
+            "name":"a",
+            "uri":"../../texture/a.png"
+        }
+    ],
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":121,
+			"count":120,
 			"max":[
-				0.9608210325241089,
-				1.0034219026565552,
-				1
+				0.9999999403953552,
+				1.0056496858596802,
+				0.9619249105453491
 			],
 			"min":[
-				-1,
-				0.9601471424102783,
-				-0.9619248509407043
+				-0.9608771800994873,
+				0.959653913974762,
+				-1.0000001192092896
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":121,
+			"count":120,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":121,
+			"count":120,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":195,
+			"count":180,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1452,
+			"byteLength":1440,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1452,
-			"byteOffset":1452,
+			"byteLength":1440,
+			"byteOffset":1440,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":968,
-			"byteOffset":2904,
+			"byteLength":960,
+			"byteOffset":2880,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":390,
-			"byteOffset":3872,
+			"byteLength":360,
+			"byteOffset":3840,
 			"target":34963
 		}
 	],
@@ -136,7 +131,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":4264,
+			"byteLength":4200,
 			"uri":"beltAR.bin"
 		}
 	]
