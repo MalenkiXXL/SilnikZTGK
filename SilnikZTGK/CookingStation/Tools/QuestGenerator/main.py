@@ -64,7 +64,7 @@ def generate_quests(news_context, feedback=""):
 
     prompt = f"""
     Jesteś projektantem narracji w absurdalnej grze kulinarnej (styl Monty Pythona).
-    Wygeneruj dokladnie 1 zadanie na podstawie wiadomości.
+    Wygeneruj dokladnie 5 zadań na podstawie wiadomości.
     {feedback_instruction}
     
     ZASADY (Restrykcje silnika):
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     
     if news_data and "articles" in news_data:
         # Zmiana: pobieramy tylko 1, najważniejszy news zamiast 5
-        news_text = " ".join([art.get("title", "") for art in news_data["articles"][:1]])
+        news_text = " ".join([art.get("title", "") for art in news_data["articles"][:10]])
         news_text = remove_polish_chars(news_text)
         
         max_retries = 3
