@@ -61,11 +61,24 @@ private:
         auto* chairTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(targetChair);
         TransformComponent tc;
 
-        // Skalowanie i pozycja
-        tc.SetPosition(chairTransform->GetPosition() + glm::vec3(0.0f, 2.0f, 0.0f));
-        tc.SetScale(glm::vec3(0.3f, 0.3f, 0.3f));
+        // --- 1. SKALOWANIE I POZYCJA ---
+        glm::vec3 chairPos = chairTransform->GetPosition();
+        tc.SetPosition(chairPos + glm::vec3(0.0f, 1.0f, 0.0f));
+        tc.SetScale(glm::vec3(3.0f, 3.0f, 3.0f)); // Naprawa skali z Blendera
 
-        tc.SetRotation(chairTransform->GetRotation());
+        // --- 2. OBRÓT W STRONÊ STO£U ---
+        glm::vec3 tablePos = FindNearestTablePosition(chairPos);
+        glm::vec3 direction = tablePos - chairPos;
+
+        float angle = glm::degrees(std::atan2(direction.x, direction.z));
+        glm::vec3 finalRotation = { 0.0f, angle, 0.0f };
+
+        // Korekta osi modelu z Blendera
+        finalRotation.y += 90.0f;
+
+        tc.SetRotation(finalRotation); // Przekazujemy nasz¹ now¹ rotacjê!
+        // -------------------------------
+
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
@@ -76,19 +89,31 @@ private:
         bc.Size = { 1.0f, 2.0f, 1.0f };
         builder.With<BoxColliderComponent>(bc);
 
+        // --- 3. ANIMACJA ---
+        AnimatorComponent animatorComp;
+        animatorComp.AnimatorInstance = std::make_shared<Animator>();
+
+        std::string animPath = "CookingStation/Assets/models/animacje/klienci/klient-siedzi.gltf";
+        auto sitAnimation = std::make_shared<Animation>(animPath, mesh.ModelPtr.get());
+        animatorComp.AnimatorInstance->AddAnimation("SitIdle", sitAnimation);
+        builder.With<AnimatorComponent>(animatorComp);
+
         NativeScriptComponent nsc;
 
         if (isHelper) {
-            // nsc.AddScript<HelperScript>("HelperScript"); -> do dodania
+            // nsc.AddScript<HelperScript>("HelperScript");
         }
         else {
-            nsc.AddScript<CustomerScript>("CustomerScript"); 
+            nsc.AddScript<CustomerScript>("CustomerScript");
         }
 
         builder.With<NativeScriptComponent>(nsc);
 
         builder.Build();
-        spdlog::info("Zespawnowano nowego {} (Model: {})", isHelper ? "Helpera" : "Klienta", chosenModel);
+        spdlog::info("Zespawnowano nowego {} (Model: {}) - Patrzy na stolik!", isHelper ? "Helpera" : "Klienta", chosenModel);
+        spdlog::info("Spawn klienta: Pozycja {}, Rotacja Y: {}",
+            tc.GetPosition().y,
+            finalRotation.y);
     }
 
     Entity FindEmptyChair()
@@ -103,7 +128,7 @@ private:
                 Entity chairEntity = tags->reverse[i];
                 if (IsChairEmpty(chairEntity))
                 {
-                    return chairEntity; 
+                    return chairEntity;
                 }
             }
         }
@@ -116,7 +141,7 @@ private:
         if (!chairTransform) return false;
 
         glm::vec3 chairPos = chairTransform->GetPosition();
-        glm::vec2 chairPos2D = { chairPos.x, chairPos.z }; 
+        glm::vec2 chairPos2D = { chairPos.x, chairPos.z };
 
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
@@ -126,7 +151,6 @@ private:
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
             std::string tag = tags->dense[i].Tag;
-            // Szukamy tylko wœród wygenerowanych klientów
             if (tag == "NormalCustomer" || tag == "HelperCustomer")
             {
                 Entity customer = tags->reverse[i];
@@ -135,8 +159,6 @@ private:
                 if (custTransform)
                 {
                     glm::vec2 custPos2D = { custTransform->GetPosition().x, custTransform->GetPosition().z };
-
-                    // Jeœli jakiœ klient jest bli¿ej ni¿ pó³ metra od krzes³a, to krzes³o jest zajête
                     if (glm::distance(chairPos2D, custPos2D) < 0.5f)
                     {
                         return false;
@@ -144,6 +166,40 @@ private:
                 }
             }
         }
-        return true; // Krzes³o jest puste
+        return true;
+    }
+
+    // --- NOWA FUNKCJA DO ZNAJDOWANIA STO£U ---
+    glm::vec3 FindNearestTablePosition(glm::vec3 chairPos)
+    {
+        // Jeœli z jakiegoœ powodu nie znajdzie sto³u, klient popatrzy po prostu w inn¹ stronê
+        glm::vec3 nearestTablePos = chairPos + glm::vec3(0.0f, 0.0f, 1.0f);
+        float closestDist = 999.0f;
+
+        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+
+        if (tags && transforms) {
+            for (size_t i = 0; i < tags->dense.size(); ++i) {
+                std::string tag = tags->dense[i].Tag;
+
+                // U¿ywamy .find(), ¿eby z³apaæ "Table_1", "Table_2" i inne wariacje!
+                if (tag.find("Table") != std::string::npos ||
+                    tag.find("Stolik") != std::string::npos)
+                {
+                    Entity tableEntity = tags->reverse[i];
+                    auto* tableTransform = transforms->Get(tableEntity);
+
+                    if (tableTransform) {
+                        float dist = glm::distance(chairPos, tableTransform->GetPosition());
+                        if (dist < closestDist) {
+                            closestDist = dist;
+                            nearestTablePos = tableTransform->GetPosition();
+                        }
+                    }
+                }
+            }
+        }
+        return nearestTablePos;
     }
 };

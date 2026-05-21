@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
+#include "CookingStation/Scene/ecs.h" // Potrzebne, ¿eby widzia³ AnimatorComponent
 #include <string>
 #include <vector>
 
@@ -13,10 +14,16 @@ public:
     {
         // Na razie mamy tylko pomidora
         WantedIngredient = "Tomato";
-
         spdlog::info("Klient nr {} usiadl i chce: {}", m_Entity.id, WantedIngredient);
 
-        // TODO: ikonki nad g³owami
+        // --- ODPALAMY ANIMACJÊ ZARAZ PO USIEDZENIU ---
+        auto* animComp = GetComponent<AnimatorComponent>();
+        if (animComp && animComp->AnimatorInstance)
+        {
+            // Podajemy nazwê animacji, któr¹ za³adowaliœmy w CustomerManagerScript
+            animComp->AnimatorInstance->PlayAnimation("SitIdle");
+            animComp->IsPlaying = true;
+        }
     }
 
     // Ta funkcja bêdzie wywo³ywana póŸniej przez Kelnera
@@ -37,6 +44,7 @@ public:
         // Soft Deletion 
         auto* tf = GetComponent<TransformComponent>();
         if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
+
         // Zmiana tagu na zadowolenie -> mo¿na uzyæ do efeków wizualnych 
         auto* tag = GetComponent<TagComponent>();
         if (tag) tag->Tag = "ZadowolonyKlient";
