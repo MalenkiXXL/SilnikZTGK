@@ -272,11 +272,11 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     currentY += spacing + 5.0f * baseScale;
 
     // Tytuł wylosowany z newsa przez Gemini
-    Gui::DrawGuiText(activeQuest->Title, { textX, currentY }, 0.52f * baseScale, { 1.0f, 0.85f, 0.2f, 1.0f });
+    Gui::DrawGuiText(activeQuest->Title, { textX, currentY }, 0.62f * baseScale, { 1.0f, 0.85f, 0.2f, 1.0f });
     currentY += spacing + 8.0f * baseScale;
 
     // Krótki i deterministyczny opis przefiltrowany przez sędziego LLM z automatycznym zawijaniem wierszy
-    DrawWrappedGuiText(activeQuest->Description, { textX, currentY }, 0.40f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f }, spacing, 30);
+    DrawWrappedGuiText(activeQuest->Description, { textX, currentY }, 0.60f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f }, spacing, 30);
 
     float footerY = cloudPos.y + cloudSize.y - 60.0f * baseScale;
 
@@ -284,7 +284,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     std::string goalStr = "Wymagane: " + activeQuest->DishId + " (" +
         std::to_string(activeQuest->PortionsDelivered) + " / " +
         std::to_string(activeQuest->PortionsRequired) + " szt.)";
-    Gui::DrawGuiText(goalStr, { textX, footerY }, 0.46f * baseScale, { 0.3f, 1.0f, 0.4f, 1.0f });
+    Gui::DrawGuiText(goalStr, { textX, footerY }, 0.60f * baseScale, { 0.3f, 1.0f, 0.4f, 1.0f });
 
     // Nagroda finansowa/rzeczowa
     Gui::DrawGuiText("Nagroda: " + activeQuest->Reward, { textX, footerY + 24.0f * baseScale }, 0.42f * baseScale, { 0.3f, 0.8f, 1.0f, 1.0f });
