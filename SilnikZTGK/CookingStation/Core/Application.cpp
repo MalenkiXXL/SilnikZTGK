@@ -42,8 +42,8 @@ Application::Application()
 	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
 
 #ifdef CS_DISTRIBUTION
-	std::string assetsPath = "../../SilnikZTGK/CookingStation/Assets";
-	std::string shadersPath = "../../SilnikZTGK/CookingStation/Shaders";
+	std::string assetsPath = "CookingStation/Assets";
+	std::string shadersPath = "CookingStation/Shaders";
 #else
 	std::string assetsPath = "CookingStation/Assets";
 	std::string shadersPath = "CookingStation/Shaders";
