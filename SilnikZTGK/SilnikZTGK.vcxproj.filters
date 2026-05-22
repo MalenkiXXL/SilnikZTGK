@@ -109,6 +109,7 @@
     <ClInclude Include="CookingStation\Core\VFS\VFS.h" />
     <ClInclude Include="CookingStation\Renderer\Texture2D.h" />
     <ClInclude Include="CookingStation\Scripts\Quests\DeliveryBoothScript.h" />
+    <ClInclude Include="CookingStation\Scripts\HelperCustomerScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

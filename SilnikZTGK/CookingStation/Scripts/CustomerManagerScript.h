@@ -5,15 +5,16 @@
 #include <string>
 #include <random>
 #include "CustomerScript.h"
+#include "HelperCustomerScript.h" // Upewnij siê, ¿e taki plik istnieje w folderze Scripts!
 
 class CustomerManagerScript : public ScriptableEntity
 {
 private:
     float m_SpawnTimer = 0.0f;
-    float m_SpawnInterval = 5.0f; // Co 5 sekund sprawdza, czy mo¿na stworzyæ klienta
+    float m_SpawnInterval = 5.0f;
     int m_TotalSpawned = 0;
 
-    // Lista dostêpnych modeli klientów 
+    // Zwykli klienci
     std::vector<std::string> m_CustomerModels = {
         "CookingStation/Assets/models/klienci/klient.gltf",
         "CookingStation/Assets/models/klienci/klient2.gltf",
@@ -21,9 +22,15 @@ private:
         "CookingStation/Assets/models/klienci/klientka1.gltf",
         "CookingStation/Assets/models/klienci/klientka2.gltf",
         "CookingStation/Assets/models/klienci/klientka3.gltf",
-        "CookingStation/Assets/models/klienci/babcia.gltf"
-
     };
+
+    // --- NOWE: Osobna lista dla Pomocników (Zmieñ nazwy na swoje!) ---
+    std::vector<std::string> m_HelperModels = {
+        "CookingStation/Assets/models/warzywka/marchewka/test.gltf",
+        "CookingStation/Assets/models/warzywka/pomidor/pomidor.gltf",
+        "CookingStation/Assets/models/warzywka/rzodkiewka/rzodkiewka-new.gltf"
+    };
+    // ----------------------------------------------------------------
 
 public:
     void OnUpdate(Timestep ts) override
@@ -42,20 +49,29 @@ private:
     {
         Entity targetChair = FindEmptyChair();
 
-        // Jeœli nie ma wolnych krzese³, funkcja przerywa dzia³anie i czeka kolejne 5 sekund
         if (targetChair.id == std::numeric_limits<std::size_t>::max())
         {
             spdlog::info("Wszystkie krzesla zajete. Klient musi poczekac!");
             return;
         }
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dist(0, m_CustomerModels.size() - 1);
-        std::string chosenModel = m_CustomerModels[dist(gen)];
-
+        // 1. Najpierw decydujemy, CZY to jest helper
         m_TotalSpawned++;
         bool isHelper = (m_TotalSpawned % 3 == 0);
+
+        // 2. Potem losujemy model z odpowiedniej listy!
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::string chosenModel;
+
+        if (isHelper) {
+            std::uniform_int_distribution<> dist(0, m_HelperModels.size() - 1);
+            chosenModel = m_HelperModels[dist(gen)];
+        }
+        else {
+            std::uniform_int_distribution<> dist(0, m_CustomerModels.size() - 1);
+            chosenModel = m_CustomerModels[dist(gen)];
+        }
 
         auto builder = GetScene()->GetWorld().BuildEntity();
         builder.With<TagComponent>({ isHelper ? "HelperCustomer" : "NormalCustomer" });
@@ -63,23 +79,19 @@ private:
         auto* chairTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(targetChair);
         TransformComponent tc;
 
-        // --- 1. SKALOWANIE I POZYCJA ---
+        // Skalowanie i pozycja
         glm::vec3 chairPos = chairTransform->GetPosition();
         tc.SetPosition(chairPos + glm::vec3(0.0f, 1.0f, 0.0f));
-        tc.SetScale(glm::vec3(3.0f, 3.0f, 3.0f)); // Naprawa skali z Blendera
+        tc.SetScale(glm::vec3(3.0f, 3.0f, 3.0f));
 
-        // --- 2. OBRÓT W STRONÊ STO£U ---
+        // Obrót w stronê sto³u
         glm::vec3 tablePos = FindNearestTablePosition(chairPos);
         glm::vec3 direction = tablePos - chairPos;
 
         float angle = glm::degrees(std::atan2(direction.x, direction.z));
         glm::vec3 finalRotation = { 0.0f, angle, 0.0f };
-
-        // Korekta osi modelu z Blendera
         finalRotation.y += 90.0f;
-
-        tc.SetRotation(finalRotation); // Przekazujemy nasz¹ now¹ rotacjê!
-        // -------------------------------
+        tc.SetRotation(finalRotation);
 
         builder.With<TransformComponent>(tc);
 
@@ -91,7 +103,7 @@ private:
         bc.Size = { 1.0f, 2.0f, 1.0f };
         builder.With<BoxColliderComponent>(bc);
 
-        // --- 3. ANIMACJA ---
+        // Animacja
         AnimatorComponent animatorComp;
         animatorComp.AnimatorInstance = std::make_shared<Animator>();
 
@@ -102,20 +114,18 @@ private:
 
         NativeScriptComponent nsc;
 
+        // Dodajemy prawid³owy skrypt
         if (isHelper) {
-            // nsc.AddScript<HelperScript>("HelperScript");
+            nsc.AddScript<HelperCustomerScript>("HelperCustomerScript");
         }
         else {
             nsc.AddScript<CustomerScript>("CustomerScript");
         }
 
         builder.With<NativeScriptComponent>(nsc);
-
         builder.Build();
-        spdlog::info("Zespawnowano nowego {} (Model: {}) - Patrzy na stolik!", isHelper ? "Helpera" : "Klienta", chosenModel);
-        spdlog::info("Spawn klienta: Pozycja {}, Rotacja Y: {}",
-            tc.GetPosition().y,
-            finalRotation.y);
+
+        spdlog::info("Zespawnowano nowego {} (Model: {})", isHelper ? "Helpera" : "Klienta", chosenModel);
     }
 
     Entity FindEmptyChair()
@@ -171,10 +181,8 @@ private:
         return true;
     }
 
-    // --- NOWA FUNKCJA DO ZNAJDOWANIA STO£U ---
     glm::vec3 FindNearestTablePosition(glm::vec3 chairPos)
     {
-        // Jeœli z jakiegoœ powodu nie znajdzie sto³u, klient popatrzy po prostu w inn¹ stronê
         glm::vec3 nearestTablePos = chairPos + glm::vec3(0.0f, 0.0f, 1.0f);
         float closestDist = 999.0f;
 
@@ -184,10 +192,7 @@ private:
         if (tags && transforms) {
             for (size_t i = 0; i < tags->dense.size(); ++i) {
                 std::string tag = tags->dense[i].Tag;
-
-                // U¿ywamy .find(), ¿eby z³apaæ "Table_1", "Table_2" i inne wariacje!
-                if (tag.find("Table") != std::string::npos ||
-                    tag.find("Stolik") != std::string::npos)
+                if (tag.find("Table") != std::string::npos)
                 {
                     Entity tableEntity = tags->reverse[i];
                     auto* tableTransform = transforms->Get(tableEntity);

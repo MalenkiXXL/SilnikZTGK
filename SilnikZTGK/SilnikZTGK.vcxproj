@@ -353,6 +353,7 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClInclude Include="CookingStation\Scripts\CustomerScript.h" />
     <ClInclude Include="CookingStation\Scripts\DragAndDropScript.h" />
     <ClInclude Include="CookingStation\Scripts\DustEmitterScript.h" />
+    <ClInclude Include="CookingStation\Scripts\HelperCustomerScript.h" />
     <ClInclude Include="CookingStation\Scripts\ItemScript.h" />
     <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
     <ClInclude Include="CookingStation\Scripts\ParticleEmitterScript.h" />
