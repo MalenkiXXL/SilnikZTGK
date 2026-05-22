@@ -15,13 +15,14 @@ private:
 
     // Lista dostêpnych modeli klientów 
     std::vector<std::string> m_CustomerModels = {
+
         "CookingStation/Assets/models/klienci/klient.gltf",
         "CookingStation/Assets/models/klienci/klient2.gltf",
         "CookingStation/Assets/models/klienci/klient3.gltf",
         "CookingStation/Assets/models/klienci/klientka1.gltf",
         "CookingStation/Assets/models/klienci/klientka2.gltf",
         "CookingStation/Assets/models/klienci/klientka3.gltf",
-        "CookingStation/Assets/models/klienci/babcia.gltf"
+        "CookingStation/Assets/models/klienci/babcia.gltf",
 
     };
 
