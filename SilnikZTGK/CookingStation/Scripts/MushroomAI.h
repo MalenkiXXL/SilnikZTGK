@@ -118,7 +118,7 @@ private:
             myPos += direction * m_Speed * dt;
             myTransform->SetPosition(myPos);
 
-			// Grzybek patrzy w kierunku ruchu
+            // Grzybek patrzy w kierunku ruchu
             float angle = glm::degrees(atan2(direction.x, direction.z));
             myTransform->SetRotation(glm::vec3(0.0f, angle, 0.0f));
 
@@ -154,7 +154,8 @@ private:
         {
             for (size_t i = 0; i < tags->dense.size(); ++i)
             {
-                if (tags->dense[i].Tag == "NormalCustomer")
+                // --- ZMIANA 1: Szukamy NormalCustomer LUB HelperCustomer ---
+                if (tags->dense[i].Tag == "NormalCustomer" || tags->dense[i].Tag == "HelperCustomer")
                 {
                     Entity custEntity = tags->reverse[i];
                     auto* nsc = scripts->Get(custEntity);
@@ -165,8 +166,10 @@ private:
                         // Przeszukujemy listê podpiêtych skryptów w tym kliencie
                         for (auto& s : nsc->Scripts)
                         {
-                            if (s.Name == "CustomerScript")
+                            // --- ZMIANA 2: £apiemy oba rodzaje skryptów! ---
+                            if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript")
                             {
+                                // Bezpieczne rzutowanie dziêki dziedziczeniu
                                 custScript = (CustomerScript*)s.Instance;
                                 break;
                             }
@@ -227,7 +230,7 @@ private:
 
         m_TargetFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
-        // Wywo³ujemy u klienta ReceiveFood(), ¿eby znikn¹³ 
+        // Wywo³ujemy u klienta ReceiveFood(), ¿eby znikn¹³ (albo wsta³, jeœli to Helper)
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
         if (scripts)
         {
@@ -237,7 +240,8 @@ private:
                 CustomerScript* custScript = nullptr;
                 for (auto& s : nsc->Scripts)
                 {
-                    if (s.Name == "CustomerScript")
+                    // --- ZMIANA 3: Tu te¿ musi obs³u¿yæ Helpera! ---
+                    if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript")
                     {
                         custScript = (CustomerScript*)s.Instance;
                         break;
@@ -246,12 +250,12 @@ private:
 
                 if (custScript)
                 {
-                    custScript->ReceiveFood(); 
+                    custScript->ReceiveFood();
                 }
             }
         }
 
         m_TargetCustomer = { std::numeric_limits<std::size_t>::max(), 0 };
-        m_State = WaiterState::Idle; 
+        m_State = WaiterState::Idle;
     }
 };

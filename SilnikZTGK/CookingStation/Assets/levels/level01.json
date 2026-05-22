@@ -749,7 +749,8 @@
         }
       },
       "scripts": [
-        "DustEmitterScript"
+        "DustEmitterScript",
+        "MushroomAI"
       ]
     },
     {

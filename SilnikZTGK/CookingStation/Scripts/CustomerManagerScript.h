@@ -5,7 +5,7 @@
 #include <string>
 #include <random>
 #include "CustomerScript.h"
-#include "HelperCustomerScript.h" // Upewnij siê, ¿e taki plik istnieje w folderze Scripts!
+#include "HelperCustomerScript.h" 
 
 class CustomerManagerScript : public ScriptableEntity
 {
@@ -25,13 +25,12 @@ private:
         "CookingStation/Assets/models/klienci/klientka3.gltf",
     };
 
-    // --- NOWE: Osobna lista dla Pomocników (Zmieñ nazwy na swoje!) ---
+    // Helper klienci
     std::vector<std::string> m_HelperModels = {
-        "CookingStation/Assets/models/warzywka/marchewka/test.gltf",
+        "CookingStation/Assets/models/warzywka/marchewka/marchewka.gltf",
         "CookingStation/Assets/models/warzywka/pomidor/pomidor.gltf",
-        "CookingStation/Assets/models/warzywka/rzodkiewka/rzodkiewka-new.gltf"
+        "CookingStation/Assets/models/warzywka/rzodkiewka/rzodkiewka.gltf"
     };
-    // ----------------------------------------------------------------
 
 public:
     void OnUpdate(Timestep ts) override
@@ -56,11 +55,9 @@ private:
             return;
         }
 
-        // 1. Najpierw decydujemy, CZY to jest helper
         m_TotalSpawned++;
         bool isHelper = (m_TotalSpawned % 3 == 0);
 
-        // 2. Potem losujemy model z odpowiedniej listy!
         std::random_device rd;
         std::mt19937 gen(rd());
         std::string chosenModel;
@@ -74,24 +71,57 @@ private:
             chosenModel = m_CustomerModels[dist(gen)];
         }
 
+        glm::vec3 finalScale = glm::vec3(3.0f);
+        float rotationOffsetY = 90.0f;
+        float heightOffset = 1.0f;
+        std::string animPath = "";
+
+        if (isHelper)
+        {
+            // MARCHEWKA
+            if (chosenModel.find("marchewka") != std::string::npos || chosenModel.find("test.gltf") != std::string::npos)
+            {
+                finalScale = glm::vec3(1.0f, 1.0f, 1.0f);  
+                rotationOffsetY = -90.0f;                  
+                animPath = "CookingStation/Assets/models/animacje/klienci/marchewka-siedzi.gltf";
+            }
+            // POMIDOR
+            else if (chosenModel.find("pomidor") != std::string::npos)
+            {
+                finalScale = glm::vec3(1.0f, 1.0f, 1.0f);  
+                rotationOffsetY = -90.0f;                   
+                animPath = "CookingStation/Assets/models/animacje/klienci/pomidor-siedzi.gltf";
+            }
+            // RZODKIEWKA
+            else if (chosenModel.find("rzodkiewka") != std::string::npos)
+            {
+                finalScale = glm::vec3(1.2f, 1.2f, 1.2f);  
+                rotationOffsetY = 90.0f;                   
+                animPath = "CookingStation/Assets/models/animacje/klienci/rzodkiewka-siedzi.gltf";
+            }
+        }
+        else
+        {
+            // LUDZIE
+            animPath = "CookingStation/Assets/models/animacje/klienci/klient-siedzi.gltf";
+        }
+
         auto builder = GetScene()->GetWorld().BuildEntity();
         builder.With<TagComponent>({ isHelper ? "HelperCustomer" : "NormalCustomer" });
 
         auto* chairTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(targetChair);
         TransformComponent tc;
 
-        // Skalowanie i pozycja
+        // Aplikowanie wyliczonej Skali i Pozycji
         glm::vec3 chairPos = chairTransform->GetPosition();
-        tc.SetPosition(chairPos + glm::vec3(0.0f, 1.0f, 0.0f));
-        tc.SetScale(glm::vec3(3.0f, 3.0f, 3.0f));
+        tc.SetPosition(chairPos + glm::vec3(0.0f, heightOffset, 0.0f));
+        tc.SetScale(finalScale);
 
-        // Obrót w stronê sto³u
+        // Aplikowanie wyliczonego Obrotu
         glm::vec3 tablePos = FindNearestTablePosition(chairPos);
         glm::vec3 direction = tablePos - chairPos;
-
         float angle = glm::degrees(std::atan2(direction.x, direction.z));
-        glm::vec3 finalRotation = { 0.0f, angle, 0.0f };
-        finalRotation.y += 90.0f;
+        glm::vec3 finalRotation = { 0.0f, angle + rotationOffsetY, 0.0f };
         tc.SetRotation(finalRotation);
 
         builder.With<TransformComponent>(tc);
@@ -104,18 +134,17 @@ private:
         bc.Size = { 1.0f, 2.0f, 1.0f };
         builder.With<BoxColliderComponent>(bc);
 
-        // Animacja
+        // Aplikowanie Animacji
         AnimatorComponent animatorComp;
         animatorComp.AnimatorInstance = std::make_shared<Animator>();
-
-        std::string animPath = "CookingStation/Assets/models/animacje/klienci/klient-siedzi.gltf";
         auto sitAnimation = std::make_shared<Animation>(animPath, mesh.ModelPtr.get());
         animatorComp.AnimatorInstance->AddAnimation("SitIdle", sitAnimation);
+        animatorComp.AnimatorInstance->PlayAnimation("SitIdle");
+
         builder.With<AnimatorComponent>(animatorComp);
 
         NativeScriptComponent nsc;
 
-        // Dodajemy prawid³owy skrypt
         if (isHelper) {
             nsc.AddScript<HelperCustomerScript>("HelperCustomerScript");
         }
@@ -126,7 +155,7 @@ private:
         builder.With<NativeScriptComponent>(nsc);
         builder.Build();
 
-        spdlog::info("Zespawnowano nowego {} (Model: {})", isHelper ? "Helpera" : "Klienta", chosenModel);
+        spdlog::info("Zespawnowano nowego {} (Model: {}) - Patrzy na stolik!", isHelper ? "Helpera" : "Klienta", chosenModel);
     }
 
     Entity FindEmptyChair()

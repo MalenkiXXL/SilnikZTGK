@@ -1,5 +1,5 @@
 #pragma once
-#include "CookingStation/Scene/ScriptableEntity.h"
+#include "CustomerScript.h" // DZIEDZICZYMY Z CUSTOMER SCRIPT!
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Scripts/MachineScript.h"
 #include <glm/glm.hpp>
@@ -7,27 +7,47 @@
 #include <cmath>
 #include <spdlog/spdlog.h>
 
-class HelperCustomerScript : public ScriptableEntity
+class HelperCustomerScript : public CustomerScript
 {
 public:
-    // Statyczne zmienne, ¿eby ¿aden inny Helper nie by³ podnoszony w tym samym czasie
     static inline bool IsAnyHelperDragged = false;
 
-    // Ustawienia
-    float m_YOffset = 0.5f;       // Wysokoœæ nad ziemi¹ (dostosuj do skali!)
-    float m_CellSize = 2.0f;      // Rozmiar jednej "kratki" siatki budowania
-    float m_InteractRange = 1.5f; // Z jakiej odleg³oœci mo¿na go klikn¹æ
+    float m_YOffset = 0.5f;
+    float m_CellSize = 2.0f;
+    float m_InteractRange = 1.5f;
 
-    // Stany
     bool m_IsCarried = false;
     bool m_IsWorking = false;
-    bool m_IsWaitingToHelp = true;
+    bool m_IsWaitingToHelp = false; 
 
     Entity m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
     glm::vec3 m_PositionBeforeDrag;
 
+    // Nadpisujemy ReceiveFood - Pomocnik reaguje inaczej ni¿ zwyk³y klient
+    void ReceiveFood() override
+    {
+        IsServed = true;
+        m_IsWaitingToHelp = true; // Teraz mo¿na go podnieœæ
+        spdlog::info("Pomocnik nr {} zjadl i jest gotowy do pracy!", m_Entity.id);
+
+        auto* tag = GetComponent<TagComponent>();
+        if (tag) tag->Tag = "NajedzonyPomocnik";
+
+        auto* transform = GetComponent<TransformComponent>();
+        if (transform)
+        {
+            glm::vec3 pos = transform->GetPosition();
+            transform->SetPosition(glm::vec3(pos.x, m_YOffset, pos.z));
+            // Tu kiedyœ zmieniê animacjê na gotowanie/stanie whatever
+        }
+    }
+
     void OnUpdate(Timestep ts) override
     {
+        // Jeœli jeszcze nie zjad³, siedzi i czeka
+        if (!IsServed) return;
+
+        // Logika podnoszenia i przenoszenia
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
@@ -35,47 +55,38 @@ public:
         glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
         glm::vec2 myPos2D = { transform->GetPosition().x, transform->GetPosition().z };
 
-        // -----------------------------------------------------
-        // 1. KLIKNIÊCIE I PODNOSZENIE (Gdy nie jest niesiony)
-        // -----------------------------------------------------
         if (!m_IsCarried)
         {
             if (Input::IsMouseButtonJustPressed(0) && !IsAnyHelperDragged)
             {
-                // Sprawdzamy, czy gracz klikn¹³ w tego konkretnego Helpera
-                if (glm::distance(mousePos2D, myPos2D) <= m_InteractRange)
+                if (m_IsWaitingToHelp || m_IsWorking)
                 {
-                    PickUpHelper(transform);
+                    if (glm::distance(mousePos2D, myPos2D) <= m_InteractRange)
+                    {
+                        PickUpHelper(transform);
+                    }
                 }
             }
         }
-        // -----------------------------------------------------
-        // 2. PRZENOSZENIE (Drag & Drop)
-        // -----------------------------------------------------
         else
         {
-            // Snapowanie do siatki (Grid Snapping) tak jak w Unity
             float snappedX = std::floor(mousePos.x / m_CellSize) * m_CellSize + (m_CellSize / 2.0f);
             float snappedZ = std::floor(mousePos.z / m_CellSize) * m_CellSize + (m_CellSize / 2.0f);
-            glm::vec3 snappedPos = { snappedX, m_YOffset + 0.5f, snappedZ }; // +0.5f ¿eby unosi³ siê wy¿ej podczas noszenia
+            glm::vec3 snappedPos = { snappedX, m_YOffset + 0.5f, snappedZ };
 
             Entity hoveredMachine = GetHoveredMachine(mousePos);
 
-            // Jeœli najechaliœmy na maszynê, przyklejamy Helpera obok niej
             if (hoveredMachine.id != std::numeric_limits<std::size_t>::max())
             {
                 snappedPos = GetClosestTileAroundMachine(hoveredMachine, mousePos);
             }
 
-            // Aktualizujemy pozycjê modelu w czasie rzeczywistym
             transform->SetPosition(snappedPos);
 
-            // UPUSZCZANIE (Lewy Klik)
             if (Input::IsMouseButtonJustPressed(0))
             {
                 TryDropHelper(transform, hoveredMachine, snappedPos);
             }
-            // ANULOWANIE (Prawy Klik)
             else if (Input::IsMouseButtonJustPressed(1))
             {
                 CancelCarry(transform);
@@ -89,16 +100,7 @@ private:
         m_IsCarried = true;
         IsAnyHelperDragged = true;
         m_PositionBeforeDrag = transform->GetPosition();
-
         m_IsWaitingToHelp = false;
-
-        // Odpinamy go od starej maszyny
-        if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max())
-        {
-            // TODO: Wywo³aj na starej maszynie funkcjê wy³¹czaj¹c¹ automatyzacjê
-            m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
-        }
-
         m_IsWorking = false;
         spdlog::info("Podniesiono Helpera!");
     }
@@ -108,31 +110,75 @@ private:
         m_IsCarried = false;
         IsAnyHelperDragged = false;
 
-        // Opuszczamy go z powrotem na ziemiê
         dropPos.y = m_YOffset;
         transform->SetPosition(dropPos);
 
         if (hoveredMachine.id != std::numeric_limits<std::size_t>::max())
         {
+            if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max())
+            {
+                auto* oldNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_AssignedMachine);
+                if (oldNsc)
+                {
+                    for (auto& scriptElement : oldNsc->Scripts)
+                    {
+                        if (auto* machine = dynamic_cast<MachineScript*>(scriptElement.Instance))
+                        {
+                            machine->m_IsAutomated = false;
+                            spdlog::info("Odpieto helpera od starej maszyny - IsAutomated = false");
+                            break;
+                        }
+                    }
+                }
+            }
+
             m_AssignedMachine = hoveredMachine;
             m_IsWorking = true;
             m_IsWaitingToHelp = false;
 
-            // TODO: Wywo³aj na hoveredMachine funkcjê w³¹czaj¹c¹ automatyzacjê!
+            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(hoveredMachine);
+            if (nsc)
+            {
+                for (auto& scriptElement : nsc->Scripts)
+                {
+                    if (auto* machine = dynamic_cast<MachineScript*>(scriptElement.Instance))
+                    {
+                        machine->m_IsAutomated = true;
+                        spdlog::info("Helper przypisany - IsAutomated = true!");
+                        break;
+                    }
+                }
+            }
 
-            // Obracamy Helpera w stronê maszyny (matematyka z atan2)
             auto* machineTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(hoveredMachine);
             if (machineTransform)
             {
                 glm::vec3 dir = machineTransform->GetPosition() - dropPos;
                 float angle = glm::degrees(std::atan2(dir.x, dir.z));
-                transform->SetRotation({ 0.0f, angle + 180.0f, 0.0f }); // Dodaj korektê z Blendera jeœli trzeba
+                transform->SetRotation({ 0.0f, angle + 180.0f, 0.0f });
             }
-
             spdlog::info("Helper przypisany do nowej maszyny!");
         }
         else
         {
+            if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max())
+            {
+                auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_AssignedMachine);
+                if (nsc)
+                {
+                    for (auto& scriptElement : nsc->Scripts)
+                    {
+                        if (auto* machine = dynamic_cast<MachineScript*>(scriptElement.Instance))
+                        {
+                            machine->m_IsAutomated = false;
+                            spdlog::info("Helper odpieto od maszyny - IsAutomated = false");
+                            break;
+                        }
+                    }
+                }
+            }
+
+            m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
             m_IsWaitingToHelp = true;
             spdlog::info("Helper postawiony na ziemi, czeka na zadanie.");
         }
@@ -149,7 +195,7 @@ private:
     Entity GetHoveredMachine(glm::vec3 mousePos)
     {
         Entity closestMachine = { std::numeric_limits<std::size_t>::max(), 0 };
-        float closestDist = 2.0f; // Promieñ przyci¹gania do maszyny
+        float closestDist = 2.0f;
 
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
@@ -161,7 +207,6 @@ private:
                 auto& nsc = scripts->dense[i];
                 bool isMachine = false;
 
-                // Sprawdzamy czy to jakakolwiek maszyna (Deska, Garnek, Patelnia itp.)
                 for (auto& scriptElement : nsc.Scripts) {
                     if (scriptElement.Name == "PotScript" || scriptElement.Name == "CuttingBoardScript") {
                         isMachine = true;
@@ -188,7 +233,6 @@ private:
         return closestMachine;
     }
 
-    // Uproszczona wersja GetClosestEmptyTileAround (szuka miejsca wokó³ maszyny)
     glm::vec3 GetClosestTileAroundMachine(Entity machine, glm::vec3 mousePos)
     {
         auto* machineTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(machine);
@@ -196,11 +240,9 @@ private:
 
         glm::vec3 mPos = machineTransform->GetPosition();
 
-        // Offset zale¿y od tego, z której strony maszyny jest myszka
         float offsetX = (mousePos.x > mPos.x) ? m_CellSize : -m_CellSize;
         float offsetZ = (mousePos.z > mPos.z) ? m_CellSize : -m_CellSize;
 
-        // Wybieramy oœ, w której myszka jest dalej od œrodka maszyny
         if (std::abs(mousePos.x - mPos.x) > std::abs(mousePos.z - mPos.z)) {
             return glm::vec3(mPos.x + offsetX, m_YOffset + 0.5f, mPos.z);
         }

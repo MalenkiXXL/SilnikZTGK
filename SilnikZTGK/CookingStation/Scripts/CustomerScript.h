@@ -1,6 +1,6 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
-#include "CookingStation/Scene/ecs.h" // Potrzebne, ¿eby widzia³ AnimatorComponent
+#include "CookingStation/Scene/ecs.h" 
 #include <string>
 #include <vector>
 
@@ -15,15 +15,6 @@ public:
         // Na razie mamy tylko pomidora
         WantedIngredient = "Tomato";
         spdlog::info("Klient nr {} usiadl i chce: {}", m_Entity.id, WantedIngredient);
-
-        // --- ODPALAMY ANIMACJÊ ZARAZ PO USIEDZENIU ---
-        auto* animComp = GetComponent<AnimatorComponent>();
-        if (animComp && animComp->AnimatorInstance)
-        {
-            // Podajemy nazwê animacji, któr¹ za³adowaliœmy w CustomerManagerScript
-            animComp->AnimatorInstance->PlayAnimation("SitIdle");
-            animComp->IsPlaying = true;
-        }
     }
 
     // Ta funkcja bêdzie wywo³ywana póŸniej przez Kelnera
@@ -36,7 +27,7 @@ public:
         return false;
     }
 
-    void ReceiveFood()
+    virtual void ReceiveFood()
     {
         IsServed = true;
         spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
