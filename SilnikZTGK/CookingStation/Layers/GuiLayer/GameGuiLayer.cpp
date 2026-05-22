@@ -6,13 +6,16 @@
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Events/EditorEvents.h" 
 #include "CookingStation/Core/Application.h"
-#include <fstream>
+// ZMIANA: Usunięto <fstream>, ponieważ używamy teraz VFS
 #include "CookingStation/json.hpp"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include <algorithm> 
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Scripts/Quests/DeliveryBoothScript.h"
 #include "CookingStation/Core/GameProgress.h"
+
+// ZMIANA: Dodano nagłówek VFS
+#include "CookingStation/Core/VFS/VFS.h"
 
 bool GameGuiLayer::s_NeedsQuestReload = false;
 
@@ -60,7 +63,6 @@ namespace {
 }
 
 void GameGuiLayer::OnAttach() {
-    Renderer2D::Init();
 
 
 #ifdef CS_DISTRIBUTION
@@ -178,7 +180,7 @@ glm::vec2 GameGuiLayer::CalculateAspectSize(const std::shared_ptr<Texture>& text
     return { targetHeight * aspect, targetHeight };
 }
 
-// Funkcja do rysowania ikony przepisu w ksi��ce kucharskiej, z obs�ug� odblokowania 
+// Funkcja do rysowania ikony przepisu w ksiazce kucharskiej, z obsluga odblokowania 
 void GameGuiLayer::DrawRecipeIcon(const std::string& recipeId, const std::shared_ptr<Texture>& texture,
     glm::vec2 relativePct, float targetHeight,
     glm::vec2 bookPos, glm::vec2 bookSize, float dt)
@@ -271,11 +273,11 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     Gui::DrawGuiText("AKTYWNY EVENT PRODUKCYJNY AI", { textX, currentY }, 0.42f * baseScale, { 1.0f, 0.5f, 0.1f, 1.0f });
     currentY += spacing + 5.0f * baseScale;
 
-    // Tytuł wylosowany z newsa przez Gemini
+    // Tytuł wylosowany z newsa
     Gui::DrawGuiText(activeQuest->Title, { textX, currentY }, 0.62f * baseScale, { 1.0f, 0.85f, 0.2f, 1.0f });
     currentY += spacing + 8.0f * baseScale;
 
-    // Krótki i deterministyczny opis przefiltrowany przez sędziego LLM z automatycznym zawijaniem wierszy
+    // Krótki i deterministyczny opis z automatycznym zawijaniem wierszy
     DrawWrappedGuiText(activeQuest->Description, { textX, currentY }, 0.60f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f }, spacing, 30);
 
     float footerY = cloudPos.y + cloudSize.y - 60.0f * baseScale;
@@ -301,7 +303,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
         DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
         DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
 
-        // Rysujemy sk�adniki na lewej chmurze
+        // Rysujemy skladniki na lewej chmurze
         if (m_TomatoIcon) {
             float tomatoBaseH = baseIconSize.y * 0.3f;
             glm::vec2 tomatoBaseSize = { tomatoBaseH, tomatoBaseH };
@@ -329,7 +331,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
 }
 
 void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
-    // --- KSI��KA Z PRZEPISAMI ---
+    // --- KSIAZKA Z PRZEPISAMI ---
     if (m_BookIcon) {
         glm::vec2 cloudSize = { 280.0f * baseScale, 280.0f * baseScale };
         glm::vec2 cloudPos = { gameX + 20.0f * baseScale, gameY + 20.0f * baseScale };
@@ -341,7 +343,7 @@ void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, flo
         }
 
         if (!m_IsRecipeBookOpen) {
-            // 2. KSI��KA 
+            // 2. KSIAZKA 
             glm::vec2 bookSize = cloudSize * 1.1f;
             glm::vec2 bookPos = {
                 cloudPos.x + (actualCloudSize.x - bookSize.x) * 0.5f,
@@ -359,7 +361,7 @@ void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, flo
             }
         }
         else {
-            // -- WN�TRZE KSI��KI ---
+            // -- WNETRZE KSIAZKI ---
             glm::vec2 insideSize = CalculateAspectSize(m_BookInsideIcon, gameHeight * 1.0f);
             float yOffset = 50.0f * baseScale;
             glm::vec2 insidePos = {
@@ -385,17 +387,11 @@ void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, flo
                 }
             }
 
-            // Wy�wietlanie przepis�w
-            float recipeH = 120.0f * baseScale; // Wysoko�� dla ka�dej ikony
+            // Wyswietlanie przepisow
+            float recipeH = 120.0f * baseScale; // Wysokosc dla kazdej ikony
 
-            // 1. Zupa Pomidorowa (Rz�d 1, Kolumna 1)
+            // 1. Zupa Pomidorowa (Rzad 1, Kolumna 1)
             DrawRecipeIcon("TomatoSoup", m_TomatoSoupIcon, { 0.12f, 0.15f }, recipeH, insidePos, insideSize, dt);
-
-            // 2. (Przyk�ad na przysz�o��) np. Burger (Rz�d 1, Kolumna 2)
-            // DrawRecipeIcon("Burger", m_BurgerIcon, {0.25f, 0.15f}, recipeH, insidePos, insideSize, dt);
-
-            // 3. (Przyk�ad na przysz�o��) np. Sa�atka (Rz�d 2, Kolumna 1)
-            // DrawRecipeIcon("Salad", m_SaladIcon, {0.12f, 0.35f}, recipeH, insidePos, insideSize, dt);
         }
     }
 
@@ -435,7 +431,10 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     // --- DYNAMICZNA SKALA ---
     float baseScale = std::max(gameHeight / 1080.0f, 0.5f);
 
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDisable(GL_DEPTH_TEST);
+
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
     Renderer2D::BeginScene(uiProj);
 
@@ -493,12 +492,17 @@ bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
     return false;
 }
 
+// ZMIANA: Przebudowano funkcję ładującą JSON tak, aby korzystała z VFS
 void GameGuiLayer::ReloadQuests() {
     m_CurrentQuests.clear();
-    std::ifstream file("assets://wygenerowane_quests.json");
-    if (file.is_open()) {
+    
+    // Używamy VFS do wyciągnięcia bajtów z pliku
+    std::vector<uint8_t> fileData = VFS::ReadFile("assets://wygenerowane_quests.json");
+    
+    if (!fileData.empty()) {
         try {
-            nlohmann::json data = nlohmann::json::parse(file);
+            // Biblioteka nlohmann::json potrafi przetworzyć std::vector bezpośrednio!
+            nlohmann::json data = nlohmann::json::parse(fileData);
             for (auto& q : data) {
                 m_CurrentQuests.push_back({
                     q.value("title", "Brak tytulu"),
@@ -508,10 +512,13 @@ void GameGuiLayer::ReloadQuests() {
                     });
             }
             m_CurrentQuestIndex = 0;
-            spdlog::info("GameUiLayer: Questy zaladowane responsywnie.");
+            spdlog::info("GameUiLayer: Questy zaladowane responsywnie przez VFS.");
         }
         catch (...) {
-            spdlog::error("GameUiLayer: Blad JSON.");
+            spdlog::error("GameUiLayer: Blad JSON podczas parsowania z VFS.");
         }
+    }
+    else {
+        spdlog::error("GameUiLayer: Nie udalo sie wczytac pliku wygenerowane_quests.json przez VFS.");
     }
 }
