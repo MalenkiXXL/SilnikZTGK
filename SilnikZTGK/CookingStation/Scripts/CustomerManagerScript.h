@@ -16,6 +16,7 @@ private:
 
     // Zwykli klienci
     std::vector<std::string> m_CustomerModels = {
+
         "CookingStation/Assets/models/klienci/klient.gltf",
         "CookingStation/Assets/models/klienci/klient2.gltf",
         "CookingStation/Assets/models/klienci/klient3.gltf",
