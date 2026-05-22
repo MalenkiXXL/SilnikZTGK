@@ -20,7 +20,9 @@ private:
         "CookingStation/Assets/models/klienci/klient3.gltf",
         "CookingStation/Assets/models/klienci/klientka1.gltf",
         "CookingStation/Assets/models/klienci/klientka2.gltf",
-        "CookingStation/Assets/models/klienci/klientka3.gltf"
+        "CookingStation/Assets/models/klienci/klientka3.gltf",
+        "CookingStation/Assets/models/klienci/babcia.gltf"
+
     };
 
 public:
