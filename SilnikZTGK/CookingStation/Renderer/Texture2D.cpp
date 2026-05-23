@@ -56,7 +56,7 @@ Texture2D::Texture2D(const std::string& path, GLenum wrapMode)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
         GLenum finalWrap = wrapMode;
-        if (path.find("belt") != std::string::npos) {
+        if (path.find("belt") != std::string::npos || path.find("tasma") != std::string::npos) {
             finalWrap = GL_REPEAT;
         }
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, finalWrap);

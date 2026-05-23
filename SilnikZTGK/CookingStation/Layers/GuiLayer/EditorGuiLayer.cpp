@@ -195,11 +195,11 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
 
                 std::string fullCommand;
                 if (!vcvarsScript.empty()) {
-                    fullCommand = "call " + vcvarsScript + " && msbuild " + slnFilename + " /p:Configuration=Release /p:Platform=x64 /t:Rebuild > msbuild_log.txt 2>&1";
+                    fullCommand = "call " + vcvarsScript + " && msbuild " + slnFilename + " /p:Configuration=Distribution /p:Platform=x64 /t:Rebuild > msbuild_log.txt 2>&1";
                     spdlog::info("[BuildTool] Inicjalizuję środowisko MSVC...");
                 }
                 else {
-                    fullCommand = "msbuild " + slnFilename + " /p:Configuration=Release /p:Platform=x64 /t:Rebuild > msbuild_log.txt 2>&1";
+                    fullCommand = "msbuild " + slnFilename + " /p:Configuration=Distribution /p:Platform=x64 /t:Rebuild > msbuild_log.txt 2>&1";
                     spdlog::warn("[BuildTool] Nie znaleziono vcvars64.bat, próba uproszczona.");
                 }
 
@@ -220,14 +220,13 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                         fs::remove_all(absExportDir);
                         fs::create_directories(absExportDir);
 
-                        // Szukamy .exe rekurencyjnie w całym rootDir (nie tylko bin/)
-                        // Filtrujemy po "Release" w ścieżce żeby nie wziąć Debug
+                     
                         std::string foundExePath = "";
                         for (const auto& entry : fs::recursive_directory_iterator(rootDir, ec)) {
                             if (ec) break;
                             std::string pathStr = entry.path().string();
                             if (entry.path().extension() == ".exe" &&
-                                pathStr.find("Release") != std::string::npos) {
+                                pathStr.find("Distribution") != std::string::npos) {
                                 foundExePath = pathStr;
                                 spdlog::info("[BuildTool] Znaleziono .exe: {}", foundExePath);
                                 break;
@@ -235,7 +234,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                         }
 
                         if (foundExePath.empty()) {
-                            spdlog::error("[BuildTool] Nie znaleziono .exe z 'Release' w ścieżce!");
+                            spdlog::error("[BuildTool] Nie znaleziono .exe z 'Distribution' w ścieżce!");
                             spdlog::error("[BuildTool] Sprawdź Output Directory w ustawieniach projektu VS.");
                         }
                         else {
@@ -256,20 +255,134 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                             spdlog::info("[BuildTool] Skopiowano .exe i .dll.");
                         }
 
-                        // Kopiuj Assets i Shaders - używamy absolutnych ścieżek
+                        // --- ZAMIAST FS::COPY DLA ASSETS, TWORZYMY PLIK DATA.PAK ---
                         if (fs::exists(absAssetsPath)) {
-                            fs::copy(absAssetsPath, absExportDir / "Assets",
-                                fs::copy_options::recursive | fs::copy_options::overwrite_existing);
-                            spdlog::info("[BuildTool] Skopiowano Assets.");
+                            spdlog::info("[BuildTool] Pakowanie zasobow do data.pak...");
+
+                            fs::path pakFilePath = absExportDir / "data.pak";
+                            std::ofstream pakFile(pakFilePath, std::ios::binary);
+
+                            if (pakFile.is_open()) {
+                                struct FileInfo { std::string relativePath; std::string fullPath; uint64_t size; };
+                                std::vector<FileInfo> filesToPack;
+
+                                // 1. Zbieramy wszystkie pliki i odrzucamy pliki robocze
+                                for (const auto& entry : fs::recursive_directory_iterator(absAssetsPath)) {
+                                    if (entry.is_regular_file()) {
+                                        std::string ext = entry.path().extension().string();
+                                        // Ignorujemy surowe projekty (możesz dopisać .psd, .xcf itp.)
+                                        if (ext == ".blend" || ext == ".blend1") continue;
+
+                                        FileInfo info;
+                                        info.fullPath = entry.path().string();
+                                        // Używamy generic_string() żeby wymusić '/' zamiast '\\' z Windowsa
+                                        info.relativePath = fs::relative(entry.path(), absAssetsPath).generic_string();
+                                        info.size = fs::file_size(entry.path());
+                                        filesToPack.push_back(info);
+                                    }
+                                }
+
+                                // 2. Zapisujemy ilość plików na samym początku paka
+                                uint32_t numFiles = static_cast<uint32_t>(filesToPack.size());
+                                pakFile.write(reinterpret_cast<const char*>(&numFiles), sizeof(uint32_t));
+
+                                // Obliczamy, gdzie (w bajtach) zaczną się surowe dane plików (za nagłówkiem)
+                                uint64_t currentDataOffset = sizeof(uint32_t); // Rozmiar numFiles
+                                for (const auto& f : filesToPack) {
+                                    currentDataOffset += sizeof(uint32_t) + f.relativePath.size() + sizeof(uint64_t) + sizeof(uint64_t);
+                                }
+
+                                // 3. Zapisujemy "Spis Treści" (TOC - Table of Contents)
+                                for (auto& f : filesToPack) {
+                                    uint32_t pathLen = static_cast<uint32_t>(f.relativePath.size());
+                                    pakFile.write(reinterpret_cast<const char*>(&pathLen), sizeof(uint32_t));
+                                    pakFile.write(f.relativePath.c_str(), pathLen);
+
+                                    uint64_t offset = currentDataOffset;
+                                    uint64_t size = f.size;
+                                    pakFile.write(reinterpret_cast<const char*>(&offset), sizeof(uint64_t));
+                                    pakFile.write(reinterpret_cast<const char*>(&size), sizeof(uint64_t));
+
+                                    currentDataOffset += size; // Przesuwamy wskaźnik dla następnego pliku
+                                }
+
+                                // 4. Zapisujemy surowe bajty plików
+                                for (const auto& f : filesToPack) {
+                                    std::ifstream inFile(f.fullPath, std::ios::binary);
+                                    if (inFile.is_open()) {
+                                        std::vector<char> buffer(f.size);
+                                        inFile.read(buffer.data(), f.size);
+                                        pakFile.write(buffer.data(), f.size);
+                                    }
+                                    else {
+                                        spdlog::error("[BuildTool] Nie udalo sie otworzyc do pakowania: {}", f.fullPath);
+                                    }
+                                }
+                                pakFile.close();
+                                spdlog::info("[BuildTool] Sukces! Utworzono data.pak");
+                            }
                         }
                         else {
                             spdlog::error("[BuildTool] Nie znaleziono Assets pod: {}", absAssetsPath.string());
                         }
 
                         if (fs::exists(absShadersPath)) {
-                            fs::copy(absShadersPath, absExportDir / "Shaders",
-                                fs::copy_options::recursive | fs::copy_options::overwrite_existing);
-                            spdlog::info("[BuildTool] Skopiowano Shaders.");
+                            spdlog::info("[BuildTool] Pakowanie shaderow do shaders.pak...");
+
+                            fs::path pakFilePath = absExportDir / "shaders.pak";
+                            std::ofstream pakFile(pakFilePath, std::ios::binary);
+
+                            if (pakFile.is_open()) {
+                                struct FileInfo { std::string relativePath; std::string fullPath; uint64_t size; };
+                                std::vector<FileInfo> filesToPack;
+
+                                // 1. Zbieramy wszystkie shadery
+                                for (const auto& entry : fs::recursive_directory_iterator(absShadersPath)) {
+                                    if (entry.is_regular_file()) {
+                                        FileInfo info;
+                                        info.fullPath = entry.path().string();
+                                        info.relativePath = fs::relative(entry.path(), absShadersPath).generic_string();
+                                        info.size = fs::file_size(entry.path());
+                                        filesToPack.push_back(info);
+                                    }
+                                }
+
+                                // 2. Nagłówek: liczba plików
+                                uint32_t numFiles = static_cast<uint32_t>(filesToPack.size());
+                                pakFile.write(reinterpret_cast<const char*>(&numFiles), sizeof(uint32_t));
+
+                                // 3. Obliczamy offsety dla TOC
+                                uint64_t currentDataOffset = sizeof(uint32_t);
+                                for (const auto& f : filesToPack) {
+                                    currentDataOffset += sizeof(uint32_t) + f.relativePath.size() + sizeof(uint64_t) + sizeof(uint64_t);
+                                }
+
+                                // 4. Zapisujemy Spis Treści (TOC)
+                                for (auto& f : filesToPack) {
+                                    uint32_t pathLen = static_cast<uint32_t>(f.relativePath.size());
+                                    pakFile.write(reinterpret_cast<const char*>(&pathLen), sizeof(uint32_t));
+                                    pakFile.write(f.relativePath.c_str(), pathLen);
+
+                                    uint64_t offset = currentDataOffset;
+                                    uint64_t size = f.size;
+                                    pakFile.write(reinterpret_cast<const char*>(&offset), sizeof(uint64_t));
+                                    pakFile.write(reinterpret_cast<const char*>(&size), sizeof(uint64_t));
+
+                                    currentDataOffset += size;
+                                }
+
+                                // 5. Zapisujemy dane shaderów
+                                for (const auto& f : filesToPack) {
+                                    std::ifstream inFile(f.fullPath, std::ios::binary);
+                                    if (inFile.is_open()) {
+                                        std::vector<char> buffer(f.size);
+                                        inFile.read(buffer.data(), f.size);
+                                        pakFile.write(buffer.data(), f.size);
+                                    }
+                                }
+                                pakFile.close();
+                                spdlog::info("[BuildTool] Sukces! Utworzono shaders.pak");
+                            }
                         }
                         else {
                             spdlog::error("[BuildTool] Nie znaleziono Shaders pod: {}", absShadersPath.string());

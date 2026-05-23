@@ -21,6 +21,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <filesystem>
 
 using namespace std;
 
@@ -355,6 +356,22 @@ private:
                     std::replace(texPath.begin(), texPath.end(), '\\', '/');
 
                     std::string finalPath = this->directory + "/" + texPath;
+
+                    // --- NORMALIZACJA ŚCIEŻEK (POPRAWKA VFS) ---
+                    std::string prefix = "assets://";
+                    if (finalPath.find(prefix) == 0) {
+                        // Odcinamy "assets://"
+                        std::string subPath = finalPath.substr(prefix.length());
+                        // Normalizujemy sam środek (np. models/warzywka/../../textures/palette.png)
+                        subPath = std::filesystem::path(subPath).lexically_normal().generic_string();
+                        // Doklejamy nienaruszony przedrostek
+                        finalPath = prefix + subPath;
+                    }
+                    else {
+                        // Dla zwykłych ścieżek normalizujemy całość
+                        finalPath = std::filesystem::path(finalPath).lexically_normal().generic_string();
+                    }
+
                     texture.Texture2DPtr = std::make_shared<Texture2D>(finalPath);
                 }
 

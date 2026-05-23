@@ -296,6 +296,7 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClInclude Include="CookingStation\Core\Texture.h" />
     <ClInclude Include="CookingStation\Core\Timestep.h" />
     <ClInclude Include="CookingStation\Core\VFS\IFileSystem.h" />
+    <ClInclude Include="CookingStation\Core\VFS\PackageFileSystem.h" />
     <ClInclude Include="CookingStation\Core\VFS\VFS.h" />
     <ClInclude Include="CookingStation\Events\EditorEvents.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\Command.h" />

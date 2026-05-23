@@ -12,6 +12,7 @@
 #include "CookingStation/Core/VFS/IFileSystem.h"
 #include "CookingStation/Core/VFS/PhysicalFileSystem.h"
 #include "CookingStation/Core/VFS/VFS.h"
+#include "CookingStation/Core/VFS/PackageFileSystem.h"
 #include "CookingStation/Layers/GuiLayer/Gui.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
 #include <iostream>
@@ -40,6 +41,21 @@ Application::Application()
 	msaaSpec.Height = m_Window->GetHeight();
 	msaaSpec.Samples = 4;
 	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
+
+
+	// DO FINALOWEJ WERSJI Z EKSPORTEM
+
+//#ifdef CS_DISTRIBUTION
+//	std::filesystem::path exePath = std::filesystem::current_path();
+//	VFS::Mount("assets", std::make_shared<PackageFileSystem>((exePath / "data.pak").string()));
+//	VFS::Mount("shaders", std::make_shared<PackageFileSystem>((exePath / "shaders.pak").string()));
+//#else
+//	// W trybie edytora gra musi widzieæ luŸne pliki na dysku, ¿ebyœ móg³ je na ¿ywo edytowaæ!
+//	VFS::Mount("assets", std::make_shared<PhysicalFileSystem>("CookingStation/Assets"));
+//	VFS::Mount("shaders", std::make_shared<PhysicalFileSystem>("CookingStation/Shaders"));
+//#endif
+
+	// DO TESOTWANIA
 
 #ifdef CS_DISTRIBUTION
 	std::string assetsPath = "CookingStation/Assets";

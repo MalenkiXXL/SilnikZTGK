@@ -26,8 +26,12 @@ class Animation
 public:
     Animation() = default;
 
-    Animation(const std::string& animationPath, Model* model)
+    Animation(std::string animationPath, Model* model)
     {
+        const std::string prefix = "CookingStation/Assets/";
+        if (animationPath.find(prefix) == 0) {
+            animationPath = "assets://" + animationPath.substr(prefix.length());
+        }
         m_Path = animationPath;
         Assimp::Importer importer;
         importer.SetIOHandler(new VfsIOSystem()); 
