@@ -8,6 +8,9 @@
     "jhasse-poly2tri",
     "minizip",
     "zlib",
-    "pugixml"
+    "spdlog",
+    "pugixml",
+    "nlohmann-json",
+    "glad"
   ]
 }
