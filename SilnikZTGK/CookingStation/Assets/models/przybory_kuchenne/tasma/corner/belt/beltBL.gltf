@@ -55,7 +55,7 @@
 	],
 	"images":[
 		{
-            "mimeType":"image/png",
+			"mimeType":"image/png",
 			"name":"a",
 			"uri":"../../texture/a.png"
 		}
@@ -64,61 +64,61 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":69,
+			"count":43,
 			"max":[
-				0.9999997019767761,
+				0.8641238212585449,
 				1.0035512447357178,
-				0.9619251489639282
+				0.8664430379867554
 			],
 			"min":[
-				-0.9608769416809082,
+				-0.9608767032623291,
 				0.959653913974762,
-				-1.0000003576278687
+				-1.0000005960464478
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":69,
+			"count":43,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":69,
+			"count":43,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":105,
+			"count":63,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":828,
+			"byteLength":516,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":828,
-			"byteOffset":828,
+			"byteLength":516,
+			"byteOffset":516,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":552,
-			"byteOffset":1656,
+			"byteLength":344,
+			"byteOffset":1032,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":210,
-			"byteOffset":2208,
+			"byteLength":126,
+			"byteOffset":1376,
 			"target":34963
 		}
 	],
@@ -130,7 +130,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":2420,
+			"byteLength":1504,
 			"uri":"beltBL.bin"
 		}
 	]

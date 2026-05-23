@@ -5,22 +5,31 @@
 #include <string>
 #include <random>
 #include "CustomerScript.h"
+#include "HelperCustomerScript.h" 
 
 class CustomerManagerScript : public ScriptableEntity
 {
 private:
     float m_SpawnTimer = 0.0f;
-    float m_SpawnInterval = 5.0f; // Co 5 sekund sprawdza, czy mo¿na stworzyæ klienta
+    float m_SpawnInterval = 5.0f;
     int m_TotalSpawned = 0;
 
-    // Lista dostêpnych modeli klientów 
+    // Zwykli klienci
     std::vector<std::string> m_CustomerModels = {
+
         "CookingStation/Assets/models/klienci/klient.gltf",
         "CookingStation/Assets/models/klienci/klient2.gltf",
         "CookingStation/Assets/models/klienci/klient3.gltf",
         "CookingStation/Assets/models/klienci/klientka1.gltf",
         "CookingStation/Assets/models/klienci/klientka2.gltf",
-        "CookingStation/Assets/models/klienci/klientka3.gltf"
+        "CookingStation/Assets/models/klienci/klientka3.gltf",
+    };
+
+    // Helper klienci
+    std::vector<std::string> m_HelperModels = {
+        "CookingStation/Assets/models/warzywka/marchewka/marchewka.gltf",
+        "CookingStation/Assets/models/warzywka/pomidor/pomidor.gltf",
+        "CookingStation/Assets/models/warzywka/rzodkiewka/rzodkiewka.gltf"
     };
 
 public:
@@ -40,20 +49,62 @@ private:
     {
         Entity targetChair = FindEmptyChair();
 
-        // Jeœli nie ma wolnych krzese³, funkcja przerywa dzia³anie i czeka kolejne 5 sekund
         if (targetChair.id == std::numeric_limits<std::size_t>::max())
         {
             spdlog::info("Wszystkie krzesla zajete. Klient musi poczekac!");
             return;
         }
 
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dist(0, m_CustomerModels.size() - 1);
-        std::string chosenModel = m_CustomerModels[dist(gen)];
-
         m_TotalSpawned++;
         bool isHelper = (m_TotalSpawned % 3 == 0);
+
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::string chosenModel;
+
+        if (isHelper) {
+            std::uniform_int_distribution<> dist(0, m_HelperModels.size() - 1);
+            chosenModel = m_HelperModels[dist(gen)];
+        }
+        else {
+            std::uniform_int_distribution<> dist(0, m_CustomerModels.size() - 1);
+            chosenModel = m_CustomerModels[dist(gen)];
+        }
+
+        glm::vec3 finalScale = glm::vec3(3.0f);
+        float rotationOffsetY = 90.0f;
+        float heightOffset = 1.0f;
+        std::string animPath = "";
+
+        if (isHelper)
+        {
+            // MARCHEWKA
+            if (chosenModel.find("marchewka") != std::string::npos || chosenModel.find("test.gltf") != std::string::npos)
+            {
+                finalScale = glm::vec3(1.0f, 1.0f, 1.0f);  
+                rotationOffsetY = -90.0f;                  
+                animPath = "CookingStation/Assets/models/animacje/klienci/marchewka-siedzi.gltf";
+            }
+            // POMIDOR
+            else if (chosenModel.find("pomidor") != std::string::npos)
+            {
+                finalScale = glm::vec3(1.0f, 1.0f, 1.0f);  
+                rotationOffsetY = -90.0f;                   
+                animPath = "CookingStation/Assets/models/animacje/klienci/pomidor-siedzi.gltf";
+            }
+            // RZODKIEWKA
+            else if (chosenModel.find("rzodkiewka") != std::string::npos)
+            {
+                finalScale = glm::vec3(1.2f, 1.2f, 1.2f);  
+                rotationOffsetY = 90.0f;                   
+                animPath = "CookingStation/Assets/models/animacje/klienci/rzodkiewka-siedzi.gltf";
+            }
+        }
+        else
+        {
+            // LUDZIE
+            animPath = "CookingStation/Assets/models/animacje/klienci/klient-siedzi.gltf";
+        }
 
         auto builder = GetScene()->GetWorld().BuildEntity();
         builder.With<TagComponent>({ isHelper ? "HelperCustomer" : "NormalCustomer" });
@@ -61,11 +112,18 @@ private:
         auto* chairTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(targetChair);
         TransformComponent tc;
 
-        // Skalowanie i pozycja
-        tc.SetPosition(chairTransform->GetPosition() + glm::vec3(0.0f, 2.0f, 0.0f));
-        tc.SetScale(glm::vec3(0.3f, 0.3f, 0.3f));
+        // Aplikowanie wyliczonej Skali i Pozycji
+        glm::vec3 chairPos = chairTransform->GetPosition();
+        tc.SetPosition(chairPos + glm::vec3(0.0f, heightOffset, 0.0f));
+        tc.SetScale(finalScale);
 
-        tc.SetRotation(chairTransform->GetRotation());
+        // Aplikowanie wyliczonego Obrotu
+        glm::vec3 tablePos = FindNearestTablePosition(chairPos);
+        glm::vec3 direction = tablePos - chairPos;
+        float angle = glm::degrees(std::atan2(direction.x, direction.z));
+        glm::vec3 finalRotation = { 0.0f, angle + rotationOffsetY, 0.0f };
+        tc.SetRotation(finalRotation);
+
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
@@ -76,19 +134,28 @@ private:
         bc.Size = { 1.0f, 2.0f, 1.0f };
         builder.With<BoxColliderComponent>(bc);
 
+        // Aplikowanie Animacji
+        AnimatorComponent animatorComp;
+        animatorComp.AnimatorInstance = std::make_shared<Animator>();
+        auto sitAnimation = std::make_shared<Animation>(animPath, mesh.ModelPtr.get());
+        animatorComp.AnimatorInstance->AddAnimation("SitIdle", sitAnimation);
+        animatorComp.AnimatorInstance->PlayAnimation("SitIdle");
+
+        builder.With<AnimatorComponent>(animatorComp);
+
         NativeScriptComponent nsc;
 
         if (isHelper) {
-            // nsc.AddScript<HelperScript>("HelperScript"); -> do dodania
+            nsc.AddScript<HelperCustomerScript>("HelperCustomerScript");
         }
         else {
-            nsc.AddScript<CustomerScript>("CustomerScript"); 
+            nsc.AddScript<CustomerScript>("CustomerScript");
         }
 
         builder.With<NativeScriptComponent>(nsc);
-
         builder.Build();
-        spdlog::info("Zespawnowano nowego {} (Model: {})", isHelper ? "Helpera" : "Klienta", chosenModel);
+
+        spdlog::info("Zespawnowano nowego {} (Model: {}) - Patrzy na stolik!", isHelper ? "Helpera" : "Klienta", chosenModel);
     }
 
     Entity FindEmptyChair()
@@ -103,7 +170,7 @@ private:
                 Entity chairEntity = tags->reverse[i];
                 if (IsChairEmpty(chairEntity))
                 {
-                    return chairEntity; 
+                    return chairEntity;
                 }
             }
         }
@@ -116,7 +183,7 @@ private:
         if (!chairTransform) return false;
 
         glm::vec3 chairPos = chairTransform->GetPosition();
-        glm::vec2 chairPos2D = { chairPos.x, chairPos.z }; 
+        glm::vec2 chairPos2D = { chairPos.x, chairPos.z };
 
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
@@ -126,7 +193,6 @@ private:
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
             std::string tag = tags->dense[i].Tag;
-            // Szukamy tylko wœród wygenerowanych klientów
             if (tag == "NormalCustomer" || tag == "HelperCustomer")
             {
                 Entity customer = tags->reverse[i];
@@ -135,8 +201,6 @@ private:
                 if (custTransform)
                 {
                     glm::vec2 custPos2D = { custTransform->GetPosition().x, custTransform->GetPosition().z };
-
-                    // Jeœli jakiœ klient jest bli¿ej ni¿ pó³ metra od krzes³a, to krzes³o jest zajête
                     if (glm::distance(chairPos2D, custPos2D) < 0.5f)
                     {
                         return false;
@@ -144,6 +208,35 @@ private:
                 }
             }
         }
-        return true; // Krzes³o jest puste
+        return true;
+    }
+
+    glm::vec3 FindNearestTablePosition(glm::vec3 chairPos)
+    {
+        glm::vec3 nearestTablePos = chairPos + glm::vec3(0.0f, 0.0f, 1.0f);
+        float closestDist = 999.0f;
+
+        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+
+        if (tags && transforms) {
+            for (size_t i = 0; i < tags->dense.size(); ++i) {
+                std::string tag = tags->dense[i].Tag;
+                if (tag.find("Table") != std::string::npos)
+                {
+                    Entity tableEntity = tags->reverse[i];
+                    auto* tableTransform = transforms->Get(tableEntity);
+
+                    if (tableTransform) {
+                        float dist = glm::distance(chairPos, tableTransform->GetPosition());
+                        if (dist < closestDist) {
+                            closestDist = dist;
+                            nearestTablePos = tableTransform->GetPosition();
+                        }
+                    }
+                }
+            }
+        }
+        return nearestTablePos;
     }
 };

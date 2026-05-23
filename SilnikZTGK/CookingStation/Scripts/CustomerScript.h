@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
+#include "CookingStation/Scene/ecs.h" 
 #include <string>
 #include <vector>
 
@@ -13,10 +14,7 @@ public:
     {
         // Na razie mamy tylko pomidora
         WantedIngredient = "Tomato";
-
         spdlog::info("Klient nr {} usiadl i chce: {}", m_Entity.id, WantedIngredient);
-
-        // TODO: ikonki nad g³owami
     }
 
     // Ta funkcja bêdzie wywo³ywana póŸniej przez Kelnera
@@ -29,7 +27,7 @@ public:
         return false;
     }
 
-    void ReceiveFood()
+    virtual void ReceiveFood()
     {
         IsServed = true;
         spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
@@ -37,6 +35,7 @@ public:
         // Soft Deletion 
         auto* tf = GetComponent<TransformComponent>();
         if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
+
         // Zmiana tagu na zadowolenie -> mo¿na uzyæ do efeków wizualnych 
         auto* tag = GetComponent<TagComponent>();
         if (tag) tag->Tag = "ZadowolonyKlient";

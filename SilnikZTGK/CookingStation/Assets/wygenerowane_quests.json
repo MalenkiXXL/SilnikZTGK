@@ -1,10 +1,10 @@
 [
-  {
-    "title": "Zupa dla Karpathyego",
-    "description": "Andrej potrzebuje paliwa do treningu sieci. Podaj mu zupke!",
-    "dish_id": "pomidorowa",
-    "portions": 2,
-    "frequency": 1,
-    "reward": "100 punktow inteligencji, kod zrodlowy"
-  }
+    {
+        "title": "Bunt Serwerow",
+        "description": "Sztuczna inteligencja zglodniala! Podaj szybko ciepla zupe.",
+        "dish_id": "pomidorowa",
+        "portions": 10,
+        "frequency": 5,
+        "reward": "100 Monet"
+    }
 ]

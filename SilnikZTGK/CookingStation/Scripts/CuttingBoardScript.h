@@ -11,10 +11,37 @@ private:
     Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
     float m_ChopCooldown = 0.0f;
 
-    // --- LOGIKA SKAKANIA ---
-    float m_VisualJumpY = 0.0f;          // Aktualne uniesienie wizualne
-    const float m_BaseYOffset = 0.7f;    // Bazowa wysokoœæ nad desk¹
-    // -----------------------
+    float m_VisualJumpY = 0.0f;
+    const float m_BaseYOffset = 0.7f;
+
+    float m_AutoChopTimer = 0.0f;
+    const float m_AutoChopInterval = 0.8f;
+
+    void PerformChop()
+    {
+        m_ChopCount++;
+        m_ChopCooldown = 0.2f;
+        spdlog::info("Ciach! ({}/{})", m_ChopCount, m_ChopsRequired);
+
+        m_VisualJumpY = 0.3f;
+
+        if (m_ChopCount >= m_ChopsRequired)
+        {
+            m_IsReady = true;
+            m_VisualJumpY = 0.0f;
+            m_AutoChopTimer = 0.0f;
+            UpdateVisuals();
+        }
+    }
+
+    void ResetMachineState() override
+    {
+        m_ChopCount = 0;
+        m_AutoChopTimer = 0.0f;
+        m_VisualJumpY = 0.0f;
+        m_ChopCooldown = 0.0f;
+        MachineScript::ResetMachineState(); 
+    }
 
 public:
     void OnUpdate(Timestep ts) override
@@ -26,27 +53,38 @@ public:
             m_ChopCooldown -= ts.GetSeconds();
         }
 
-        // --- GRAWITACJA PODSKOKU ---
-        // Jeœli pomidor jest uniesiony, powoli go obni¿amy w dó³
-        if (m_VisualJumpY > 0.0f) {
-            float gravityPower = 5.0f; // Szybkoœæ opadania
-            m_VisualJumpY -= gravityPower * ts.GetSeconds();
-            if (m_VisualJumpY < 0.0f) m_VisualJumpY = 0.0f; // Limit
+        // --- AUTOMATYCZNE KROJENIE PRZEZ HELPERA ---
+        if (m_IsAutomated && !m_IsReady && !m_Ingredients.empty())
+        {
+            m_AutoChopTimer += ts.GetSeconds();
+            if (m_AutoChopTimer >= m_AutoChopInterval)
+            {
+                m_AutoChopTimer = 0.0f;
+                PerformChop();
+            }
+        }
+        else if (!m_IsAutomated || m_IsReady)
+        {
+            m_AutoChopTimer = 0.0f;
         }
 
-        // --- APLIKACJA POZYCJI (Skakanie) ---
-        // Aktualizujemy pozycjê modelu na desce w ka¿dej klatce
+        // --- GRAWITACJA PODSKOKU ---
+        if (m_VisualJumpY > 0.0f) {
+            float gravityPower = 5.0f;
+            m_VisualJumpY -= gravityPower * ts.GetSeconds();
+            if (m_VisualJumpY < 0.0f) m_VisualJumpY = 0.0f;
+        }
+
+        // --- APLIKACJA POZYCJI ---
         if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
             auto* boardTf = GetComponent<TransformComponent>();
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (boardTf && foodTf) {
-                // Finalna wysokoœæ = Baza Deski + Bazowy Offset + Aktualny Podskok
                 glm::vec3 foodPos = boardTf->GetPosition();
                 foodPos.y += m_BaseYOffset + m_VisualJumpY;
                 foodTf->SetPosition(foodPos);
             }
         }
-        // -----------------------------------
 
         if (Input::IsMouseButtonJustPressed(0) && !Input::IsKeyPressed(340))
         {
@@ -59,28 +97,20 @@ public:
 
             if (glm::distance(mousePos2D, boardPos2D) < 3.0f)
             {
-                if (!m_IsReady && !m_Ingredients.empty() && m_ChopCooldown <= 0.0f)
+                if (m_IsReady)
                 {
-                    m_ChopCount++;
-                    spdlog::info("Ciach! ({}/{})", m_ChopCount, m_ChopsRequired);
-
-                    // --- INICJACJA PODSKOKU ---
-                    m_VisualJumpY = 0.3f; // Jak wysoko ma podskoczyæ (0.3 metra)
-                    // --------------------------
-
-                    if (m_ChopCount >= m_ChopsRequired)
-                    {
-                        m_IsReady = true;
-                        m_VisualJumpY = 0.0f; // Niech plasterki nie skacz¹ przy ostatnim ciêciu
-                        UpdateVisuals();
-                        spdlog::info("Sk³adnik pokrojony!");
-                    }
-                }
-                else if (m_IsReady)
-                {
-                    spdlog::info("Wziêto pokrojonego pomidora z deski!");
-                    DragAndDropScript::StartDrag(IngredientType::ChoppedTomato, "CookingStation/Assets/models/skladniki/pomidor/pomidor-pokrojony.gltf");
+                    spdlog::info("Wziêto pokrojonego pomidora z deski{}!",
+                        m_IsAutomated ? " (helper kroi³)" : "");
+                    DragAndDropScript::StartDrag(
+                        IngredientType::ChoppedTomato,
+                        "CookingStation/Assets/models/skladniki/pomidor/pomidor-pokrojony.gltf"
+                    );
                     ResetMachineState();
+                }
+                else if (!m_IsAutomated && !m_Ingredients.empty() && m_ChopCooldown <= 0.0f)
+                {
+                    // Manualne krojenie tylko gdy nie ma helpera
+                    PerformChop();
                 }
             }
         }
@@ -96,6 +126,7 @@ public:
             m_ChopCount = 0;
             m_IsReady = false;
             m_ChopCooldown = 0.2f;
+            m_AutoChopTimer = 0.0f; 
             UpdateVisuals();
             spdlog::info("Po³o¿ono pomidora na desce do krojenia.");
             return true;
@@ -106,8 +137,7 @@ public:
     }
 
 protected:
-    void TryTransferToPlate() override {
-    }
+    void TryTransferToPlate() override {}
 
     void UpdateVisuals() override
     {
@@ -129,7 +159,6 @@ protected:
             auto builder = GetScene()->GetWorld().BuildEntity();
 
             TransformComponent tc;
-            // Pocz¹tkowa pozycja bez podskoku
             tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, m_BaseYOffset, 0.0f));
             tc.SetScale(glm::vec3(0.7f, 0.7f, 0.7f));
             builder.With<TransformComponent>(tc);
@@ -144,12 +173,11 @@ protected:
             auto* mesh = GetScene()->GetWorld().GetComponent<MeshComponent>(m_SpawnedFood);
             if (mesh)
             {
-                if (m_IsReady) {
-                    mesh->ModelPtr = AssetManager::GetModel("CookingStation/Assets/models/skladniki/pomidor/pomidor-pokrojony.gltf");
-                }
-                else {
-                    mesh->ModelPtr = AssetManager::GetModel("CookingStation/Assets/models/skladniki/pomidor/pomidor.gltf");
-                }
+                mesh->ModelPtr = AssetManager::GetModel(
+                    m_IsReady
+                    ? "CookingStation/Assets/models/skladniki/pomidor/pomidor-pokrojony.gltf"
+                    : "CookingStation/Assets/models/skladniki/pomidor/pomidor.gltf"
+                );
             }
         }
     }

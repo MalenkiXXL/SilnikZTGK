@@ -13,13 +13,13 @@ class MachineScript : public ScriptableEntity
 protected:
     float m_CookTime = 10.0f;
     float m_CurrentTime = 0.0f;
-    bool m_IsAutomated = false;
     float m_AutoDetectRadius = 3.0f;
     bool m_IsHeld = false;
 
 public:
     std::vector<IngredientType> m_Ingredients;
     bool m_IsReady = false;
+    bool m_IsAutomated = false;
 
     virtual void OnUpdate(Timestep ts) override
     {

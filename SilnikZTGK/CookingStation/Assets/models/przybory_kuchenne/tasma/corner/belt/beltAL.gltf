@@ -56,69 +56,69 @@
 	"images":[
 		{
 			"mimeType":"image/png",
-            "name":"a",
-            "uri":"../../texture/a.png"
+			"name":"a",
+			"uri":"../../texture/a.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":121,
+			"count":91,
 			"max":[
-				1.000000238418579,
-				1.0034219026565552,
-				0.9619251489639282
+				1.0000004768371582,
+				1.0033191442489624,
+				0.9596534371376038
 			],
 			"min":[
-				-0.960820734500885,
-				0.9601471424102783,
-				-1.0000003576278687
+				-0.8932706713676453,
+				0.9605686068534851,
+				-0.9114448428153992
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":121,
+			"count":91,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":121,
+			"count":91,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":195,
+			"count":153,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":1452,
+			"byteLength":1092,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":1452,
-			"byteOffset":1452,
+			"byteLength":1092,
+			"byteOffset":1092,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":968,
-			"byteOffset":2904,
+			"byteLength":728,
+			"byteOffset":2184,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":390,
-			"byteOffset":3872,
+			"byteLength":306,
+			"byteOffset":2912,
 			"target":34963
 		}
 	],
@@ -130,7 +130,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":4264,
+			"byteLength":3220,
 			"uri":"beltAL.bin"
 		}
 	]
