@@ -1,0 +1,13 @@
+{
+  "name": "silnik-ztgk",
+  "version": "1.0.0",
+  "dependencies": [
+    "assimp",
+    "glfw3",
+    "glm",
+    "jhasse-poly2tri",
+    "minizip",
+    "zlib",
+    "pugixml"
+  ]
+}
