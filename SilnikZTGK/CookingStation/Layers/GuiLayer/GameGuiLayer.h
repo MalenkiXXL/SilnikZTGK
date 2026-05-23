@@ -28,6 +28,8 @@ private:
 
     float m_ViewportWidth = 1920.0f;
     float m_ViewportHeight = 1080.0f;
+    int m_LastMoney = -1;
+    std::string m_MoneyStr = "";
     std::shared_ptr<Framebuffer> m_ViewportFBO;
 
     struct QuestData {
@@ -47,6 +49,7 @@ private:
     std::shared_ptr<Texture> m_BookInsideIcon;
     std::shared_ptr<Texture> m_BookXIcon;
     std::shared_ptr<Texture> m_TomatoSoupIcon;
+    std::shared_ptr<Texture> m_CoinIcon;
 
     struct BubblyState {
         float scale = 1.0f;
@@ -65,6 +68,12 @@ private:
     bool DrawIngredientIcon(const std::string& id, const std::shared_ptr<Texture>& icon,
                             glm::vec2 basePos, glm::vec2 baseSize, float dt,
                             float baseScale, int count, bool showCount);
+    void DrawIconWithText(const std::string& text,
+                          const std::shared_ptr<Texture>& iconTex,
+                          const glm::vec2& textPos,
+                          float textScale,
+                          float baseScale,
+                          float dt);
 
     bool m_IsRecipeBookOpen = false;
 

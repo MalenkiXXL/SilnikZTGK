@@ -21,18 +21,18 @@ void Gui::Init(const std::string& fontPath, float fontSize) {
 	s_Font = std::make_shared<Font>(fontPath, fontSize);
 }
 
-// sprawdza czy kursor znajduje siê nad obszarem
-// przelicza pozycjê myszki na wspó³rzêdne GUI
+// sprawdza czy kursor znajduje siï¿½ nad obszarem
+// przelicza pozycjï¿½ myszki na wspï¿½rzï¿½dne GUI
 bool Gui::IsMouseOver(const glm::vec2& pos, const glm::vec2& size) {
-	// pobiera przemapowan¹ pozycjê myszki
+	// pobiera przemapowanï¿½ pozycjï¿½ myszki
 	glm::vec2 mappedMouse = GetMappedMousePos();
 
-	// sprawdza, czy wspó³rzêdne myszy mieszcz¹ siê w granicach prostok¹ta
+	// sprawdza, czy wspï¿½rzï¿½dne myszy mieszczï¿½ siï¿½ w granicach prostokï¿½ta
 	return (mappedMouse.x >= pos.x && mappedMouse.x <= pos.x + size.x &&
 		mappedMouse.y >= pos.y && mappedMouse.y <= pos.y + size.y);
 }
 
-//przelicza pozycje myszki na wspó³rzêdne GUI
+//przelicza pozycje myszki na wspï¿½rzï¿½dne GUI
 glm::vec2 Gui::GetMappedMousePos() {
 	// pobiera pozycje kursora w pikselach
 	auto mousePos = Input::GetMousePosition();
@@ -47,7 +47,7 @@ glm::vec2 Gui::GetMappedMousePos() {
 	return { mouseX, mouseY };
 }
 
-// innteraktywny suwak, zmienia wartoœæ z pozycji Value
+// innteraktywny suwak, zmienia wartoï¿½ï¿½ z pozycji Value
 // zwraca true przy poruszaniu w danej klatce
 bool Gui::SliderFloat(const std::string& label, float* value, float min, float max, const glm::vec2& pos, const glm::vec2& size) {
 	bool changed = false;
@@ -55,7 +55,7 @@ bool Gui::SliderFloat(const std::string& label, float* value, float min, float m
 	// 0 = lewy przycisk myszy
 	if (Input::IsMouseButtonPressed(0)) {
 		if (IsMouseOver(pos, size)) {
-			//Pobieramy przeliczon¹ pozycjê myszki
+			//Pobieramy przeliczonï¿½ pozycjï¿½ myszki
 			glm::vec2 mappedMouse = GetMappedMousePos();
 
 			// obliczamy w ktorym miejscu szerokosci jest suwak
@@ -74,14 +74,14 @@ bool Gui::SliderFloat(const std::string& label, float* value, float min, float m
 	// rysowanie podpisu suwaka
 	DrawGuiText(label, { pos.x, pos.y - 15.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-	// rysowanie tla z wymuszonym zaokr¹gleniem 15.0f
+	// rysowanie tla z wymuszonym zaokrï¿½gleniem 15.0f
 	Renderer2D::DrawQuad(pos, size, { 0.2f, 0.2f, 0.2f, 1.0f }, 15.0f);
 
 	// obliczanie pozycji uchwytu
 	float handleWidth = 10.0f;
 	float handlePos = ((*value - min) / (max - min)) * size.x;
 
-	// rysowanie uchwytu (uchwyt suwaka delikatnie zaokr¹glamy dla spójnoœci)
+	// rysowanie uchwytu (uchwyt suwaka delikatnie zaokrï¿½glamy dla spï¿½jnoï¿½ci)
 	Renderer2D::DrawQuad({ pos.x + handlePos - (handleWidth / 2.0f), pos.y }, { handleWidth, size.y }, { 0.8f, 0.8f, 0.8f, 1.0f }, 4.0f);
 
 	return changed;
@@ -109,7 +109,7 @@ void Gui::DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const
 	}
 }
 
-// obs³uguje pola tekstowe, do których mo¿na wpisywaæ dane 
+// obsï¿½uguje pola tekstowe, do ktï¿½rych moï¿½na wpisywaï¿½ dane 
 bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::vec2& pos, const glm::vec2& size) {
 	bool hovered = IsMouseOver(pos, size);
 	std::string widgetID = label + std::to_string(pos.x) + std::to_string(pos.y);
@@ -129,7 +129,7 @@ bool Gui::InputGuiText(const std::string& label, std::string& value, const glm::
 	bool isActive = (s_ActiveWidgetID == widgetID);
 	glm::vec4 bgColor = isActive ? glm::vec4(0.2f, 0.2f, 0.2f, 1.0f) : glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
 
-	// Rysowanie t³a pola tekstowego z zaokr¹gleniem 15.0f
+	// Rysowanie tï¿½a pola tekstowego z zaokrï¿½gleniem 15.0f
 	Renderer2D::DrawQuad(pos, size, bgColor, 15.0f);
 
 	DrawGuiText(label + ": " + value, { pos.x + 10.0f, pos.y + 5.0f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
@@ -169,7 +169,7 @@ bool Gui::Button(const std::string& label, const glm::vec2& pos, const glm::vec2
 		clicked = true;
 	}
 
-	// Rysujemy t³o przycisku z wymuszonym zaokr¹gleniem 15.0f
+	// Rysujemy tï¿½o przycisku z wymuszonym zaokrï¿½gleniem 15.0f
 	Renderer2D::DrawQuad(pos, size, color, 15.0f);
 
 	DrawGuiText(label, { pos.x + 10.f, pos.y + 5.f }, 0.4f, { 1.0f, 1.0f, 1.0f, 1.0f });
@@ -256,7 +256,7 @@ bool Gui::DragFloat(const std::string& label, float* value, float dragSpeed, con
 	glm::vec4 bgColor = (isActive && s_IsInTextMode) ? glm::vec4(0.1f, 0.1f, 0.1f, 1.0f) :
 		(hovered ? glm::vec4(0.3f, 0.3f, 0.3f, 1.0f) : glm::vec4(0.2f, 0.2f, 0.2f, 1.0f));
 
-	// Rysujemy pole DragFloat z zaokr¹gleniem 15.0f
+	// Rysujemy pole DragFloat z zaokrï¿½gleniem 15.0f
 	Renderer2D::DrawQuad(pos, size, bgColor, 15.0f);
 
 	std::string displayStr;
@@ -282,6 +282,27 @@ void Gui::Panel(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& co
 	if (IsMouseOver(pos, size)) {
 		s_WantCaptureMouse = true;
 	}
-	// Zawsze przekazujemy promieñ do quada
+	// Zawsze przekazujemy promieï¿½ do quada
 	Renderer2D::DrawQuad(pos, size, color, radius);
+}
+
+float Gui::MeasureTextWidth(const std::string& text, float scale) {
+    float width = 0.0f;
+    for (char c : text) {
+        if (s_Font->GetCharacters().find(c) != s_Font->GetCharacters().end()) {
+            width += s_Font->GetChar(c).Advance * scale;
+        }
+    }
+    return width;
+}
+
+float Gui::MeasureTextHeight(const std::string& text, float scale) {
+    float maxHeight = 0.0f;
+    for (char c : text) {
+        if (s_Font->GetCharacters().find(c) != s_Font->GetCharacters().end()) {
+            float h = s_Font->GetChar(c).Size.y * scale;
+            if (h > maxHeight) maxHeight = h;
+        }
+    }
+    return maxHeight;
 }

@@ -49,3 +49,23 @@ void GameManagerScript::CallForDelivery()
     m_IsDeliveryOnTheWay = true;
     spdlog::info("GameManager: Brak składników! Wysłano nowego dostawczaka.");
 }
+
+int GameManagerScript::GetMoney() {
+    return money;
+}
+
+bool GameManagerScript::AddMoney(int amount) {
+    if (amount > 0){
+        money+=amount;
+        return true;
+    }
+    return false;
+}
+
+bool GameManagerScript::SpendMoney(int amount) {
+    if (amount > 0){
+        money-=amount;
+        return true;
+    }
+    return false;
+}

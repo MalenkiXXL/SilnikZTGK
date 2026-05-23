@@ -8,7 +8,7 @@ class GameManagerScript : public ScriptableEntity
 public:
     inline static GameManagerScript* s_Instance = nullptr;
 
-    std::unordered_map<IngredientType, int> m_Inventory;
+
     bool m_IsDeliveryOnTheWay = false;
 
     std::string m_VanPrefabPath = "CookingStation/Assets/prefabs/deliveryCar.json";
@@ -22,12 +22,19 @@ public:
 
     int GetIngredientCount(IngredientType type);
 
+    int GetMoney();
+
+    bool AddMoney(int amount);
+    bool SpendMoney(int amount);
+
     void OnDestroy() override
     {
         s_Instance = nullptr;
     }
 
 private:
+    int money = 0;
+    std::unordered_map<IngredientType, int> m_Inventory;
     void CallForDelivery();
 
 

@@ -81,6 +81,7 @@ void GameGuiLayer::OnAttach() {
     m_BookInsideIcon = AssetManager::GetTexture("assets://UI/bookInside.png");
     m_BookXIcon = AssetManager::GetTexture("assets://UI/bookX.png");
     m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
+    m_CoinIcon = AssetManager::GetTexture("assets://UI/coin.png");
 
 }
 
@@ -397,6 +398,43 @@ void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, flo
 
 }
 
+void GameGuiLayer::DrawIconWithText(const std::string& text,
+                                    const std::shared_ptr<Texture>& iconTex,
+                                    const glm::vec2& textPos,
+                                    float textScale,
+                                    float baseScale,
+                                    float dt)
+{
+    if (!iconTex) return;
+
+    // 1. Wymiary ikony
+    float coinH = 80.0f * baseScale;
+    glm::vec2 coinSize = { coinH, coinH };
+
+    // 2. Pomiar tekstu
+    float textHeight = Gui::MeasureTextHeight(text, textScale);
+    float baselineOffset = 32.0f * 0.8f * textScale;
+
+    // 3. Obliczenie idealnego środka (z uwzględnieniem poprawki)
+    float textCenterY = textPos.y + baselineOffset - (textHeight * 0.5f);
+
+    // Tutaj wrzuć wartość manualNudge, którą wypracowałeś w poprzednim kroku
+    float manualNudge = 0.0f;
+
+    glm::vec2 coinPos = {
+            textPos.x - coinSize.x - 8.0f * baseScale,
+            textCenterY - (coinSize.y * 0.5f) + (manualNudge * baseScale)
+    };
+
+    // 4. Renderowanie ikony i tekstu (cień + przód)
+    DrawBubblyImage("CoinIcon", iconTex, coinPos, coinSize, dt, 1.05f, false);
+
+    // Cień tekstu
+    Gui::DrawGuiText(text, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.85f });
+    // Główny tekst
+    Gui::DrawGuiText(text, textPos, textScale, { 1.0f, 0.95f, 0.3f, 1.0f });
+}
+
 
 void GameGuiLayer::OnUpdate(Timestep ts) {
     Gui::BeginFrame();
@@ -448,6 +486,25 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
     DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     DrawRecipeBook(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+
+    // --- PIENIĄDZE ---
+    if (m_CoinIcon) {
+        int money = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetMoney() : 0;
+
+        if (money != m_LastMoney) {
+            m_MoneyStr = std::to_string(money);
+            m_LastMoney = money;
+        }
+
+        float textScale = 2.0f * baseScale;
+        float textWidth = Gui::MeasureTextWidth(m_MoneyStr, textScale);
+        glm::vec2 textPos = {
+                gameX + gameWidth * 0.97f - textWidth,
+                gameY + gameHeight * 0.02f
+        };
+
+        DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
+    }
 
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
