@@ -53,6 +53,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 # ==========================================
 # Tryb Dystrybucji (Eksport Gry bez Edytora)
 # ==========================================
-if (CMAKE_BUILD_TYPE STREQUAL "Release")
+if (CS_IS_DISTRIBUTION)
     target_compile_definitions(${PROJECT_NAME} PRIVATE CS_DISTRIBUTION)
 endif()
