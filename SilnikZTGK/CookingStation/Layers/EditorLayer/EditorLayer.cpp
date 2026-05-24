@@ -134,6 +134,11 @@ void EditorLayer::OnUpdate(Timestep ts)
     float fboHeight = m_TargetFBO ? (float)m_TargetFBO->GetSpecification().Height : m_ViewportHeight;
     float aspectRatio = fboWidth / (fboHeight > 0.0f ? fboHeight : 1.0f);
 
+    if (m_TargetFBO)
+    {
+        m_TargetFBO->Bind();
+    }
+
     if (camera) camera->AspectRatio = aspectRatio;
 
     float orthoSize = camera ? (10.0f * (camera->Zoom / 45.0f)) : 10.0f;
@@ -206,7 +211,7 @@ void EditorLayer::OnUpdate(Timestep ts)
     Entity selected = activeScene->GetSelectedEntity();
     bool validEntity = (selected.id != std::numeric_limits<std::size_t>::max());
 
-    if (gridReq.Active && validEntity)
+    if (gridReq.Active)
     {
         if (isMouseInViewport)
         {
@@ -216,25 +221,39 @@ void EditorLayer::OnUpdate(Timestep ts)
         DrawGrid(proj3D * view3D, camPos, 40.0f);
         Renderer2D::BeginScene(uiProj);
 
-        if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport)
+        if (validEntity && Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT) && Input::IsMouseButtonJustPressed(0) && isMouseInViewport)
         {
             auto* transform = world.GetComponent<TransformComponent>(selected);
             if (transform)
             {
-                glm::vec3 oldPos = transform->GetPosition();
-                glm::vec3 newPos = { m_GridHoverPos.x, oldPos.y, m_GridHoverPos.z };
+                glm::vec3 oldLocalPos = transform->GetPosition();
+                float globalY = transform->WorldMatrix[3][1];
+                glm::vec3 targetWorldPos = { m_GridHoverPos.x, globalY, m_GridHoverPos.z };
+                glm::vec3 newLocalPos = targetWorldPos;
+
+                auto* hierarchy = world.GetComponent<RelationshipComponent>(selected);
+                if (hierarchy && hierarchy->Parent != std::numeric_limits<std::size_t>::max())
+                {
+                    Entity parentEnt = { hierarchy->Parent, 0 };
+                    auto* parentTransform = world.GetComponent<TransformComponent>(parentEnt);
+                    if (parentTransform)
+                    {
+                        glm::mat4 invParentMatrix = glm::inverse(parentTransform->WorldMatrix);
+                        glm::vec4 localPosVec4 = invParentMatrix * glm::vec4(targetWorldPos, 1.0f);
+                        newLocalPos = glm::vec3(localPosVec4);
+                    }
+                }
 
                 std::unique_ptr<Command> cmd = std::make_unique<MoveEntityCommand>(
-                    &world, selected, oldPos, newPos);
+                        &world, selected, oldLocalPos, newLocalPos);
                 m_CommandHistory.ExecuteCommand(std::move(cmd));
 
                 spdlog::info("Grid: Przeniesiono encje ID:{} na kafelek", selected.id);
             }
-            gridReq.Active = false;
         }
     }
 
-    if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport && !m_IsPlacing && !gridReq.Active)
+    if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport && !m_IsPlacing && !Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
     {
         Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
 
@@ -242,9 +261,19 @@ void EditorLayer::OnUpdate(Timestep ts)
 
         Entity closestEntity = GetHoveredEntity(ray, activeScene, false);
 
+        //wybiera rodzica przy kliknięciu dziecka
         if (closestEntity.id != std::numeric_limits<std::size_t>::max())
         {
-            activeScene->SetSelectedEntity(closestEntity);
+            Entity rootEntity = closestEntity;
+            auto* rel = activeScene->GetWorld().GetComponent<RelationshipComponent>(rootEntity);
+
+            while (rel && rel->Parent != NULL_ENTITY)
+            {
+                rootEntity = { rel->Parent, 0};
+                rel = activeScene->GetWorld().GetComponent<RelationshipComponent>(rootEntity);
+            }
+
+            activeScene->SetSelectedEntity(rootEntity);
         }
 
         auto end = std::chrono::high_resolution_clock::now();
@@ -350,7 +379,7 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
 
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
 
-    if (e.GetKeyCode() == GLFW_KEY_G && m_SceneState == SceneState::Edit && activeScene)
+    if ((e.GetKeyCode() == GLFW_KEY_G || e.GetKeyCode() == GLFW_KEY_TAB) && m_SceneState == SceneState::Edit && activeScene)
     {
         Entity selected = activeScene->GetSelectedEntity();
         if (selected.id != std::numeric_limits<std::size_t>::max())

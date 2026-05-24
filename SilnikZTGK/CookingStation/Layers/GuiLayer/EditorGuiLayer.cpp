@@ -626,6 +626,56 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 currentY += 35.0f;
             }
 
+            // --- NAWIGACJA HIERARCHII (RODZIC / DZIECI) ---
+            auto* rel = world.GetComponent<RelationshipComponent>(selected);
+            if (rel)
+            {
+                // 1. PRZYCISK POWROTU DO RODZICA
+                if (rel->Parent != std::numeric_limits<std::size_t>::max())
+                {
+                    if (Gui::Button("<- Wroc do rodzica", { padX, currentY }, { elementW, 25.0f }))
+                    {
+                        Entity parentEntity = { rel->Parent, 0 };
+                        activeScene->SetSelectedEntity(parentEntity);
+                    }
+                    currentY += 30.0f;
+                }
+
+                // 2. LISTA DZIECI
+                if (rel->FirstChild != std::numeric_limits<std::size_t>::max())
+                {
+                    Gui::DrawGuiText("Dzieci:", { padX, currentY }, 0.4f, { 0.8f, 0.8f, 0.8f, 1.0f });
+                    currentY += 20.0f;
+
+                    std::size_t currentChildId = rel->FirstChild;
+
+                    while (currentChildId != std::numeric_limits<std::size_t>::max())
+                    {
+                        Entity childEntity = { currentChildId, 0 };
+
+                        auto* tagComp = world.GetComponent<TagComponent>(childEntity);
+                        std::string childName = tagComp ? tagComp->Tag : "Dziecko " + std::to_string(currentChildId);
+
+                        if (Gui::Button("Wybierz: " + childName, { padX, currentY }, { elementW, 25.0f }))
+                        {
+                            activeScene->SetSelectedEntity(childEntity);
+                        }
+                        currentY += 30.0f;
+
+                        auto* childRel = world.GetComponent<RelationshipComponent>(childEntity);
+                        if (childRel)
+                        {
+                            currentChildId = childRel->NextSibling;
+                        }
+                        else
+                        {
+                            break;
+                        }
+                    }
+                    currentY += 5.0f;
+                }
+            }
+
             auto* transform = world.GetComponent<TransformComponent>(selected);
             if (transform) {
                 glm::vec3 pos = transform->GetPosition();
