@@ -1,6 +1,7 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scripts/Managers/IngredientType.h"
+#include "CookingStation/Events/GameEvents.h"
 #include <string>
 
 class GameManagerScript : public ScriptableEntity
@@ -27,15 +28,15 @@ public:
     bool AddMoney(int amount);
     bool SpendMoney(int amount);
 
-    void OnDestroy() override
-    {
-        s_Instance = nullptr;
-    }
+    void OnDestroy() override;
 
 private:
     int money = 0;
     std::unordered_map<IngredientType, int> m_Inventory;
     void CallForDelivery();
+    std::size_t m_IngredientUsedSubId = 0;
 
-
+    // Subskrypcja na UIReadyEvent - gdy UI siê inicjalizuje, wysy³amy mu bie¿¹cy stan.
+    // Bez tego UI startuje z zerami i nie wie o aktualnych wartoœciach.
+    std::size_t m_UIReadySubId = 0;
 };

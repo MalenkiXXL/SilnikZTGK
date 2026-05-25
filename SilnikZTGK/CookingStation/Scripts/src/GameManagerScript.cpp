@@ -7,6 +7,12 @@ void GameManagerScript::OnCreate()
 {
     s_Instance = this;
     spdlog::info("GameManager uruchomiony!");
+
+    m_IngredientUsedSubId = GetScene()->GetWorld().GetEventBus().Subscribe<IngredientUsedEvent>(
+        [this](const IngredientUsedEvent& e) {
+            this->UseIngredient(e.Type, e.Amount);
+        }
+    );
 }
 
 void GameManagerScript::OnUpdate(Timestep ts)
@@ -17,11 +23,20 @@ void GameManagerScript::OnUpdate(Timestep ts)
     }
 }
 
+void GameManagerScript::OnDestroy()
+{
+    GetScene()->GetWorld().GetEventBus().Unsubscribe<IngredientUsedEvent>(m_IngredientUsedSubId);
+
+    s_Instance = nullptr;
+}
+
 void GameManagerScript::AddIngredients(IngredientType type, int amount)
 {
     m_Inventory[type] += amount;
     m_IsDeliveryOnTheWay = false;
-    spdlog::info("Dodano składniki! Obecnie: {}",  m_Inventory[type]);
+    spdlog::info("Dodano składniki! Obecnie: {}", m_Inventory[type]);
+
+    GetScene()->GetWorld().GetEventBus().Publish(InventoryChangedEvent{ type, m_Inventory[type] });
 }
 
 void GameManagerScript::UseIngredient(IngredientType type, int amount)
@@ -29,6 +44,8 @@ void GameManagerScript::UseIngredient(IngredientType type, int amount)
     if (m_Inventory[type] >= amount)
     {
         m_Inventory[type] -= amount;
+
+        GetScene()->GetWorld().GetEventBus().Publish(InventoryChangedEvent{ type, m_Inventory[type] });
     }
 }
 int GameManagerScript::GetIngredientCount(IngredientType type)
@@ -55,16 +72,15 @@ int GameManagerScript::GetMoney() {
 }
 
 bool GameManagerScript::AddMoney(int amount) {
-    if (amount > 0){
-        money+=amount;
-        return true;
-    }
-    return false;
+    money += amount;
+    GetScene()->GetWorld().GetEventBus().Publish(MoneyChangedEvent{ money });
+    return true;
 }
 
 bool GameManagerScript::SpendMoney(int amount) {
-    if (amount > 0){
-        money-=amount;
+    if (money >= amount) {
+        money -= amount;
+        GetScene()->GetWorld().GetEventBus().Publish(MoneyChangedEvent{ money });
         return true;
     }
     return false;

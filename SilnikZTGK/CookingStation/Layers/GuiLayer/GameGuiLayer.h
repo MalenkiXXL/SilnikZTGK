@@ -50,6 +50,10 @@ private:
     std::shared_ptr<Texture> m_BookXIcon;
     std::shared_ptr<Texture> m_TomatoSoupIcon;
     std::shared_ptr<Texture> m_CoinIcon;
+    int m_CurrentMoney = 0;
+    int m_CurrentTomatoes = 0;
+
+    void SubscribeToEvents();
 
     struct BubblyState {
         float scale = 1.0f;

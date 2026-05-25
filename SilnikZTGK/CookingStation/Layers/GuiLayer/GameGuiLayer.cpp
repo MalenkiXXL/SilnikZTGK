@@ -6,15 +6,13 @@
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Events/EditorEvents.h" 
 #include "CookingStation/Core/Application.h"
-// ZMIANA: Usunięto <fstream>, ponieważ używamy teraz VFS
 #include "CookingStation/json.hpp"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include <algorithm> 
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Scripts/Quests/DeliveryBoothScript.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Core/GameProgress.h"
-
-// ZMIANA: Dodano nagłówek VFS
 #include "CookingStation/Core/VFS/VFS.h"
 
 bool GameGuiLayer::s_NeedsQuestReload = false;

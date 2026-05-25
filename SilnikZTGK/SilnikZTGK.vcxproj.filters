@@ -110,6 +110,9 @@
     <ClInclude Include="CookingStation\Renderer\Texture2D.h" />
     <ClInclude Include="CookingStation\Scripts\Quests\DeliveryBoothScript.h" />
     <ClInclude Include="CookingStation\Scripts\HelperCustomerScript.h" />
+    <ClInclude Include="CookingStation\Core\VFS\PackageFileSystem.h" />
+    <ClInclude Include="CookingStation\Events\EventBus.h" />
+    <ClInclude Include="CookingStation\Events\GameEvents.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />
