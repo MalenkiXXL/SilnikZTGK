@@ -50,6 +50,7 @@ private:
     std::shared_ptr<Texture> m_BookXIcon;
     std::shared_ptr<Texture> m_TomatoSoupIcon;
     std::shared_ptr<Texture> m_CoinIcon;
+    std::shared_ptr<Texture> m_PotIcon;
     int m_CurrentMoney = 0;
     int m_CurrentTomatoes = 0;
 

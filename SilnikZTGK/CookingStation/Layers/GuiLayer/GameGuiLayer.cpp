@@ -14,6 +14,8 @@
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Core/GameProgress.h"
 #include "CookingStation/Core/VFS/VFS.h"
+#include "CookingStation/Scene/PrefabSerializer.h"
+#include "CookingStation/Scripts/MachineScript.h"
 
 bool GameGuiLayer::s_NeedsQuestReload = false;
 
@@ -80,6 +82,7 @@ void GameGuiLayer::OnAttach() {
     m_BookXIcon = AssetManager::GetTexture("assets://UI/bookX.png");
     m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
     m_CoinIcon = AssetManager::GetTexture("assets://UI/coin.png");
+    m_PotIcon = AssetManager::GetTexture("assets://UI/pot.png");
 
 }
 
@@ -298,11 +301,11 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
         glm::vec2 leftPosBase = { gameX, gameY + gameHeight - baseIconSize.y };
         glm::vec2 rightPosBase = { gameX + gameWidth - baseIconSize.x, gameY + gameHeight - baseIconSize.y };
 
-        // Rusyjemy chmury
+        // Rysujemy chmury
         DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
         DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
 
-        // Rysujemy skladniki na lewej chmurze
+        // --- Rysujemy skladniki na lewej chmurze ---
         if (m_TomatoIcon) {
             float tomatoBaseH = baseIconSize.y * 0.3f;
             glm::vec2 tomatoBaseSize = { tomatoBaseH, tomatoBaseH };
@@ -324,6 +327,29 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
             if (DrawIngredientIcon("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, baseScale, tomatoCount, showCountText)) {
                 spdlog::info("UI: Wyciagnieto pomidora!");
                 DragAndDropScript::StartDrag(IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf");
+            }
+        }
+
+        // --- Rysujemy sprzęt na prawej chmurze ---
+        if (m_PotIcon) {
+            float potBaseH = baseIconSize.y * 0.3f;
+            glm::vec2 potBaseSize = { potBaseH, potBaseH };
+            glm::vec2 potBasePos = {
+                rightPosBase.x + (baseIconSize.x * 0.5f) - (potBaseSize.x * 0.5f),
+                rightPosBase.y + (baseIconSize.y * 0.5f) - (potBaseSize.y * 0.5f)
+            };
+
+            bool showCountText = false;
+
+            if (DrawIngredientIcon("BtnPot", m_PotIcon, potBasePos, potBaseSize, dt, baseScale, 0, showCountText)) {
+                spdlog::info("UI: Wyciagnieto garnek!");
+
+                std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+                if (activeScene) {
+                    // 1. Spawnujemy Garnek ze skryptami
+                    Entity potEntity = PrefabSerializer::Deserialize(activeScene.get(), "assets://prefabs/pot.json", glm::vec3(0.0f, -100.0f, 0.0f));
+                    MachineScript::PendingPickup = potEntity;
+                }
             }
         }
     }
