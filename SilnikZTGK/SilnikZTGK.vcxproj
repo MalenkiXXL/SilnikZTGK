@@ -190,8 +190,13 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /y /d "C:\vcpkg\packages\assimp_x64-windows\bin\assimp-vc143-mt.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\glfw3_x64-windows\bin\glfw3.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\jhasse-poly2tri_x64-windows\bin\poly2tri.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\minizip_x64-windows\bin\minizip.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\zlib_x64-windows\bin\zlib1.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\kubazip_x64-windows\bin\kubazip.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -215,8 +220,13 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /y /d "C:\vcpkg\packages\assimp_x64-windows\bin\assimp-vc143-mt.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\glfw3_x64-windows\bin\glfw3.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\jhasse-poly2tri_x64-windows\bin\poly2tri.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\minizip_x64-windows\bin\minizip.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\zlib_x64-windows\bin\zlib1.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\kubazip_x64-windows\bin\kubazip.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Distribution|x64'">
@@ -240,8 +250,13 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /y /d "C:\vcpkg\packages\assimp_x64-windows\bin\assimp-vc143-mt.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\glfw3_x64-windows\bin\glfw3.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\jhasse-poly2tri_x64-windows\bin\poly2tri.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\minizip_x64-windows\bin\minizip.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\zlib_x64-windows\bin\zlib1.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\kubazip_x64-windows\bin\kubazip.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -358,6 +373,8 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClInclude Include="CookingStation\Layers\HudLayer\HUDLayer.h" />
     <ClInclude Include="CookingStation\Scripts\ScriptRegistry.h" />
     <ClInclude Include="CookingStation\Scripts\SteamEmitterScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Waiter\WaiterPickupStationScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Waiter\WaiterScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\Assets\prefabs\plate.json" />

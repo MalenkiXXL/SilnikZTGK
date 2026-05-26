@@ -34,7 +34,10 @@
       "position": [ -3.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 90.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 5,
@@ -53,7 +56,10 @@
       "position": [ -1.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 7,
@@ -72,7 +78,10 @@
       "position": [ 1.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 9,
@@ -91,7 +100,10 @@
       "position": [ 3.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 11,
@@ -110,7 +122,10 @@
       "position": [ 5.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 13,
@@ -129,7 +144,10 @@
       "position": [ 7.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 15,
@@ -148,7 +166,10 @@
       "position": [ 9.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 17,
@@ -750,7 +771,7 @@
       },
       "scripts": [
         "DustEmitterScript",
-        "MushroomAI"
+        "WaiterScript"
       ]
     },
     {

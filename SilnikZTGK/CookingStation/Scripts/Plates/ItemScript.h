@@ -36,6 +36,21 @@ public:
         m_CurrentConveyor = nullptr;
         m_TargetConveyor = nullptr;
     }
+    
+    void ReleaseConveyors()
+    {
+        if (m_CurrentConveyor) {
+            m_CurrentConveyor->IsOccupied = false;
+            m_CurrentConveyor->IsJammed = false;
+            m_CurrentConveyor = nullptr;
+        }
+        if (m_TargetConveyor) {
+            m_TargetConveyor->IsOccupied = false;
+            m_TargetConveyor->IsJammed = false;
+            m_TargetConveyor = nullptr;
+        }
+        m_IsMoving = false;
+    }
 
     void OnUpdate(Timestep ts) override
     {

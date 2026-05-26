@@ -24,21 +24,29 @@ public:
     glm::vec3 m_PositionBeforeDrag;
 
     // Nadpisujemy ReceiveFood - Pomocnik reaguje inaczej ni¿ zwyk³y klient
-    void ReceiveFood() override
+    void ReceiveFood(bool isCorrectOrder = true) override
     {
         IsServed = true;
-        m_IsWaitingToHelp = true; // Teraz mo¿na go podnieœæ
-        spdlog::info("Pomocnik nr {} zjadl i jest gotowy do pracy!", m_Entity.id);
 
-        auto* tag = GetComponent<TagComponent>();
-        if (tag) tag->Tag = "NajedzonyPomocnik";
-
-        auto* transform = GetComponent<TransformComponent>();
-        if (transform)
+        if (isCorrectOrder)
         {
-            glm::vec3 pos = transform->GetPosition();
-            transform->SetPosition(glm::vec3(pos.x, m_YOffset, pos.z));
-            // Tu kiedyœ zmieniê animacjê na gotowanie/stanie whatever
+            m_IsWaitingToHelp = true; // Teraz mo¿na go podnieœæ
+            spdlog::info("Pomocnik nr {} zjadl i jest gotowy do pracy!", m_Entity.id);
+            auto* tag = GetComponent<TagComponent>();
+            if (tag) tag->Tag = "NajedzonyPomocnik";
+
+            auto* transform = GetComponent<TransformComponent>();
+            if (transform)
+            {
+                glm::vec3 pos = transform->GetPosition();
+                transform->SetPosition(glm::vec3(pos.x, m_YOffset, pos.z));
+            }
+        }
+        else
+        {
+            spdlog::info("Pomocnik nr {} dostal zly talerz! Obraza sie i znika.", m_Entity.id);
+            auto* tf = GetComponent<TransformComponent>();
+            if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
         }
     }
 
