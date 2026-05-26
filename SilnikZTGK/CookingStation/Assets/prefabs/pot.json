@@ -2,7 +2,7 @@
     "name": "Garnek",
     "model_path": "assets://models/przybory_kuchenne/small_pot/small_pot.gltf",
     "position": [ 0.0, 0.0, 0.0 ],
-    "scale": [ 10.0, 1.0, 1.0 ],
+    "scale": [ 1.0, 1.0, 1.0 ],
     "collider": {
         "size": [ 1.0, 1.0, 1.0 ],
         "offset": [ 0.0, 0.0, 0.0 ]

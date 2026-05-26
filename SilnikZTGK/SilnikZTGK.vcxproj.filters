@@ -92,8 +92,6 @@
     <ClInclude Include="CookingStation\Scene\SceneManager.h" />
     <ClInclude Include="CookingStation\Layers\GameLayer\GameLayer.h" />
     <ClInclude Include="CookingStation\Layers\HudLayer\HUDLayer.h" />
-    <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
-    <ClInclude Include="CookingStation\Scripts\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\BeltVisualScript.h" />
     <ClInclude Include="CookingStation\Scripts\ScriptRegistry.h" />
     <ClInclude Include="CookingStation\Scripts\DragAndDropScript.h" />
@@ -116,6 +114,10 @@
     <ClInclude Include="CookingStation\Layers\GuiLayer\CarouselUI.h" />
     <ClInclude Include="CookingStation\Scripts\Waiter\WaiterScript.h" />
     <ClInclude Include="CookingStation\Scripts\Waiter\WaiterPickupStationScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\MachineScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\MixerScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\OvenScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\PotScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />
