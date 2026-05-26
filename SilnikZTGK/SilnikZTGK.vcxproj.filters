@@ -113,6 +113,7 @@
     <ClInclude Include="CookingStation\Core\VFS\PackageFileSystem.h" />
     <ClInclude Include="CookingStation\Events\EventBus.h" />
     <ClInclude Include="CookingStation\Events\GameEvents.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\CarouselUI.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

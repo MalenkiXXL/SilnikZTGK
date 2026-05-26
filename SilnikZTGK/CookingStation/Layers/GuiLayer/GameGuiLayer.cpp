@@ -84,6 +84,8 @@ void GameGuiLayer::OnAttach() {
     m_CoinIcon = AssetManager::GetTexture("assets://UI/coin.png");
     m_PotIcon = AssetManager::GetTexture("assets://UI/pot.png");
 
+    m_IngredientsCarousel.Init(true);  // true = lewa chmura
+    m_MachinesCarousel.Init(false);
 }
 
 
@@ -295,60 +297,81 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 }
 
 void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
-    if (m_CornerIcon) {
-        glm::vec2 baseIconSize = CalculateAspectSize(m_CornerIcon, gameHeight * 0.30f);
+    if (!m_CornerIcon) return;
 
-        glm::vec2 leftPosBase = { gameX, gameY + gameHeight - baseIconSize.y };
-        glm::vec2 rightPosBase = { gameX + gameWidth - baseIconSize.x, gameY + gameHeight - baseIconSize.y };
+    m_IngredientsCarousel.OnUpdate(dt);
+    m_MachinesCarousel.OnUpdate(dt);
 
-        // Rysujemy chmury
-        DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
-        DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
+    glm::vec2 baseIconSize = CalculateAspectSize(m_CornerIcon, gameHeight * 0.30f);
+    glm::vec2 leftPosBase = { gameX, gameY + gameHeight - baseIconSize.y };
+    glm::vec2 rightPosBase = { gameX + gameWidth - baseIconSize.x, gameY + gameHeight - baseIconSize.y };
 
-        // --- Rysujemy skladniki na lewej chmurze ---
-        if (m_TomatoIcon) {
-            float tomatoBaseH = baseIconSize.y * 0.3f;
-            glm::vec2 tomatoBaseSize = { tomatoBaseH, tomatoBaseH };
-            glm::vec2 tomatoBasePos = {
-                leftPosBase.x + (baseIconSize.x * 0.5f) - (tomatoBaseSize.x * 0.5f),
-                leftPosBase.y + (baseIconSize.y * 0.5f) - (tomatoBaseSize.y * 0.5f)
-            };
+    // Tła chmur
+    DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
+    DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
 
-            int tomatoCount = 0;
-            std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-            if (activeScene && activeScene->GetState() == SceneState::Play)
-            {
-                if (GameManagerScript::s_Instance) {
-                    tomatoCount = GameManagerScript::s_Instance->GetIngredientCount(IngredientType::Tomato);
-                }
-            }
-            bool showCountText = true;
+    // Wymiary potrzebne dla karuzeli
+    float itemBaseH = baseIconSize.y * 0.3f;
+    glm::vec2 itemBaseSize = { itemBaseH, itemBaseH };
+    
+    glm::vec2 arcRadius = { baseIconSize.x * 0.75f, baseIconSize.y * 0.65f };
 
-            if (DrawIngredientIcon("BtnTomato", m_TomatoIcon, tomatoBasePos, tomatoBaseSize, dt, baseScale, tomatoCount, showCountText)) {
-                spdlog::info("UI: Wyciagnieto pomidora!");
-                DragAndDropScript::StartDrag(IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf");
+    float paddingX = 30.0f * baseScale; 
+    float paddingY = 10.0f * baseScale;
+
+    glm::vec2 leftCenter = { gameX + paddingX, gameY + gameHeight - paddingY};
+
+    // Struktura ułatwiająca zarządzanie listą
+    struct UIIngredient { std::string id; std::shared_ptr<Texture> tex; IngredientType type; std::string modelPath; };
+
+    // Dodaj tu dowolnie dużo składników, karuzela sama je ustawi i zwinie!
+    std::vector<UIIngredient> leftItems = {
+        {"BtnTomato", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
+        // Skopiowałem pomidora kilka razy, żebyś od razu mogła przetestować scrollowanie!
+        {"BtnTomato2", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
+        {"BtnTomato3", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
+        {"BtnTomato4", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"}
+    };
+
+    for (int i = 0; i < leftItems.size(); i++) {
+        glm::vec2 pos;
+        // Pytamy Mózg Karuzeli o pozycję
+        if (m_IngredientsCarousel.GetItemTransform(i, leftCenter, arcRadius, itemBaseH, pos)) {
+
+            int count = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(leftItems[i].type) : 0;
+
+            if (DrawIngredientIcon(leftItems[i].id, leftItems[i].tex, pos, itemBaseSize, dt, baseScale, count, true)) {
+                spdlog::info("UI: Wyciagnieto skladnik: {}", leftItems[i].id);
+                DragAndDropScript::StartDrag(leftItems[i].type, leftItems[i].modelPath);
             }
         }
+    }
 
-        // --- Rysujemy sprzęt na prawej chmurze ---
-        if (m_PotIcon) {
-            float potBaseH = baseIconSize.y * 0.3f;
-            glm::vec2 potBaseSize = { potBaseH, potBaseH };
-            glm::vec2 potBasePos = {
-                rightPosBase.x + (baseIconSize.x * 0.5f) - (potBaseSize.x * 0.5f),
-                rightPosBase.y + (baseIconSize.y * 0.5f) - (potBaseSize.y * 0.5f)
-            };
+    // ==========================================
+    // 2. PRAWA KARUZELA (MASZYNY)
+    // ==========================================
+    glm::vec2 rightCenter = { gameX + gameWidth - paddingX, gameY + gameHeight - paddingY };
 
-            bool showCountText = false;
+    struct UIMachine { std::string id; std::shared_ptr<Texture> tex; std::string prefabPath; };
 
-            if (DrawIngredientIcon("BtnPot", m_PotIcon, potBasePos, potBaseSize, dt, baseScale, 0, showCountText)) {
-                spdlog::info("UI: Wyciagnieto garnek!");
+    std::vector<UIMachine> rightItems = {
+        {"BtnPot", m_PotIcon, "assets://prefabs/pot.json"},
+        {"BtnPot2", m_PotIcon, "assets://prefabs/pot.json"},
+        {"BtnPot3", m_PotIcon, "assets://prefabs/pot.json"},
+        {"BtnPot4", m_PotIcon, "assets://prefabs/pot.json"}
+    };
+
+    for (int i = 0; i < rightItems.size(); i++) {
+        glm::vec2 pos;
+        if (m_MachinesCarousel.GetItemTransform(i, rightCenter, arcRadius, itemBaseH, pos)) {
+
+            if (DrawIngredientIcon(rightItems[i].id, rightItems[i].tex, pos, itemBaseSize, dt, baseScale, 0, false)) {
+                spdlog::info("UI: Wyciagnieto maszyne: {}", rightItems[i].id);
 
                 std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
                 if (activeScene) {
-                    // 1. Spawnujemy Garnek ze skryptami
-                    Entity potEntity = PrefabSerializer::Deserialize(activeScene.get(), "assets://prefabs/pot.json", glm::vec3(0.0f, -100.0f, 0.0f));
-                    MachineScript::PendingPickup = potEntity;
+                    Entity prefabEntity = PrefabSerializer::Deserialize(activeScene.get(), rightItems[i].prefabPath, glm::vec3(0.0f, -100.0f, 0.0f));
+                    MachineScript::PendingPickup = prefabEntity;
                 }
             }
         }
@@ -554,6 +577,12 @@ void GameGuiLayer::OnEvent(Event& e) {
 
     dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& ev) {
         return OnMouseButtonPressed(ev);
+        });
+
+    dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& ev) {
+        m_IngredientsCarousel.OnMouseScrolled(ev, m_ViewportWidth, 4); // max 4 składniki
+        m_MachinesCarousel.OnMouseScrolled(ev, m_ViewportWidth, 4);    // max 4 maszyny
+        return false;
         });
 
     dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) {
