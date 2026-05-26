@@ -9,6 +9,7 @@
 
 class PrefabSerializer {
 public:
+    inline static uint32_t s_PrefabSpawnCounter = 0;
     // ZAPIS: Wyci�gamy komponenty z wybranej encji i wrzucamy do JSONa
     static void Serialize(Scene* scene, Entity entity, const std::string& filepath) {
         nlohmann::json item;
@@ -72,6 +73,10 @@ public:
     }
 
     static Entity Deserialize(Scene* scene, const std::string& filepath, const glm::vec3& spawnPos) {
+
+        s_PrefabSpawnCounter++;
+        std::string idSuffix = "_" + std::to_string(s_PrefabSpawnCounter);
+
         // --- KULOODPORNY SANITIZER ŚCIEŻEK ---
         std::string vfsPath = filepath;
         std::replace(vfsPath.begin(), vfsPath.end(), '\\', '/'); // Zamiana backslashy na ukośniki
@@ -108,7 +113,8 @@ public:
             auto builder = scene->GetWorld().BuildEntity();
 
         std::string name = item.contains("name") ? item["name"].get<std::string>() : "Prefab";
-        builder.With<TagComponent>({ name });
+        std::string nameWithId = name + idSuffix;
+        builder.With<TagComponent>({ nameWithId });
 
         TransformComponent transComp;
 

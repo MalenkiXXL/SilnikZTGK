@@ -32,7 +32,7 @@ void AssetLayer::OnAttach()
     // W trybie edytora deserializujemy tutaj normalnie
     auto& world = activeScene->GetWorld();
     SceneSerializer serializer(activeScene.get());
-    serializer.Deserialize("assets://levels/level01.json");
+    serializer.Deserialize("assets://levels/level02.json");
 #endif
 }
 
