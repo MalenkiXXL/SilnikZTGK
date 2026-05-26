@@ -23,10 +23,26 @@ public:
 
     bool IsOccupied = false;
     bool IsJammed = false;
+    bool IsPickupPoint = false;
 
     void OnCreate() override
     {
         SetPushDirection();
+
+        auto* tagComp = GetComponent<TagComponent>();
+        if (tagComp && tagComp->Tag == "PickupConveyor")
+        {
+            IsPickupPoint = true;
+        }
+
+        if (IsPickupPoint)
+        {
+            auto* transform = GetComponent<TransformComponent>();
+            if (transform)
+            {
+                GetScene()->AddPickupPoint(transform->GetPosition());
+            }
+        }
     }
 
     void SetPushDirection()
