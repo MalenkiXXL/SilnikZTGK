@@ -47,6 +47,8 @@ private:
     int m_CurrentQuestIndex = 0;
     std::shared_ptr<Texture> m_CornerIcon;
     std::shared_ptr<Texture> m_TomatoIcon;
+    std::shared_ptr<Texture> m_CheeseIcon;
+    std::shared_ptr<Texture> m_HamIcon;
     std::shared_ptr<Texture> m_BookCloudIcon;
     std::shared_ptr<Texture> m_BookIcon;
     std::shared_ptr<Texture> m_BookStarsIcon;
@@ -55,6 +57,11 @@ private:
     std::shared_ptr<Texture> m_TomatoSoupIcon;
     std::shared_ptr<Texture> m_CoinIcon;
     std::shared_ptr<Texture> m_PotIcon;
+    std::shared_ptr<Texture> m_FlourIcon;
+    std::shared_ptr<Texture> m_MilkIcon;
+    std::shared_ptr<Texture> m_OvenIcon;
+    std::shared_ptr<Texture> m_MixerIcon;
+
     int m_CurrentMoney = 0;
     int m_CurrentTomatoes = 0;
 

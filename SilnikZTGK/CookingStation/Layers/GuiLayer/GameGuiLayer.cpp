@@ -15,7 +15,7 @@
 #include "CookingStation/Core/GameProgress.h"
 #include "CookingStation/Core/VFS/VFS.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
-#include "CookingStation/Scripts/MachineScript.h"
+#include "CookingStation/Scripts/Machines/MachineScript.h"
 
 bool GameGuiLayer::s_NeedsQuestReload = false;
 
@@ -75,6 +75,8 @@ void GameGuiLayer::OnAttach() {
     m_ViewportHeight = (float)windowSize.second;
     m_CornerIcon = AssetManager::GetTexture("assets://UI/bottomCornerClouds.png");
     m_TomatoIcon = AssetManager::GetTexture("assets://UI/tomato.png");
+    m_CheeseIcon = AssetManager::GetTexture("assets://UI/Cheese.png");
+    m_HamIcon = AssetManager::GetTexture("assets://UI/ham.png");
     m_BookCloudIcon = AssetManager::GetTexture("assets://UI/bookCloud.png");
     m_BookIcon = AssetManager::GetTexture("assets://UI/book.png");
     m_BookStarsIcon = AssetManager::GetTexture("assets://UI/bookStars.png");
@@ -83,6 +85,10 @@ void GameGuiLayer::OnAttach() {
     m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
     m_CoinIcon = AssetManager::GetTexture("assets://UI/coin.png");
     m_PotIcon = AssetManager::GetTexture("assets://UI/pot.png");
+    m_MilkIcon = AssetManager::GetTexture("assets://UI/pot.png");
+    m_FlourIcon = AssetManager::GetTexture("assets://UI/Flour.png");
+    m_OvenIcon = AssetManager::GetTexture("assets://UI/oven.png");
+    m_MixerIcon = AssetManager::GetTexture("assets://UI/pot.png");
 
     m_IngredientsCarousel.Init(true);  // true = lewa chmura
     m_MachinesCarousel.Init(false);
@@ -312,7 +318,6 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
 
     // Wymiary potrzebne dla karuzeli
     float itemBaseH = baseIconSize.y * 0.3f;
-    glm::vec2 itemBaseSize = { itemBaseH, itemBaseH };
     
     glm::vec2 arcRadius = { baseIconSize.x * 0.66f, baseIconSize.y * 0.64f };
 
@@ -322,27 +327,37 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     glm::vec2 leftCenter = { gameX + paddingX, gameY + gameHeight - paddingY};
 
     // Struktura ułatwiająca zarządzanie listą
-    struct UIIngredient { std::string id; std::shared_ptr<Texture> tex; IngredientType type; std::string modelPath; };
+    struct UIIngredient { std::string id; std::shared_ptr<Texture> tex; IngredientType type; std::string modelPath; glm::vec3 modelScale; glm::vec3 modelRotation;};
 
     // Dodaj tu dowolnie dużo składników, karuzela sama je ustawi i zwinie!
     std::vector<UIIngredient> leftItems = {
-        {"BtnTomato", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
-        // Skopiowałem pomidora kilka razy, żebyś od razu mogła przetestować scrollowanie!
-        {"BtnTomato2", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
-        {"BtnTomato3", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
-        {"BtnTomato4", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"}
+        {"BtnTomato", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf", glm::vec3(0.6f), glm::vec3(0.0f, 90.0f, 0.0f)},
+        {"BtnTCheese", m_CheeseIcon, IngredientType::Cheese, "assets://models/skladniki/ser/ser.gltf", glm::vec3(8.5f), glm::vec3(0.0f, 90.0f, 0.0f)},
+        {"BtnHam", m_HamIcon, IngredientType::Ham, "assets://models/skladniki/szynka/szynka.gltf", glm::vec3(7.5f), glm::vec3(0.0f, 90.0f, 0.0f)},
+        {"BtnMilk", m_MilkIcon, IngredientType::Milk, "assets://models/skladniki/mleko/milk.gltf", glm::vec3(0.4f), glm::vec3(0.0f, 90.0f, 0.0f)},
+        {"BtnMilk", m_FlourIcon, IngredientType::Flour, "assets://models/skladniki/maka/maka.gltf", glm::vec3(7.0f), glm::vec3(0.0f, 0.0f, 0.0f)}
     };
 
     for (int i = 0; i < leftItems.size(); i++) {
+        // --- NOWE: Fit to Box (Idealne dopasowanie proporcji) ---
+        glm::vec2 actualSize = { itemBaseH, itemBaseH };
+        if (leftItems[i].tex) {
+            float texW = (float)leftItems[i].tex->GetWidth();
+            float texH = (float)leftItems[i].tex->GetHeight();
+            // Skalujemy względem DŁUŻSZEGO boku obrazka
+            float scale = itemBaseH / std::max(texW, texH);
+            actualSize = { texW * scale, texH * scale };
+        }
+
         glm::vec2 pos;
         // Pytamy Mózg Karuzeli o pozycję
-        if (m_IngredientsCarousel.GetItemTransform(i, leftCenter, arcRadius, itemBaseH, pos)) {
+        if (m_IngredientsCarousel.GetItemTransform(i, leftCenter, arcRadius, actualSize, pos)) {
 
             int count = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(leftItems[i].type) : 0;
 
-            if (DrawIngredientIcon(leftItems[i].id, leftItems[i].tex, pos, itemBaseSize, dt, baseScale, count, true)) {
+            if (DrawIngredientIcon(leftItems[i].id, leftItems[i].tex, pos, actualSize, dt, baseScale, count, true)) {
                 spdlog::info("UI: Wyciagnieto skladnik: {}", leftItems[i].id);
-                DragAndDropScript::StartDrag(leftItems[i].type, leftItems[i].modelPath);
+                DragAndDropScript::StartDrag(leftItems[i].type, leftItems[i].modelPath, leftItems[i].modelScale, leftItems[i].modelRotation);
             }
         }
     }
@@ -356,16 +371,24 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
 
     std::vector<UIMachine> rightItems = {
         {"BtnPot", m_PotIcon, "assets://prefabs/pot.json"},
-        {"BtnPot2", m_PotIcon, "assets://prefabs/pot.json"},
-        {"BtnPot3", m_PotIcon, "assets://prefabs/pot.json"},
+        {"BtnMixer", m_PotIcon, "assets://prefabs/mixer.json"},
+        {"BtnOven", m_OvenIcon, "assets://prefabs/oven.json"},
         {"BtnPot4", m_PotIcon, "assets://prefabs/pot.json"}
     };
 
     for (int i = 0; i < rightItems.size(); i++) {
-        glm::vec2 pos;
-        if (m_MachinesCarousel.GetItemTransform(i, rightCenter, arcRadius, itemBaseH, pos)) {
+        glm::vec2 actualSize = { itemBaseH, itemBaseH };
+        if (rightItems[i].tex) {
+            float texW = (float)rightItems[i].tex->GetWidth();
+            float texH = (float)rightItems[i].tex->GetHeight();
+            float scale = itemBaseH / std::max(texW, texH);
+            actualSize = { texW * scale, texH * scale };
+        }
 
-            if (DrawIngredientIcon(rightItems[i].id, rightItems[i].tex, pos, itemBaseSize, dt, baseScale, 0, false)) {
+        glm::vec2 pos;
+        if (m_MachinesCarousel.GetItemTransform(i, rightCenter, arcRadius, actualSize, pos)) {
+
+            if (DrawIngredientIcon(rightItems[i].id, rightItems[i].tex, pos, actualSize, dt, baseScale, 0, false)) {
                 spdlog::info("UI: Wyciagnieto maszyne: {}", rightItems[i].id);
 
                 std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
@@ -580,8 +603,8 @@ void GameGuiLayer::OnEvent(Event& e) {
         });
 
     dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& ev) {
-        m_IngredientsCarousel.OnMouseScrolled(ev, m_ViewportWidth, 4); // max 4 składniki
-        m_MachinesCarousel.OnMouseScrolled(ev, m_ViewportWidth, 4);    // max 4 maszyny
+        m_IngredientsCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8); 
+        m_MachinesCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);  
         return false;
         });
 

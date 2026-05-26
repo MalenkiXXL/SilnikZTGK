@@ -1,0 +1,13 @@
+{
+    "name": "Mixer",
+    "model_path": "assets://models/przybory_kuchenne/piekarnik/piekarnik.gltf",
+    "position": [ 0.0, 0.0, 0.0 ],
+    "scale": [ 1.0, 1.0, 1.0 ],
+    "collider": {
+        "size": [ 1.0, 1.0, 1.0 ],
+        "offset": [ 0.0, 0.0, 0.0 ]
+    },
+    "scripts": [
+        "OvenScript"
+    ]
+}

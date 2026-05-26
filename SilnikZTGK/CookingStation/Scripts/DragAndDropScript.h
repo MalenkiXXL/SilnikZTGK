@@ -3,8 +3,8 @@
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
-#include "CookingStation/Scripts/MachineScript.h"
-#include "CookingStation/Scripts/PotScript.h"
+#include "CookingStation/Scripts/Machines/MachineScript.h"
+#include "CookingStation/Scripts/Machines/PotScript.h"
 #include "CookingStation/Events/GameEvents.h"
 #include <glm/glm.hpp>
 #include <limits> 
@@ -72,12 +72,11 @@ public:
         }
     }
 
-    static void StartDrag(IngredientType type, const std::string& modelPath)
+    static void StartDrag(IngredientType type, const std::string& modelPath, glm::vec3 scale = glm::vec3(0.6f), glm::vec3 rotation = glm::vec3(0.0f))
     {
         if (!ActiveScene) return;
         if (IsDragging) CancelDrag();
 
-        // Kiedy zaczynamy Drag, upewniamy si�, �e n� znika
         SetKnifeVisibility(false);
 
         IsDragging = true;
@@ -87,8 +86,10 @@ public:
         builder.With<TagComponent>({ "DraggedIngredient" });
 
         TransformComponent tc;
-        tc.SetPosition(glm::vec3(0.0f, -100.0f, 0.0f)); // Pod map�
-        tc.SetScale(glm::vec3(0.6f, 0.6f, 0.6f));
+        tc.SetPosition(glm::vec3(0.0f, -100.0f, 0.0f));
+        tc.SetScale(scale);
+        tc.SetRotation(rotation);
+
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
@@ -209,7 +210,11 @@ private:
                 MachineScript* tempMachine = nullptr;
 
                 for (auto& scriptElement : nsc.Scripts) {
-                    if (scriptElement.Name == "PotScript" || scriptElement.Name == "CuttingBoardScript") {
+                    if (scriptElement.Name == "PotScript" ||
+                        scriptElement.Name == "CuttingBoardScript" ||
+                        scriptElement.Name == "MixerScript" ||
+                        scriptElement.Name == "OvenScript")
+                    {
                         tempMachine = dynamic_cast<MachineScript*>(scriptElement.Instance);
                         break;
                     }
