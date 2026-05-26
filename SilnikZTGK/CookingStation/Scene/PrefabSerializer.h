@@ -14,7 +14,7 @@ public:
         nlohmann::json item;
         auto& world = scene->GetWorld();
 
-        // U�ywamy bezpieczniejszego GetVector() - dok�adnie jak w SceneSerializerze!
+        // Używamy bezpieczniejszego GetVector() - dokładnie jak w SceneSerializerze!
         auto* tagStorage = world.GetComponentVector<TagComponent>();
         auto* transformStorage = world.GetComponentVector<TransformComponent>();
         auto* meshStorage = world.GetComponentVector<MeshComponent>();
@@ -28,7 +28,6 @@ public:
 
         if (transformStorage) {
             if (auto* transform = transformStorage->Get(entity)) {
-                // ZMIANA: Pobieramy dane przez bezpieczne Gettery
                 glm::vec3 pos = transform->GetPosition();
                 glm::vec3 rot = transform->GetRotation();
                 glm::vec3 scale = transform->GetScale();
@@ -59,15 +58,24 @@ public:
                     for (const auto& s : nsc->Scripts) {
                         scriptNames.push_back(s.Name);
                     }
-                    item["scripts"] = scriptNames; // Klucz "scripts" z 's' na ko�cu!
+                    item["scripts"] = scriptNames; // Klucz "scripts" z 's' na koncu!
                 }
             }
         }
 
-        std::ofstream file(filepath);
+        // --- ZMIANA: Tylko JEDNO tworzenie pliku i konwersja VFS -> Ścieżka fizyczna ---
+        std::string physicalPath = filepath;
+        if (filepath.rfind("assets://", 0) == 0) {
+            physicalPath = "CookingStation/Assets/" + filepath.substr(9);
+        }
+
+        std::ofstream file(physicalPath);
         if (file.is_open()) {
             file << item.dump(4);
-            spdlog::info("Zapisano prefab: {}", filepath);
+            spdlog::info("Zapisano prefab: {}", physicalPath);
+        }
+        else {
+            spdlog::error("Błąd: Nie udalo sie zapisac prefaba do pliku: {}", physicalPath);
         }
     }
 
@@ -127,8 +135,11 @@ public:
             transComp.SetPosition(spawnPos + localPos);
         }
 
-        if (item.contains("rotation") && item.contains("scale")) {
+        if (item.contains("rotation")) {
             transComp.SetRotation({ item["rotation"][0], item["rotation"][1], item["rotation"][2] });
+        }
+
+        if (item.contains("scale")) {
             transComp.SetScale({ item["scale"][0], item["scale"][1], item["scale"][2] });
         }
         builder.With<TransformComponent>(transComp);

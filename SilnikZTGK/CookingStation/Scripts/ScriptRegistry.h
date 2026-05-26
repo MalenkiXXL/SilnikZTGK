@@ -24,6 +24,8 @@
 #include "CustomerManagerScript.h"
 #include "CustomerScript.h"
 #include "CuttingBoardScript.h"
+#include "Waiter/WaiterPickupStationScript.h"
+#include "Waiter/WaiterScript.h"
 
 //globalny slownik ktory mapuke tekst na funkcje
 class ScriptRegistry
@@ -66,6 +68,8 @@ public:
         Register<PackageScript>("PackageScript");
         Register<CuttingBoardScript>("CuttingBoardScript");
         Register<DeliveryBoothScript>("DeliveryBoothScript");
+        Register<WaiterPickupStationScript>("WaiterPickupStationScript");
+        Register<WaiterScript>("WaiterScript");
     }
 
     static void AddScriptToComponent(NativeScriptComponent& nsc, const std::string& name)
