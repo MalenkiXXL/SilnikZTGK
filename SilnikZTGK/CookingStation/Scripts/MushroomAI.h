@@ -17,8 +17,8 @@ private:
     Entity m_TargetCustomer = { std::numeric_limits<std::size_t>::max(), 0 };
     Entity m_TargetFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
-    float m_Speed = 5.0f;         // Prêdkoœæ chodzenia
-    float m_InteractRange = 0.1f; // Zasiêg r¹k kelnera
+    float m_Speed = 5.0f;         // Prï¿½dkoï¿½ï¿½ chodzenia
+    float m_InteractRange = 0.1f; // Zasiï¿½g rï¿½k kelnera
 
     void SetDusting(bool state)
     {
@@ -45,10 +45,10 @@ public:
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        // Maszyna stanów grzybola
+        // Maszyna stanï¿½w grzybola
         if (m_State == WaiterState::Idle)
         {
-            // Zatrzymujemy animacjê, gdy stoi
+            // Zatrzymujemy animacjï¿½, gdy stoi
             if (animComp && animComp->AnimatorInstance) animComp->IsPlaying = false;
 
             SetDusting(false);
@@ -57,7 +57,7 @@ public:
         }
         else if (m_State == WaiterState::FetchingFood)
         {
-            // Odpalamy animacjê chodzenia
+            // Odpalamy animacjï¿½ chodzenia
             if (animComp && animComp->AnimatorInstance) {
                 animComp->AnimatorInstance->PlayAnimation("Walk");
                 animComp->IsPlaying = true;
@@ -65,13 +65,13 @@ public:
 
             auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetFood);
             if (!foodTransform) {
-                m_State = WaiterState::Idle; // Jedzenie zniknê³o, wracamy do szukania
+                m_State = WaiterState::Idle; // Jedzenie zniknï¿½o, wracamy do szukania
                 return;
             }
 
             MoveTowards(transform, foodTransform->GetPosition(), ts.GetSeconds());
 
-            // P³aski dystans (ignorujemy oœ Y)
+            // Pï¿½aski dystans (ignorujemy oï¿½ Y)
             glm::vec2 myPos2D = { transform->GetPosition().x, transform->GetPosition().z };
             glm::vec2 foodPos2D = { foodTransform->GetPosition().x, foodTransform->GetPosition().z };
 
@@ -88,7 +88,7 @@ public:
             }
             auto* customerTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetCustomer);
             if (!customerTransform) {
-                m_State = WaiterState::Idle; // Klient znikn¹³ 
+                m_State = WaiterState::Idle; // Klient zniknï¿½ï¿½ 
                 return;
             }
 
@@ -109,11 +109,11 @@ private:
     {
         glm::vec3 myPos = myTransform->GetPosition();
         glm::vec3 direction = targetPos - myPos;
-        direction.y = 0; // Grzybek chodzi tylko po pod³odze
+        direction.y = 0; // Grzybek chodzi tylko po podï¿½odze
 
         if (glm::length(direction) > 0.01f)
         {
-            // Normalizujemy kierunek ¿eby mia³ sta³¹ prêdkoœæ  
+            // Normalizujemy kierunek ï¿½eby miaï¿½ staï¿½ï¿½ prï¿½dkoï¿½ï¿½  
             direction = glm::normalize(direction);
             myPos += direction * m_Speed * dt;
             myTransform->SetPosition(myPos);
@@ -137,15 +137,38 @@ private:
 
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+        const auto& pickupPoints = GetScene()->GetPickupPoints();
 
         if (!tags || !scripts) return;
 
         // Szukamy gotowego dania
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
-            if (tags->dense[i].Tag == "UgotowaneDanie")
-            {
-                foundFood = tags->reverse[i];
+            if (tags->dense[i].Tag == "UgotowaneDanie") {
+                Entity potentialFood = tags->reverse[i];
+
+                // Danie jest dzieckiem talerza - bierzemy pozycjÄ™ rodzica
+                Entity plateEntity = GetScene()->GetParent(potentialFood);
+                auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(plateEntity);
+                if (!plateTransform) continue;
+
+                glm::vec2 platePos2D = { plateTransform->GetPosition().x, plateTransform->GetPosition().z };
+
+                // Sprawdzamy czy talerz stoi na ktÃ³rymÅ› pick poincie
+                bool isOnPickupPoint = false;
+                for (const auto& pp : pickupPoints)
+                {
+                    glm::vec2 pp2D = { pp.x, pp.z };
+                    if (glm::distance(platePos2D, pp2D) < 0.5f)
+                    {
+                        isOnPickupPoint = true;
+                        break;
+                    }
+                }
+
+                if (!isOnPickupPoint) continue;
+
+                foundFood = plateEntity;;
                 break;
             }
         }
@@ -163,13 +186,13 @@ private:
                     {
                         CustomerScript* custScript = nullptr;
 
-                        // Przeszukujemy listê podpiêtych skryptów w tym kliencie
+                        // Przeszukujemy listï¿½ podpiï¿½tych skryptï¿½w w tym kliencie
                         for (auto& s : nsc->Scripts)
                         {
-                            // --- ZMIANA 2: £apiemy oba rodzaje skryptów! ---
+                            // --- ZMIANA 2: ï¿½apiemy oba rodzaje skryptï¿½w! ---
                             if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript")
                             {
-                                // Bezpieczne rzutowanie dziêki dziedziczeniu
+                                // Bezpieczne rzutowanie dziï¿½ki dziedziczeniu
                                 custScript = (CustomerScript*)s.Instance;
                                 break;
                             }
@@ -190,7 +213,7 @@ private:
             }
         }
 
-        // Jeœli mamy gotowe danie i klienta który na nie czeka, to grzybek rusza
+        // Jeï¿½li mamy gotowe danie i klienta ktï¿½ry na nie czeka, to grzybek rusza
         if (foundFood.id != std::numeric_limits<std::size_t>::max() && foundCustomer.id != std::numeric_limits<std::size_t>::max())
         {
             m_TargetFood = foundFood;
@@ -203,34 +226,54 @@ private:
     void PickUpFood()
     {
         spdlog::info("Grzybek wrzucil jedzenie na kapelusz!");
-
-        // Odpina kanapkê od talerza i przypina do Grzybka
         GetScene()->SetParent(m_TargetFood, m_Entity);
 
         auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetFood);
-        if (foodTransform)
+        auto* transform = GetComponent<TransformComponent>();
+
+        if (foodTransform && transform)
         {
-            // Unosimy kanapkê lokalnie o 2 metry do góry -> tymczasowo na g³owie 
+            // 1. Podnosimy na gÅ‚owÄ™
             foodTransform->SetPosition(glm::vec3(0.0f, 2.0f, 0.0f));
+            foodTransform->SetRotation(glm::vec3(0.0f, 0.0f, 0.0f));
+
+            // 2. KOREKTA SKALI
+            glm::vec3 myScale = transform->GetScale();
+
+            // Zabezpieczenie przed dzieleniem przez zero
+            if (myScale.x != 0.0f && myScale.y != 0.0f && myScale.z != 0.0f) {
+                foodTransform->SetScale(glm::vec3(1.0f) / myScale);
+            }
+        }
+
+        auto* foodScripts = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_TargetFood);
+        if (foodScripts)
+        {
+            for (auto& scriptEl : foodScripts->Scripts) {
+                if (scriptEl.Instance) {
+                    scriptEl.Instance->OnDestroy();
+                    if (scriptEl.DestroyScript) scriptEl.DestroyScript(&scriptEl);
+                    scriptEl.Instance = nullptr;
+                }
+            }
+            foodScripts->Scripts.clear();
         }
 
         m_State = WaiterState::DeliveringFood;
     }
 
+
     void DeliverFood()
     {
         spdlog::info("Grzybek dostarczyl zamowienie! Klient szczesliwy.");
 
-        // Soft Deletion dla dania
-        auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetFood);
-        if (foodTransform) foodTransform->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
+        Entity nullEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
-        auto* foodTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_TargetFood);
-        if (foodTag) foodTag->Tag = "ZjedzoneDanie";
+        GetScene()->RemoveParent(m_TargetFood);
+        GetScene()->DestroyEntity(m_TargetFood);
+        m_TargetFood = nullEntity;
 
-        m_TargetFood = { std::numeric_limits<std::size_t>::max(), 0 };
-
-        // Wywo³ujemy u klienta ReceiveFood(), ¿eby znikn¹³ (albo wsta³, jeœli to Helper)
+        // Wywoï¿½ujemy u klienta ReceiveFood(), ï¿½eby zniknï¿½ï¿½ (albo wstaï¿½, jeï¿½li to Helper)
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
         if (scripts)
         {
@@ -240,7 +283,7 @@ private:
                 CustomerScript* custScript = nullptr;
                 for (auto& s : nsc->Scripts)
                 {
-                    // --- ZMIANA 3: Tu te¿ musi obs³u¿yæ Helpera! ---
+                    // --- ZMIANA 3: Tu teï¿½ musi obsï¿½uï¿½yï¿½ Helpera! ---
                     if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript")
                     {
                         custScript = (CustomerScript*)s.Instance;
@@ -255,7 +298,7 @@ private:
             }
         }
 
-        m_TargetCustomer = { std::numeric_limits<std::size_t>::max(), 0 };
+        m_TargetCustomer = nullEntity;
         m_State = WaiterState::Idle;
     }
 };

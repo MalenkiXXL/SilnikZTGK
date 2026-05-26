@@ -77,7 +77,10 @@ public:
 
 	PlacementRequest& GetPlacementRequest() { return m_PlacementRequest; }
 	void CalculateTransforms();
-	void SetParent(Entity child, Entity parent);
+
+    Entity GetParent(Entity child);
+    void SetParent(Entity child, Entity parent);
+    void RemoveParent(Entity child);
 
 	GridRequest& GetGridRequest() { return m_GridRequest; }
 	void RebuildConveyorCache();
@@ -85,6 +88,10 @@ public:
 	//Nowy interfejsc SSA
 	void UpdateSpatialGrid();
 	const std::vector<Entity>* GetEntitiesInCell(const glm::ivec2& cell) const;
+
+    const std::vector<glm::vec3>& GetPickupPoints() const { return m_PickupPoints; }
+    void AddPickupPoint(const glm::vec3& position) { m_PickupPoints.push_back(position); }
+    void DestroyEntity(Entity entity);
 private:
 	World m_ECSWorld;
 	Camera* m_MainCamera = nullptr;
@@ -94,10 +101,13 @@ private:
 	SceneState m_State = SceneState::Edit;
 
 	std::unordered_map<GridPos, ConveyorScript*, GridPosHash> ConveyorMap;
+    std::vector<glm::vec3> m_PickupPoints;
 	bool m_ConveyorCacheReady = false;
 
     uint32_t m_ViewportWidth = 0;
     uint32_t m_ViewportHeight = 0;
+
+    std::vector<Entity> m_EntitiesToDestroy;
 
 	//struktura SSA: komorka siatki -> lista encji wewnatrz niej
 	std::unordered_map<glm::ivec2, std::vector<Entity>, IVec2Hash> m_SpartialGrid;

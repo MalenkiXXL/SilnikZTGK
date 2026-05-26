@@ -119,7 +119,7 @@ public:
                     glm::ivec2 cellTop = GridSystem::WorldToCell(hitTop);
                     glm::ivec2 cellBottom = GridSystem::WorldToCell(hitBottom);
 
-                    int margin = 2;
+                    int margin = 1;
                     int minX = std::min(cellTop.x, cellBottom.x) - margin;
                     int maxX = std::max(cellTop.x, cellBottom.x) + margin;
                     int minZ = std::min(cellTop.y, cellBottom.y) - margin;

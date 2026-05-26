@@ -73,6 +73,9 @@ public:
                         spdlog::info("Kliknieto w danie!");
                         TryTransferToPlate();
                     }
+                }else
+                {
+                    m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
                 }
             }
         }
@@ -154,8 +157,7 @@ protected:
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
-                auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-                if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f)); // Pod map�
+                GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
         }

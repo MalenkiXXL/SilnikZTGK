@@ -83,6 +83,8 @@ public:
                 glm::vec3 foodPos = boardTf->GetPosition();
                 foodPos.y += m_BaseYOffset + m_VisualJumpY;
                 foodTf->SetPosition(foodPos);
+            }else if (!foodTf) {
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
         }
 
@@ -99,8 +101,8 @@ public:
             {
                 if (m_IsReady)
                 {
-                    spdlog::info("Wziêto pokrojonego pomidora z deski{}!",
-                        m_IsAutomated ? " (helper kroi³)" : "");
+                    spdlog::info("Wziï¿½to pokrojonego pomidora z deski{}!",
+                        m_IsAutomated ? " (helper kroiï¿½)" : "");
                     DragAndDropScript::StartDrag(
                         IngredientType::ChoppedTomato,
                         "CookingStation/Assets/models/skladniki/pomidor/pomidor-pokrojony.gltf"
@@ -128,11 +130,11 @@ public:
             m_ChopCooldown = 0.2f;
             m_AutoChopTimer = 0.0f; 
             UpdateVisuals();
-            spdlog::info("Po³o¿ono pomidora na desce do krojenia.");
+            spdlog::info("Poï¿½oï¿½ono pomidora na desce do krojenia.");
             return true;
         }
 
-        spdlog::warn("Deska: Tego sk³adnika tu nie pokroisz!");
+        spdlog::warn("Deska: Tego skï¿½adnika tu nie pokroisz!");
         return false;
     }
 
@@ -147,8 +149,7 @@ protected:
         if (m_Ingredients.empty())
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
-                auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-                if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
+                GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
             return;

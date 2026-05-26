@@ -94,7 +94,6 @@ void Scene::OnUpdateRuntime(Timestep ts)
 	// ==========================================
 	// 1. update skrytpow
 	// ==========================================
-	CalculateTransforms();
 	auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
 
 	if (scriptStorage) {
@@ -118,7 +117,15 @@ void Scene::OnUpdateRuntime(Timestep ts)
 		}
 	}
 
-	UpdateSpatialGrid();
+    // ==========================================
+    // 2. OBLICZANIE TRANSFORMACJI
+    // ==========================================
+    CalculateTransforms();
+
+    // ==========================================
+    // 3. SYSTEMY BAZUJĄCE NA WORLD MATRIX
+    // ==========================================
+    UpdateSpatialGrid();
 
 	if (!m_ConveyorCacheReady)
 	{
@@ -127,7 +134,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 	}
 
 	// ==========================================
-	// 2. KROK FIZYKI I KOLIZJI 
+	// 4. KROK FIZYKI I KOLIZJI
 	// ==========================================
 
 	auto* colliderStorage = m_ECSWorld.GetComponentVector<BoxColliderComponent>();
@@ -192,6 +199,29 @@ void Scene::OnUpdateRuntime(Timestep ts)
 			}
 		}
 	}
+
+    // ==========================================
+    // 5. DEFERRED DELETION (USUWANIE ODROCZONE)
+    // ==========================================
+    for (Entity e : m_EntitiesToDestroy)
+    {
+        // 1. Najpierw usuwamy encję z siatki przestrzennej (SSA)
+        for (auto& pair : m_SpartialGrid)
+        {
+            auto& cellEntities = pair.second;
+
+            // Usuwamy wszystkie wpisy o tym ID z wektora kafelka
+            cellEntities.erase(
+                    std::remove_if(cellEntities.begin(), cellEntities.end(),
+                                   [&](const Entity& gridEntity) { return gridEntity.id == e.id; }),
+                    cellEntities.end()
+            );
+        }
+
+        // 2. Następnie fizycznie niszczymy encję w ECS
+        m_ECSWorld.DestroyEntity(e);
+    }
+    m_EntitiesToDestroy.clear();
 }
 
 void Scene::OnRuntimeStop()
@@ -302,8 +332,36 @@ void Scene::CalculateTransforms() {
 	}
 }
 
+// W Scene.h
+Entity Scene::GetParent(Entity child)
+{
+    auto* rel = m_ECSWorld.GetComponent<RelationshipComponent>(child);
+    if (rel && rel->Parent != NULL_ENTITY){
+        auto* relStorage = m_ECSWorld.GetComponentVector<RelationshipComponent>();
+        if (relStorage && rel->Parent < relStorage->sparse.size())
+        {
+            std::size_t index = relStorage->sparse[rel->Parent];
+            if (index != NULL_ENTITY)
+            {
+                return relStorage->reverse[index];
+            }
+        }
+
+        return { rel->Parent, 0 };
+    }
+
+    return { NULL_ENTITY, 0 };
+}
+
 void Scene::SetParent(Entity child, Entity parent) {
 	auto& world = GetWorld();
+
+    // Zabezpieczenie
+    if (parent.id == NULL_ENTITY) {
+        spdlog::warn("Uzyto SetParent z pustym rodzicem. Uzywaj RemoveParent!");
+        RemoveParent(child);
+        return;
+    }
 
 	// 1. Zabezpieczenie przed zap�tleniem (Cylic Dependency Check)
 	Entity currentAncestor = parent;
@@ -321,6 +379,8 @@ void Scene::SetParent(Entity child, Entity parent) {
 		}
 	}
 
+    RemoveParent(child);
+
 	// 2. Dodajemy komponenty relacji, je�li ich nie maj�
 	if (!world.GetComponent<RelationshipComponent>(child)) {
 		world.AddComponent<RelationshipComponent>(child, {});
@@ -331,26 +391,6 @@ void Scene::SetParent(Entity child, Entity parent) {
 
 	auto* childRel = world.GetComponent<RelationshipComponent>(child);
 	auto* parentRel = world.GetComponent<RelationshipComponent>(parent);
-
-	// 3. ODPI�CIE OD STAREGO RODZICA (je�li dziecko ju� jakiego� mia�o)
-	if (childRel->Parent != NULL_ENTITY) {
-		auto* oldParentRel = world.GetComponent<RelationshipComponent>({ childRel->Parent, 0 });
-		if (oldParentRel) {
-			// Szukamy dziecka na li�cie starego rodzica i je usuwamy (przepinamy wska�niki braci)
-			if (oldParentRel->FirstChild == child.id) {
-				oldParentRel->FirstChild = childRel->NextSibling;
-			}
-			if (childRel->PreviousSibling != NULL_ENTITY) {
-				auto* prevRel = world.GetComponent<RelationshipComponent>({ childRel->PreviousSibling, 0 });
-				if (prevRel) prevRel->NextSibling = childRel->NextSibling;
-			}
-			if (childRel->NextSibling != NULL_ENTITY) {
-				auto* nextRel = world.GetComponent<RelationshipComponent>({ childRel->NextSibling, 0 });
-				if (nextRel) nextRel->PreviousSibling = childRel->PreviousSibling;
-			}
-			oldParentRel->ChildrenCount--;
-		}
-	}
 
 	// 4. NOWE PODPI�CIE
 	childRel->Parent = parent.id;
@@ -366,8 +406,6 @@ void Scene::SetParent(Entity child, Entity parent) {
 
 	parentRel->FirstChild = child.id;
 	parentRel->ChildrenCount++;
-
-	//spdlog::info("Podpieto encje {} do rodzica {}", child.id, parent.id);
 
 	UpdateSpatialGrid();
 }
@@ -464,4 +502,76 @@ const std::vector<Entity>* Scene::GetEntitiesInCell(const glm::ivec2& cell) cons
 		return &it->second;
 	}
 	return nullptr;
+}
+
+void Scene::RemoveParent(Entity child) {
+
+    auto& world = GetWorld();
+    const std::size_t NULL_ID = std::numeric_limits<std::size_t>::max();
+
+    auto* childRel = world.GetComponent<RelationshipComponent>(child);
+
+    if (!childRel || childRel->Parent == NULL_ID) return;
+
+    auto* oldParentRel = world.GetComponent<RelationshipComponent>({ childRel->Parent, 0 });
+    if (oldParentRel) {
+        // Szukamy dziecka na liście starego rodzica i przepinamy sąsiadów
+        if (oldParentRel->FirstChild == child.id) {
+            oldParentRel->FirstChild = childRel->NextSibling;
+        }
+        if (childRel->PreviousSibling != NULL_ID) {
+            auto* prevRel = world.GetComponent<RelationshipComponent>({ childRel->PreviousSibling, 0 });
+            if (prevRel) prevRel->NextSibling = childRel->NextSibling;
+        }
+        if (childRel->NextSibling != NULL_ID) {
+            auto* nextRel = world.GetComponent<RelationshipComponent>({ childRel->NextSibling, 0 });
+            if (nextRel) nextRel->PreviousSibling = childRel->PreviousSibling;
+        }
+        oldParentRel->ChildrenCount--;
+    }
+
+    // Resetujemy relacje samego dziecka
+    childRel->Parent = NULL_ID;
+    childRel->NextSibling = NULL_ID;
+    childRel->PreviousSibling = NULL_ID;
+
+    UpdateSpatialGrid();
+
+}
+
+void Scene::DestroyEntity(Entity entity) {
+    auto* relStorage = m_ECSWorld.GetComponentVector<RelationshipComponent>();
+    const std::size_t NULL_ID = std::numeric_limits<std::size_t>::max();
+
+    if (relStorage)
+    {
+        // Sprawdzamy, czy encja ma komponent relacji
+        auto* rel = relStorage->Get(entity);
+
+        if (rel && rel->FirstChild != NULL_ID)
+        {
+            std::size_t currentChildId = rel->FirstChild;
+
+            // Przechodzimy przez wszystkie dzieci
+            while (currentChildId != NULL_ID)
+            {
+                // Odzyskujemy pełną encję dziecka (z generacją) używając tablic ECS-a
+                std::size_t index = relStorage->sparse[currentChildId];
+                Entity childEntity = relStorage->reverse[index];
+
+                // Zapisujemy ID następnego brata
+                auto* childRel = relStorage->Get(childEntity);
+                std::size_t nextSibling = childRel ? childRel->NextSibling : NULL_ID;
+
+                // Usuwamy wszystkie dzieci rekurencyjnie
+                DestroyEntity(childEntity);
+
+                currentChildId = nextSibling;
+            }
+        }
+    }
+
+    // Dzięki temu dzieci zostaną zniszczone jako pierwsze
+    m_EntitiesToDestroy.push_back(entity);
+
 }
