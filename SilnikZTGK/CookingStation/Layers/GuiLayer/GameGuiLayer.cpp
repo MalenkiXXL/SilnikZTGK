@@ -314,7 +314,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     float itemBaseH = baseIconSize.y * 0.3f;
     glm::vec2 itemBaseSize = { itemBaseH, itemBaseH };
     
-    glm::vec2 arcRadius = { baseIconSize.x * 0.75f, baseIconSize.y * 0.65f };
+    glm::vec2 arcRadius = { baseIconSize.x * 0.66f, baseIconSize.y * 0.64f };
 
     float paddingX = 30.0f * baseScale; 
     float paddingY = 10.0f * baseScale;
