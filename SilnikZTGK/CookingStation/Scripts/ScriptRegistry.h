@@ -23,7 +23,7 @@
 #include "MushroomAI.h"
 #include "CustomerManagerScript.h"
 #include "CustomerScript.h"
-#include "CuttingBoardScript.h"
+#include "Machines/CuttingBoardScript.h"
 #include "Waiter/WaiterPickupStationScript.h"
 #include "Waiter/WaiterScript.h"
 #include "Machines/CuttingBoardScript.h"
