@@ -347,10 +347,12 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClInclude Include="CookingStation\Scripts\DustEmitterScript.h" />
     <ClInclude Include="CookingStation\Scripts\HelperCustomerScript.h" />
     <ClInclude Include="CookingStation\Scripts\ItemScript.h" />
-    <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\MachineScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\MixerScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\OvenScript.h" />
     <ClInclude Include="CookingStation\Scripts\ParticleEmitterScript.h" />
     <ClInclude Include="CookingStation\Scripts\PlateSpawnerScript.h" />
-    <ClInclude Include="CookingStation\Scripts\PotScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\Quests\DeliveryBoothScript.h" />
     <ClInclude Include="CookingStation\Scripts\RotationScript.h" />
     <ClInclude Include="CookingStation\Scene\SceneManager.h" />

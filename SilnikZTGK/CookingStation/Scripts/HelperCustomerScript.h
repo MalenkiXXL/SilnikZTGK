@@ -1,7 +1,7 @@
 #pragma once
 #include "CustomerScript.h" // DZIEDZICZYMY Z CUSTOMER SCRIPT!
 #include "CookingStation/Core/Input.h"
-#include "CookingStation/Scripts/MachineScript.h"
+#include "CookingStation/Scripts/Machines/MachineScript.h"
 #include <glm/glm.hpp>
 #include <limits>
 #include <cmath>
