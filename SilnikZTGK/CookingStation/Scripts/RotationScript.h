@@ -1,19 +1,33 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include <spdlog/spdlog.h>
+#include "CookingStation/Events/GameEvents.h"
 
 class RotationScript : public ScriptableEntity
 {
 private:
     bool m_IsSpinning = false;
+    std::size_t m_CollisionSubId = 0;
 
 public:
-
-    void OnCollision() override
+    void OnCreate() override
     {
-        m_IsSpinning = true;
+        m_CollisionSubId = GetScene()->GetWorld().GetEventBus().Subscribe<CollisionEvent>(
+            [this](const CollisionEvent& e) {
+                // Sprawdzamy, czy to my bierzemy udzia³ w kolizji (czy uderzyliœmy my, czy ktoœ w nas)
+                if (e.EntityA.id == m_Entity.id || e.EntityB.id == m_Entity.id)
+                {
+                    this->m_IsSpinning = true;
+                }
+            }
+        );
     }
 
+    void OnDestroy() override
+    {
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<CollisionEvent>(m_CollisionSubId);
+    }
+  
     void OnUpdate(Timestep ts) override
     {
         if (m_IsSpinning)

@@ -62,17 +62,28 @@ namespace {
     }
 }
 
-void GameGuiLayer::OnAttach() {
+void GameGuiLayer::OnAttach()
+{
+    // 1. ZAWSZE przypisz scenę przed użyciem!
+    m_ActiveScene = SceneManager::GetActiveScene();
+    m_IsActive = true;
 
+    // 2. Dodaj zabezpieczenie: jeśli scena nie istnieje, przerwij
+    if (!m_ActiveScene)
+    {
+        spdlog::error("GameGuiLayer: Nie znaleziono aktywnej sceny w OnAttach!");
+        return;
+    }
 
 #ifdef CS_DISTRIBUTION
-    // Skoro EditorGuiLayer jest wyłączony, my musimy odpalić system tekstów
     Gui::Init("assets://fonts/ARIAL.TTF", 32);
 #endif
 
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
+
+    // Inicjalizacja tekstur
     m_CornerIcon = AssetManager::GetTexture("assets://UI/bottomCornerClouds.png");
     m_TomatoIcon = AssetManager::GetTexture("assets://UI/tomato.png");
     m_BookCloudIcon = AssetManager::GetTexture("assets://UI/bookCloud.png");
@@ -84,8 +95,19 @@ void GameGuiLayer::OnAttach() {
     m_CoinIcon = AssetManager::GetTexture("assets://UI/coin.png");
     m_PotIcon = AssetManager::GetTexture("assets://UI/pot.png");
 
-    m_IngredientsCarousel.Init(true);  // true = lewa chmura
+    m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
+
+    // 3. Bezpieczna subskrypcja (z flagą m_IsActive)
+    m_InventorySubId = m_ActiveScene->GetWorld().GetEventBus().Subscribe<InventoryChangedEvent>(
+        [this](const InventoryChangedEvent& e) {
+            // MUSISZ TO DODAĆ - zapisujemy nową wartość do zmiennej klasy
+            if (e.Type == IngredientType::Tomato) {
+                this->m_CurrentTomatoes = e.NewAmount;
+                spdlog::info("GUI: Zaktualizowano m_CurrentTomatoes na {}", m_CurrentTomatoes);
+            }
+        }
+    );
 }
 
 
@@ -313,13 +335,13 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     // Wymiary potrzebne dla karuzeli
     float itemBaseH = baseIconSize.y * 0.3f;
     glm::vec2 itemBaseSize = { itemBaseH, itemBaseH };
-    
+
     glm::vec2 arcRadius = { baseIconSize.x * 0.66f, baseIconSize.y * 0.64f };
 
-    float paddingX = 30.0f * baseScale; 
+    float paddingX = 30.0f * baseScale;
     float paddingY = 10.0f * baseScale;
 
-    glm::vec2 leftCenter = { gameX + paddingX, gameY + gameHeight - paddingY};
+    glm::vec2 leftCenter = { gameX + paddingX, gameY + gameHeight - paddingY };
 
     // Struktura ułatwiająca zarządzanie listą
     struct UIIngredient { std::string id; std::shared_ptr<Texture> tex; IngredientType type; std::string modelPath; };
@@ -361,18 +383,18 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
         {"BtnPot4", m_PotIcon, "assets://prefabs/pot.json"}
     };
 
-    for (int i = 0; i < rightItems.size(); i++) {
+    for (int i = 0; i < (int)rightItems.size(); i++) {
         glm::vec2 pos;
         if (m_MachinesCarousel.GetItemTransform(i, rightCenter, arcRadius, itemBaseH, pos)) {
-
             if (DrawIngredientIcon(rightItems[i].id, rightItems[i].tex, pos, itemBaseSize, dt, baseScale, 0, false)) {
                 spdlog::info("UI: Wyciagnieto maszyne: {}", rightItems[i].id);
-
-                std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-                if (activeScene) {
-                    Entity prefabEntity = PrefabSerializer::Deserialize(activeScene.get(), rightItems[i].prefabPath, glm::vec3(0.0f, -100.0f, 0.0f));
-                    MachineScript::PendingPickup = prefabEntity;
-                }
+                // Spawn robimy tu (mamy PrefabSerializer), potem przekazujemy encje do DragAndDrop
+                Entity spawnedMachine = PrefabSerializer::Deserialize(
+                    SceneManager::GetActiveScene().get(),
+                    rightItems[i].prefabPath,
+                    glm::vec3(0.0f)
+                );
+                DragAndDropScript::PickupSpawnedMachine(spawnedMachine);
             }
         }
     }
@@ -446,11 +468,11 @@ void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, flo
 }
 
 void GameGuiLayer::DrawIconWithText(const std::string& text,
-                                    const std::shared_ptr<Texture>& iconTex,
-                                    const glm::vec2& textPos,
-                                    float textScale,
-                                    float baseScale,
-                                    float dt)
+    const std::shared_ptr<Texture>& iconTex,
+    const glm::vec2& textPos,
+    float textScale,
+    float baseScale,
+    float dt)
 {
     if (!iconTex) return;
 
@@ -605,10 +627,10 @@ bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
 // ZMIANA: Przebudowano funkcję ładującą JSON tak, aby korzystała z VFS
 void GameGuiLayer::ReloadQuests() {
     m_CurrentQuests.clear();
-    
+
     // Używamy VFS do wyciągnięcia bajtów z pliku
     std::vector<uint8_t> fileData = VFS::ReadFile("assets://wygenerowane_quests.json");
-    
+
     if (!fileData.empty()) {
         try {
             // Biblioteka nlohmann::json potrafi przetworzyć std::vector bezpośrednio!
@@ -631,4 +653,9 @@ void GameGuiLayer::ReloadQuests() {
     else {
         spdlog::error("GameUiLayer: Nie udalo sie wczytac pliku wygenerowane_quests.json przez VFS.");
     }
+}
+
+void GameGuiLayer::OnDetach()
+{
+    m_ActiveScene->GetWorld().GetEventBus().Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
 }

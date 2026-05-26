@@ -13,6 +13,12 @@ void GameManagerScript::OnCreate()
             this->UseIngredient(e.Type, e.Amount);
         }
     );
+
+    m_AddIngredientSubId = GetScene()->GetWorld().GetEventBus().Subscribe<AddIngredientEvent>(
+        [this](const AddIngredientEvent& e) {
+            this->AddIngredients(e.Type, e.Amount);
+        }
+    );
 }
 
 void GameManagerScript::OnUpdate(Timestep ts)
@@ -26,6 +32,7 @@ void GameManagerScript::OnUpdate(Timestep ts)
 void GameManagerScript::OnDestroy()
 {
     GetScene()->GetWorld().GetEventBus().Unsubscribe<IngredientUsedEvent>(m_IngredientUsedSubId);
+    GetScene()->GetWorld().GetEventBus().Unsubscribe<AddIngredientEvent>(m_AddIngredientSubId);
 
     s_Instance = nullptr;
 }
@@ -33,10 +40,13 @@ void GameManagerScript::OnDestroy()
 void GameManagerScript::AddIngredients(IngredientType type, int amount)
 {
     m_Inventory[type] += amount;
-    m_IsDeliveryOnTheWay = false;
-    spdlog::info("Dodano składniki! Obecnie: {}", m_Inventory[type]);
 
-    GetScene()->GetWorld().GetEventBus().Publish(InventoryChangedEvent{ type, m_Inventory[type] });
+    InventoryChangedEvent e;
+    e.Type = type;
+    e.NewAmount = m_Inventory[type];
+    GetScene()->GetWorld().GetEventBus().Publish(e);
+
+    spdlog::info("GameManager: Wysłano InventoryChangedEvent dla {} ilość: {}", (int)type, e.NewAmount);
 }
 
 void GameManagerScript::UseIngredient(IngredientType type, int amount)
@@ -48,6 +58,7 @@ void GameManagerScript::UseIngredient(IngredientType type, int amount)
         GetScene()->GetWorld().GetEventBus().Publish(InventoryChangedEvent{ type, m_Inventory[type] });
     }
 }
+
 int GameManagerScript::GetIngredientCount(IngredientType type)
 {
     if (m_Inventory.count(type) > 0)
@@ -56,7 +67,6 @@ int GameManagerScript::GetIngredientCount(IngredientType type)
     }
     return 0;
 }
-
 
 void GameManagerScript::CallForDelivery()
 {

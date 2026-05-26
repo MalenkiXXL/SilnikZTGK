@@ -35,6 +35,7 @@ private:
     std::unordered_map<IngredientType, int> m_Inventory;
     void CallForDelivery();
     std::size_t m_IngredientUsedSubId = 0;
+    std::size_t m_AddIngredientSubId = 0;
 
     // Subskrypcja na UIReadyEvent - gdy UI siê inicjalizuje, wysy³amy mu bie¿¹cy stan.
     // Bez tego UI startuje z zerami i nie wie o aktualnych wartoœciach.

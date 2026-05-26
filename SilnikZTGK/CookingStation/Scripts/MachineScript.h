@@ -5,6 +5,7 @@
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Scripts/Managers/IngredientType.h"
+#include "CookingStation/Events/GameEvents.h"
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -15,11 +16,32 @@ protected:
     float m_CurrentTime = 0.0f;
     float m_AutoDetectRadius = 3.0f;
     bool m_IsHeld = false;
+    std::size_t m_ClickSubId = 0;
 
 public:
     std::vector<IngredientType> m_Ingredients;
     bool m_IsReady = false;
     bool m_IsAutomated = false;
+
+    virtual void OnCreate() override
+    {
+        // 1. Zapisujemy się do EventBusa po stworzeniu obiektu
+        m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
+            [this](const EntityClickedEvent& e) {
+                // 2. Bardzo ważne: sprawdzamy, czy gracz kliknął dokładnie w NAS!
+                if (e.TargetEntity.id == m_Entity.id)
+                {
+                    this->HandleClick(); // Wywołujemy naszą logikę
+                }
+            }
+        );
+    }
+
+    virtual void OnDestroy() override
+    {
+        // 3. Wypisujemy się z EventBusa przed zniszczeniem obiektu, żeby uniknąć crasha
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
+    }
 
     // NOWE: Zmienna, w której UI zapisuje nowo wyciągniętą maszynę
     static inline Entity PendingPickup = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -57,18 +79,6 @@ public:
         }
     }
 
-    virtual void OnClick() override
-    {
-        if (!m_IsHeld && Input::IsKeyPressed(340)) 
-        {
-            m_IsHeld = true;
-            spdlog::info("Podniesiono maszyne!");
-        }
-        else if (m_IsReady && !m_IsAutomated && !m_IsHeld)
-        {
-            TryTransferToPlate();
-        }
-    }
 
     virtual bool AddIngredient(IngredientType type)
     {
@@ -78,6 +88,19 @@ public:
         m_CurrentTime = 0.0f;
         UpdateVisuals();
         return true;
+    }
+
+    virtual void HandleClick()
+    {
+        if (!m_IsHeld && Input::IsKeyPressed(340))
+        {
+            m_IsHeld = true;
+            spdlog::info("Podniesiono maszyne!");
+        }
+        else if (m_IsReady && !m_IsAutomated && !m_IsHeld)
+        {
+            TryTransferToPlate();
+        }
     }
 
 protected:

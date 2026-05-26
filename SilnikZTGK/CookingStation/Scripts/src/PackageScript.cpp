@@ -1,34 +1,25 @@
 #include "CookingStation/Scripts/Delivery/PackageScript.h"
-#include "CookingStation/Scripts/Managers/GameManagerScript.h"
+#include "CookingStation/Events/GameEvents.h" 
 #include <spdlog/spdlog.h>
 
-void PackageScript::OnClick()
+void PackageScript::HandleClick()
 {
-    // 1. Sprawdzamy, czy Manager gry istnieje
-    if (GameManagerScript::s_Instance != nullptr)
+    
+    GetScene()->GetWorld().GetEventBus().Publish(AddIngredientEvent{ m_Type, m_IngredientAmount });
+
+    spdlog::info("Gracz zebrał paczkę (Wysłano zdarzenie AddIngredientEvent)");
+
+    std::vector<Entity> allPackages = s_ActivePackages;
+    s_ActivePackages.clear();
+
+    for (Entity e : allPackages)
     {
-        // 2. Dodajemy wybraną ilość składników
-        GameManagerScript::s_Instance->AddIngredients(m_Type, m_IngredientAmount);
-
-        spdlog::info("Gracz zebrał paczkę!");
-
-        std::vector<Entity> allPackages = s_ActivePackages;
-        s_ActivePackages.clear();
-
-        // 3. Niszczymy WSZYSTKIE INNE paczki
-        for (Entity e : allPackages)
+        if (e.id != m_Entity.id)
         {
-            if (e.id != m_Entity.id)
-            {
-                GetScene()->GetWorld().DestroyEntity(e);
-            }
+            GetScene()->GetWorld().DestroyEntity(e);
         }
+    }
 
-        // 4. Usuwamy paczkę ze sceny, żeby zniknęła
-        GetScene()->GetWorld().DestroyEntity(m_Entity);
-    }
-    else
-    {
-        spdlog::warn("Kliknięto paczkę, ale GameManager nie istnieje!");
-    }
+    GetScene()->GetWorld().DestroyEntity(m_Entity);
 }
+

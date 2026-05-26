@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
+#include "CookingStation/Events/GameEvents.h" // To naprawia błąd "niezadeklarowany identyfikator"
 #include <glm/glm.hpp>
 #include "CookingStation/Core/Input.h"
 
@@ -17,16 +18,31 @@ static constexpr AngleDirection s_Mappings[] = {
 
 class ConveyorScript : public ScriptableEntity
 {
+private:
+    std::size_t m_ClickSubId = 0; // ID subskrypcji zdarzenia
+
 public:
     glm::vec3 PushDirection = { 0.0f, 0.0f, 0.0f };
     float Speed = 2.0f;
-
     bool IsOccupied = false;
     bool IsJammed = false;
 
     void OnCreate() override
     {
         SetPushDirection();
+
+        m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
+            [this](const EntityClickedEvent& e) {
+                if (e.TargetEntity.id == this->m_Entity.id) {
+                    this->HandleClick();
+                }
+            }
+        );
+    }
+
+    void OnDestroy() override
+    {
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
     }
 
     void SetPushDirection()
@@ -51,14 +67,13 @@ public:
         PushDirection = s_Mappings[3].direction;
     }
 
-    void OnClick() override
+    void HandleClick()
     {
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
         auto& conveyorMap = GetScene()->GetConveyorMap();
 
-        // Logika szukania s�siad�w do zwrotnicy
         float validAngles[4];
         int validCount = 0;
         int neighborCount = 0;
@@ -67,7 +82,6 @@ public:
 
         for (auto& m : s_Mappings)
         {
-            // Klucz mapy to pozycja w kratkach
             GridPos neighborKey{
                 (int)std::round((myPos.x + m.direction.x * 2.0f) / 2.0f),
                 (int)std::round((myPos.z + m.direction.z * 2.0f) / 2.0f)
@@ -78,7 +92,6 @@ public:
 
             neighborCount++;
 
-            // Nie skr�cajmy "pod pr�d" s�siada (czo��wka)
             ConveyorScript* neighbor = it->second;
             bool isHeadOn = (glm::dot(m.direction, neighbor->PushDirection) < -0.9f);
 
@@ -88,7 +101,6 @@ public:
             }
         }
 
-        // Zmiana kierunku tylko je�li to faktycznie skrzy�owanie/zwrotnica
         if (neighborCount >= 3 && validCount > 0)
         {
             float currentRot = transform->GetRotation().y;

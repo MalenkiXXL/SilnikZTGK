@@ -7,7 +7,11 @@
 #include "CookingStation/Scripts/PotScript.h"
 #include "CookingStation/Events/GameEvents.h"
 #include <glm/glm.hpp>
-#include <limits> 
+#include <limits>
+
+// UWAGA: Celowo NIE includujemy PrefabSerializer.h tutaj!
+// Zrobilaby cykl: PrefabSerializer -> ScriptRegistry -> DragAndDropScript -> PrefabSerializer
+// Spawn maszyny robi GameGuiLayer (ktory juz ma PrefabSerializer), a tu tylko przyjmujemy gotowa encje.
 
 class DragAndDropScript : public ScriptableEntity
 {
@@ -17,12 +21,10 @@ public:
     static inline Entity DraggedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline Scene* ActiveScene = nullptr;
 
-    // --- LOGIKA NO�A NA HOVERZE ---
+    // --- LOGIKA NOZA NA HOVERZE ---
     static inline Entity KnifeVisualEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline bool ShowKnife = false;
-    // �cie�ka do Twojego modelu no�a! Popraw, je�li jest inna!
     const std::string m_KnifeModelPath = "assets://models/przybory_kuchenne/noz/knife.gltf";
-    // ---------------------------------
 
     void OnCreate() override {
         ActiveScene = GetScene();
@@ -51,33 +53,39 @@ public:
                 CancelDrag();
             }
 
-            // Zabezpieczenie: je�li przenosimy jedzenie, n� nie mo�e si� pokaza�
             SetKnifeVisibility(false);
         }
         // ========================================================
-        // SYTUACJA B: R�ka gracza jest pusta -> Sprawdzamy hover nad desk�
+        // SYTUACJA B: Reka gracza jest pusta
         // ========================================================
         else if (!IsDragging)
         {
             CheckForCuttingBoardHover(mousePos);
 
-            // Je�li n� ma by� widoczny, przyklejamy go do myszki
             if (ShowKnife && KnifeVisualEntity.id != std::numeric_limits<std::size_t>::max()) {
                 auto* knifeTf = GetScene()->GetWorld().GetComponent<TransformComponent>(KnifeVisualEntity);
                 if (knifeTf) {
-                    // N� nieco wy�ej i przesuni�ty, �eby nie zas�ania� punktu klikni�cia
                     knifeTf->SetPosition(mousePos + glm::vec3(0.2f, 0.6f, -0.2f));
                 }
+            }
+
+            // ========================================================
+            // RAYCAST: Publikujemy EntityClickedEvent przy kliknieciu LPM.
+            // To jedyne miejsce gdzie generujemy ten event - MachineScript go odbiera.
+            // ========================================================
+            if (Input::IsMouseButtonJustPressed(0))
+            {
+                PublishClickEvent(mousePos);
             }
         }
     }
 
+    // Drag skladnika (pomidor, itp.)
     static void StartDrag(IngredientType type, const std::string& modelPath)
     {
         if (!ActiveScene) return;
         if (IsDragging) CancelDrag();
 
-        // Kiedy zaczynamy Drag, upewniamy si�, �e n� znika
         SetKnifeVisibility(false);
 
         IsDragging = true;
@@ -87,7 +95,7 @@ public:
         builder.With<TagComponent>({ "DraggedIngredient" });
 
         TransformComponent tc;
-        tc.SetPosition(glm::vec3(0.0f, -100.0f, 0.0f)); // Pod map�
+        tc.SetPosition(glm::vec3(0.0f, -100.0f, 0.0f));
         tc.SetScale(glm::vec3(0.6f, 0.6f, 0.6f));
         builder.With<TransformComponent>(tc);
 
@@ -98,31 +106,79 @@ public:
         DraggedEntity = builder.Build();
     }
 
+    // Drag maszyny - encja jest juz spawned przez GameGuiLayer, tu tylko ja "podnosimy"
+    static void PickupSpawnedMachine(Entity spawnedMachine)
+    {
+        if (spawnedMachine.id == std::numeric_limits<std::size_t>::max()) return;
+
+        SetKnifeVisibility(false);
+
+        // MachineScript::OnUpdate sprawdza PendingPickup co frame i ustawi m_IsHeld = true
+        MachineScript::PendingPickup = spawnedMachine;
+        spdlog::info("DragAndDrop: Maszyna ustawiona jako PendingPickup, zostanie podniesiona w nastepnym OnUpdate.");
+    }
+
     static void CancelDrag()
     {
         IsDragging = false;
         if (DraggedEntity.id != std::numeric_limits<std::size_t>::max() && ActiveScene) {
             auto* transform = ActiveScene->GetWorld().GetComponent<TransformComponent>(DraggedEntity);
             if (transform) transform->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
-
             DraggedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
         }
     }
 
 private:
-    // --- POMOCNICZA FUNKCJA DO NO�A ---
+    // Raycast po maszynach - publikuje EntityClickedEvent dla tej najblizszej kursora
+    void PublishClickEvent(glm::vec3 mousePos)
+    {
+        auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+        if (!scripts || !transforms) return;
+
+        glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
+        Entity closestEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+        float closestDist = 2.5f;
+
+        for (size_t i = 0; i < scripts->dense.size(); ++i)
+        {
+            auto& nsc = scripts->dense[i];
+            bool hasMachine = false;
+            for (auto& s : nsc.Scripts)
+            {
+                if (dynamic_cast<MachineScript*>(s.Instance))
+                {
+                    hasMachine = true;
+                    break;
+                }
+            }
+            if (!hasMachine) continue;
+
+            Entity machineEntity = scripts->reverse[i];
+            auto* tf = transforms->Get(machineEntity);
+            if (!tf) continue;
+
+            glm::vec2 machinePos2D = { tf->GetPosition().x, tf->GetPosition().z };
+            float dist = glm::distance(mousePos2D, machinePos2D);
+            if (dist < closestDist)
+            {
+                closestDist = dist;
+                closestEntity = machineEntity;
+            }
+        }
+
+        if (closestEntity.id != std::numeric_limits<std::size_t>::max())
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(EntityClickedEvent{ closestEntity, 0 });
+        }
+    }
+
     static void SetKnifeVisibility(bool visible) {
         ShowKnife = visible;
-        // Dodajemy sprawdzenie ActiveScene i zamieniamy GetScene() na ActiveScene
         if (KnifeVisualEntity.id != std::numeric_limits<std::size_t>::max() && ActiveScene) {
             auto* knifeTf = ActiveScene->GetWorld().GetComponent<TransformComponent>(KnifeVisualEntity);
-            if (knifeTf) {
-                if (visible) {
-                    // Kiedy� tutaj np. wy��czymy systemowy kursor
-                }
-                else {
-                    knifeTf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f)); // Chowamy pod map�
-                }
+            if (knifeTf && !visible) {
+                knifeTf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
             }
         }
     }
@@ -140,7 +196,6 @@ private:
                 NativeScriptComponent& nsc = scripts->dense[i];
                 MachineScript* machineInstance = nullptr;
 
-                // Sprawdzamy, czy obiekt pod kursorem to Deska do Krojenia
                 for (auto& scriptElement : nsc.Scripts) {
                     if (scriptElement.Name == "CuttingBoardScript") {
                         machineInstance = dynamic_cast<MachineScript*>(scriptElement.Instance);
@@ -155,11 +210,7 @@ private:
                     if (boardTransform) {
                         glm::vec2 boardPos2D = { boardTransform->GetPosition().x, boardTransform->GetPosition().z };
 
-                        // Sprawdzamy dystans hoveru (troch� wi�kszy ni� dystans klikni�cia)
                         if (glm::distance(mousePos2D, boardPos2D) < 4.0f) {
-
-                            // SPRAWDZAMY CZY DESKA JEST DOST�PNA DO KROJENIA
-                            // (Nie jest pusta I sk�adnik nie jest gotowy)
                             if (!machineInstance->m_Ingredients.empty() && !machineInstance->m_IsReady) {
                                 hoveredOverChoppableBoard = true;
                                 break;
@@ -170,7 +221,6 @@ private:
             }
         }
 
-        // Je�li n� ma by� pokazany, a model jeszcze nie istnieje, tworzymy go!
         if (hoveredOverChoppableBoard) {
             if (KnifeVisualEntity.id == std::numeric_limits<std::size_t>::max()) {
                 if (!ActiveScene) return;
@@ -178,9 +228,7 @@ private:
                 builder.With<TagComponent>({ "KnifeCursor" });
                 TransformComponent tc;
                 tc.SetPosition(glm::vec3(0.0f, -100.0f, 0.0f));
-                // Ustaw odpowiedni� skal� no�a! (np. 0.3f, 0.3f, 0.3f)
                 tc.SetScale(glm::vec3(1.0f, 1.0f, 1.0f));
-                // Tu w przysz�o�ci mo�na doda� rotacj�, �eby n� by� ustawiony �adnie
                 builder.With<TransformComponent>(tc);
                 MeshComponent mesh;
                 mesh.ModelPtr = AssetManager::GetModel(m_KnifeModelPath);
@@ -238,7 +286,7 @@ private:
                 CancelDrag();
             }
             else {
-                spdlog::warn("DragAndDrop: Maszyna odrzucila skladnik (nie ten typ lub zajeta)!");
+                spdlog::warn("DragAndDrop: Maszyna odrzucila skladnik!");
             }
         }
     }

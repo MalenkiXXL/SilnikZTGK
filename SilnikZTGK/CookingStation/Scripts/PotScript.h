@@ -7,7 +7,6 @@
 class PotScript : public MachineScript
 {
 private:
-    // Pami�tamy wygenerowane jedzenie, �eby m�c je zniszczy� lub przenie�� na talerz
     Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
     void SetSmoking(bool state, bool clearInstatly = false)
@@ -15,25 +14,17 @@ private:
         auto* scriptComp = GetComponent<NativeScriptComponent>();
         if (scriptComp)
         {
-            bool foundScript = false;
             for (auto& s : scriptComp->Scripts)
             {
                 if (s.Name == "SteamEmitterScript" && s.Instance)
                 {
                     auto* emitter = static_cast<ParticleEmitterScript*>(s.Instance);
                     if (state)
-                    {
                         emitter->Play();
-                    }
                     else
-                    {
                         emitter->Stop();
-                    }
                     if (clearInstatly)
-                    {
                         emitter->Clear();
-                    }
-                    foundScript = true;
                     break;
                 }
             }
@@ -43,7 +34,8 @@ private:
 public:
     void OnCreate() override
     {
-        m_CookTime = 3.0f; // Czas gotowania 
+        MachineScript::OnCreate(); // Wazne: wywolujemy bazowe OnCreate zeby zasubskrybowac EntityClickedEvent!
+        m_CookTime = 3.0f;
         SetSmoking(false);
     }
 
@@ -52,30 +44,6 @@ public:
         MachineScript::OnUpdate(ts);
 
         if (m_IsHeld) return;
-
-        // Je�li jest gotowe i w�a�nie wci�ni�to lewy przycisk myszy
-        if (m_IsReady && Input::IsMouseButtonJustPressed(0))
-        {
-            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-            {
-                auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-                if (foodTransform)
-                {
-                    glm::vec3 mousePos = GetMouseWorldPosition();
-
-                    // Ignorujemy wysoko��, �eby �atwo trafia� w obiekt z g�ry kamer�
-                    glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
-                    glm::vec2 foodPos2D = { foodTransform->GetPosition().x, foodTransform->GetPosition().z };
-
-                    // Promie� klikni�cia dopasowany do dania
-                    if (glm::distance(mousePos2D, foodPos2D) < 3.0f)
-                    {
-                        spdlog::info("Kliknieto w danie!");
-                        TryTransferToPlate();
-                    }
-                }
-            }
-        }
 
         // Logika gotowania
         if (!m_Ingredients.empty() && !m_IsReady)
@@ -100,11 +68,43 @@ public:
         }
     }
 
+    // Calkowite klikniecie przeniesione tu z OnUpdate - HandleClick jest wywolywane przez EntityClickedEvent
+    virtual void HandleClick() override
+    {
+        if (!m_IsHeld && Input::IsKeyPressed(340))
+        {
+            // Shift+klik = podniesienie maszyny
+            m_IsHeld = true;
+            spdlog::info("Podniesiono garnek!");
+            return;
+        }
+
+        if (m_IsReady && !m_IsAutomated && !m_IsHeld)
+        {
+            // Sprawdzamy czy klik trafil w danie nad garnkiem
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
+            {
+                auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
+                if (foodTransform)
+                {
+                    glm::vec3 mousePos = GetMouseWorldPosition();
+                    glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
+                    glm::vec2 foodPos2D = { foodTransform->GetPosition().x, foodTransform->GetPosition().z };
+
+                    if (glm::distance(mousePos2D, foodPos2D) < 3.0f)
+                    {
+                        spdlog::info("Kliknieto w danie - przenosimy na talerz!");
+                        TryTransferToPlate();
+                    }
+                }
+            }
+        }
+    }
+
     bool AddIngredient(IngredientType type) override
     {
         if (m_IsReady || m_Ingredients.size() >= 2) return false;
 
-        // Przyjmuje tylko pokrojonego pomidora
         if (type == IngredientType::ChoppedTomato)
         {
             m_Ingredients.push_back(type);
@@ -112,11 +112,11 @@ public:
             SetSmoking(true);
             m_CurrentTime = 0.0f;
             UpdateVisuals();
-            spdlog::info("Garnek: Przyj�to pokrojonego pomidora, zaczynamy gotowanie!");
+            spdlog::info("Garnek: Przyjeto pokrojonego pomidora, zaczynamy gotowanie!");
             return true;
         }
 
-        spdlog::warn("Garnek: Nie wrzucaj tego! Najpierw pokr�j na desce!");
+        spdlog::warn("Garnek: Nie wrzucaj tego! Najpierw pokroj na desce!");
         return false;
     }
 
@@ -125,13 +125,16 @@ protected:
     {
         if (m_IsReady)
         {
+            // Guard: nie twórz dania jesli juz istnieje
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
+                return;
+
             if (!GameProgress::IsRecipeUnlocked("TomatoSoup"))
             {
                 GameProgress::UnlockRecipe("TomatoSoup");
                 spdlog::info("Zupa pomidorowa odblokowana po raz pierwszy!");
             }
 
-            // Zbuduj model dania
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
@@ -139,8 +142,8 @@ protected:
             builder.With<TagComponent>({ "W_Garnku" });
 
             TransformComponent tc;
-            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f)); // Jak wysoko nad garnkiem
-            tc.SetScale(glm::vec3(0.7f, 0.7f, 0.7f)); // Rozmiar dania
+            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
+            tc.SetScale(glm::vec3(0.7f, 0.7f, 0.7f));
             builder.With<TransformComponent>(tc);
 
             MeshComponent mesh;
@@ -148,14 +151,14 @@ protected:
             builder.With<MeshComponent>(mesh);
 
             m_SpawnedFood = builder.Build();
-            spdlog::info("Danie gotowe, pojawia si� nad garnkiem.");
+            spdlog::info("Danie gotowe, pojawia sie nad garnkiem.");
         }
         else
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
-                auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-                if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f)); // Pod map�
+                // Niszczymy encje zamiast chowac pod mape - koniec wycieku encji
+                GetScene()->GetWorld().DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
         }
@@ -166,8 +169,6 @@ protected:
         if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
         {
             auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-
-            // Pobieramy tag z dania 
             auto* foodTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_SpawnedFood);
 
             if (foodTransform)
@@ -175,11 +176,8 @@ protected:
                 foodTransform->SetPosition(glm::vec3(0.0f, 0.15f, 0.0f));
                 GetScene()->SetParent(m_SpawnedFood, plate);
 
-                // Zmiana tagu na gotowy -> dla kelnera 
                 if (foodTag)
-                {
                     foodTag->Tag = "UgotowaneDanie";
-                }
 
                 spdlog::info("Gotowe jedzenie podane na talerz - czeka na kelnera!");
             }
