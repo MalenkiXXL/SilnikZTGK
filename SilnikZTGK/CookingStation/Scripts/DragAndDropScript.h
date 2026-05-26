@@ -5,7 +5,7 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Scripts/MachineScript.h"
 #include "CookingStation/Scripts/PotScript.h"
-#include "CookingStation/Scripts/Managers/GameManagerScript.h"
+#include "CookingStation/Events/GameEvents.h"
 #include <glm/glm.hpp>
 #include <limits> 
 
@@ -234,9 +234,7 @@ private:
         if (closestMachine.id != std::numeric_limits<std::size_t>::max() && targetMachineScript) {
             if (targetMachineScript->AddIngredient(CurrentIngredient)) {
                 spdlog::info("DragAndDrop: Skladnik pomyslnie upuszczony na maszyne!");
-                if (GameManagerScript::s_Instance != nullptr) {
-                    GameManagerScript::s_Instance->UseIngredient(CurrentIngredient, 1);
-                }
+                GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
                 CancelDrag();
             }
             else {

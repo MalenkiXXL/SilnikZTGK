@@ -299,10 +299,13 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClInclude Include="CookingStation\Core\VFS\PackageFileSystem.h" />
     <ClInclude Include="CookingStation\Core\VFS\VFS.h" />
     <ClInclude Include="CookingStation\Events\EditorEvents.h" />
+    <ClInclude Include="CookingStation\Events\EventBus.h" />
+    <ClInclude Include="CookingStation\Events\GameEvents.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\Command.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\CommandHistory.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\CreateEntityCommand.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\MoveEntityCommand.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\CarouselUI.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\GameGuiLayer.h" />
     <ClInclude Include="CookingStation\Math\Geometry.h" />
     <ClInclude Include="CookingStation\Renderer\Buffer.h" />

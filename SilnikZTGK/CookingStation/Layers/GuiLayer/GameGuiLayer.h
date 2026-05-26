@@ -10,6 +10,7 @@
 #include "CookingStation/Core/Texture.h"
 #include <memory>
 #include "CookingStation/Renderer/Framebuffer.h"
+#include "CarouselUI.h"
 
 class GameGuiLayer : public Layer {
 public:
@@ -25,6 +26,9 @@ public:
 private:
     bool OnWindowResize(WindowResizeEvent& e);
     bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+
+    CarouselUI m_IngredientsCarousel;
+    CarouselUI m_MachinesCarousel;
 
     float m_ViewportWidth = 1920.0f;
     float m_ViewportHeight = 1080.0f;
@@ -50,6 +54,11 @@ private:
     std::shared_ptr<Texture> m_BookXIcon;
     std::shared_ptr<Texture> m_TomatoSoupIcon;
     std::shared_ptr<Texture> m_CoinIcon;
+    std::shared_ptr<Texture> m_PotIcon;
+    int m_CurrentMoney = 0;
+    int m_CurrentTomatoes = 0;
+
+    void SubscribeToEvents();
 
     struct BubblyState {
         float scale = 1.0f;

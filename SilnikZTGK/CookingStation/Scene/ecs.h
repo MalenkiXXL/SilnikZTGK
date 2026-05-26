@@ -7,6 +7,7 @@
 #include <vector>
 #include <cstddef>
 #include <functional>
+#include "CookingStation/Events/EventBus.h"
 
 #include "spdlog/spdlog.h"
 
@@ -118,10 +119,11 @@ private:
 
     Allocator allocator;
     std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>> components;
-
+    EventBus eventBus;
 public:
     Entity CreateEntity(); // Maybe remove, confusing
     EntityBuilder BuildEntity();
+    EventBus& GetEventBus() { return eventBus; }
 
     template <typename T>
     T* GetComponentByID(std::size_t id) {

@@ -21,8 +21,18 @@ public:
     bool m_IsReady = false;
     bool m_IsAutomated = false;
 
+    // NOWE: Zmienna, w której UI zapisuje nowo wyciągniętą maszynę
+    static inline Entity PendingPickup = { std::numeric_limits<std::size_t>::max(), 0 };
+
     virtual void OnUpdate(Timestep ts) override
     {
+        // NOWE: Jeśli to my jesteśmy świeżo wyciągniętą maszyną z UI, natychmiast się "podnosimy"
+        if (PendingPickup.id != std::numeric_limits<std::size_t>::max() && PendingPickup.id == m_Entity.id)
+        {
+            m_IsHeld = true;
+            PendingPickup = { std::numeric_limits<std::size_t>::max(), 0 }; // Czyścimy schowek
+        }
+
         if (m_IsHeld)
         {
             auto* transform = GetComponent<TransformComponent>();
