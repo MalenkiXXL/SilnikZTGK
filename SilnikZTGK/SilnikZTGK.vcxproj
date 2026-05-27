@@ -366,6 +366,7 @@ xcopy /y /d "C:\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"<
     <ClInclude Include="CookingStation\Scripts\Machines\MixerScript.h" />
     <ClInclude Include="CookingStation\Scripts\Machines\OvenScript.h" />
     <ClInclude Include="CookingStation\Scripts\ParticleEmitterScript.h" />
+    <ClInclude Include="CookingStation\Scripts\PlateScript.h" />
     <ClInclude Include="CookingStation\Scripts\PlateSpawnerScript.h" />
     <ClInclude Include="CookingStation\Scripts\Machines\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\Quests\DeliveryBoothScript.h" />

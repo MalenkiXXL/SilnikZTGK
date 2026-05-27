@@ -8,6 +8,7 @@
 #include "CookingStation/Events/GameEvents.h"
 #include <glm/glm.hpp>
 #include <limits> 
+#include "CookingStation/Scripts/PlateScript.h"
 
 class DragAndDropScript : public ScriptableEntity
 {
@@ -72,7 +73,7 @@ public:
         }
     }
 
-    static void StartDrag(IngredientType type, const std::string& modelPath, glm::vec3 scale = glm::vec3(0.6f), glm::vec3 rotation = glm::vec3(0.0f))
+    static void StartDrag(IngredientType type, const std::string& modelPath)
     {
         if (!ActiveScene) return;
         if (IsDragging) CancelDrag();
@@ -87,8 +88,11 @@ public:
 
         TransformComponent tc;
         tc.SetPosition(glm::vec3(0.0f, -100.0f, 0.0f));
-        tc.SetScale(scale);
-        tc.SetRotation(rotation);
+
+        // ZMIANA: Pobieramy dane z naszego nowego centralnego rejestru!
+        IngredientMetadata meta = GetIngredientMetadata(type);
+        tc.SetScale(meta.scale);
+        tc.SetRotation(meta.rotation);
 
         builder.With<TransformComponent>(tc);
 
@@ -199,7 +203,9 @@ private:
     {
         Entity closestMachine = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 2.0f;
+
         MachineScript* targetMachineScript = nullptr;
+        PlateScript* targetPlateScript = nullptr; // NOWE
 
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
@@ -207,43 +213,48 @@ private:
         if (scripts && transforms) {
             for (size_t i = 0; i < scripts->dense.size(); ++i) {
                 auto& nsc = scripts->dense[i];
-                MachineScript* tempMachine = nullptr;
 
                 for (auto& scriptElement : nsc.Scripts) {
-                    if (scriptElement.Name == "PotScript" ||
-                        scriptElement.Name == "CuttingBoardScript" ||
-                        scriptElement.Name == "MixerScript" ||
-                        scriptElement.Name == "OvenScript")
-                    {
-                        tempMachine = dynamic_cast<MachineScript*>(scriptElement.Instance);
-                        break;
-                    }
-                }
+                    Entity entity = scripts->reverse[i];
+                    auto* transform = transforms->Get(entity);
+                    if (!transform) continue;
 
-                if (tempMachine) {
-                    Entity machineEntity = scripts->reverse[i];
-                    auto* machineTransform = transforms->Get(machineEntity);
-
-                    if (machineTransform) {
-                        float dist = glm::distance(dropPos, machineTransform->GetPosition());
-                        if (dist < closestDist) {
+                    float dist = glm::distance(dropPos, transform->GetPosition());
+                    if (dist < closestDist) {
+                        // Sprawdzamy maszyny
+                        if (scriptElement.Name == "PotScript" || scriptElement.Name == "CuttingBoardScript" ||
+                            scriptElement.Name == "MixerScript" || scriptElement.Name == "OvenScript")
+                        {
                             closestDist = dist;
-                            closestMachine = machineEntity;
-                            targetMachineScript = tempMachine;
+                            closestMachine = entity;
+                            targetMachineScript = dynamic_cast<MachineScript*>(scriptElement.Instance);
+                            targetPlateScript = nullptr;
+                        }
+                        // Sprawdzamy Talerze!
+                        else if (scriptElement.Name == "PlateScript")
+                        {
+                            closestDist = dist;
+                            closestMachine = entity;
+                            targetPlateScript = dynamic_cast<PlateScript*>(scriptElement.Instance);
+                            targetMachineScript = nullptr;
                         }
                     }
                 }
             }
         }
 
-        if (closestMachine.id != std::numeric_limits<std::size_t>::max() && targetMachineScript) {
-            if (targetMachineScript->AddIngredient(CurrentIngredient)) {
-                spdlog::info("DragAndDrop: Skladnik pomyslnie upuszczony na maszyne!");
+        if (closestMachine.id != std::numeric_limits<std::size_t>::max()) {
+            // Jeśli trafiliśmy w talerz:
+            if (targetPlateScript && targetPlateScript->AddIngredient(CurrentIngredient)) {
+                spdlog::info("Złożono składnik na talerzu!");
                 GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
                 CancelDrag();
             }
-            else {
-                spdlog::warn("DragAndDrop: Maszyna odrzucila skladnik (nie ten typ lub zajeta)!");
+            // Jeśli trafiliśmy w maszynę:
+            else if (targetMachineScript && targetMachineScript->AddIngredient(CurrentIngredient)) {
+                spdlog::info("Wrzucono składnik do maszyny!");
+                GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
+                CancelDrag();
             }
         }
     }

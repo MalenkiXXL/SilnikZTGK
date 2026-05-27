@@ -118,6 +118,7 @@
     <ClInclude Include="CookingStation\Scripts\Machines\MixerScript.h" />
     <ClInclude Include="CookingStation\Scripts\Machines\OvenScript.h" />
     <ClInclude Include="CookingStation\Scripts\Machines\PotScript.h" />
+    <ClInclude Include="CookingStation\Scripts\PlateScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

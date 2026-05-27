@@ -127,19 +127,19 @@ public:
                     auto paths = GetModelPathsForIngredient(rawType);
 
                     if (rawType == IngredientType::Tomato) {
-                        DragAndDropScript::StartDrag(IngredientType::ChoppedTomato, paths.second, glm::vec3(0.6f));
+                        DragAndDropScript::StartDrag(IngredientType::ChoppedTomato, paths.second);
                     }
                     else if (rawType == IngredientType::Baguette) {
-                        DragAndDropScript::StartDrag(IngredientType::CutBaguette, paths.second, glm::vec3(1.0f));
+                        DragAndDropScript::StartDrag(IngredientType::CutBaguette, paths.second);
                     }
                     else if (rawType == IngredientType::Cheese) {
-                        DragAndDropScript::StartDrag(IngredientType::ChoppedCheese, paths.second, glm::vec3(1.5f), glm::vec3(glm::radians(90.0f), 0.0f, 0.0f));
+                        DragAndDropScript::StartDrag(IngredientType::ChoppedCheese, paths.second);
                     }
                     else if (rawType == IngredientType::Ham) {
-                        DragAndDropScript::StartDrag(IngredientType::ChoppedHam, paths.second, glm::vec3(1.8f), glm::vec3(glm::radians(-90.0f), 0.0f, glm::radians(180.0f)));
+                        DragAndDropScript::StartDrag(IngredientType::ChoppedHam, paths.second);
                     }
                     else if (rawType == IngredientType::Mozzarella) {
-                        DragAndDropScript::StartDrag(IngredientType::ChoppedMozzarella, paths.second, glm::vec3(1.0f));
+                        DragAndDropScript::StartDrag(IngredientType::ChoppedMozzarella, paths.second);
                     }
 
                     ResetMachineState();
@@ -199,15 +199,15 @@ protected:
         auto paths = GetModelPathsForIngredient(m_Ingredients[0]);
         std::string currentModelPath = m_IsReady ? paths.second : paths.first;
 
+        IngredientMetadata meta = GetIngredientMetadata(m_Ingredients[0]);
+
         if (m_SpawnedFood.id == std::numeric_limits<std::size_t>::max())
         {
             auto builder = GetScene()->GetWorld().BuildEntity();
 
             TransformComponent tc;
-            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, m_BaseYOffset, 0.0f));
-
-            // TODO: W przysz³oœci mo¿esz te¿ podpi¹æ skalê specyficzn¹ dla sk³adnika (tak jak w UI)
-            tc.SetScale(glm::vec3(0.7f, 0.7f, 0.7f));
+            tc.SetScale(meta.scale);
+            tc.SetRotation(meta.rotation);
 
             builder.With<TransformComponent>(tc);
 

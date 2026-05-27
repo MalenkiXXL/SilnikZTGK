@@ -36,8 +36,8 @@ public:
                     {
                         spdlog::info("Mixer: Wyciagniêto wyrobione ciasto!");
 
-                        // Przekazujemy surowe ciasto graczowi do r¹k (na myszkê)
-                        DragAndDropScript::StartDrag(IngredientType::RawDough, "assets://models/skladniki/maka/maka.gltf", glm::vec3(0.8f)); // Zmieñ œcie¿kê, jeœli masz model surowego ciasta!
+                        // Przekazujemy surowe ciasto graczowi na msyzkê
+                        DragAndDropScript::StartDrag(IngredientType::RawDough, "assets://models/skladniki/maka/maka.gltf"); 
 
                         ResetMachineState();
                     }
@@ -92,8 +92,10 @@ protected:
             builder.With<TagComponent>({ "WyrobioneCiasto" });
 
             TransformComponent tc;
-            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f)); // Ciasto unosi siê nad mis¹
-            tc.SetScale(glm::vec3(8.0f));
+            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.2f, 0.0f));
+            IngredientMetadata meta = GetIngredientMetadata(IngredientType::RawDough);
+            tc.SetScale(meta.scale);
+            tc.SetRotation(meta.rotation);
             builder.With<TransformComponent>(tc);
 
             MeshComponent mesh;

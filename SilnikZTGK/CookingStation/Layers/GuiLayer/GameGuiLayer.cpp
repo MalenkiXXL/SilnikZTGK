@@ -327,15 +327,15 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     glm::vec2 leftCenter = { gameX + paddingX, gameY + gameHeight - paddingY};
 
     // Struktura ułatwiająca zarządzanie listą
-    struct UIIngredient { std::string id; std::shared_ptr<Texture> tex; IngredientType type; std::string modelPath; glm::vec3 modelScale; glm::vec3 modelRotation;};
+    struct UIIngredient { std::string id; std::shared_ptr<Texture> tex; IngredientType type; std::string modelPath;};
 
     // Dodaj tu dowolnie dużo składników, karuzela sama je ustawi i zwinie!
     std::vector<UIIngredient> leftItems = {
-        {"BtnTomato", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf", glm::vec3(0.6f), glm::vec3(0.0f, 90.0f, 0.0f)},
-        {"BtnTCheese", m_CheeseIcon, IngredientType::Cheese, "assets://models/skladniki/ser/ser.gltf", glm::vec3(8.5f), glm::vec3(0.0f, 90.0f, 0.0f)},
-        {"BtnHam", m_HamIcon, IngredientType::Ham, "assets://models/skladniki/szynka/szynka.gltf", glm::vec3(7.5f), glm::vec3(0.0f, 90.0f, 0.0f)},
-        {"BtnMilk", m_MilkIcon, IngredientType::Milk, "assets://models/skladniki/mleko/milk.gltf", glm::vec3(0.4f), glm::vec3(0.0f, 90.0f, 0.0f)},
-        {"BtnMilk", m_FlourIcon, IngredientType::Flour, "assets://models/skladniki/maka/maka.gltf", glm::vec3(7.0f), glm::vec3(0.0f, 0.0f, 0.0f)}
+        {"BtnTomato", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
+        {"BtnTCheese", m_CheeseIcon, IngredientType::Cheese, "assets://models/skladniki/ser/ser.gltf"},
+        {"BtnHam", m_HamIcon, IngredientType::Ham, "assets://models/skladniki/szynka/szynka.gltf"},
+        {"BtnMilk", m_MilkIcon, IngredientType::Milk, "assets://models/skladniki/mleko/milk.gltf"},
+        {"BtnMilk", m_FlourIcon, IngredientType::Flour, "assets://models/skladniki/maka/maka.gltf"}
     };
 
     for (int i = 0; i < leftItems.size(); i++) {
@@ -357,7 +357,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
 
             if (DrawIngredientIcon(leftItems[i].id, leftItems[i].tex, pos, actualSize, dt, baseScale, count, true)) {
                 spdlog::info("UI: Wyciagnieto skladnik: {}", leftItems[i].id);
-                DragAndDropScript::StartDrag(leftItems[i].type, leftItems[i].modelPath, leftItems[i].modelScale, leftItems[i].modelRotation);
+                DragAndDropScript::StartDrag(leftItems[i].type, leftItems[i].modelPath);
             }
         }
     }

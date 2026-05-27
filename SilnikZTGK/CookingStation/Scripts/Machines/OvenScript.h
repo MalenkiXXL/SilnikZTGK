@@ -32,7 +32,7 @@ public:
                     if (glm::distance(mousePos2D, foodPos2D) < 3.0f)
                     {
                         // Gracz otrzymuje upieczon¹ bagietkê
-                        DragAndDropScript::StartDrag(IngredientType::Baguette, "assets://models/skladniki/bagietka/bagietka.gltf", glm::vec3(1.0f));
+                        DragAndDropScript::StartDrag(IngredientType::Baguette, "assets://models/skladniki/bagietka/bagietka.gltf");
                         ResetMachineState();
                     }
                 }
@@ -80,8 +80,10 @@ protected:
             builder.With<TagComponent>({ "BagietkaWPiekarniku" });
 
             TransformComponent tc;
-            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.2f, 0.0f)); // Wysokoœæ nad piekarnikiem
-            tc.SetScale(glm::vec3(1.0f));
+            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
+            IngredientMetadata meta = GetIngredientMetadata(IngredientType::RawDough);
+            tc.SetScale(meta.scale);
+            tc.SetRotation(meta.rotation);
             builder.With<TransformComponent>(tc);
 
             MeshComponent mesh;
