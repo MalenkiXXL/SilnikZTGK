@@ -48,11 +48,10 @@ public:
 
     virtual void OnUpdate(Timestep ts) override
     {
-        // NOWE: Jeśli to my jesteśmy świeżo wyciągniętą maszyną z UI, natychmiast się "podnosimy"
         if (PendingPickup.id != std::numeric_limits<std::size_t>::max() && PendingPickup.id == m_Entity.id)
         {
             m_IsHeld = true;
-            PendingPickup = { std::numeric_limits<std::size_t>::max(), 0 }; // Czyścimy schowek
+            PendingPickup = { std::numeric_limits<std::size_t>::max(), 0 };
         }
 
         if (m_IsHeld)
@@ -60,8 +59,14 @@ public:
             auto* transform = GetComponent<TransformComponent>();
             if (!transform) return;
 
+            float originalY = transform->GetPosition().y;
+
             glm::vec3 mouseWorldPos = GetMouseWorldPosition();
-            transform->SetPosition(GridSystem::SnapToGrid(mouseWorldPos));
+            glm::vec3 snappedPos = GridSystem::SnapToGrid(mouseWorldPos);
+
+            snappedPos.y = originalY;
+
+            transform->SetPosition(snappedPos);
 
             if (Input::IsMouseButtonJustPressed(0))
             {
