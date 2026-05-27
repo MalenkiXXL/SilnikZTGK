@@ -327,7 +327,7 @@ void Scene::CalculateTransforms() {
 
 		// Je�li to korze� grafu (lub samodzielny obiekt), startujemy drzewo
 		if (isRoot) {
-			UpdateTransformTree(world, entity.id, glm::mat4(1.0f), false); 
+			UpdateTransformTree(world, entity.id, glm::mat4(1.0f), true);
 		}
 	}
 }

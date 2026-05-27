@@ -99,9 +99,9 @@
       "model_path": "assets://models/warzywka/grzybek/grzybek.gltf",
       "name": "Pan Grzybek",
       "position": [
-        -7.0,
+        3.0,
         0.5,
-        0.0
+        -8.5
       ],
       "rotation": [
         0.0,
@@ -115,7 +115,7 @@
       ],
       "scripts": [
         "DustEmitterScript",
-        "MushroomAI"
+        "WaiterScript"
       ]
     },
     {
@@ -1306,7 +1306,7 @@
       },
       "id": 48,
       "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-      "name": "PickupConveyor",
+      "name": "tasma_PickupConveyor",
       "position": [
         9.0,
         0.0,
@@ -1323,7 +1323,8 @@
         1.0
       ],
       "scripts": [
-        "ConveyorScript"
+        "ConveyorScript",
+        "WaiterPickupStationScript"
       ]
     },
     {
