@@ -481,12 +481,14 @@ private:
                     std::string t = tagComp->Tag;
                     if (t.find("Table") != std::string::npos ||
                         t.find("Tasma") != std::string::npos ||
+                        t.find("tasma") != std::string::npos || 
                         t.find("Chair") != std::string::npos ||
                         t.find("krzeslo") != std::string::npos ||
                         t.find("Krzeslo") != std::string::npos ||
                         t.find("budka") != std::string::npos ||
                         t.find("naro¿nik") != std::string::npos ||
                         t.find("PlateSpawner") != std::string::npos ||
+                        t.find("budka") != std::string::npos ||
                         t.find("Garnek") != std::string::npos)
                     {
                         return false;
