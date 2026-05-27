@@ -119,6 +119,7 @@
     <ClInclude Include="CookingStation\Scripts\Machines\OvenScript.h" />
     <ClInclude Include="CookingStation\Scripts\Machines\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\PlateScript.h" />
+    <ClInclude Include="CookingStation\Events\GamepadEvent.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />
@@ -129,5 +130,7 @@
     <None Include="CookingStation\Shaders\fragShaders\shader.frag" />
     <None Include="CookingStation\Shaders\vsShaders\shader.vs" />
     <None Include="CookingStation\Assets\prefabs\plate.json" />
+    <None Include="CookingStation\Shaders\vsShaders\highlight.vs" />
+    <None Include="CookingStation\Shaders\fragShaders\highlight.frag" />
   </ItemGroup>
 </Project>
