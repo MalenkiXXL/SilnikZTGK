@@ -15,8 +15,6 @@ bool Input::IsKeyPressed(int keycode)
 	auto window = Application::Get().GetWindow().GetNativeWindow();
 	int state = glfwGetKey(window, keycode);
 
-	auto window = Application::Get().GetWindow().GetNativeWindow();
-
 	if (state == GLFW_PRESS || state == GLFW_REPEAT)
 	{
 		return true;
