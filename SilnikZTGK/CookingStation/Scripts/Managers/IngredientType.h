@@ -29,7 +29,7 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
     switch (type)
     {
     case IngredientType::Tomato:
-        return { glm::vec3(1.2f)};
+        return { glm::vec3(0.8f)};
     case IngredientType::ChoppedTomato:
         return { glm::vec3(0.4f), glm::vec3(0.0f, 90.0f, 0.0f) };
 

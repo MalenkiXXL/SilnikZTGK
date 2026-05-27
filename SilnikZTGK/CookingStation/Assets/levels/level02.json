@@ -21,26 +21,6 @@
       ]
     },
     {
-      "id": 1,
-      "model_path": "assets://models/wystroj/chmura.gltf",
-      "name": "Chmura_18",
-      "position": [
-        -9.0,
-        8.5,
-        -3.0
-      ],
-      "rotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "scale": [
-        1.0,
-        1.0,
-        1.0
-      ]
-    },
-    {
       "id": 2,
       "name": "PlateSpawner_62",
       "position": [
@@ -2071,6 +2051,14 @@
       "position": [ 9.0, 0.0, -13.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ]
+    },
+    {
+      "id": 85,
+      "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
+      "name": "event_78",
+      "position": [ -25.0, 1.5, 1.0 ],
+      "rotation": [ 0.0, 0.0, 0.0 ],
+      "scale": [ 1.0, 1.0, 1.0 ]
     }
-    ]
+  ]
 }
