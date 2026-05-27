@@ -392,10 +392,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
         if (m_IngredientsCarousel.GetItemTransform(i, leftCenter, arcRadius, actualSize, pos)) {
 
             // DYNAMICZNE POBIERANIE DANYCH
-            int countToDraw = 0;
-            if (leftItems[i].type == IngredientType::Tomato) {
-                countToDraw = m_CurrentTomatoes; // To się teraz dynamicznie zmienia!
-            }
+            int countToDraw = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(leftItems[i].type) : 0;
 
             if (DrawIngredientIcon(leftItems[i].id, leftItems[i].tex, pos, actualSize, dt, baseScale, countToDraw, true)) {
                 spdlog::info("UI: Wyciagnieto skladnik: {}", leftItems[i].id);
