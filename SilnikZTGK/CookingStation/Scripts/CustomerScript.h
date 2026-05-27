@@ -27,23 +27,30 @@ public:
         return false;
     }
 
-    virtual void ReceiveFood()
+    virtual void ReceiveFood(bool isCorrectOrder = true)
     {
         IsServed = true;
-        spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
 
-        if (GameManagerScript::s_Instance)
+        if (isCorrectOrder)
         {
-            GameManagerScript::s_Instance->AddMoney(50);
-            spdlog::info("Klient nr {} zaplacil 10 monet!", m_Entity.id);
+            spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
+            if (GameManagerScript::s_Instance)
+            {
+                GameManagerScript::s_Instance->AddMoney(50);
+                spdlog::info("Klient nr {} zaplacil 50 monet!", m_Entity.id);
+            }
+            auto* tag = GetComponent<TagComponent>();
+            if (tag) tag->Tag = "ZadowolonyKlient";
+        }
+        else
+        {
+            spdlog::info("Klient nr {} dostal puste/zle zamowienie! Wychodzi bez placenia.", m_Entity.id);
+            auto* tag = GetComponent<TagComponent>();
+            if (tag) tag->Tag = "ZlyKlient";
         }
 
         // Soft Deletion 
         auto* tf = GetComponent<TransformComponent>();
         if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
-
-        // Zmiana tagu na zadowolenie -> mo�na uzy� do efek�w wizualnych 
-        auto* tag = GetComponent<TagComponent>();
-        if (tag) tag->Tag = "ZadowolonyKlient";
     }
 };

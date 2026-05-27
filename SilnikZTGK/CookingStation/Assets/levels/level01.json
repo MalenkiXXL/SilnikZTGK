@@ -29,12 +29,15 @@
     },
     {
       "id": 4,
-      "name": "Tasma_4_Podstawa",
+      "name": "PickupConveyor",
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ -3.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 90.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 5,
@@ -53,7 +56,10 @@
       "position": [ -1.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 7,
@@ -72,7 +78,10 @@
       "position": [ 1.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 9,
@@ -91,7 +100,10 @@
       "position": [ 3.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 11,
@@ -110,7 +122,10 @@
       "position": [ 5.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 13,
@@ -129,7 +144,10 @@
       "position": [ 7.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 15,
@@ -143,12 +161,15 @@
     },
     {
       "id": 16,
-      "name": "Tasma_16_Podstawa",
+      "name": "PickupConveyor",
       "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
       "position": [ 9.0, 0.0, -5.0 ],
       "rotation": [ 0.0, 0.0, 0.0 ],
       "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "ConveyorScript"
+      "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+      ]
     },
     {
       "id": 17,
@@ -702,19 +723,6 @@
       "script": "BeltVisualScript"
     },
     {
-      "collider": {
-        "offset": [ 0.0, 0.0, 0.0 ],
-        "size": [ 1.0, 1.0, 1.0 ]
-      },
-      "id": 77,
-      "model_path": "CookingStation/Assets/models/przybory_kuchenne/small_pot/small_pot.gltf",
-      "name": "GarnekTestowy_77",
-      "position": [ 1.0, 0.0, 5.0 ],
-      "rotation": [ 0.0, 0.0, 0.0 ],
-      "scale": [ 1.0, 1.0, 1.0 ],
-      "script": "PotScript"
-    },
-    {
       "id": 78,
       "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
       "name": "event_78",
@@ -750,7 +758,7 @@
       },
       "scripts": [
         "DustEmitterScript",
-        "MushroomAI"
+        "WaiterScript"
       ]
     },
     {

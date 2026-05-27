@@ -162,13 +162,6 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>xcopy /y /d "C:\Users\ola87\vcpkg\packages\assimp_x64-windows\bin\assimp-vc143-mt.dll" "$(OutDir)"
-xcopy /y /d "C:\Users\ola87\vcpkg\packages\glfw3_x64-windows\bin\glfw3.dll" "$(OutDir)"
-xcopy /y /d "C:\Users\ola87\vcpkg\packages\jhasse-poly2tri_x64-windows\bin\poly2tri.dll" "$(OutDir)"
-xcopy /y /d "C:\Users\ola87\vcpkg\packages\minizip_x64-windows\bin\minizip.dll" "$(OutDir)"
-xcopy /y /d "C:\Users\ola87\vcpkg\packages\zlib_x64-windows\bin\zlib1.dll" "$(OutDir)"
-xcopy /y /d "C:\Users\ola87\vcpkg\packages\kubazip_x64-windows\bin\kubazip.dll" "$(OutDir)"
-xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -190,8 +183,6 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -215,8 +206,6 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Distribution|x64'">
@@ -240,8 +229,13 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>
-      </Command>
+      <Command>xcopy /y /d "C:\vcpkg\packages\assimp_x64-windows\bin\assimp-vc143-mt.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\glfw3_x64-windows\bin\glfw3.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\jhasse-poly2tri_x64-windows\bin\poly2tri.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\minizip_x64-windows\bin\minizip.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\zlib_x64-windows\bin\zlib1.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\kubazip_x64-windows\bin\kubazip.dll" "$(OutDir)"
+xcopy /y /d "C:\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -347,10 +341,13 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClInclude Include="CookingStation\Scripts\DustEmitterScript.h" />
     <ClInclude Include="CookingStation\Scripts\HelperCustomerScript.h" />
     <ClInclude Include="CookingStation\Scripts\ItemScript.h" />
-    <ClInclude Include="CookingStation\Scripts\MachineScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\MachineScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\MixerScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\OvenScript.h" />
     <ClInclude Include="CookingStation\Scripts\ParticleEmitterScript.h" />
+    <ClInclude Include="CookingStation\Scripts\PlateScript.h" />
     <ClInclude Include="CookingStation\Scripts\PlateSpawnerScript.h" />
-    <ClInclude Include="CookingStation\Scripts\PotScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\Quests\DeliveryBoothScript.h" />
     <ClInclude Include="CookingStation\Scripts\RotationScript.h" />
     <ClInclude Include="CookingStation\Scene\SceneManager.h" />
@@ -358,6 +355,8 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClInclude Include="CookingStation\Layers\HudLayer\HUDLayer.h" />
     <ClInclude Include="CookingStation\Scripts\ScriptRegistry.h" />
     <ClInclude Include="CookingStation\Scripts\SteamEmitterScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Waiter\WaiterPickupStationScript.h" />
+    <ClInclude Include="CookingStation\Scripts\Waiter\WaiterScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\Assets\prefabs\plate.json" />

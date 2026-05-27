@@ -138,7 +138,9 @@ protected:
         {
             for (size_t i = 0; i < tagSet->dense.size(); ++i)
             {
-                if (tagSet->dense[i].Tag == "Plate" || tagSet->dense[i].Tag == "Talerz" || tagSet->dense[i].Tag == "Talerz_62")
+                const std::string& tagName = tagSet->dense[i].Tag;
+
+                if (tagName.find("Plate") != std::string::npos || tagName.find("Talerz") != std::string::npos)
                 {
                     Entity plateEntity = tagSet->reverse[i];
                     auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(plateEntity);

@@ -21,3 +21,5 @@ cmake-build-release
 cmake-build-distribution
 SilnikZTGK/CookingStation/Assets/saves/temp_play_scene.json
 SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj
+SilnikZTGK/SilnikZTGK.vcxproj
+*.vcxproj

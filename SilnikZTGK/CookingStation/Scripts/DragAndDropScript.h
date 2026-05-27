@@ -3,9 +3,10 @@
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
-#include "CookingStation/Scripts/MachineScript.h"
-#include "CookingStation/Scripts/PotScript.h"
+#include "CookingStation/Scripts/Machines/MachineScript.h"
+#include "CookingStation/Scripts/Machines/PotScript.h"
 #include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Scripts/PlateScript.h"
 #include <glm/glm.hpp>
 #include <limits>
 
@@ -246,7 +247,9 @@ private:
     {
         Entity closestMachine = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 2.0f;
+
         MachineScript* targetMachineScript = nullptr;
+        PlateScript* targetPlateScript = nullptr; // NOWE
 
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
@@ -254,39 +257,48 @@ private:
         if (scripts && transforms) {
             for (size_t i = 0; i < scripts->dense.size(); ++i) {
                 auto& nsc = scripts->dense[i];
-                MachineScript* tempMachine = nullptr;
 
                 for (auto& scriptElement : nsc.Scripts) {
-                    if (scriptElement.Name == "PotScript" || scriptElement.Name == "CuttingBoardScript") {
-                        tempMachine = dynamic_cast<MachineScript*>(scriptElement.Instance);
-                        break;
-                    }
-                }
+                    Entity entity = scripts->reverse[i];
+                    auto* transform = transforms->Get(entity);
+                    if (!transform) continue;
 
-                if (tempMachine) {
-                    Entity machineEntity = scripts->reverse[i];
-                    auto* machineTransform = transforms->Get(machineEntity);
-
-                    if (machineTransform) {
-                        float dist = glm::distance(dropPos, machineTransform->GetPosition());
-                        if (dist < closestDist) {
+                    float dist = glm::distance(dropPos, transform->GetPosition());
+                    if (dist < closestDist) {
+                        // Sprawdzamy maszyny
+                        if (scriptElement.Name == "PotScript" || scriptElement.Name == "CuttingBoardScript" ||
+                            scriptElement.Name == "MixerScript" || scriptElement.Name == "OvenScript")
+                        {
                             closestDist = dist;
-                            closestMachine = machineEntity;
-                            targetMachineScript = tempMachine;
+                            closestMachine = entity;
+                            targetMachineScript = dynamic_cast<MachineScript*>(scriptElement.Instance);
+                            targetPlateScript = nullptr;
+                        }
+                        // Sprawdzamy Talerze!
+                        else if (scriptElement.Name == "PlateScript")
+                        {
+                            closestDist = dist;
+                            closestMachine = entity;
+                            targetPlateScript = dynamic_cast<PlateScript*>(scriptElement.Instance);
+                            targetMachineScript = nullptr;
                         }
                     }
                 }
             }
         }
 
-        if (closestMachine.id != std::numeric_limits<std::size_t>::max() && targetMachineScript) {
-            if (targetMachineScript->AddIngredient(CurrentIngredient)) {
-                spdlog::info("DragAndDrop: Skladnik pomyslnie upuszczony na maszyne!");
+        if (closestMachine.id != std::numeric_limits<std::size_t>::max()) {
+            // Jeśli trafiliśmy w talerz:
+            if (targetPlateScript && targetPlateScript->AddIngredient(CurrentIngredient)) {
+                spdlog::info("Złożono składnik na talerzu!");
                 GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
                 CancelDrag();
             }
-            else {
-                spdlog::warn("DragAndDrop: Maszyna odrzucila skladnik!");
+            // Jeśli trafiliśmy w maszynę:
+            else if (targetMachineScript && targetMachineScript->AddIngredient(CurrentIngredient)) {
+                spdlog::info("Wrzucono składnik do maszyny!");
+                GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
+                CancelDrag();
             }
         }
     }

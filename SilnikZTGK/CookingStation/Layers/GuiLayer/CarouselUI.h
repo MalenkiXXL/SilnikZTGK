@@ -40,21 +40,21 @@ public:
     }
 
     // ZMIANA: arcRadius to teraz glm::vec2 (X i Y osobno!)
-    bool GetItemTransform(int index, glm::vec2 centerPos, glm::vec2 arcRadius, float itemBaseH, glm::vec2& outPos) {
+    bool GetItemTransform(int index, glm::vec2 centerPos, glm::vec2 arcRadius, glm::vec2 itemSize, glm::vec2& outPos) {
         float currentAngle = m_StartAngle - (index * m_AngleSpacing) + m_CurrentAngleOffset;
 
         if (currentAngle < 0.1f || currentAngle > 1.5f) {
             return false;
         }
 
-        // ZMIANA: Równanie Elipsy (arcRadius.x dla X, arcRadius.y dla Y)
         float xPos = m_IsLeftSided
             ? centerPos.x + arcRadius.x * cos(currentAngle)
             : centerPos.x - arcRadius.x * cos(currentAngle);
 
         float yPos = centerPos.y - arcRadius.y * sin(currentAngle);
 
-        outPos = { xPos - (itemBaseH * 0.5f), yPos - (itemBaseH * 0.5f) };
+        // U¿ywamy itemSize.x i itemSize.y, aby idealnie wyœrodkowaæ ka¿dy element, nawet te d³ugie!
+        outPos = { xPos - (itemSize.x * 0.5f), yPos - (itemSize.y * 0.5f) };
         return true;
     }
 

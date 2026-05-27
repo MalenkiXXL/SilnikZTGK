@@ -6,6 +6,7 @@
 #include <random>
 #include "CustomerScript.h"
 #include "HelperCustomerScript.h" 
+#include "Waiter/WaiterScript.h"
 
 class CustomerManagerScript : public ScriptableEntity
 {
@@ -153,7 +154,12 @@ private:
         }
 
         builder.With<NativeScriptComponent>(nsc);
-        builder.Build();
+        Entity newCustomer = builder.Build();
+
+        if (!isHelper)
+        {
+            WaiterScript::RegisterCustomer(newCustomer);
+        }
 
         spdlog::info("Zespawnowano nowego {} (Model: {}) - Patrzy na stolik!", isHelper ? "Helpera" : "Klienta", chosenModel);
     }
@@ -165,8 +171,9 @@ private:
 
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
-            if (tags->dense[i].Tag == "Chair" || tags->dense[i].Tag == "Krzeslo")
-            {
+            const std::string& tagName = tags->dense[i].Tag;
+
+            if (tagName.find("Chair") != std::string::npos || tagName.find("Krzeslo") != std::string::npos){
                 Entity chairEntity = tags->reverse[i];
                 if (IsChairEmpty(chairEntity))
                 {

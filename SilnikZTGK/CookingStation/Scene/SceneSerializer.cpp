@@ -13,7 +13,7 @@
 #include "CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
 #include "CookingStation/Scripts/ConveyorBelt/BeltVisualScript.h"
 #include "CookingStation/Scripts/Plates/ItemScript.h"
-#include "CookingStation/Scripts/PotScript.h"
+#include "CookingStation/Scripts/Machines/PotScript.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
 // DODANO NAGŁÓWKI ANIMACJI
 #include "CookingStation/Layers/AssetLayer/Animation.h"

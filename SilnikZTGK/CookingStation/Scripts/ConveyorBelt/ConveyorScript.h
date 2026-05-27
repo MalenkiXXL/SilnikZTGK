@@ -26,6 +26,7 @@ public:
     float Speed = 2.0f;
     bool IsOccupied = false;
     bool IsJammed = false;
+    bool IsPickupPoint = false;
 
     void OnCreate() override
     {

@@ -15,7 +15,7 @@
 #include "CookingStation/Core/GameProgress.h"
 #include "CookingStation/Core/VFS/VFS.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
-#include "CookingStation/Scripts/MachineScript.h"
+#include "CookingStation/Scripts/Machines/MachineScript.h"
 
 bool GameGuiLayer::s_NeedsQuestReload = false;
 
@@ -86,6 +86,8 @@ void GameGuiLayer::OnAttach()
     // Inicjalizacja tekstur
     m_CornerIcon = AssetManager::GetTexture("assets://UI/bottomCornerClouds.png");
     m_TomatoIcon = AssetManager::GetTexture("assets://UI/tomato.png");
+    m_CheeseIcon = AssetManager::GetTexture("assets://UI/Cheese.png");
+    m_HamIcon = AssetManager::GetTexture("assets://UI/ham.png");
     m_BookCloudIcon = AssetManager::GetTexture("assets://UI/bookCloud.png");
     m_BookIcon = AssetManager::GetTexture("assets://UI/book.png");
     m_BookStarsIcon = AssetManager::GetTexture("assets://UI/bookStars.png");
@@ -94,6 +96,10 @@ void GameGuiLayer::OnAttach()
     m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
     m_CoinIcon = AssetManager::GetTexture("assets://UI/coin.png");
     m_PotIcon = AssetManager::GetTexture("assets://UI/pot.png");
+    m_MilkIcon = AssetManager::GetTexture("assets://UI/pot.png");
+    m_FlourIcon = AssetManager::GetTexture("assets://UI/Flour.png");
+    m_OvenIcon = AssetManager::GetTexture("assets://UI/oven.png");
+    m_MixerIcon = AssetManager::GetTexture("assets://UI/pot.png");
 
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
@@ -334,9 +340,13 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
 
     // Wymiary potrzebne dla karuzeli
     float itemBaseH = baseIconSize.y * 0.3f;
-    glm::vec2 itemBaseSize = { itemBaseH, itemBaseH };
+    <<<<<< < HEAD
+        glm::vec2 itemBaseSize = { itemBaseH, itemBaseH };
 
-    glm::vec2 arcRadius = { baseIconSize.x * 0.66f, baseIconSize.y * 0.64f };
+    ====== =
+
+        >>>>>> > main
+        glm::vec2 arcRadius = { baseIconSize.x * 0.66f, baseIconSize.y * 0.64f };
 
     float paddingX = 30.0f * baseScale;
     float paddingY = 10.0f * baseScale;
@@ -349,20 +359,30 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     // Dodaj tu dowolnie dużo składników, karuzela sama je ustawi i zwinie!
     std::vector<UIIngredient> leftItems = {
         {"BtnTomato", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
-        // Skopiowałem pomidora kilka razy, żebyś od razu mogła przetestować scrollowanie!
-        {"BtnTomato2", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
-        {"BtnTomato3", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
-        {"BtnTomato4", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"}
+        {"BtnTCheese", m_CheeseIcon, IngredientType::Cheese, "assets://models/skladniki/ser/ser.gltf"},
+        {"BtnHam", m_HamIcon, IngredientType::Ham, "assets://models/skladniki/szynka/szynka.gltf"},
+        {"BtnMilk", m_MilkIcon, IngredientType::Milk, "assets://models/skladniki/mleko/milk.gltf"},
+        {"BtnMilk", m_FlourIcon, IngredientType::Flour, "assets://models/skladniki/maka/maka.gltf"}
     };
 
     for (int i = 0; i < leftItems.size(); i++) {
+        // --- NOWE: Fit to Box (Idealne dopasowanie proporcji) ---
+        glm::vec2 actualSize = { itemBaseH, itemBaseH };
+        if (leftItems[i].tex) {
+            float texW = (float)leftItems[i].tex->GetWidth();
+            float texH = (float)leftItems[i].tex->GetHeight();
+            // Skalujemy względem DŁUŻSZEGO boku obrazka
+            float scale = itemBaseH / std::max(texW, texH);
+            actualSize = { texW * scale, texH * scale };
+        }
+
         glm::vec2 pos;
         // Pytamy Mózg Karuzeli o pozycję
-        if (m_IngredientsCarousel.GetItemTransform(i, leftCenter, arcRadius, itemBaseH, pos)) {
+        if (m_IngredientsCarousel.GetItemTransform(i, leftCenter, arcRadius, actualSize, pos)) {
 
             int count = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(leftItems[i].type) : 0;
 
-            if (DrawIngredientIcon(leftItems[i].id, leftItems[i].tex, pos, itemBaseSize, dt, baseScale, count, true)) {
+            if (DrawIngredientIcon(leftItems[i].id, leftItems[i].tex, pos, actualSize, dt, baseScale, count, true)) {
                 spdlog::info("UI: Wyciagnieto skladnik: {}", leftItems[i].id);
                 DragAndDropScript::StartDrag(leftItems[i].type, leftItems[i].modelPath);
             }
@@ -378,284 +398,300 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
 
     std::vector<UIMachine> rightItems = {
         {"BtnPot", m_PotIcon, "assets://prefabs/pot.json"},
-        {"BtnPot2", m_PotIcon, "assets://prefabs/pot.json"},
-        {"BtnPot3", m_PotIcon, "assets://prefabs/pot.json"},
+        {"BtnMixer", m_PotIcon, "assets://prefabs/mixer.json"},
+        {"BtnOven", m_OvenIcon, "assets://prefabs/oven.json"},
         {"BtnPot4", m_PotIcon, "assets://prefabs/pot.json"}
     };
 
-    for (int i = 0; i < (int)rightItems.size(); i++) {
-        glm::vec2 pos;
-        if (m_MachinesCarousel.GetItemTransform(i, rightCenter, arcRadius, itemBaseH, pos)) {
-            if (DrawIngredientIcon(rightItems[i].id, rightItems[i].tex, pos, itemBaseSize, dt, baseScale, 0, false)) {
-                spdlog::info("UI: Wyciagnieto maszyne: {}", rightItems[i].id);
-                // Spawn robimy tu (mamy PrefabSerializer), potem przekazujemy encje do DragAndDrop
-                Entity spawnedMachine = PrefabSerializer::Deserialize(
-                    SceneManager::GetActiveScene().get(),
-                    rightItems[i].prefabPath,
-                    glm::vec3(0.0f)
-                );
-                DragAndDropScript::PickupSpawnedMachine(spawnedMachine);
-            }
-        }
-    }
-}
+    <<<<<< < HEAD
+        for (int i = 0; i < (int)rightItems.size(); i++) {
+            glm::vec2 pos;
+            if (m_MachinesCarousel.GetItemTransform(i, rightCenter, arcRadius, itemBaseH, pos)) {
+                if (DrawIngredientIcon(rightItems[i].id, rightItems[i].tex, pos, itemBaseSize, dt, baseScale, 0, false)) {
+                    ====== =
+                        for (int i = 0; i < rightItems.size(); i++) {
+                            glm::vec2 actualSize = { itemBaseH, itemBaseH };
+                            if (rightItems[i].tex) {
+                                float texW = (float)rightItems[i].tex->GetWidth();
+                                float texH = (float)rightItems[i].tex->GetHeight();
+                                float scale = itemBaseH / std::max(texW, texH);
+                                actualSize = { texW * scale, texH * scale };
+                            }
 
-void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
-    // --- KSIAZKA Z PRZEPISAMI ---
-    if (m_BookIcon) {
-        glm::vec2 cloudSize = { 280.0f * baseScale, 280.0f * baseScale };
-        glm::vec2 cloudPos = { gameX + 20.0f * baseScale, gameY + 20.0f * baseScale };
-        glm::vec2 actualCloudSize = cloudSize * 1.3f;
+                            glm::vec2 pos;
+                            if (m_MachinesCarousel.GetItemTransform(i, rightCenter, arcRadius, actualSize, pos)) {
 
-        // 1. CHMURKA
-        if (m_BookCloudIcon) {
-            DrawBubblyImage("BookCloud", m_BookCloudIcon, cloudPos, actualCloudSize, dt, 1.1f, false);
-        }
-
-        if (!m_IsRecipeBookOpen) {
-            // 2. KSIAZKA 
-            glm::vec2 bookSize = cloudSize * 1.1f;
-            glm::vec2 bookPos = {
-                cloudPos.x + (actualCloudSize.x - bookSize.x) * 0.5f,
-                cloudPos.y + (actualCloudSize.y - bookSize.y) * 0.5f
-            };
-
-            if (DrawBubblyImage("BookIcon", m_BookIcon, bookPos, bookSize, dt, 1.15f, true, 0.35f)) {
-                m_IsRecipeBookOpen = true;
-                spdlog::info("UI: Otwarto ksiazke z przepisami!");
-            }
-
-            // 3. GWIAZDKI 
-            if (m_BookStarsIcon) {
-                DrawBubblyImage("BookStars", m_BookStarsIcon, cloudPos, actualCloudSize, dt, 1.15f, false);
-            }
-        }
-        else {
-            // -- WNETRZE KSIAZKI ---
-            glm::vec2 insideSize = CalculateAspectSize(m_BookInsideIcon, gameHeight * 1.0f);
-            float yOffset = 50.0f * baseScale;
-            glm::vec2 insidePos = {
-                gameX + (gameWidth - insideSize.x) * 0.5f,
-                gameY + (gameHeight - insideSize.y) * 0.5f + yOffset
-            };
-
-            if (m_BookInsideIcon) {
-                DrawBubblyImage("BookInside", m_BookInsideIcon, insidePos, insideSize, dt, 1.0f, false);
-            }
-
-            // Przycisk X do zamykania 
-            glm::vec2 xSize = { 60.0f * baseScale, 60.0f * baseScale };
-            glm::vec2 xPos = {
-                insidePos.x + insideSize.x - xSize.x * 2.6f,
-                insidePos.y + xSize.y * 2.6f
-            };
-
-            if (m_BookXIcon) {
-                if (DrawBubblyImage("BookX", m_BookXIcon, xPos, xSize, dt, 1.2f, true, 0.4f)) {
-                    m_IsRecipeBookOpen = false;
-                    spdlog::info("UI: Zamknieto ksiazke z przepisami!");
+                                if (DrawIngredientIcon(rightItems[i].id, rightItems[i].tex, pos, actualSize, dt, baseScale, 0, false)) {
+                                    >>>>>> > main
+                                        spdlog::info("UI: Wyciagnieto maszyne: {}", rightItems[i].id);
+                                    // Spawn robimy tu (mamy PrefabSerializer), potem przekazujemy encje do DragAndDrop
+                                    Entity spawnedMachine = PrefabSerializer::Deserialize(
+                                        SceneManager::GetActiveScene().get(),
+                                        rightItems[i].prefabPath,
+                                        glm::vec3(0.0f)
+                                    );
+                                    DragAndDropScript::PickupSpawnedMachine(spawnedMachine);
+                                }
+                            }
+                        }
                 }
-            }
 
-            // Wyswietlanie przepisow
-            float recipeH = 120.0f * baseScale; // Wysokosc dla kazdej ikony
+                void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
+                    // --- KSIAZKA Z PRZEPISAMI ---
+                    if (m_BookIcon) {
+                        glm::vec2 cloudSize = { 280.0f * baseScale, 280.0f * baseScale };
+                        glm::vec2 cloudPos = { gameX + 20.0f * baseScale, gameY + 20.0f * baseScale };
+                        glm::vec2 actualCloudSize = cloudSize * 1.3f;
 
-            // 1. Zupa Pomidorowa (Rzad 1, Kolumna 1)
-            DrawRecipeIcon("TomatoSoup", m_TomatoSoupIcon, { 0.12f, 0.15f }, recipeH, insidePos, insideSize, dt);
-        }
-    }
+                        // 1. CHMURKA
+                        if (m_BookCloudIcon) {
+                            DrawBubblyImage("BookCloud", m_BookCloudIcon, cloudPos, actualCloudSize, dt, 1.1f, false);
+                        }
 
-}
+                        if (!m_IsRecipeBookOpen) {
+                            // 2. KSIAZKA 
+                            glm::vec2 bookSize = cloudSize * 1.1f;
+                            glm::vec2 bookPos = {
+                                cloudPos.x + (actualCloudSize.x - bookSize.x) * 0.5f,
+                                cloudPos.y + (actualCloudSize.y - bookSize.y) * 0.5f
+                            };
 
-void GameGuiLayer::DrawIconWithText(const std::string& text,
-    const std::shared_ptr<Texture>& iconTex,
-    const glm::vec2& textPos,
-    float textScale,
-    float baseScale,
-    float dt)
-{
-    if (!iconTex) return;
+                            if (DrawBubblyImage("BookIcon", m_BookIcon, bookPos, bookSize, dt, 1.15f, true, 0.35f)) {
+                                m_IsRecipeBookOpen = true;
+                                spdlog::info("UI: Otwarto ksiazke z przepisami!");
+                            }
 
-    // 1. Wymiary ikony
-    float coinH = 80.0f * baseScale;
-    glm::vec2 coinSize = { coinH, coinH };
+                            // 3. GWIAZDKI 
+                            if (m_BookStarsIcon) {
+                                DrawBubblyImage("BookStars", m_BookStarsIcon, cloudPos, actualCloudSize, dt, 1.15f, false);
+                            }
+                        }
+                        else {
+                            // -- WNETRZE KSIAZKI ---
+                            glm::vec2 insideSize = CalculateAspectSize(m_BookInsideIcon, gameHeight * 1.0f);
+                            float yOffset = 50.0f * baseScale;
+                            glm::vec2 insidePos = {
+                                gameX + (gameWidth - insideSize.x) * 0.5f,
+                                gameY + (gameHeight - insideSize.y) * 0.5f + yOffset
+                            };
 
-    // 2. Pomiar tekstu
-    float textHeight = Gui::MeasureTextHeight(text, textScale);
-    float baselineOffset = 32.0f * 0.8f * textScale;
+                            if (m_BookInsideIcon) {
+                                DrawBubblyImage("BookInside", m_BookInsideIcon, insidePos, insideSize, dt, 1.0f, false);
+                            }
 
-    // 3. Obliczenie idealnego środka (z uwzględnieniem poprawki)
-    float textCenterY = textPos.y + baselineOffset - (textHeight * 0.5f);
+                            // Przycisk X do zamykania 
+                            glm::vec2 xSize = { 60.0f * baseScale, 60.0f * baseScale };
+                            glm::vec2 xPos = {
+                                insidePos.x + insideSize.x - xSize.x * 2.6f,
+                                insidePos.y + xSize.y * 2.6f
+                            };
 
-    // Tutaj wrzuć wartość manualNudge, którą wypracowałeś w poprzednim kroku
-    float manualNudge = 0.0f;
+                            if (m_BookXIcon) {
+                                if (DrawBubblyImage("BookX", m_BookXIcon, xPos, xSize, dt, 1.2f, true, 0.4f)) {
+                                    m_IsRecipeBookOpen = false;
+                                    spdlog::info("UI: Zamknieto ksiazke z przepisami!");
+                                }
+                            }
 
-    glm::vec2 coinPos = {
-            textPos.x - coinSize.x - 8.0f * baseScale,
-            textCenterY - (coinSize.y * 0.5f) + (manualNudge * baseScale)
-    };
+                            // Wyswietlanie przepisow
+                            float recipeH = 120.0f * baseScale; // Wysokosc dla kazdej ikony
 
-    // 4. Renderowanie ikony i tekstu (cień + przód)
-    DrawBubblyImage("CoinIcon", iconTex, coinPos, coinSize, dt, 1.05f, false);
+                            // 1. Zupa Pomidorowa (Rzad 1, Kolumna 1)
+                            DrawRecipeIcon("TomatoSoup", m_TomatoSoupIcon, { 0.12f, 0.15f }, recipeH, insidePos, insideSize, dt);
+                        }
+                    }
 
-    // Cień tekstu
-    Gui::DrawGuiText(text, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.85f });
-    // Główny tekst
-    Gui::DrawGuiText(text, textPos, textScale, { 1.0f, 0.95f, 0.3f, 1.0f });
-}
+                }
+
+                void GameGuiLayer::DrawIconWithText(const std::string & text,
+                    const std::shared_ptr<Texture>&iconTex,
+                    const glm::vec2 & textPos,
+                    float textScale,
+                    float baseScale,
+                    float dt)
+                {
+                    if (!iconTex) return;
+
+                    // 1. Wymiary ikony
+                    float coinH = 80.0f * baseScale;
+                    glm::vec2 coinSize = { coinH, coinH };
+
+                    // 2. Pomiar tekstu
+                    float textHeight = Gui::MeasureTextHeight(text, textScale);
+                    float baselineOffset = 32.0f * 0.8f * textScale;
+
+                    // 3. Obliczenie idealnego środka (z uwzględnieniem poprawki)
+                    float textCenterY = textPos.y + baselineOffset - (textHeight * 0.5f);
+
+                    // Tutaj wrzuć wartość manualNudge, którą wypracowałeś w poprzednim kroku
+                    float manualNudge = 0.0f;
+
+                    glm::vec2 coinPos = {
+                            textPos.x - coinSize.x - 8.0f * baseScale,
+                            textCenterY - (coinSize.y * 0.5f) + (manualNudge * baseScale)
+                    };
+
+                    // 4. Renderowanie ikony i tekstu (cień + przód)
+                    DrawBubblyImage("CoinIcon", iconTex, coinPos, coinSize, dt, 1.05f, false);
+
+                    // Cień tekstu
+                    Gui::DrawGuiText(text, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.85f });
+                    // Główny tekst
+                    Gui::DrawGuiText(text, textPos, textScale, { 1.0f, 0.95f, 0.3f, 1.0f });
+                }
 
 
-void GameGuiLayer::OnUpdate(Timestep ts) {
-    Gui::BeginFrame();
-    Gui::UpdateDeltaTime(ts.GetSeconds());
-    float dt = ts.GetSeconds();
+                void GameGuiLayer::OnUpdate(Timestep ts) {
+                    Gui::BeginFrame();
+                    Gui::UpdateDeltaTime(ts.GetSeconds());
+                    float dt = ts.GetSeconds();
 
-    if (s_NeedsQuestReload) {
-        ReloadQuests();
-        s_NeedsQuestReload = false;
-    }
+                    if (s_NeedsQuestReload) {
+                        ReloadQuests();
+                        s_NeedsQuestReload = false;
+                    }
 
-    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-    bool isPlayMode = (activeScene && activeScene->GetState() == SceneState::Play);
+                    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+                    bool isPlayMode = (activeScene && activeScene->GetState() == SceneState::Play);
 
-    // --- WYMIARY OBSZARU GRY ---
+                    // --- WYMIARY OBSZARU GRY ---
 #ifdef CS_DISTRIBUTION
     // W grze standalone GUI zajmuje CAŁY ekran — brak paneli edytora
-    float gameX = 0.0f;
-    float gameY = 0.0f;
-    float gameWidth = m_ViewportWidth;
-    float gameHeight = m_ViewportHeight;
+                    float gameX = 0.0f;
+                    float gameY = 0.0f;
+                    float gameWidth = m_ViewportWidth;
+                    float gameHeight = m_ViewportHeight;
 #else
     // W edytorze zostawiamy miejsce na lewy/prawy panel i toolbar
-    float gameX = 200.0f;
-    float gameY = 30.0f;
-    float gameWidth = m_ViewportWidth - 500.0f;
-    float gameHeight = m_ViewportHeight - 230.0f;
+                    float gameX = 200.0f;
+                    float gameY = 30.0f;
+                    float gameWidth = m_ViewportWidth - 500.0f;
+                    float gameHeight = m_ViewportHeight - 230.0f;
 #endif
 
-    if (gameWidth <= 0.0f || gameHeight <= 0.0f) return;
+                    if (gameWidth <= 0.0f || gameHeight <= 0.0f) return;
 
-    // --- DYNAMICZNA SKALA ---
-    float baseScale = std::max(gameHeight / 1080.0f, 0.5f);
+                    // --- DYNAMICZNA SKALA ---
+                    float baseScale = std::max(gameHeight / 1080.0f, 0.5f);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_DEPTH_TEST);
+                    glEnable(GL_BLEND);
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    glDisable(GL_DEPTH_TEST);
 
-    glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
-    Renderer2D::BeginScene(uiProj);
+                    glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
+                    Renderer2D::BeginScene(uiProj);
 
-    // --- SCISSOR TEST ---
-    Renderer2D::EndScene();
-    glEnable(GL_SCISSOR_TEST);
-    int scissorY = (int)(m_ViewportHeight - (gameY + gameHeight));
-    glScissor((int)gameX, scissorY, (int)gameWidth, (int)gameHeight);
+                    // --- SCISSOR TEST ---
+                    Renderer2D::EndScene();
+                    glEnable(GL_SCISSOR_TEST);
+                    int scissorY = (int)(m_ViewportHeight - (gameY + gameHeight));
+                    glScissor((int)gameX, scissorY, (int)gameWidth, (int)gameHeight);
 
-    Renderer2D::BeginScene(uiProj);
-    DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
-    DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
-    DrawRecipeBook(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+                    Renderer2D::BeginScene(uiProj);
+                    DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
+                    DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+                    DrawRecipeBook(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
-    // --- PIENIĄDZE ---
-    if (m_CoinIcon) {
-        int money = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetMoney() : 0;
+                    // --- PIENIĄDZE ---
+                    if (m_CoinIcon) {
+                        int money = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetMoney() : 0;
 
-        if (money != m_LastMoney) {
-            m_MoneyStr = std::to_string(money);
-            m_LastMoney = money;
-        }
+                        if (money != m_LastMoney) {
+                            m_MoneyStr = std::to_string(money);
+                            m_LastMoney = money;
+                        }
 
-        float textScale = 2.0f * baseScale;
-        float textWidth = Gui::MeasureTextWidth(m_MoneyStr, textScale);
-        glm::vec2 textPos = {
-                gameX + gameWidth * 0.97f - textWidth,
-                gameY + gameHeight * 0.02f
-        };
+                        float textScale = 2.0f * baseScale;
+                        float textWidth = Gui::MeasureTextWidth(m_MoneyStr, textScale);
+                        glm::vec2 textPos = {
+                                gameX + gameWidth * 0.97f - textWidth,
+                                gameY + gameHeight * 0.02f
+                        };
 
-        DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
-    }
+                        DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
+                    }
 
-    Renderer2D::EndScene();
-    glDisable(GL_SCISSOR_TEST);
+                    Renderer2D::EndScene();
+                    glDisable(GL_SCISSOR_TEST);
 
-    Renderer2D::BeginScene(uiProj);
-    Renderer2D::EndScene();
-    glEnable(GL_DEPTH_TEST);
-}
-
-
-void GameGuiLayer::OnEvent(Event& e) {
-    EventDispatcher dispatcher(e);
-
-    dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {
-        m_ViewportWidth = (float)ev.GetWidth();
-        m_ViewportHeight = (float)ev.GetHeight();
-
-        // POPRAWKA: synchronizujemy przestrzeń logiczną Gui z nowym rozmiarem okna
-        // aby GetMappedMousePos() działało poprawnie po zmianie rozdzielczości
-        Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
-        return false;
-        });
-
-    dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& ev) {
-        return OnMouseButtonPressed(ev);
-        });
-
-    dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& ev) {
-        m_IngredientsCarousel.OnMouseScrolled(ev, m_ViewportWidth, 4); // max 4 składniki
-        m_MachinesCarousel.OnMouseScrolled(ev, m_ViewportWidth, 4);    // max 4 maszyny
-        return false;
-        });
-
-    dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) {
-        ReloadQuests();
-        return false;
-        });
-}
+                    Renderer2D::BeginScene(uiProj);
+                    Renderer2D::EndScene();
+                    glEnable(GL_DEPTH_TEST);
+                }
 
 
-bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
-    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-    if (!activeScene || activeScene->GetState() != SceneState::Play) return false;
+                void GameGuiLayer::OnEvent(Event & e) {
+                    EventDispatcher dispatcher(e);
 
-    // Przechwytywanie myszy przez skalowalne panele/przyciski
-    if (Gui::WantCaptureMouse()) return true;
+                    dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {
+                        m_ViewportWidth = (float)ev.GetWidth();
+                        m_ViewportHeight = (float)ev.GetHeight();
 
-    return false;
-}
+                        // POPRAWKA: synchronizujemy przestrzeń logiczną Gui z nowym rozmiarem okna
+                        // aby GetMappedMousePos() działało poprawnie po zmianie rozdzielczości
+                        Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
+                        return false;
+                        });
 
-// ZMIANA: Przebudowano funkcję ładującą JSON tak, aby korzystała z VFS
-void GameGuiLayer::ReloadQuests() {
-    m_CurrentQuests.clear();
+                    dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& ev) {
+                        return OnMouseButtonPressed(ev);
+                        });
 
-    // Używamy VFS do wyciągnięcia bajtów z pliku
-    std::vector<uint8_t> fileData = VFS::ReadFile("assets://wygenerowane_quests.json");
+                    dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& ev) {
+                        m_IngredientsCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);
+                        m_MachinesCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);
+                        return false;
+                        });
 
-    if (!fileData.empty()) {
-        try {
-            // Biblioteka nlohmann::json potrafi przetworzyć std::vector bezpośrednio!
-            nlohmann::json data = nlohmann::json::parse(fileData);
-            for (auto& q : data) {
-                m_CurrentQuests.push_back({
-                    q.value("title", "Brak tytulu"),
-                    q.value("description", "Brak opisu"),
-                    q.value("portions", 0),
-                    q.value("reward", "Brak nagrody")
-                    });
-            }
-            m_CurrentQuestIndex = 0;
-            spdlog::info("GameUiLayer: Questy zaladowane responsywnie przez VFS.");
-        }
-        catch (...) {
-            spdlog::error("GameUiLayer: Blad JSON podczas parsowania z VFS.");
-        }
-    }
-    else {
-        spdlog::error("GameUiLayer: Nie udalo sie wczytac pliku wygenerowane_quests.json przez VFS.");
-    }
-}
+                    dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) {
+                        ReloadQuests();
+                        return false;
+                        });
+                }
 
-void GameGuiLayer::OnDetach()
-{
-    m_ActiveScene->GetWorld().GetEventBus().Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
-}
+
+                bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent & e) {
+                    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+                    if (!activeScene || activeScene->GetState() != SceneState::Play) return false;
+
+                    // Przechwytywanie myszy przez skalowalne panele/przyciski
+                    if (Gui::WantCaptureMouse()) return true;
+
+                    return false;
+                }
+
+                // ZMIANA: Przebudowano funkcję ładującą JSON tak, aby korzystała z VFS
+                void GameGuiLayer::ReloadQuests() {
+                    m_CurrentQuests.clear();
+
+                    // Używamy VFS do wyciągnięcia bajtów z pliku
+                    std::vector<uint8_t> fileData = VFS::ReadFile("assets://wygenerowane_quests.json");
+
+                    if (!fileData.empty()) {
+                        try {
+                            // Biblioteka nlohmann::json potrafi przetworzyć std::vector bezpośrednio!
+                            nlohmann::json data = nlohmann::json::parse(fileData);
+                            for (auto& q : data) {
+                                m_CurrentQuests.push_back({
+                                    q.value("title", "Brak tytulu"),
+                                    q.value("description", "Brak opisu"),
+                                    q.value("portions", 0),
+                                    q.value("reward", "Brak nagrody")
+                                    });
+                            }
+                            m_CurrentQuestIndex = 0;
+                            spdlog::info("GameUiLayer: Questy zaladowane responsywnie przez VFS.");
+                        }
+                        catch (...) {
+                            spdlog::error("GameUiLayer: Blad JSON podczas parsowania z VFS.");
+                        }
+                    }
+                    else {
+                        spdlog::error("GameUiLayer: Nie udalo sie wczytac pliku wygenerowane_quests.json przez VFS.");
+                    }
+                }
+
+                void GameGuiLayer::OnDetach()
+                {
+                    m_ActiveScene->GetWorld().GetEventBus().Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
+                }

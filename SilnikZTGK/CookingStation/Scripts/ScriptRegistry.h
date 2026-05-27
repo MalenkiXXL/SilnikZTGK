@@ -10,7 +10,7 @@
 #include "CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
 #include "CookingStation/Scripts/Plates/ItemScript.h"
 #include "CookingStation/Scripts/ConveyorBelt/BeltVisualScript.h"
-#include "CookingStation/Scripts/PotScript.h"
+#include "CookingStation/Scripts/Machines/PotScript.h"
 #include "CookingStation/Scripts/Plates/PlateSpawnerScript.h"
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
 #include "CookingStation/Scripts/SteamEmitterScript.h"
@@ -23,7 +23,13 @@
 #include "MushroomAI.h"
 #include "CustomerManagerScript.h"
 #include "CustomerScript.h"
-#include "CuttingBoardScript.h"
+#include "Machines/CuttingBoardScript.h"
+#include "Waiter/WaiterPickupStationScript.h"
+#include "Waiter/WaiterScript.h"
+#include "Machines/CuttingBoardScript.h"
+#include "Machines/MixerScript.h"
+#include "Machines/OvenScript.h"
+#include "PlateScript.h"
 
 //globalny slownik ktory mapuke tekst na funkcje
 class ScriptRegistry
@@ -66,6 +72,11 @@ public:
         Register<PackageScript>("PackageScript");
         Register<CuttingBoardScript>("CuttingBoardScript");
         Register<DeliveryBoothScript>("DeliveryBoothScript");
+        Register<WaiterPickupStationScript>("WaiterPickupStationScript");
+        Register<WaiterScript>("WaiterScript");
+        Register<MixerScript>("MixerScript");
+        Register<OvenScript>("OvenScript");
+        Register<PlateScript>("PlateScript");
     }
 
     static void AddScriptToComponent(NativeScriptComponent& nsc, const std::string& name)

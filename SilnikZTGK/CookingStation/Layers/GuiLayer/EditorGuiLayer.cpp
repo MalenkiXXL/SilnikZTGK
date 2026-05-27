@@ -15,7 +15,7 @@
 #include <algorithm>
 #include <string>
 #include <limits>
-#include "CookingStation/Scripts/PotScript.h"
+#include "CookingStation/Scripts/Machines/PotScript.h"
 
 #include "CookingStation/Core/VFS/VFS.h"
 #include <spdlog/spdlog.h>

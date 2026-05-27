@@ -16,6 +16,42 @@ class ItemScript : public ScriptableEntity
 public:
     void OnCreate() override {}
 
+    void OnDestroy() override
+    {
+        // 1. Zwalniamy taśmę, na której staliśmy
+        if (m_CurrentConveyor)
+        {
+            m_CurrentConveyor->IsOccupied = false;
+            m_CurrentConveyor->IsJammed = false;
+        }
+
+        // 2. Zwalniamy taśmę, na którą właśnie wjeżdżaliśmy
+        if (m_TargetConveyor)
+        {
+            m_TargetConveyor->IsOccupied = false;
+            m_TargetConveyor->IsJammed = false;
+        }
+
+        // Zabezpieczenie pointerów
+        m_CurrentConveyor = nullptr;
+        m_TargetConveyor = nullptr;
+    }
+    
+    void ReleaseConveyors()
+    {
+        if (m_CurrentConveyor) {
+            m_CurrentConveyor->IsOccupied = false;
+            m_CurrentConveyor->IsJammed = false;
+            m_CurrentConveyor = nullptr;
+        }
+        if (m_TargetConveyor) {
+            m_TargetConveyor->IsOccupied = false;
+            m_TargetConveyor->IsJammed = false;
+            m_TargetConveyor = nullptr;
+        }
+        m_IsMoving = false;
+    }
+
     void OnUpdate(Timestep ts) override
     {
         auto* transform = GetComponent<TransformComponent>();

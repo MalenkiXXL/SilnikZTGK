@@ -9,12 +9,13 @@
 
 class PrefabSerializer {
 public:
+    inline static uint32_t s_PrefabSpawnCounter = 0;
     // ZAPIS: Wyci�gamy komponenty z wybranej encji i wrzucamy do JSONa
     static void Serialize(Scene* scene, Entity entity, const std::string& filepath) {
         nlohmann::json item;
         auto& world = scene->GetWorld();
 
-        // U�ywamy bezpieczniejszego GetVector() - dok�adnie jak w SceneSerializerze!
+        // Używamy bezpieczniejszego GetVector() - dokładnie jak w SceneSerializerze!
         auto* tagStorage = world.GetComponentVector<TagComponent>();
         auto* transformStorage = world.GetComponentVector<TransformComponent>();
         auto* meshStorage = world.GetComponentVector<MeshComponent>();
@@ -28,7 +29,6 @@ public:
 
         if (transformStorage) {
             if (auto* transform = transformStorage->Get(entity)) {
-                // ZMIANA: Pobieramy dane przez bezpieczne Gettery
                 glm::vec3 pos = transform->GetPosition();
                 glm::vec3 rot = transform->GetRotation();
                 glm::vec3 scale = transform->GetScale();
@@ -59,19 +59,32 @@ public:
                     for (const auto& s : nsc->Scripts) {
                         scriptNames.push_back(s.Name);
                     }
-                    item["scripts"] = scriptNames; // Klucz "scripts" z 's' na ko�cu!
+                    item["scripts"] = scriptNames; // Klucz "scripts" z 's' na koncu!
                 }
             }
         }
 
-        std::ofstream file(filepath);
+        // --- ZMIANA: Tylko JEDNO tworzenie pliku i konwersja VFS -> Ścieżka fizyczna ---
+        std::string physicalPath = filepath;
+        if (filepath.rfind("assets://", 0) == 0) {
+            physicalPath = "CookingStation/Assets/" + filepath.substr(9);
+        }
+
+        std::ofstream file(physicalPath);
         if (file.is_open()) {
             file << item.dump(4);
-            spdlog::info("Zapisano prefab: {}", filepath);
+            spdlog::info("Zapisano prefab: {}", physicalPath);
+        }
+        else {
+            spdlog::error("Błąd: Nie udalo sie zapisac prefaba do pliku: {}", physicalPath);
         }
     }
 
     static Entity Deserialize(Scene* scene, const std::string& filepath, const glm::vec3& spawnPos) {
+
+        s_PrefabSpawnCounter++;
+        std::string idSuffix = "_" + std::to_string(s_PrefabSpawnCounter);
+
         // --- KULOODPORNY SANITIZER ŚCIEŻEK ---
         std::string vfsPath = filepath;
         std::replace(vfsPath.begin(), vfsPath.end(), '\\', '/'); // Zamiana backslashy na ukośniki
@@ -108,7 +121,8 @@ public:
             auto builder = scene->GetWorld().BuildEntity();
 
         std::string name = item.contains("name") ? item["name"].get<std::string>() : "Prefab";
-        builder.With<TagComponent>({ name });
+        std::string nameWithId = name + idSuffix;
+        builder.With<TagComponent>({ nameWithId });
 
         TransformComponent transComp;
 
@@ -127,8 +141,11 @@ public:
             transComp.SetPosition(spawnPos + localPos);
         }
 
-        if (item.contains("rotation") && item.contains("scale")) {
+        if (item.contains("rotation")) {
             transComp.SetRotation({ item["rotation"][0], item["rotation"][1], item["rotation"][2] });
+        }
+
+        if (item.contains("scale")) {
             transComp.SetScale({ item["scale"][0], item["scale"][1], item["scale"][2] });
         }
         builder.With<TransformComponent>(transComp);

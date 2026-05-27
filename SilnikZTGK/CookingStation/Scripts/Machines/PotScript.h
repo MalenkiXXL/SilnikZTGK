@@ -157,8 +157,7 @@ protected:
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
-                // Niszczymy encje zamiast chowac pod mape - koniec wycieku encji
-                GetScene()->GetWorld().DestroyEntity(m_SpawnedFood);
+                GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
         }
