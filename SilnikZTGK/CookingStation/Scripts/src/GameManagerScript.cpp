@@ -19,6 +19,12 @@ void GameManagerScript::OnCreate()
             this->AddIngredients(e.Type, e.Amount);
         }
     );
+
+    m_OrderFulfilledSubId = GetScene()->GetWorld().GetEventBus().Subscribe<OrderFulfilledEvent>(
+        [this](const OrderFulfilledEvent& e) {
+            this->OnOrderFulfilled(e);
+        }
+    );
 }
 
 void GameManagerScript::OnUpdate(Timestep ts)
@@ -33,6 +39,7 @@ void GameManagerScript::OnDestroy()
 {
     GetScene()->GetWorld().GetEventBus().Unsubscribe<IngredientUsedEvent>(m_IngredientUsedSubId);
     GetScene()->GetWorld().GetEventBus().Unsubscribe<AddIngredientEvent>(m_AddIngredientSubId);
+    GetScene()->GetWorld().GetEventBus().Unsubscribe<OrderFulfilledEvent>(m_OrderFulfilledSubId);
 
     s_Instance = nullptr;
 }
@@ -94,4 +101,10 @@ bool GameManagerScript::SpendMoney(int amount) {
         return true;
     }
     return false;
+}
+
+void GameManagerScript::OnOrderFulfilled(const OrderFulfilledEvent& e)
+{
+    AddMoney(static_cast<int>(e.RewardAmount));
+    spdlog::info("Order fulfilled! Reward added: {}", e.RewardAmount);
 }

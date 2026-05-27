@@ -32,3 +32,12 @@ struct AddIngredientEvent {
     IngredientType Type;
     int Amount;
 };
+
+struct MachinePickedUpEvent {
+    Entity TargetMachine;
+};
+
+struct OrderFulfilledEvent {
+    float RewardAmount;
+    OrderFulfilledEvent(float reward) : RewardAmount(reward) {}
+};

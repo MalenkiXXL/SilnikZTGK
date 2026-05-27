@@ -36,7 +36,8 @@ public:
             spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
             if (GameManagerScript::s_Instance)
             {
-                GameManagerScript::s_Instance->AddMoney(50);
+                OrderFulfilledEvent e(10.0f); // 10.0f to nagroda
+                GetScene()->GetWorld().GetEventBus().Publish(e);
                 spdlog::info("Klient nr {} zaplacil 50 monet!", m_Entity.id);
             }
             auto* tag = GetComponent<TagComponent>();
