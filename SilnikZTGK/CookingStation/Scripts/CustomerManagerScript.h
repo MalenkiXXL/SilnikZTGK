@@ -156,10 +156,7 @@ private:
         builder.With<NativeScriptComponent>(nsc);
         Entity newCustomer = builder.Build();
 
-        if (!isHelper)
-        {
-            WaiterScript::RegisterCustomer(newCustomer);
-        }
+        WaiterScript::RegisterCustomer(newCustomer);
 
         spdlog::info("Zespawnowano nowego {} (Model: {}) - Patrzy na stolik!", isHelper ? "Helpera" : "Klienta", chosenModel);
     }

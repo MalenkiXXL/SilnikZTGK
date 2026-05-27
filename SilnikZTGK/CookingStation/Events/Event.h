@@ -6,6 +6,7 @@ enum class EventType
 	None,
 	KeyPressed, KeyReleased, KeyTyped,
 	MouseMoved, MouseScrolled, MouseButtonPressed, MouseButtonReleased,
+	GamepadButtonPressed, GamepadButtonReleased, GamepadAxisMoved,
 	WindowResize, WindowClose,
 	EntityTransformChanged,
 	EntityDeleted,
