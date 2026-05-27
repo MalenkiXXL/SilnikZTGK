@@ -135,13 +135,10 @@ public:
         }
 
         if (item.contains("parent_id")) {
-            // Dziecko - zachowuje swoją relację przestrzenną względem rodzica
             transComp.SetPosition(localPos);
         }
         else {
-            // Root (Główny obiekt) - X i Z bierzemy z miejsca spawnu (np. wskaźnik myszy), 
-            // ale sztywno wymuszamy oś Y z danych prefaba (np. Y = 10.0 dla piekarnika)
-            transComp.SetPosition({ spawnPos.x, localPos.y, spawnPos.z });
+            transComp.SetPosition(spawnPos + localPos);
         }
 
         if (item.contains("rotation")) {
