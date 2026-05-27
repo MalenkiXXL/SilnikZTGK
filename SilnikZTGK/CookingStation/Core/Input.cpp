@@ -1,5 +1,6 @@
 #include "Input.h"
 #include "Application.h"
+#include "CookingStation/Events/GamepadEvent.h"	
 
 #include <GLFW/glfw3.h>
 
@@ -9,13 +10,14 @@ bool Input::s_PreviousMouseStates[8] = { false };
 bool Input::s_CurrentGamepadStates[32] = { false };
 bool Input::s_PreviousGamepadStates[32] = { false };
 
+float Input::s_CurrentGamepadAxes[6] = { 0.0f };
+float Input::s_PreviousGamepadAxes[6] = { 0.0f };
+
 
 bool Input::IsKeyPressed(int keycode)
 {
 	auto window = Application::Get().GetWindow().GetNativeWindow();
 	int state = glfwGetKey(window, keycode);
-
-	auto window = Application::Get().GetWindow().GetNativeWindow();
 
 	if (state == GLFW_PRESS || state == GLFW_REPEAT)
 	{
@@ -25,26 +27,49 @@ bool Input::IsKeyPressed(int keycode)
 }
 
 void Input::Update() {
-	// Kopiujemy obecny stan do tablicy poprzedniej klatki
-	for (int i = 0; i < 8; i++) 
+	for (int i = 0; i < 8; i++)
 	{
 		s_PreviousMouseStates[i] = s_CurrentMouseStates[i];
 		s_CurrentMouseStates[i] = IsMouseButtonPressed(i);
 	}
 
-	// Aktualizacja stanu gamepada
-	if (IsGamepadPresent(0)) 
+	if (IsGamepadPresent(0))
 	{
 		GLFWgamepadstate state;
-		if (glfwGetGamepadState(GLFW_JOYSTICK_1, &state))	// GLFW_JOYSTICK_1 ma wartoœæ 0
-		{ 
-			for (int i = 0; i < 32; i++) 
+		if (glfwGetGamepadState(0, &state))
+		{
+			for (int i = 0; i <= GLFW_GAMEPAD_BUTTON_DPAD_LEFT; i++)
 			{
-				if (i <= GLFW_GAMEPAD_BUTTON_DPAD_LEFT)
+				s_PreviousGamepadStates[i] = s_CurrentGamepadStates[i];
+				s_CurrentGamepadStates[i] = state.buttons[i] == GLFW_PRESS;
+
+				if (s_CurrentGamepadStates[i] && !s_PreviousGamepadStates[i])
 				{
-					// Zakres standardowych przycisków GLFW
-					s_PreviousGamepadStates[i] = s_CurrentGamepadStates[i];
-					s_CurrentGamepadStates[i] = state.buttons[i] == GLFW_PRESS;
+					GamepadButtonPressedEvent event(i, 0);
+					Application::Get().OnEvent(event);
+					Application::Get().GetEventBus().Publish(event);
+				}
+				else if (!s_CurrentGamepadStates[i] && s_PreviousGamepadStates[i])
+				{
+					GamepadButtonReleasedEvent event(i, 0);
+					Application::Get().OnEvent(event);
+					Application::Get().GetEventBus().Publish(event);
+				}
+			}
+
+			for (int i = 0; i <= GLFW_GAMEPAD_AXIS_LAST; i++)
+			{
+				s_PreviousGamepadAxes[i] = s_CurrentGamepadAxes[i];
+				s_CurrentGamepadAxes[i] = state.axes[i];
+
+				// Sprawdzamy, czy wychylenie zmieni³o siê o wiêcej ni¿ 0.05f.
+				// Ga³ki analogowe nigdy nie stoj¹ idealnie na 0.0000f, co bez tego
+				// warunku powodowa³oby generowanie tysiêcy eventów na sekundê.
+				if (std::abs(s_CurrentGamepadAxes[i] - s_PreviousGamepadAxes[i]) > 0.05f)
+				{
+					GamepadAxisMovedEvent event(i, s_CurrentGamepadAxes[i], 0);
+					Application::Get().OnEvent(event);
+					Application::Get().GetEventBus().Publish(event);
 				}
 			}
 		}

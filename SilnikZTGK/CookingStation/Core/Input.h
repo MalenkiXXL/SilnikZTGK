@@ -30,4 +30,7 @@ private:
     // Gamepady standardowo maj¹ oko³o 15-20 przycisków
     static bool s_CurrentGamepadStates[32];
     static bool s_PreviousGamepadStates[32];
+
+    static float s_CurrentGamepadAxes[6];
+    static float s_PreviousGamepadAxes[6];
 };

@@ -16,6 +16,8 @@
 #include "CookingStation/Layers/GuiLayer/Gui.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
 #include <iostream>
+#include "CookingStation/Events/GamepadEvent.h"
+#include <spdlog/spdlog.h>
 
 Application* Application::s_Instance = nullptr;
 
@@ -185,6 +187,17 @@ void Application::Run()
 void Application::OnEvent(Event& e)
 {
 	EventDispatcher dispatcher(e);
+
+	dispatcher.Dispatch<GamepadButtonPressedEvent>([](GamepadButtonPressedEvent& event) {
+		spdlog::info("TEST: Pad dziala! Wcisnieto przycisk o ID: {}", event.GetButton());
+		return false; // Zwracamy false, ¿eby event polecia³ dalej do warstw
+		});
+
+	dispatcher.Dispatch<GamepadAxisMovedEvent>([](GamepadAxisMovedEvent& event) {
+		spdlog::info("TEST: Oœ {} ruszona! Wartoœæ: {}", event.GetAxis(), event.GetValue());
+		return false;
+		});
+
 	dispatcher.Dispatch<WindowCloseEvent>([this](WindowCloseEvent& e) { return OnWindowClose(e); });
 	dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& e) { return OnWindowResize(e); });
 	dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& e) { return OnKeyPressed(e); });

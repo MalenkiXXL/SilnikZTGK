@@ -295,6 +295,7 @@ xcopy /y /d "C:\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"<
     <ClInclude Include="CookingStation\Events\EditorEvents.h" />
     <ClInclude Include="CookingStation\Events\EventBus.h" />
     <ClInclude Include="CookingStation\Events\GameEvents.h" />
+    <ClInclude Include="CookingStation\Events\GamepadEvent.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\Command.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\CommandHistory.h" />
     <ClInclude Include="CookingStation\Layers\EditorLayer\CreateEntityCommand.h" />
@@ -362,8 +363,10 @@ xcopy /y /d "C:\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"<
     <None Include="CookingStation\Assets\prefabs\plate.json" />
     <None Include="CookingStation\packages.config" />
     <None Include="CookingStation\Shaders\fragShaders\BlinnPhong.frag" />
+    <None Include="CookingStation\Shaders\fragShaders\highlight.frag" />
     <None Include="CookingStation\Shaders\fragShaders\lightCubeShader.frag" />
     <None Include="CookingStation\Shaders\fragShaders\Rim.frag" />
+    <None Include="CookingStation\Shaders\vsShaders\highlight.vs" />
     <None Include="CookingStation\Shaders\vsShaders\lightCubeShader.vs" />
     <None Include="CookingStation\Shaders\fragShaders\shader.frag" />
     <None Include="CookingStation\Shaders\vsShaders\shader.vs" />

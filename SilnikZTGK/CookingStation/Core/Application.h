@@ -3,6 +3,7 @@
 #include "CookingStation/Events/KeyEvent.h"
 #include "CookingStation/Events/MouseEvent.h"
 #include "CookingStation/Events/WindowEvent.h"
+#include "CookingStation/Events/EventBus.h"
 #include "Layer.h"
 #include "Window.h"
 #include "CookingStation/Layers/CameraLayer/CameraLayer.h"
@@ -23,7 +24,7 @@ public:
 
 	inline static Application& Get() { return *s_Instance; }
 	inline Window& GetWindow() { return *m_Window; }
-
+	inline EventBus& GetEventBus() { return m_EventBus; }
 
 	void Run(); //Glowna petla while
 	void OnEvent(Event& e); //Odbiornik Eventow
@@ -53,4 +54,6 @@ private:
 	std::shared_ptr<Framebuffer> m_ViewportFBO;
 	static Application* s_Instance;
 	std::shared_ptr<Framebuffer> m_MsaaFBO;
+
+	EventBus m_EventBus;
 };
