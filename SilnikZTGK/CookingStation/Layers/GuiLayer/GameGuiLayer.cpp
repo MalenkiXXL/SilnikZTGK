@@ -161,6 +161,10 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id,
         *outIsHovered = isHovered;
     }
 
+    if (isHovered) {
+        MachineScript::GlobalIsHoveringUI = true;
+    }
+
     float targetScale = isHovered ? hoverScale : 1.0f;
 
     glm::vec4 targetColor = (isHovered && darkenOnHover)
@@ -301,6 +305,8 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     if (!isMouseOverBooth) {
         return;
     }
+
+    MachineScript::GlobalIsHoveringUI = true;
 
     // 5. RYSOWANIE PŁYWAJĄCEJ CHMURKI QUESTOWEJ
     glm::vec2 cloudSize = { 340.0f * baseScale, 225.0f * baseScale };
@@ -547,6 +553,8 @@ void GameGuiLayer::DrawIconWithText(const std::string& text,
 
 
 void GameGuiLayer::OnUpdate(Timestep ts) {
+    MachineScript::GlobalIsHoveringUI = false;
+
     Gui::BeginFrame();
     Gui::UpdateDeltaTime(ts.GetSeconds());
     float dt = ts.GetSeconds();
