@@ -463,6 +463,33 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
             return true;
         }
     }
+
+    if (e.GetKeyCode() == GLFW_KEY_R && m_SceneState == SceneState::Edit && activeScene)
+    {
+        Entity selected = activeScene->GetSelectedEntity();
+        if (selected.id != std::numeric_limits<std::size_t>::max())
+        {
+            auto* transform = activeScene->GetWorld().GetComponent<TransformComponent>(selected);
+            if (transform)
+            {
+                glm::vec3 startRot = transform->GetRotation();
+                glm::vec3 endRot = startRot;
+
+                // Obracamy wokół osi Y
+                endRot.y += 90.0f;
+
+                // Utrzymujemy kąt w ryzach (0-360 stopni)
+                if (endRot.y >= 360.0f) {
+                    endRot.y -= 360.0f;
+                }
+
+                transform->SetRotation(endRot);
+
+                spdlog::info("Obrócono obiekt ID:{} o 90 stopni. Nowa rotacja Y: {}", selected.id, endRot.y);
+                return true;
+            }
+        }
+    }
     return false;
 }
 
