@@ -16,8 +16,16 @@
 #include "CookingStation/Events/GameEvents.h"
 #include <iostream> 
 
+void Scene::Init(EventBus* eventBus) {
+    m_DestroySubId = eventBus->Subscribe<EntityDestroyRequestEvent>(
+        [this](const EntityDestroyRequestEvent& e) {
+            this->OnEntityDestroyRequest(e);
+        }
+    );
+}
+
 Scene::Scene()
-{
+{ 
     m_ECSWorld.RegisterComponent<TagComponent>();
     m_ECSWorld.RegisterComponent<MeshComponent>();
     m_ECSWorld.RegisterComponent<TransformComponent>();
@@ -27,9 +35,15 @@ Scene::Scene()
     m_ECSWorld.RegisterComponent<RelationshipComponent>();
     m_ECSWorld.RegisterComponent<UVScrollComponent>();
     m_ECSWorld.RegisterComponent<AnimatorComponent>();
-}
 
-Scene::~Scene() {};
+    auto& bus = GetWorld().GetEventBus();
+
+    m_DestroySubId = bus.Subscribe<EntityDestroyRequestEvent>(
+        [this](const EntityDestroyRequestEvent& e) {
+            this->OnEntityDestroyRequest(e);
+        }
+    );
+}
 
 AABB ComputeDynamicAABB(TransformComponent* trans, BoxColliderComponent* col)
 {
@@ -156,7 +170,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
             }
         }
 
-        // Obliczamy Min.x "w locie" dla sortowania (Sweep and Prune)
+
         std::sort(activeColliders.begin(), activeColliders.end(), [](const ColliderData& a, const ColliderData& b) {
             return (a.box.center.x - a.box.extents.x) < (b.box.center.x - b.box.extents.x);
             });
@@ -169,7 +183,6 @@ void Scene::OnUpdateRuntime(Timestep ts)
             {
                 const auto& dataB = activeColliders[j];
 
-                // Porównujemy odpowiednio wyliczone Min i Max
                 if ((dataB.box.center.x - dataB.box.extents.x) > (dataA.box.center.x + dataA.box.extents.x))
                 {
                     break;
@@ -177,23 +190,37 @@ void Scene::OnUpdateRuntime(Timestep ts)
 
                 if (Physics::Intersects(dataA.box, dataB.box))
                 {
-                    // ŚWIETNA ROBOTA - Zdarzenie wysyłane w 100% prawidłowo!
                     GetWorld().GetEventBus().Publish(CollisionEvent{ dataA.ent, dataB.ent });
                 }
             }
         }
     }
     // ==========================================
-    // 5. DEFERRED DELETION (USUWANIE ODROCZONE)
-    // ==========================================
+     // 5. DEFERRED DELETION (USUWANIE ODROCZONE)
+     // ==========================================
     for (Entity e : m_EntitiesToDestroy)
     {
-        // 1. Najpierw usuwamy encję z siatki przestrzennej (SSA)
+        // 0. Najpierw bezpiecznie niszczymy instancje skryptów!
+        // Dzięki temu odpalą się wszystkie OnDestroy() w skryptach (np. wypisanie z EventBus)
+        auto* scriptComp = m_ECSWorld.GetComponent<NativeScriptComponent>(e);
+        if (scriptComp) {
+            for (auto& scriptEl : scriptComp->Scripts) {
+                if (scriptEl.Instance) {
+                    scriptEl.Instance->OnDestroy();
+                    if (scriptEl.DestroyScript) scriptEl.DestroyScript(&scriptEl);
+                    scriptEl.Instance = nullptr;
+                }
+            }
+        }
+
+        // 1. Odpinamy encję od rodzica, aby uchronić drzewo relacji przed zepsuciem
+        RemoveParent(e);
+
+        // 2. Usuwamy encję z siatki przestrzennej (SSA)
         for (auto& pair : m_SpartialGrid)
         {
             auto& cellEntities = pair.second;
 
-            // Usuwamy wszystkie wpisy o tym ID z wektora kafelka
             cellEntities.erase(
                 std::remove_if(cellEntities.begin(), cellEntities.end(),
                     [&](const Entity& gridEntity) { return gridEntity.id == e.id; }),
@@ -201,7 +228,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
             );
         }
 
-        // 2. Następnie fizycznie niszczymy encję w ECS
+        // 3. Następnie fizycznie niszczymy encję w ECS
         m_ECSWorld.DestroyEntity(e);
     }
     m_EntitiesToDestroy.clear();
@@ -522,33 +549,29 @@ void Scene::RemoveParent(Entity child) {
     UpdateSpatialGrid();
 }
 
-void Scene::DestroyEntity(Entity entity) {
-    auto* relStorage = m_ECSWorld.GetComponentVector<RelationshipComponent>();
-    const std::size_t NULL_ID = std::numeric_limits<std::size_t>::max();
-
-    if (relStorage)
-    {
-        auto* rel = relStorage->Get(entity);
-
-        if (rel && rel->FirstChild != NULL_ID)
+void Scene::DestroyEntity(Entity entity)
+{
+    auto it = std::find_if(
+        m_EntitiesToDestroy.begin(),
+        m_EntitiesToDestroy.end(),
+        [&](const Entity& e)
         {
-            std::size_t currentChildId = rel->FirstChild;
+            return e.id == entity.id &&
+                e.generation == entity.generation;
+        });
 
-            while (currentChildId != NULL_ID)
-            {
-                std::size_t index = relStorage->sparse[currentChildId];
-                Entity childEntity = relStorage->reverse[index];
+    if (it != m_EntitiesToDestroy.end())
+        return;
 
-                auto* childRel = relStorage->Get(childEntity);
-                std::size_t nextSibling = childRel ? childRel->NextSibling : NULL_ID;
-
-                DestroyEntity(childEntity);
-
-                currentChildId = nextSibling;
-            }
-        }
-    }
-
-    // Dzieci zostaną zniszczone jako pierwsze
     m_EntitiesToDestroy.push_back(entity);
+}
+
+void Scene::OnEntityDestroyRequest(const EntityDestroyRequestEvent& e) {
+    spdlog::error("ENTITY DESTROY EVENT RECEIVED");
+    DestroyEntity(e.TargetEntity);
+}
+
+Scene::~Scene()
+{
+    GetWorld().GetEventBus().Unsubscribe<EntityDestroyRequestEvent>(m_DestroySubId);
 }

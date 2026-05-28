@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include "CookingStation/Core/GridSystem.h"
+#include "CookingStation/Events/GameEvents.h"
 
 class ConveyorScript;
 class Entity;
@@ -58,11 +59,8 @@ public:
 	void OnRuntimeStart(); // inicjalizacja silnika fizycznego i skryptow C#
 	void OnRuntimeStop();  // czyszczenie pami�ci z  C# i niszczenie �wiata fizyki
 
-	// Wywo�ywane z Twojego GameLayer::OnUpdate
 	void OnUpdateRuntime(Timestep ts);
 
-	// Wywo�ywane z EditorLayer::OnUpdate (je�li macie edytor)
-	//void OnUpdateEditor(Timestep ts, EditorCamera& camera);
 
 	World& GetWorld() { return m_ECSWorld;  }
 
@@ -92,6 +90,7 @@ public:
     const std::vector<glm::vec3>& GetPickupPoints() const { return m_PickupPoints; }
     void AddPickupPoint(const glm::vec3& position) { m_PickupPoints.push_back(position); }
     void DestroyEntity(Entity entity);
+
 private:
 	World m_ECSWorld;
 	Camera* m_MainCamera = nullptr;
@@ -111,5 +110,7 @@ private:
 
 	//struktura SSA: komorka siatki -> lista encji wewnatrz niej
 	std::unordered_map<glm::ivec2, std::vector<Entity>, IVec2Hash> m_SpartialGrid;
+	std::size_t m_DestroySubId;
+	void OnEntityDestroyRequest(const EntityDestroyRequestEvent& e);
 };
 

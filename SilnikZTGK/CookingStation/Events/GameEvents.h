@@ -1,6 +1,7 @@
 #pragma once
 #include "CookingStation/Scripts/Managers/IngredientType.h"
 #include "CookingStation/Scene/Entity.h"
+#include <cstddef>
 
 struct IngredientUsedEvent {
     IngredientType Type;
@@ -40,4 +41,12 @@ struct MachinePickedUpEvent {
 struct OrderFulfilledEvent {
     float RewardAmount;
     OrderFulfilledEvent(float reward) : RewardAmount(reward) {}
+};
+
+struct EntityDestroyRequestEvent {
+    Entity TargetEntity;
+};
+
+struct EntityDestroyedEvent {
+    Entity TargetEntity;
 };
