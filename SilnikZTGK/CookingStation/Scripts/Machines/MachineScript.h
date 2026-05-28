@@ -43,7 +43,6 @@ public:
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
     }
 
-    // NOWE: Zmienna, w której UI zapisuje nowo wyciągniętą maszynę
     static inline Entity PendingPickup = { std::numeric_limits<std::size_t>::max(), 0 };
 
     virtual void OnUpdate(Timestep ts) override

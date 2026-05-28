@@ -16,13 +16,6 @@
 #include "CookingStation/Events/GameEvents.h"
 #include <iostream> 
 
-void Scene::Init(EventBus* eventBus) {
-    m_DestroySubId = eventBus->Subscribe<EntityDestroyRequestEvent>(
-        [this](const EntityDestroyRequestEvent& e) {
-            this->OnEntityDestroyRequest(e);
-        }
-    );
-}
 
 Scene::Scene()
 { 
@@ -567,7 +560,7 @@ void Scene::DestroyEntity(Entity entity)
 }
 
 void Scene::OnEntityDestroyRequest(const EntityDestroyRequestEvent& e) {
-    spdlog::error("ENTITY DESTROY EVENT RECEIVED");
+    spdlog::info("ENTITY DESTROY EVENT RECEIVED");
     DestroyEntity(e.TargetEntity);
 }
 

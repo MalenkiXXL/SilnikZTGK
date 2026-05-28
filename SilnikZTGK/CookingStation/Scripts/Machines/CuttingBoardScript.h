@@ -1,7 +1,5 @@
 #pragma once
-#include "CookingStation/Scripts/Machines/MachineScript.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
-#include "CookingStation/Scripts/DragAndDropScript.h"
 
 class CuttingBoardScript : public MachineScript
 {
@@ -17,8 +15,6 @@ private:
     float m_AutoChopTimer = 0.0f;
     const float m_AutoChopInterval = 0.8f;
 
-    // NOWE: Funkcja pomocnicza, która mówi, jaki model za³adowaæ dla jakiego sk³adnika
-    // Zwraca parê: <œcie¿ka_do_surowego, œcie¿ka_do_pokrojonego>
     std::pair<std::string, std::string> GetModelPathsForIngredient(IngredientType type)
     {
         switch (type)
@@ -122,24 +118,34 @@ public:
                 {
                     spdlog::info("Wziêto pokrojony sk³adnik z deski{}!", m_IsAutomated ? " (helper kroi³)" : "");
 
-                    // ZMIANA: Sprawdzamy co le¿a³o na desce i dobieramy typ/model/skalê!
                     IngredientType rawType = m_Ingredients[0];
                     auto paths = GetModelPathsForIngredient(rawType);
 
                     if (rawType == IngredientType::Tomato) {
-                        DragAndDropScript::StartDrag(IngredientType::ChoppedTomato, paths.second);
+                        GetScene()->GetWorld().GetEventBus().Publish(
+                            StartDragRequestEvent{ IngredientType::ChoppedTomato, paths.second }
+                        );
+                        spdlog::info("Event podnoszenia pomidora z deski wyslany");
                     }
                     else if (rawType == IngredientType::Baguette) {
-                        DragAndDropScript::StartDrag(IngredientType::CutBaguette, paths.second);
+                        GetScene()->GetWorld().GetEventBus().Publish(
+                            StartDragRequestEvent{ IngredientType::CutBaguette, paths.second }
+                        );
                     }
                     else if (rawType == IngredientType::Cheese) {
-                        DragAndDropScript::StartDrag(IngredientType::ChoppedCheese, paths.second);
+                        GetScene()->GetWorld().GetEventBus().Publish(
+                            StartDragRequestEvent{ IngredientType::ChoppedCheese, paths.second }
+                        );
                     }
                     else if (rawType == IngredientType::Ham) {
-                        DragAndDropScript::StartDrag(IngredientType::ChoppedHam, paths.second);
+                        GetScene()->GetWorld().GetEventBus().Publish(
+                            StartDragRequestEvent{ IngredientType::ChoppedHam, paths.second }
+                        );
                     }
                     else if (rawType == IngredientType::Mozzarella) {
-                        DragAndDropScript::StartDrag(IngredientType::ChoppedMozzarella, paths.second);
+                        GetScene()->GetWorld().GetEventBus().Publish(
+                            StartDragRequestEvent{ IngredientType::ChoppedMozzarella, paths.second }
+                        );
                     }
 
                     ResetMachineState();
@@ -188,8 +194,7 @@ protected:
         if (m_Ingredients.empty())
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
-                auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-                if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
+                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_SpawnedFood });
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
             return;

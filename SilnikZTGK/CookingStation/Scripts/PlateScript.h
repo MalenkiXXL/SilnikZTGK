@@ -108,8 +108,8 @@ private:
         m_Ingredients.clear();
 
         for (Entity e : m_VisualModels) {
-            auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
-            if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ e });
+            e = { std::numeric_limits<std::size_t>::max(), 0 };
         }
         m_VisualModels.clear();
 

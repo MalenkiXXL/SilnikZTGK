@@ -50,3 +50,8 @@ struct EntityDestroyRequestEvent {
 struct EntityDestroyedEvent {
     Entity TargetEntity;
 };
+
+struct StartDragRequestEvent {
+    IngredientType Type;
+    std::string ModelPath;
+};

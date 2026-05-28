@@ -108,8 +108,7 @@ protected:
         {
             if (m_SpawnedDough.id != std::numeric_limits<std::size_t>::max())
             {
-                auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedDough);
-                if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
+                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_SpawnedDough });
                 m_SpawnedDough = { std::numeric_limits<std::size_t>::max(), 0 };
             }
         }

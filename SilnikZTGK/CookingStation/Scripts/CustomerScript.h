@@ -57,6 +57,6 @@ public:
         }
 
         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
-        spdlog::error("PUBLISHED DESTROY EVENT");
+        spdlog::info("PUBLISHED DESTROY EVENT");
     }
 };

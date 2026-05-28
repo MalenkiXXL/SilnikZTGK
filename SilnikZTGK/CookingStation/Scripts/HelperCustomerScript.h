@@ -45,8 +45,7 @@ public:
         else
         {
             spdlog::info("Pomocnik nr {} dostal zly talerz! Obraza sie i znika.", m_Entity.id);
-            auto* tf = GetComponent<TransformComponent>();
-            if (tf) tf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
         }
     }
 

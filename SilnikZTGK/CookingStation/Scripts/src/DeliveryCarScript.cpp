@@ -58,7 +58,7 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             if (dist < 0.1f)
             {
                 spdlog::info("Dostawczak opuścił mapę. Niszczenie encji...");
-                GetScene()->GetWorld().DestroyEntity(m_Entity);
+                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
             }
             else
             {

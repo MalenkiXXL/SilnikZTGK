@@ -10,10 +10,6 @@
 #include <glm/glm.hpp>
 #include <limits>
 
-// UWAGA: Celowo NIE includujemy PrefabSerializer.h tutaj!
-// Zrobilaby cykl: PrefabSerializer -> ScriptRegistry -> DragAndDropScript -> PrefabSerializer
-// Spawn maszyny robi GameGuiLayer (ktory juz ma PrefabSerializer), a tu tylko przyjmujemy gotowa encje.
-
 class DragAndDropScript : public ScriptableEntity
 {
 public:
@@ -21,6 +17,7 @@ public:
     static inline IngredientType CurrentIngredient = IngredientType::None;
     static inline Entity DraggedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline Scene* ActiveScene = nullptr;
+    std::size_t m_DragSubId;
 
     // --- LOGIKA NOZA NA HOVERZE ---
     static inline Entity KnifeVisualEntity = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -29,6 +26,16 @@ public:
 
     void OnCreate() override {
         ActiveScene = GetScene();
+        m_DragSubId = GetScene()->GetWorld().GetEventBus().Subscribe<StartDragRequestEvent>(
+            [this](const StartDragRequestEvent& e) {
+                this->StartDrag(e.Type, e.ModelPath);
+            }
+        );
+    }
+
+    void OnDestroy() override
+    {
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<StartDragRequestEvent>(m_DragSubId);
     }
 
     void OnUpdate(Timestep ts) override
@@ -122,9 +129,8 @@ public:
     static void CancelDrag()
     {
         IsDragging = false;
-        if (DraggedEntity.id != std::numeric_limits<std::size_t>::max() && ActiveScene) {
-            auto* transform = ActiveScene->GetWorld().GetComponent<TransformComponent>(DraggedEntity);
-            if (transform) transform->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
+        if (DraggedEntity.id != std::numeric_limits<std::size_t>::max()) {
+            ActiveScene->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{DraggedEntity});
             DraggedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
         }
     }
@@ -176,12 +182,11 @@ private:
 
     static void SetKnifeVisibility(bool visible) {
         ShowKnife = visible;
-        if (KnifeVisualEntity.id != std::numeric_limits<std::size_t>::max() && ActiveScene) {
-            auto* knifeTf = ActiveScene->GetWorld().GetComponent<TransformComponent>(KnifeVisualEntity);
-            if (knifeTf && !visible) {
-                knifeTf->SetPosition(glm::vec3(0.0f, -1000.0f, 0.0f));
-            }
+        if (KnifeVisualEntity.id != std::numeric_limits<std::size_t>::max() && ShowKnife == !visible) {
+            ActiveScene
+                ->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ KnifeVisualEntity });
         }
+        KnifeVisualEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     }
 
     void CheckForCuttingBoardHover(glm::vec3 mousePos) {
