@@ -82,4 +82,6 @@ private:
     int m_CurrentQuestIndex = 0;
     bool m_ShowPrefabsPanel = false;
     std::shared_ptr<Framebuffer> m_MsaaFBO;
+
+    bool m_ShowHelpPanel = false;
 };

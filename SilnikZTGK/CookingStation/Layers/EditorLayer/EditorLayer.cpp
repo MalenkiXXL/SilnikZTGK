@@ -177,9 +177,12 @@ void EditorLayer::OnUpdate(Timestep ts)
         m_PendingModelPath = request.Path;
         m_IsPlacing = true;
         request.Active = false;
+
+        //automatycznie włączamy siatkę przy wyjęciu prefab
+        gridReq.Active = true;
     }
 
-    if (m_IsPlacing && Input::IsMouseButtonPressed(0) && isMouseInViewport)
+    if (m_IsPlacing && Input::IsMouseButtonJustPressed(0) && isMouseInViewport)
     {
         Ray ray = Physics::CastRayFromMouse(mappedMouseX, mappedMouseY, fboWidth, fboHeight, proj3D, view3D);
         glm::vec3 spawnPosition = glm::vec3(0.0f);
@@ -204,11 +207,20 @@ void EditorLayer::OnUpdate(Timestep ts)
                 &world, m_PendingModelName, m_PendingModelPath, spawnPosition);
             m_CommandHistory.ExecuteCommand(std::move(cmd));
         }
+    }
 
+    //anulowanie stawiania modeli
+    if (m_IsPlacing && Input::IsMouseButtonJustPressed(1) && isMouseInViewport)
+    {
         m_IsPlacing = false;
+        m_PendingModelName = "";
+        m_PendingModelPath = "";
+        gridReq.Active = false;
+        spdlog::info("Placement anulowany (PPM)");
     }
 
     Entity selected = activeScene->GetSelectedEntity();
+    bool isShiftPressed = Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT) || Input::IsKeyPressed(GLFW_KEY_RIGHT_SHIFT);
     bool validEntity = (selected.id != std::numeric_limits<std::size_t>::max());
 
     if (gridReq.Active)
@@ -221,7 +233,7 @@ void EditorLayer::OnUpdate(Timestep ts)
         DrawGrid(proj3D * view3D, camPos, 40.0f);
         Renderer2D::BeginScene(uiProj);
 
-        if (validEntity && Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT) && Input::IsMouseButtonJustPressed(0) && isMouseInViewport)
+        if (validEntity && Input::IsMouseButtonJustPressed(0) && isMouseInViewport && !isShiftPressed)
         {
             auto* transform = world.GetComponent<TransformComponent>(selected);
             if (transform)
@@ -252,8 +264,9 @@ void EditorLayer::OnUpdate(Timestep ts)
             }
         }
     }
+    bool canSelect = gridReq.Active ? isShiftPressed : !isShiftPressed;
 
-    if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport && !m_IsPlacing && !Input::IsKeyPressed(GLFW_KEY_LEFT_SHIFT))
+    if (Input::IsMouseButtonJustPressed(0) && isMouseInViewport && !m_IsPlacing && canSelect)
     {
         Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, proj3D, view3D);
 
