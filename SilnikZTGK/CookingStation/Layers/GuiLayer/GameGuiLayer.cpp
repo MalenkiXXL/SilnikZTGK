@@ -102,6 +102,9 @@ void GameGuiLayer::OnAttach()
     m_FlourIcon = AssetManager::GetTexture("assets://UI/Flour.png");
     m_OvenIcon = AssetManager::GetTexture("assets://UI/oven.png");
     m_MixerIcon = AssetManager::GetTexture("assets://UI/pot.png");
+    m_SandwichIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
+    m_CupcakeIcon = AssetManager::GetTexture("assets://UI/cupcake.png");
+    m_CroissantIcon = AssetManager::GetTexture("assets://UI/croissant.png");
 
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
@@ -503,6 +506,9 @@ void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, flo
 
             // 1. Zupa Pomidorowa (Rzad 1, Kolumna 1)
             DrawRecipeIcon("TomatoSoup", m_TomatoSoupIcon, { 0.12f, 0.15f }, recipeH, insidePos, insideSize, dt);
+            DrawRecipeIcon("TomatoSoup", m_SandwichIcon, { 0.35f, 0.15f }, recipeH, insidePos, insideSize, dt);
+            DrawRecipeIcon("TomatoSoup", m_CroissantIcon, { 0.12f, 0.30f }, recipeH - 20.0f, insidePos + 10.0f, insideSize, dt);
+            DrawRecipeIcon("TomatoSoup", m_CupcakeIcon, { 0.35f, 0.30f }, recipeH, insidePos, insideSize, dt);
         }
     }
 
