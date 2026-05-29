@@ -13,6 +13,7 @@
 #include "CookingStation/Layers/EditorLayer/EditorLayer.h"
 #include "CookingStation/Layers/GameLayer/GameLayer.h"
 #include "CookingStation/Renderer/Framebuffer.h" 
+#include "CookingStation/Core/GraphicsSettings.h"
 #include <memory>
 #include <vector>
 
@@ -42,6 +43,8 @@ public:
 		return m_MsaaFBO ? m_MsaaFBO->GetSpecification().Samples : 1;
 	}
 
+	void ApplyGraphicsSettings();
+
 private:
 	bool OnWindowClose(WindowCloseEvent& e);
 	bool OnWindowResize(WindowResizeEvent& e);
@@ -49,6 +52,7 @@ private:
 
 	Window* m_Window; //wskaznik na okno
 	bool m_Running = true;
+	bool m_IgnoreNextResize = true; // Flaga do ignorowania pierwszego eventu resize po zmianie rozdzielczości
 
 	float m_LastFrameTime = 0.0f;
 	std::shared_ptr<Framebuffer> m_ViewportFBO;

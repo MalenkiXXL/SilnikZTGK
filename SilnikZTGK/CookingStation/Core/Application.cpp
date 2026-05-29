@@ -1,12 +1,15 @@
 #include "Application.h"
 #include "Input.h"
 #include <GLFW/glfw3.h>
+#include <spdlog/spdlog.h>
+#include <iostream>
+#include "ProfileTimer.h"
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Renderer/RenderCommand.h"
-#include "ProfileTimer.h"
 #include "CookingStation/Layers/RenderLayer/RendererLayer.h"
 #include "CookingStation/Layers/HudLayer/HUDLayer.h"
 #include "CookingStation/Layers/MainMenuLayer/MainMenuLayer.h"
+#include "CookingStation/Core/GraphicsSettings.h"
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Core/AudioEngine.h"
@@ -16,9 +19,7 @@
 #include "CookingStation/Core/VFS/PackageFileSystem.h"
 #include "CookingStation/Layers/GuiLayer/Gui.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
-#include <iostream>
 #include "CookingStation/Events/GamepadEvent.h"
-#include <spdlog/spdlog.h>
 
 Application* Application::s_Instance = nullptr;
 
@@ -128,6 +129,40 @@ Application::~Application()
 	AudioEngine::Shutdown();
 }
 
+void Application::ApplyGraphicsSettings()
+{
+	auto& settings = GraphicsSettings::Get();
+	int width = settings.WindowWidth;
+	int height = settings.WindowHeight;
+
+	glfwSetWindowSize((GLFWwindow*)m_Window->GetNativeWindow(), width, height);
+
+	glViewport(0, 0, width, height);
+
+	if (m_MsaaFBO)
+	{
+		m_MsaaFBO->SetSamples(std::max(1, settings.MsaaSamples));
+		m_MsaaFBO->Resize(width, height);
+	}
+
+	if (m_ViewportFBO)
+	{
+		m_ViewportFBO->Resize(width, height);
+	}
+
+	Gui::SetScreenSize((float)width, (float)height);
+
+	auto activeScene = SceneManager::GetActiveScene();
+	if (activeScene)
+	{
+		activeScene->SetViewportSize(width, height);
+	}
+
+	spdlog::info("GraphicsSettings: Zastosowano MSAA x{} @ {}x{}",
+		settings.MsaaSamples, width, height);
+}
+
+
 void Application::Run()
 {
 	// ==========================================
@@ -227,19 +262,18 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 		return false;
 	}
 
-	// Ta linijka wykonuje sie ZAWSZE (zarowno w Edytorze, jak i w gotowej grze)
+	// Ta linijka wykonuje sie ZAWSZE - to ona dba o brak czarnych krawędzi!
 	glViewport(0, 0, width, height);
 
 #ifdef CS_DISTRIBUTION
-
 	// 1. Dopasowujemy rozmiary buforow renderowania do pelnego okna gry
 	if (m_ViewportFBO) m_ViewportFBO->Resize(width, height);
 	if (m_MsaaFBO) m_MsaaFBO->Resize(width, height);
 
-	// 2. Bezpiecznie aktualizujemy wymiary ekranu dla silnika GUI przez nasz nowy Setter
+	// 2. Bezpiecznie aktualizujemy wymiary ekranu dla silnika GUI
 	Gui::SetScreenSize((float)width, (float)height);
 
-	// 3. Aktualizujemy Aspect Ratio kamery w swiecie gry, zeby obiekty nie byly splaszczone
+	// 3. Aktualizujemy Aspect Ratio kamery w swiecie gry
 	auto activeScene = SceneManager::GetActiveScene();
 	if (activeScene)
 	{

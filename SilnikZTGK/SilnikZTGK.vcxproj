@@ -298,6 +298,7 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClInclude Include="CookingStation\Layers\EditorLayer\MoveEntityCommand.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\CarouselUI.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\GameGuiLayer.h" />
+    <ClInclude Include="CookingStation\Core\GraphicsSettings.h" />
     <ClInclude Include="CookingStation\Layers\MainMenuLayer\MainMenuLayer.h" />
     <ClInclude Include="CookingStation\Math\Geometry.h" />
     <ClInclude Include="CookingStation\Renderer\Buffer.h" />
