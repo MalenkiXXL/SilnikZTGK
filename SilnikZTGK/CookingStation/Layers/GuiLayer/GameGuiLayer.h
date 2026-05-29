@@ -73,6 +73,9 @@ private:
     std::shared_ptr<Texture> m_MilkIcon;
     std::shared_ptr<Texture> m_OvenIcon;
     std::shared_ptr<Texture> m_MixerIcon;
+    std::shared_ptr<Texture> m_SandwichIcon;
+    std::shared_ptr<Texture> m_CroissantIcon;
+    std::shared_ptr<Texture> m_CupcakeIcon;
 
     int m_CurrentMoney = 0;
     int m_CurrentTomatoes = 0;

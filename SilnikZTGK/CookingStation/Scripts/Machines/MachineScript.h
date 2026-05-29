@@ -6,6 +6,7 @@
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Scripts/Managers/IngredientType.h"
 #include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Scripts/PlateScript.h"
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -17,21 +18,26 @@ protected:
     float m_AutoDetectRadius = 3.0f;
     bool m_IsHeld = false;
     std::size_t m_ClickSubId = 0;
+    glm::vec3 m_OriginalPosition = glm::vec3(0.0f);
+    bool m_IsNewlySpawned = false;
+    float m_PickupDelay = 0.0f;
 
 public:
     std::vector<IngredientType> m_Ingredients;
     bool m_IsReady = false;
     bool m_IsAutomated = false;
 
+    static inline Entity PendingPickup = { std::numeric_limits<std::size_t>::max(), 0 };
+    static inline bool GlobalIsMachineHeld = false;
+    static inline bool GlobalIsHoveringUI = false;
+
     virtual void OnCreate() override
     {
-        // 1. Zapisujemy się do EventBusa po stworzeniu obiektu
         m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
             [this](const EntityClickedEvent& e) {
-                // 2. Bardzo ważne: sprawdzamy, czy gracz kliknął dokładnie w NAS!
                 if (e.TargetEntity.id == m_Entity.id)
                 {
-                    this->HandleClick(); // Wywołujemy naszą logikę
+                    this->HandleClick();
                 }
             }
         );
@@ -39,22 +45,27 @@ public:
 
     virtual void OnDestroy() override
     {
-        // 3. Wypisujemy się z EventBusa przed zniszczeniem obiektu, żeby uniknąć crasha
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
     }
-
-    static inline Entity PendingPickup = { std::numeric_limits<std::size_t>::max(), 0 };
 
     virtual void OnUpdate(Timestep ts) override
     {
         if (PendingPickup.id != std::numeric_limits<std::size_t>::max() && PendingPickup.id == m_Entity.id)
         {
             m_IsHeld = true;
+            m_IsNewlySpawned = true;
+            GlobalIsMachineHeld = true;
+            m_PickupDelay = 0.2f;
             PendingPickup = { std::numeric_limits<std::size_t>::max(), 0 };
         }
 
         if (m_IsHeld)
         {
+            if (m_PickupDelay > 0.0f)
+            {
+                m_PickupDelay -= (float)ts;
+            }
+
             auto* transform = GetComponent<TransformComponent>();
             if (!transform) return;
 
@@ -64,25 +75,36 @@ public:
             glm::vec3 snappedPos = GridSystem::SnapToGrid(mouseWorldPos);
 
             snappedPos.y = originalY;
-
             transform->SetPosition(snappedPos);
 
-            if (Input::IsMouseButtonJustPressed(0))
+            if (Input::IsMouseButtonJustPressed(0) && m_PickupDelay <= 0.0f)
             {
-                if (!IsCellOccupied(transform->GetPosition()))
+                if (!GlobalIsHoveringUI && !IsCellOccupied(transform->GetPosition()))
                 {
                     m_IsHeld = false;
-                    spdlog::info("Maszyna odlozona na siatke!");
+                    m_IsNewlySpawned = false;
+                    GlobalIsMachineHeld = false;
+                }
+            }
+            else if (Input::IsMouseButtonJustPressed(1))
+            {
+                if (m_IsNewlySpawned)
+                {
+                    m_IsHeld = false;
+                    GlobalIsMachineHeld = false;
+                    GetScene()->DestroyEntity(m_Entity);
+                    return;
                 }
                 else
                 {
-                    spdlog::warn("Nie mozesz tu postawic maszyny, pole zajete!");
+                    transform->SetPosition(m_OriginalPosition);
+                    m_IsHeld = false;
+                    GlobalIsMachineHeld = false;
                 }
             }
             return;
         }
     }
-
 
     virtual bool AddIngredient(IngredientType type)
     {
@@ -96,10 +118,14 @@ public:
 
     virtual void HandleClick()
     {
-        if (!m_IsHeld && Input::IsKeyPressed(340))
+        if (!m_IsHeld && Input::IsKeyPressed(340) && !GlobalIsMachineHeld)
         {
             m_IsHeld = true;
-            spdlog::info("Podniesiono maszyne!");
+            m_IsNewlySpawned = false;
+            GlobalIsMachineHeld = true;
+            m_PickupDelay = 0.2f;
+            auto* transform = GetComponent<TransformComponent>();
+            if (transform) m_OriginalPosition = transform->GetPosition();
         }
         else if (m_IsReady && !m_IsAutomated && !m_IsHeld)
         {
@@ -147,17 +173,54 @@ protected:
                 if (tagName.find("Plate") != std::string::npos || tagName.find("Talerz") != std::string::npos)
                 {
                     Entity plateEntity = tagSet->reverse[i];
+                    bool isOccupied = false;
+
+                    auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(plateEntity);
+                    if (nsc)
+                    {
+                        for (auto& script : nsc->Scripts)
+                        {
+                            if (script.Name == "PlateScript" && script.Instance)
+                            {
+                                auto* plateScript = static_cast<PlateScript*>(script.Instance);
+                                if (!plateScript->m_Ingredients.empty() || plateScript->m_CompletedDish != IngredientType::None)
+                                {
+                                    isOccupied = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!isOccupied)
+                    {
+                        for (size_t j = 0; j < tagSet->dense.size(); ++j)
+                        {
+                            if (tagSet->dense[j].Tag == "UgotowaneDanie")
+                            {
+                                Entity childEntity = tagSet->reverse[j];
+                                if (GetScene()->GetParent(childEntity).id == plateEntity.id)
+                                {
+                                    isOccupied = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (isOccupied)
+                    {
+                        continue;
+                    }
+
                     auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(plateEntity);
 
                     if (plateTransform)
                     {
-                        // Pobieramy pozycj� talerza na siatce
                         glm::ivec2 plateCell = GridSystem::WorldToCell(plateTransform->GetPosition());
 
-                        // Czy talerz jest o max 1 pole dalej w osi X i 1 w osi Y? (8 p�l dooko�a)
                         if (std::abs(myCell.x - plateCell.x) <= 1 && std::abs(myCell.y - plateCell.y) <= 1)
                         {
-                            // Je�li jest kilka talerzy w s�siedztwie, wybierz fizycznie najbli�szy
                             float dist = glm::distance(myTransform->GetPosition(), plateTransform->GetPosition());
                             if (dist < closestDist)
                             {
@@ -174,10 +237,6 @@ protected:
         {
             OnTransferToPlate(closestPlate);
             ResetMachineState();
-        }
-        else
-        {
-            spdlog::warn("Brak talerza na 8 sasiadujacych polach dookola maszyny!");
         }
     }
 
