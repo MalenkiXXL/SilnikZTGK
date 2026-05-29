@@ -559,6 +559,9 @@ void GameGuiLayer::DrawIconWithText(const std::string& text,
 
 
 void GameGuiLayer::OnUpdate(Timestep ts) {
+#ifdef CS_DISTRIBUTION
+    if (!m_IsVisible) return;
+#endif
     MachineScript::GlobalIsHoveringUI = false;
 
     Gui::BeginFrame();

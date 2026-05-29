@@ -229,13 +229,8 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>xcopy /y /d "C:\vcpkg\packages\assimp_x64-windows\bin\assimp-vc143-mt.dll" "$(OutDir)"
-xcopy /y /d "C:\vcpkg\packages\glfw3_x64-windows\bin\glfw3.dll" "$(OutDir)"
-xcopy /y /d "C:\vcpkg\packages\jhasse-poly2tri_x64-windows\bin\poly2tri.dll" "$(OutDir)"
-xcopy /y /d "C:\vcpkg\packages\minizip_x64-windows\bin\minizip.dll" "$(OutDir)"
-xcopy /y /d "C:\vcpkg\packages\zlib_x64-windows\bin\zlib1.dll" "$(OutDir)"
-xcopy /y /d "C:\vcpkg\packages\kubazip_x64-windows\bin\kubazip.dll" "$(OutDir)"
-xcopy /y /d "C:\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -244,6 +239,7 @@ xcopy /y /d "C:\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"<
     <ClCompile Include="CookingStation\Core\VFS\PhysicalFileSystem.h" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp" />
+    <ClCompile Include="CookingStation\Layers\MainMenuLayer\MainMenuLayer.cpp" />
     <ClCompile Include="CookingStation\Math\Geometry.cpp" />
     <ClCompile Include="CookingStation\miniaudio_impl.cpp" />
     <ClCompile Include="CookingStation\Renderer\Buffer.cpp" />
@@ -302,6 +298,7 @@ xcopy /y /d "C:\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" "$(OutDir)"<
     <ClInclude Include="CookingStation\Layers\EditorLayer\MoveEntityCommand.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\CarouselUI.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\GameGuiLayer.h" />
+    <ClInclude Include="CookingStation\Layers\MainMenuLayer\MainMenuLayer.h" />
     <ClInclude Include="CookingStation\Math\Geometry.h" />
     <ClInclude Include="CookingStation\Renderer\Buffer.h" />
     <ClInclude Include="CookingStation\Layers\AssetLayer\AssetManager.h" />

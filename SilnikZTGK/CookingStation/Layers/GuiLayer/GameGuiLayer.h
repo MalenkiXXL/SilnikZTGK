@@ -28,8 +28,11 @@ public:
     void ReloadQuests();
     virtual void OnDetach() override;
     static bool s_NeedsQuestReload;
+    void SetVisible(bool visible) { m_IsVisible = visible; }
+    bool IsVisible() const { return m_IsVisible; }
 
 private:
+    bool m_IsVisible = false;
     // --- JEDNOKROTNE DEFINICJE ZMIENNYCH ---
     bool m_IsActive = false;
     std::shared_ptr<Scene> m_ActiveScene;

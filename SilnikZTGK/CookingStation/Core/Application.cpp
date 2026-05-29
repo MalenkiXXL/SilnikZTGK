@@ -6,6 +6,7 @@
 #include "ProfileTimer.h"
 #include "CookingStation/Layers/RenderLayer/RendererLayer.h"
 #include "CookingStation/Layers/HudLayer/HUDLayer.h"
+#include "CookingStation/Layers/MainMenuLayer/MainMenuLayer.h"
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Core/AudioEngine.h"
@@ -30,7 +31,7 @@ Application::Application()
 
 	glEnable(GL_MULTISAMPLE);
 
-	// 1. ZWYK£Y FBO (GUI)
+	// 1. ZWYKLY FBO (GUI)
 	FramebufferSpecification fbSpec;
 	fbSpec.Width = m_Window->GetWidth();
 	fbSpec.Height = m_Window->GetHeight();
@@ -52,7 +53,7 @@ Application::Application()
 //	VFS::Mount("assets", std::make_shared<PackageFileSystem>((exePath / "data.pak").string()));
 //	VFS::Mount("shaders", std::make_shared<PackageFileSystem>((exePath / "shaders.pak").string()));
 //#else
-//	// W trybie edytora gra musi widzieæ luŸne pliki na dysku, ¿ebyœ móg³ je na ¿ywo edytowaæ!
+//	// W trybie edytora gra musi widziec luzne pliki na dysku, zebys mogl je na zywo edytowac!
 //	VFS::Mount("assets", std::make_shared<PhysicalFileSystem>("CookingStation/Assets"));
 //	VFS::Mount("shaders", std::make_shared<PhysicalFileSystem>("CookingStation/Shaders"));
 //#endif
@@ -80,31 +81,16 @@ Application::Application()
 	{
 		AssetManager::LoadModelLibrary("assets://modelsLib.json");
 		AssetManager::InitCoreAssets();
-		ScriptRegistry::Init();   
+		ScriptRegistry::Init();
 
-		std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-		SceneSerializer serializer(activeScene.get());
-
-		if (serializer.Deserialize("assets://levels/level01.json"))
-		{
-			activeScene->SetViewportSize(m_Window->GetWidth(), m_Window->GetHeight());
-
-			// Gui musi znaæ rozmiar ekranu do poprawnego mapowania myszy
-			Gui::SetScreenSize((float)m_Window->GetWidth(), (float)m_Window->GetHeight());
-
-			activeScene->SetState(SceneState::Play);
-			activeScene->OnRuntimeStart();
-		}
-		else
-		{
-			spdlog::error("Blad krytyczny: Nie udalo sie wczytac sceny: assets://levels/level01.json");
-		}
+		std::shared_ptr<Scene> activeScene = SceneManager::NewScene();
+		Gui::SetScreenSize((float)m_Window->GetWidth(), (float)m_Window->GetHeight());
 	}
 #endif
 
 	PushLayer(new CameraLayer());
 	PushLayer(new AssetLayer());
-	PushLayer(new GameLayer());   
+	PushLayer(new GameLayer());
 
 	auto renderLayer = new RendererLayer();
 	renderLayer->SetTargetFramebuffer(m_MsaaFBO);
@@ -128,6 +114,11 @@ Application::Application()
 	gameGuiLayer->SetViewportFramebuffer(m_ViewportFBO);
 	PushLayer(gameGuiLayer);
 
+#ifdef CS_DISTRIBUTION
+	auto mainMenuLayer = new MainMenuLayer();
+	PushLayer(mainMenuLayer);
+#endif
+
 	AudioEngine::Init();
 }
 
@@ -140,7 +131,7 @@ Application::~Application()
 void Application::Run()
 {
 	// ==========================================
-	// 6. G£ÓWNA PÊTLA GRY
+	// 6. GLOWNA PETLA GRY
 	// ==========================================
 	while (m_Running)
 	{
@@ -150,7 +141,7 @@ void Application::Run()
 		m_LastFrameTime = time;
 
 		// Limitujemy maksymalny czas klatki.
-		// Jeœli gra zatnie siê na chwile fizyka nie "eksploduje" wielkim skokiem.
+		// Jesli gra zatnie sie na chwile fizyka nie "eksploduje" wielkim skokiem.
 		if (timestep > 0.1f)
 			timestep = 0.1f;
 
@@ -158,7 +149,7 @@ void Application::Run()
 		RenderCommand::SetClearColor(glm::vec4(0.05f, 0.05f, 0.05f, 1.0f));
 		RenderCommand::Clear();
 
-		// Czyœcimy liczniki przed rozpoczêciem klatki!
+		// Czyscimy liczniki przed rozpoczeciem klatki!
 		Renderer::ResetStats();
 
 		// 3. UPDATE LOGIKI I ECS
@@ -177,10 +168,10 @@ void Application::Run()
 
 		m_MsaaFBO->ResolveTo(m_ViewportFBO);
 
-		// 4. AKTUALIZACJA OKNA I WEJŒCIA
-		m_Window->OnUpdate(); // To wywo³a m.in. glfwSwapBuffers i glfwPollEvents
+		// 4. AKTUALIZACJA OKNA I WEJSCIA
+		m_Window->OnUpdate(); // To wywola m.in. glfwSwapBuffers i glfwPollEvents
 
-		Input::Update(); // Czyszczenie stanów wejœcia 
+		Input::Update(); // Czyszczenie stanow wejscia 
 	}
 }
 
@@ -190,11 +181,11 @@ void Application::OnEvent(Event& e)
 
 	dispatcher.Dispatch<GamepadButtonPressedEvent>([](GamepadButtonPressedEvent& event) {
 		spdlog::info("TEST: Pad dziala! Wcisnieto przycisk o ID: {}", event.GetButton());
-		return false; // Zwracamy false, ¿eby event polecia³ dalej do warstw
+		return false; // Zwracamy false, zeby event polecial dalej do warstw
 		});
 
 	dispatcher.Dispatch<GamepadAxisMovedEvent>([](GamepadAxisMovedEvent& event) {
-		spdlog::info("TEST: Oœ {} ruszona! Wartoœæ: {}", event.GetAxis(), event.GetValue());
+		spdlog::info("TEST: O {} ruszona! Wartosc: {}", event.GetAxis(), event.GetValue());
 		return false;
 		});
 
@@ -236,19 +227,19 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 		return false;
 	}
 
-	// Ta linijka wykonuje siê ZAWSZE (zarówno w Edytorze, jak i w gotowej grze)
+	// Ta linijka wykonuje sie ZAWSZE (zarowno w Edytorze, jak i w gotowej grze)
 	glViewport(0, 0, width, height);
 
 #ifdef CS_DISTRIBUTION
 
-	// 1. Dopasowujemy rozmiary buforów renderowania do pe³nego okna gry
+	// 1. Dopasowujemy rozmiary buforow renderowania do pelnego okna gry
 	if (m_ViewportFBO) m_ViewportFBO->Resize(width, height);
 	if (m_MsaaFBO) m_MsaaFBO->Resize(width, height);
 
 	// 2. Bezpiecznie aktualizujemy wymiary ekranu dla silnika GUI przez nasz nowy Setter
 	Gui::SetScreenSize((float)width, (float)height);
 
-	// 3. Aktualizujemy Aspect Ratio kamery w œwiecie gry, ¿eby obiekty nie by³y sp³aszczone
+	// 3. Aktualizujemy Aspect Ratio kamery w swiecie gry, zeby obiekty nie byly splaszczone
 	auto activeScene = SceneManager::GetActiveScene();
 	if (activeScene)
 	{
@@ -264,7 +255,3 @@ bool Application::OnKeyPressed(KeyPressedEvent& e)
 	//	std::cout << "Wcisnieto klawisz: " << e.GetKeyCode() << std::endl;;
 	return false;
 }
-
-
-
-
