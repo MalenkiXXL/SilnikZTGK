@@ -101,8 +101,8 @@ public:
         {
             if (std::abs(ray.Direction.y) > 1e-6f)
             {
-                float yMax = 20.0f; // Było 15.0f
-                float yMin = -10.0f; // Było -5.0f
+                float yMax = 15.0f;
+                float yMin = -5.0f;
 
                 float tTop = (yMax - ray.Origin.y) / ray.Direction.y;
                 float tBottom = (yMin - ray.Origin.y) / ray.Direction.y;

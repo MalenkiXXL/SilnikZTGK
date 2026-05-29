@@ -561,6 +561,9 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             if (Gui::Button(entry.Name, { xOffset, yOffset }, { 120, 30 })) {
                 auto& request = activeScene->GetPlacementRequest();
                 request.Name = entry.Name; request.Path = entry.Path; request.Active = true;
+
+                //odznaczam aktualnie zaznaczony obiekt
+                activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
             }
             xOffset += 130.0f;
             if (xOffset + 120.0f > libPos.x + libSize.x) {
@@ -596,6 +599,8 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                         request.Name = prefabName;
                         request.Path = virtualPrefabPath;
                         request.Active = true;
+
+                        activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
                     }
                     xOffset += 130.0f;
                     if (xOffset + 120.0f > prefPos.x + prefSize.x) {
@@ -821,6 +826,40 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("Anuluj", { dialogPos.x + 180.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) m_ShowLoadDialog = false;
     }
 
+    // --- PANEL POMOCY / STEROWANIE ---
+    if (m_ShowHelpPanel) {
+        glm::vec2 helpSize = { 350.0f, 280.0f };
+        glm::vec2 helpPos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, helpSize.x, helpSize.y, m_ViewportWidth, m_ViewportHeight);
+
+        Gui::Panel(helpPos, helpSize, { 0.15f, 0.2f, 0.2f, 0.95f }, 15.0f);
+
+        float padX = helpPos.x + 15.0f;
+        float currentY = helpPos.y + 15.0f;
+
+        Gui::DrawGuiText("Sterowanie i Skroty:", { padX, currentY }, 0.5f, { 1.0f, 0.8f, 0.2f, 1.0f });
+        currentY += 35.0f;
+
+        auto DrawHelpLine = [&](const std::string& key, const std::string& desc) {
+            Gui::DrawGuiText(key, { padX, currentY }, 0.4f, { 0.4f, 0.8f, 1.0f, 1.0f });
+            Gui::DrawGuiText(desc, { padX + 110.0f, currentY }, 0.4f, { 0.9f, 0.9f, 0.9f, 1.0f });
+            currentY += 25.0f;
+        };
+
+        DrawHelpLine("LPM", "Zaznacz obiekt / Postaw z biblioteki");
+        DrawHelpLine("Shift + LPM", "Zaznacz inny obiekt (w trybie siatki)");
+        DrawHelpLine("PPM", "Anuluj stawianie obiektu");
+        DrawHelpLine("G / TAB", "Wlacz / Wylacz tryb siatki");
+        DrawHelpLine("R", "Obrot wybranego obiektu o 90 stopni");
+        DrawHelpLine("Ctrl + Z", "Cofnij (Undo)");
+        DrawHelpLine("Ctrl + Y", "Ponow (Redo)");
+        DrawHelpLine("F9", "Przelacz algorytm SSA");
+
+        currentY += 10.0f;
+        if (Gui::Button("ZAMKNIJ", { helpPos.x + 100.0f, currentY }, { 150.0f, 30.0f })) {
+            m_ShowHelpPanel = false;
+        }
+    }
+
     // --- MENU WIDOKU ---
     if (m_ShowViewMenu) {
         Gui::Panel({ 100.0f, 30.0f }, { 160.0f, 220.0f }, { 0.2f, 0.2f, 0.2f, 0.9f }, 15.0f);
@@ -831,6 +870,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("Diagnostyka", { 105.0f, 155.0f }, { 150.0f, 25.0f }, m_ShowDiagnosticPanel)) { m_ShowDiagnosticPanel = !m_ShowDiagnosticPanel;  m_ShowViewMenu = false; }
         if (Gui::Button("Questy", { 105.0f, 185.0f }, { 150.0f, 25.0f }, m_ShowQuestsPanel)) { m_ShowQuestsPanel = !m_ShowQuestsPanel;      m_ShowViewMenu = false; }
         if (Gui::Button("Prefaby", { 105.0f, 215.0f }, { 150.0f, 25.0f }, m_ShowPrefabsPanel)) { m_ShowPrefabsPanel = !m_ShowPrefabsPanel;     if (m_ShowLibraryPanel) m_ShowLibraryPanel = false; m_ShowViewMenu = false; }
+        if (Gui::Button("Pomoc", { 105.0f, 245.0f }, { 150.0f, 25.0f }, m_ShowHelpPanel)) { m_ShowHelpPanel = !m_ShowHelpPanel; m_ShowViewMenu = false; }
     }
 
     Renderer2D::EndScene();

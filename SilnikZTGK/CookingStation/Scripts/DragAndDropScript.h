@@ -85,6 +85,9 @@ public:
     static void StartDrag(IngredientType type, const std::string& modelPath)
     {
         if (!ActiveScene) return;
+        if (MachineScript::GlobalIsMachineHeld || MachineScript::PendingPickup.id != std::numeric_limits<std::size_t>::max()) {
+            return;
+        }
         if (IsDragging) CancelDrag();
 
         SetKnifeVisibility(false);
@@ -111,6 +114,13 @@ public:
     static void PickupSpawnedMachine(Entity spawnedMachine)
     {
         if (spawnedMachine.id == std::numeric_limits<std::size_t>::max()) return;
+
+        if (MachineScript::PendingPickup.id != std::numeric_limits<std::size_t>::max() ||
+            MachineScript::GlobalIsMachineHeld || IsDragging)
+        {
+            if (ActiveScene) ActiveScene->DestroyEntity(spawnedMachine);
+            return;
+        }
 
         SetKnifeVisibility(false);
 

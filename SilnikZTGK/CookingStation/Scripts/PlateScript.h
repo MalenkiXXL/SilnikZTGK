@@ -14,18 +14,31 @@ public:
 
     bool AddIngredient(IngredientType type)
     {
-        // Jeœli kanapka jest ju¿ gotowa, talerz nie przyjmuje nic wiêcej
         if (m_CompletedDish != IngredientType::None) return false;
 
-        // Opcjonalny limit na talerzu
         if (m_Ingredients.size() >= 5) return false;
+
+        auto* tagSet = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+        if (tagSet)
+        {
+            for (size_t i = 0; i < tagSet->dense.size(); ++i)
+            {
+                if (tagSet->dense[i].Tag == "UgotowaneDanie")
+                {
+                    Entity childEntity = tagSet->reverse[i];
+                    if (GetScene()->GetParent(childEntity).id == m_Entity.id)
+                    {
+                        spdlog::warn("Talerz ma juz gotowe danie z maszyny!");
+                        return false;
+                    }
+                }
+            }
+        }
 
         m_Ingredients.push_back(type);
 
-        // Zespawnuj model tego konkretnego sk³adnika "na stosie"
         SpawnIngredientVisual(type);
 
-        // Za ka¿dym wrzuceniem sprawdzamy, czy to ju¿ przepis!
         CheckRecipes();
 
         return true;
