@@ -68,34 +68,7 @@ public:
 
     virtual void HandleClick() override
     {
-        // Shift+klik (pickup) obsługuje baza
         MachineScript::HandleClick();
-
-        // Transfer tylko gdy baza NIE zrobiła go już za nas
-        // (baza po naszej zmianie tego nie robi, więc robimy tu sami z warunkiem dystansu)
-        if (m_IsReady && !m_IsAutomated && !m_IsHeld)
-        {
-            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-            {
-                auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-                if (foodTransform)
-                {
-                    glm::vec3 mousePos = GetMouseWorldPosition();
-                    glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
-                    glm::vec2 foodPos2D = {
-                        foodTransform->GetPosition().x,
-                        foodTransform->GetPosition().z
-                    };
-
-                    if (glm::distance(mousePos2D, foodPos2D) < 1.0f)
-                    {
-                        spdlog::info("Kliknieto w danie - przenosimy na talerz!");
-                        ClearHighlight(); // <-- zgaś podświetlenie przed transferem
-                        TryTransferToPlate();
-                    }
-                }
-            }
-        }
     }
 
     bool AddIngredient(IngredientType type) override
@@ -146,6 +119,10 @@ protected:
             mesh.ModelPtr = AssetManager::GetModel("CookingStation/Assets/models/skladniki/pomidor/pomidorowa.gltf");
             builder.With<MeshComponent>(mesh);
 
+            BoxColliderComponent collider;
+            collider.Size = glm::vec3(1.2f);
+            builder.With<BoxColliderComponent>(collider);
+
             m_SpawnedFood = builder.Build();
             spdlog::info("Danie gotowe, pojawia sie nad garnkiem.");
         }
@@ -161,23 +138,6 @@ protected:
 
     void OnTransferToPlate(Entity plate) override
     {
-        if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-        {
-            auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-            auto* foodTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_SpawnedFood);
-
-            if (foodTransform)
-            {
-                foodTransform->SetPosition(glm::vec3(0.0f, 0.15f, 0.0f));
-                GetScene()->SetParent(m_SpawnedFood, plate);
-
-                if (foodTag)
-                    foodTag->Tag = "UgotowaneDanie";
-
-                spdlog::info("Gotowe jedzenie podane na talerz - czeka na kelnera!");
-            }
-
-            m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-        }
+        PlaceSpawnedFoodOnPlate(plate);
     }
 };

@@ -27,6 +27,11 @@ protected:
 
     bool m_IsMouseHoveringFood = false;
 
+    std::size_t m_FoodClickSubId = 0;
+
+    std::size_t m_HoverSubId = 0;
+
+
 public:
     std::vector<IngredientType> m_Ingredients;
     bool m_IsReady = false;
@@ -41,8 +46,51 @@ public:
         m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
             [this](const EntityClickedEvent& e) {
                 if (e.TargetEntity.id == m_Entity.id)
-                {
                     this->HandleClick();
+            }
+        );
+
+        m_FoodClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
+            [this](const EntityClickedEvent& e) {
+                if (m_SpawnedFood.id == std::numeric_limits<std::size_t>::max()) return;
+                if (e.TargetEntity.id != m_SpawnedFood.id) return;
+                if (!m_IsReady || m_IsAutomated || m_IsHeld) return;
+
+                TryTransferToPlate();
+            }
+        );
+
+        m_HoverSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityHoveredEvent>(
+            [this](const EntityHoveredEvent& e) {
+                if (m_IsHeld || !m_IsReady || m_IsAutomated) {
+                    if (m_IsMouseHoveringFood) {
+                        m_IsMouseHoveringFood = false;
+                        ClearHighlight();
+                    }
+                    return;
+                }
+                if (m_SpawnedFood.id == std::numeric_limits<std::size_t>::max()) return;
+
+                bool isHoveringFood = (e.TargetEntity.id == m_SpawnedFood.id);
+
+                if (isHoveringFood)
+                {
+                    m_IsMouseHoveringFood = true;
+
+                    Entity closestPlate = GetClosestAvailablePlate();
+
+                    if (closestPlate.id != m_LastHighlightedPlate.id)
+                    {
+                        ClearHighlight();
+                        if (closestPlate.id != std::numeric_limits<std::size_t>::max())
+                            SetPlateHighlight(closestPlate, true);
+                        m_LastHighlightedPlate = closestPlate;
+                    }
+                }
+                else if (!isHoveringFood && m_IsMouseHoveringFood)
+                {
+                    m_IsMouseHoveringFood = false;
+                    ClearHighlight();
                 }
             }
         );
@@ -50,14 +98,14 @@ public:
 
     virtual void OnDestroy() override
     {
-        ClearHighlight(); 
+        ClearHighlight();
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_FoodClickSubId);
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId);
     }
 
     virtual void OnUpdate(Timestep ts) override
     {
-        HandleFoodHover();
-
         if (PendingPickup.id != std::numeric_limits<std::size_t>::max() && PendingPickup.id == m_Entity.id)
         {
             m_IsHeld = true;
@@ -163,19 +211,6 @@ protected:
         auto* myTransform = GetComponent<TransformComponent>();
         if (!myTransform) return { std::numeric_limits<std::size_t>::max(), 0 };
 
-        // Jeœli poprzednio wybrany talerz nadal jest w zasiêgu, trzymaj siê go
-        if (m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max())
-        {
-            auto* lastTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_LastHighlightedPlate);
-            if (lastTransform)
-            {
-                glm::ivec2 myCell = GridSystem::WorldToCell(myTransform->GetPosition());
-                glm::ivec2 lastCell = GridSystem::WorldToCell(lastTransform->GetPosition());
-                if (std::abs(myCell.x - lastCell.x) <= 1 && std::abs(myCell.y - lastCell.y) <= 1)
-                    return m_LastHighlightedPlate; // nadal w zasiêgu, nie zmieniaj
-            }
-        }
-
         Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 999.0f;
         glm::ivec2 myCell = GridSystem::WorldToCell(myTransform->GetPosition());
@@ -211,16 +246,22 @@ protected:
 
     virtual void TryTransferToPlate()
     {
-        Entity targetPlate = GetClosestAvailablePlate();
+        spdlog::info("DEBUG Transfer: m_LastHighlightedPlate ID={}", m_LastHighlightedPlate.id);
+
+        Entity targetPlate = m_LastHighlightedPlate;
+
+        if (targetPlate.id == std::numeric_limits<std::size_t>::max() && m_IsAutomated)
+            targetPlate = GetClosestAvailablePlate();
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())
         {
+            ClearHighlight();
             OnTransferToPlate(targetPlate);
             ResetMachineState();
         }
         else
         {
-            spdlog::warn("Brak talerza na 8 sasiadujacych polach dookola maszyny!");
+            spdlog::warn("Brak podswietlonego talerza - najedz na danie przed kliknieciem!");
         }
     }
 
@@ -264,73 +305,25 @@ protected:
         }
     }
 
-    virtual void HandleFoodHover()
+
+    void PlaceSpawnedFoodOnPlate(Entity plate)
     {
-        if (m_IsHeld || !m_IsReady || m_IsAutomated)
+        if (m_SpawnedFood.id == std::numeric_limits<std::size_t>::max()) return;
+
+        auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
+        auto* foodTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_SpawnedFood);
+
+        if (foodTransform)
         {
-            if (m_IsMouseHoveringFood) {
-                m_IsMouseHoveringFood = false;
-                ClearHighlight();
-            }
-            return;
+            foodTransform->SetPosition(glm::vec3(0.0f, 0.15f, 0.0f));
+            GetScene()->SetParent(m_SpawnedFood, plate);
+
+            if (foodTag)
+                foodTag->Tag = "UgotowaneDanie";
+
+            spdlog::info("Gotowe jedzenie podane na talerz - czeka na kelnera!");
         }
 
-        glm::vec3 targetPos = glm::vec3(0.0f);
-        if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-        {
-            auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-            if (foodTransform) targetPos = foodTransform->GetPosition();
-        }
-        else
-        {
-            auto* myTransform = GetComponent<TransformComponent>();
-            if (myTransform) targetPos = myTransform->GetPosition();
-        }
-
-        glm::vec3 mousePos = GetMouseWorldPosition();
-        glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
-        glm::vec2 targetPos2D = { targetPos.x, targetPos.z };
-
-        float dist = glm::distance(mousePos2D, targetPos2D);
-        bool isCurrentlyHovering = (dist < 1.0f);
-
-        if (!isCurrentlyHovering)
-        {
-            if (m_IsMouseHoveringFood)
-            {
-                spdlog::info("DEBUG: Myszka ZJECHALA z dania.");
-                m_IsMouseHoveringFood = false;
-                ClearHighlight();
-            }
-            return; // <-- wyjdŸ wczeœniej, reszta logiki tylko gdy hover
-        }
-
-        // Od tu: isCurrentlyHovering == true
-        if (!m_IsMouseHoveringFood)
-        {
-            spdlog::info("DEBUG: Myszka WJECHALA nad gotowe danie!");
-            m_IsMouseHoveringFood = true;
-        }
-
-        Entity closestPlate = GetClosestAvailablePlate();
-
-        // Aktualizuj podœwietlenie zawsze gdy kursor jest nad jedzeniem,
-        // nie tylko gdy closestPlate siê zmieni³ — bo talerz móg³ siê pojawiæ
-        if (closestPlate.id != m_LastHighlightedPlate.id)
-        {
-            ClearHighlight(); // gasi poprzedni
-
-            if (closestPlate.id != std::numeric_limits<std::size_t>::max())
-            {
-                spdlog::info("DEBUG: Podswietlam talerz ID: {}", closestPlate.id);
-                SetPlateHighlight(closestPlate, true);
-            }
-            else
-            {
-                spdlog::warn("DEBUG: Brak talerza w poblizu do podswietlenia.");
-            }
-
-            m_LastHighlightedPlate = closestPlate;
-        }
+        m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
     }
 };

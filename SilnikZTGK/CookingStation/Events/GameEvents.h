@@ -71,3 +71,7 @@ struct ShowMainMenuEvent {};
 // Publikuje MainMenuLayer → odbiera GameGuiLayer
 // Sygnalizuje, że scena gry została załadowana i GUI gry ma się pokazać.
 struct GameStartedEvent {};
+
+struct EntityHoveredEvent {
+    Entity TargetEntity;
+};
