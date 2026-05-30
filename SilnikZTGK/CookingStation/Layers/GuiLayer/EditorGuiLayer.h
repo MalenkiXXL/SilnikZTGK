@@ -6,8 +6,8 @@
 #include "CookingStation/Events/WindowEvent.h"
 #include "CookingStation/Events/MouseEvent.h"
 #include "CookingStation/Layers/GuiLayer/EditorGuiLayer.h"
-#include "Gui.h"
-#include "Renderer2D.h"
+#include "Utils/Gui.h"
+#include "Utils/Renderer2D.h"
 #include "CookingStation/Renderer/Framebuffer.h"
 #include <memory>
 #include <limits>

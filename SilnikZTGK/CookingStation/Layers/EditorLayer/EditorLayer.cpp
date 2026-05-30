@@ -6,7 +6,7 @@
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Scene/Scene.h"
-#include "CookingStation/Layers/GuiLayer/Gui.h" 
+#include "CookingStation/Layers/GuiLayer/Utils/Gui.h" 
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Scene/SceneSerializer.h"
 #include "CookingStation/Scene/SceneManager.h"

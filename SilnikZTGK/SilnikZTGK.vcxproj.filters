@@ -2,7 +2,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="CookingStation\Core\AudioEngine.cpp" />
-    <ClCompile Include="CookingStation\Layers\GuiLayer\Font.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Utils\Font.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp" />
     <ClCompile Include="CookingStation\Math\Geometry.cpp" />
     <ClCompile Include="CookingStation\miniaudio_impl.cpp" />
@@ -29,8 +29,8 @@
     <ClCompile Include="CookingStation\Renderer\VertexArray.cpp" />
     <ClCompile Include="CookingStation\Renderer\RenderCommand.cpp" />
     <ClCompile Include="CookingStation\Renderer\Renderer.cpp" />
-    <ClCompile Include="CookingStation\Layers\GuiLayer\Gui.cpp" />
-    <ClCompile Include="CookingStation\Layers\GuiLayer\Renderer2D.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Utils\Gui.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Utils\Renderer2D.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp" />
     <ClCompile Include="CookingStation\Renderer\ShaderLibrary.cpp" />
     <ClCompile Include="CookingStation\Layers\RenderLayer\RendererLayer.cpp" />
@@ -43,6 +43,11 @@
     <ClCompile Include="CookingStation\Scripts\src\DeliveryCarScript.cpp" />
     <ClCompile Include="CookingStation\Scripts\src\GameManagerScript.cpp" />
     <ClCompile Include="CookingStation\Scripts\src\PackageScript.cpp" />
+    <ClCompile Include="CookingStation\Layers\MainMenuLayer\MainMenuLayer.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Utils\IUIPanel.h" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Utils\GuiUtils.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\SettingsMenuPanel.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\PauseMenuPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Core\AudioEngine.h" />
@@ -79,9 +84,9 @@
     <ClInclude Include="CookingStation\Renderer\VertexArray.h" />
     <ClInclude Include="CookingStation\Renderer\RenderCommand.h" />
     <ClInclude Include="CookingStation\Renderer\Renderer.h" />
-    <ClInclude Include="CookingStation\Layers\GuiLayer\Gui.h" />
-    <ClInclude Include="CookingStation\Layers\GuiLayer\Renderer2D.h" />
-    <ClInclude Include="CookingStation\Layers\GuiLayer\Font.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Utils\Gui.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Utils\Renderer2D.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Utils\Font.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\EditorGuiLayer.h" />
     <ClInclude Include="CookingStation\Renderer\ShaderLibrary.h" />
     <ClInclude Include="CookingStation\Layers\RenderLayer\RendererLayer.h" />
@@ -120,6 +125,11 @@
     <ClInclude Include="CookingStation\Scripts\Machines\PotScript.h" />
     <ClInclude Include="CookingStation\Scripts\PlateScript.h" />
     <ClInclude Include="CookingStation\Events\GamepadEvent.h" />
+    <ClInclude Include="CookingStation\Core\GraphicsSettings.h" />
+    <ClInclude Include="CookingStation\Layers\MainMenuLayer\MainMenuLayer.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Utils\GuiUtils.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Panels\SettingsMenuPanel.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Panels\PauseMenuPanel.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />

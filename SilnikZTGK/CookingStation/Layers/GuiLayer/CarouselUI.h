@@ -1,6 +1,6 @@
 #pragma once
 #include "CookingStation/Events/MouseEvent.h"
-#include "CookingStation/Layers/GuiLayer/Gui.h"
+#include "Utils/Gui.h"
 #include <glm/glm.hpp>
 #include <algorithm>
 

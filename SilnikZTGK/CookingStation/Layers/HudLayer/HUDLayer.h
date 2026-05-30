@@ -1,6 +1,6 @@
 #pragma once
 #include "CookingStation/Core/Layer.h"
-#include "CookingStation/Layers/GuiLayer/Renderer2D.h"
+#include "CookingStation/Layers/GuiLayer/Utils/Renderer2D.h"
 #include "CookingStation/Core/Texture.h"
 #include "CookingStation/Events/WindowEvent.h"
 #include <memory>

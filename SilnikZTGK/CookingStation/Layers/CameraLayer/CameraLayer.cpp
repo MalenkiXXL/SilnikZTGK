@@ -2,7 +2,7 @@
 #include "../../Core/Input.h"
 #include <iostream>
 #include <GLFW/glfw3.h>
-#include "CookingStation/Layers/GuiLayer/Gui.h"
+#include "CookingStation/Layers/GuiLayer/Utils/Gui.h"
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Scene/SceneSerializer.h"
 #include "CookingStation/Scene/SceneManager.h"

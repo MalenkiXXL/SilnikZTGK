@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 #include <unordered_map>
-#include "CookingStation/Layers/GuiLayer/Font.h"
+#include "Font.h"
 #include "CookingStation/Core/Texture.h"
 
 class Gui {

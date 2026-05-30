@@ -2,7 +2,7 @@
 #include "CookingStation/Core/Layer.h"
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Events/WindowEvent.h"
-#include "CookingStation/Layers/GuiLayer/Renderer2D.h"
+#include "CookingStation/Layers/GuiLayer/Utils/Renderer2D.h"
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Events/KeyEvent.h"
 #include "CookingStation/Events/EditorEvents.h"

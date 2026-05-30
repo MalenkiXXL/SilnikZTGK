@@ -4,8 +4,8 @@
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Layers/CameraLayer/Camera.h" 
 #include <glm/gtc/matrix_transform.hpp>
-#include "CookingStation/Layers/GuiLayer/Renderer2D.h"
-#include "CookingStation/Layers/GuiLayer/Gui.h"
+#include "CookingStation/Layers/GuiLayer/Utils/Renderer2D.h"
+#include "CookingStation/Layers/GuiLayer/Utils/Gui.h"
 #include "CookingStation/Core/Input.h"
 #include <nlohmann/json.hpp>
 #include <fstream>

@@ -17,7 +17,7 @@
 #include "CookingStation/Core/VFS/PhysicalFileSystem.h"
 #include "CookingStation/Core/VFS/VFS.h"
 #include "CookingStation/Core/VFS/PackageFileSystem.h"
-#include "CookingStation/Layers/GuiLayer/Gui.h"
+#include "CookingStation/Layers/GuiLayer/Utils/Gui.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
 #include "CookingStation/Events/GamepadEvent.h"
 
