@@ -22,6 +22,7 @@ void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("BlinnPhong", "shaders://vsShaders/shader.vs", "shaders://fragShaders/BlinnPhong.frag");
     m_ShaderLibrary.Load("Rim", "shaders://vsShaders/shader.vs", "shaders://fragShaders/Rim.frag");
     m_ShaderLibrary.Load("Conveyor", "shaders://vsShaders/shader.vs", "shaders://fragShaders/conveyor.frag");
+    m_ShaderLibrary.Load("HighlightShader", "shaders://vsShaders/highlight.vs", "shaders://fragShaders/highlight.frag");
 
     m_RampTexture = std::make_shared<Texture2D>("assets://textures/RAMP_texture.png");
     m_BackgroundTexture = std::make_shared<Texture2D>("assets://background/background.png");
@@ -161,7 +162,27 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
                     UVScrollComponent* scroll = scrollStorage ? scrollStorage->Get(owner) : nullptr;
                     float currentUVOffset = scroll ? scroll->Offset : 0.0f;
-                    std::shared_ptr<Shader> shaderToUse = scroll ? conveyorShader : (meshComp.ShaderPtr ? meshComp.ShaderPtr : stdShader);
+                    std::shared_ptr<Shader> shaderToUse = nullptr;
+
+                    if (scroll)
+                    {
+                        shaderToUse = conveyorShader;
+                    }
+                    else if (!meshComp.ShaderName.empty() && meshComp.ShaderName != "Standard")
+                    {
+                        // ShaderName ustawiony przez skrypt (np. "HighlightShader") — szukamy w bibliotece
+                        shaderToUse = m_ShaderLibrary.Exists(meshComp.ShaderName)
+                            ? m_ShaderLibrary.Get(meshComp.ShaderName)
+                            : stdShader;
+                    }
+                    else if (meshComp.ShaderPtr)
+                    {
+                        shaderToUse = meshComp.ShaderPtr;
+                    }
+                    else
+                    {
+                        shaderToUse = stdShader;
+                    }
 
                     AnimatorComponent* animComp = animatorStorage ? animatorStorage->Get(owner) : nullptr;
 

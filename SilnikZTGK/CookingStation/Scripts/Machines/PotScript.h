@@ -7,8 +7,6 @@
 class PotScript : public MachineScript
 {
 private:
-    Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-
     void SetSmoking(bool state, bool clearInstatly = false)
     {
         auto* scriptComp = GetComponent<NativeScriptComponent>();
@@ -34,14 +32,14 @@ private:
 public:
     void OnCreate() override
     {
-        MachineScript::OnCreate(); // Wazne: wywolujemy bazowe OnCreate zeby zasubskrybowac EntityClickedEvent!
+        MachineScript::OnCreate();
         m_CookTime = 3.0f;
         SetSmoking(false);
     }
 
     void OnUpdate(Timestep ts) override
     {
-        MachineScript::OnUpdate(ts);
+        MachineScript::OnUpdate(ts); 
 
         if (m_IsHeld) return;
 
@@ -68,20 +66,15 @@ public:
         }
     }
 
-    // Calkowite klikniecie przeniesione tu z OnUpdate - HandleClick jest wywolywane przez EntityClickedEvent
     virtual void HandleClick() override
     {
-        if (!m_IsHeld && Input::IsKeyPressed(340))
-        {
-            // Shift+klik = podniesienie maszyny
-            m_IsHeld = true;
-            spdlog::info("Podniesiono garnek!");
-            return;
-        }
+        // Shift+klik (pickup) obsługuje baza
+        MachineScript::HandleClick();
 
+        // Transfer tylko gdy baza NIE zrobiła go już za nas
+        // (baza po naszej zmianie tego nie robi, więc robimy tu sami z warunkiem dystansu)
         if (m_IsReady && !m_IsAutomated && !m_IsHeld)
         {
-            // Sprawdzamy czy klik trafil w danie nad garnkiem
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
                 auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
@@ -89,11 +82,15 @@ public:
                 {
                     glm::vec3 mousePos = GetMouseWorldPosition();
                     glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
-                    glm::vec2 foodPos2D = { foodTransform->GetPosition().x, foodTransform->GetPosition().z };
+                    glm::vec2 foodPos2D = {
+                        foodTransform->GetPosition().x,
+                        foodTransform->GetPosition().z
+                    };
 
-                    if (glm::distance(mousePos2D, foodPos2D) < 3.0f)
+                    if (glm::distance(mousePos2D, foodPos2D) < 1.0f)
                     {
                         spdlog::info("Kliknieto w danie - przenosimy na talerz!");
+                        ClearHighlight(); // <-- zgaś podświetlenie przed transferem
                         TryTransferToPlate();
                     }
                 }
@@ -125,7 +122,6 @@ protected:
     {
         if (m_IsReady)
         {
-            // Guard: nie twórz dania jesli juz istnieje
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
                 return;
 

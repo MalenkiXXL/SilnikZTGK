@@ -146,4 +146,24 @@ private:
         GetScene()->SetParent(dishEntity, m_Entity);
         m_VisualModels.push_back(dishEntity);
     }
+
+    private:
+        Entity m_HighlightModelEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+
+    public:
+        void SetHighlight(bool isHighlighted)
+        {
+            const std::string targetShader = isHighlighted ? "HighlightShader" : "ModelShader";
+
+            // Shader samego talerza
+            auto* mesh = GetComponent<MeshComponent>();
+            if (mesh) mesh->ShaderName = targetShader;
+
+            // Shader wszystkich sk³adników/dañ na talerzu
+            for (Entity e : m_VisualModels)
+            {
+                auto* childMesh = GetScene()->GetWorld().GetComponent<MeshComponent>(e);
+                if (childMesh) childMesh->ShaderName = targetShader;
+            }
+        }
 };
