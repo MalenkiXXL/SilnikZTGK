@@ -7,11 +7,33 @@ class MixerScript : public MachineScript
 {
 private:
     Entity m_SpawnedDough = { std::numeric_limits<std::size_t>::max(), 0 };
+    std::size_t m_DoughClickSubId = 0;
 
 public:
     void OnCreate() override
     {
-        m_CookTime = 4.0f; // Szybkie wyrabianie ciasta
+        MachineScript::OnCreate();
+        m_CookTime = 4.0f;
+
+        m_DoughClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
+            [this](const EntityClickedEvent& e) {
+                if (e.TargetEntity.id != std::numeric_limits<std::size_t>::max() &&
+                    m_SpawnedDough.id != std::numeric_limits<std::size_t>::max() &&
+                    e.TargetEntity.id == m_SpawnedDough.id && m_IsReady)
+                {
+                    GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_SpawnedDough });
+                    m_SpawnedDough = { std::numeric_limits<std::size_t>::max(), 0 };
+                    DragAndDropScript::StartDrag(IngredientType::RawDough, "assets://models/skladniki/maka/maka.gltf");
+                    ResetMachineState();
+                }
+            }
+        );
+    }
+
+    void OnDestroy() override
+    {
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_DoughClickSubId);
+        MachineScript::OnDestroy();
     }
 
     void OnUpdate(Timestep ts) override
@@ -19,33 +41,6 @@ public:
         MachineScript::OnUpdate(ts);
         if (m_IsHeld) return;
 
-        // Jeœli ciasto gotowe i gracz klikn¹³
-        if (m_IsReady && Input::IsMouseButtonJustPressed(0))
-        {
-            if (m_SpawnedDough.id != std::numeric_limits<std::size_t>::max())
-            {
-                auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedDough);
-                if (transform)
-                {
-                    glm::vec3 mousePos = GetMouseWorldPosition();
-                    glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
-                    glm::vec2 foodPos2D = { transform->GetPosition().x, transform->GetPosition().z };
-
-                    // Klikniêto w gotowe ciasto
-                    if (glm::distance(mousePos2D, foodPos2D) < 3.0f)
-                    {
-                        spdlog::info("Mixer: Wyciagniêto wyrobione ciasto!");
-
-                        // Przekazujemy surowe ciasto graczowi na msyzkê
-                        DragAndDropScript::StartDrag(IngredientType::RawDough, "assets://models/skladniki/maka/maka.gltf"); 
-
-                        ResetMachineState();
-                    }
-                }
-            }
-        }
-
-        // Logika miksowania (Startuje dopiero, gdy w œrodku jest m¹ka ORAZ mleko)
         if (!m_IsReady)
         {
             bool hasFlour = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Flour) != m_Ingredients.end();
@@ -72,11 +67,9 @@ public:
             m_Ingredients.push_back(type);
             m_IsReady = false;
             m_CurrentTime = 0.0f;
-            spdlog::info("Mixer: Przyjêto sk³adnik!");
             return true;
         }
 
-        spdlog::warn("Mixer: Tego tu nie wrzucisz!");
         return false;
     }
 
@@ -99,8 +92,12 @@ protected:
             builder.With<TransformComponent>(tc);
 
             MeshComponent mesh;
-            mesh.ModelPtr = AssetManager::GetModel("assets://models/skladniki/maka/maka.gltf"); // Zast¹p modelem surowego ciasta
+            mesh.ModelPtr = AssetManager::GetModel("assets://models/skladniki/maka/maka.gltf");
             builder.With<MeshComponent>(mesh);
+
+            BoxColliderComponent collider;
+            collider.Size = glm::vec3(1.2f);
+            builder.With<BoxColliderComponent>(collider);
 
             m_SpawnedDough = builder.Build();
         }

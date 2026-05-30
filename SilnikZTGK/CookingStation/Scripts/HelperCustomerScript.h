@@ -1,11 +1,10 @@
 #pragma once
-#include "CustomerScript.h" // DZIEDZICZYMY Z CUSTOMER SCRIPT!
+#include "CustomerScript.h"
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Scripts/Machines/MachineScript.h"
 #include <glm/glm.hpp>
 #include <limits>
 #include <cmath>
-#include <spdlog/spdlog.h>
 
 class HelperCustomerScript : public CustomerScript
 {
@@ -18,20 +17,46 @@ public:
 
     bool m_IsCarried = false;
     bool m_IsWorking = false;
-    bool m_IsWaitingToHelp = false; 
+    bool m_IsWaitingToHelp = false;
 
     Entity m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
     glm::vec3 m_PositionBeforeDrag;
+    std::size_t m_HelperClickSubId = 0;
 
-    // Nadpisujemy ReceiveFood - Pomocnik reaguje inaczej ni¿ zwyk³y klient
+    // --- NOWE: Cooldown zapobiegaj¹cy natychmiastowemu podnoszeniu ---
+    float m_Cooldown = 0.0f;
+
+    void OnCreate() override
+    {
+        CustomerScript::OnCreate();
+
+        m_HelperClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
+            [this](const EntityClickedEvent& e) {
+                if (e.TargetEntity.id == m_Entity.id)
+                {
+                    // Blokujemy podnoszenie, jeœli cooldown jeszcze trwa
+                    if (!m_IsCarried && !IsAnyHelperDragged && (m_IsWaitingToHelp || m_IsWorking) && m_Cooldown <= 0.0f)
+                    {
+                        PickUpHelper(GetComponent<TransformComponent>());
+                    }
+                }
+            }
+        );
+    }
+
+    void OnDestroy() override
+    {
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_HelperClickSubId);
+        CustomerScript::OnDestroy();
+    }
+
     void ReceiveFood(bool isCorrectOrder = true) override
     {
         IsServed = true;
 
         if (isCorrectOrder)
         {
-            m_IsWaitingToHelp = true; // Teraz mo¿na go podnieœæ
-            spdlog::info("Pomocnik nr {} zjadl i jest gotowy do pracy!", m_Entity.id);
+            m_IsWaitingToHelp = true;
             auto* tag = GetComponent<TagComponent>();
             if (tag) tag->Tag = "NajedzonyPomocnik";
 
@@ -44,39 +69,26 @@ public:
         }
         else
         {
-            spdlog::info("Pomocnik nr {} dostal zly talerz! Obraza sie i znika.", m_Entity.id);
             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
         }
     }
 
     void OnUpdate(Timestep ts) override
     {
-        // Jeœli jeszcze nie zjad³, siedzi i czeka
+        // Zmniejszamy cooldown co klatkê
+        if (m_Cooldown > 0.0f)
+        {
+            m_Cooldown -= (float)ts;
+        }
+
         if (!IsServed) return;
 
-        // Logika podnoszenia i przenoszenia
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        glm::vec3 mousePos = GetMouseWorldPosition();
-        glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
-        glm::vec2 myPos2D = { transform->GetPosition().x, transform->GetPosition().z };
-
-        if (!m_IsCarried)
+        if (m_IsCarried)
         {
-            if (Input::IsMouseButtonJustPressed(0) && !IsAnyHelperDragged)
-            {
-                if (m_IsWaitingToHelp || m_IsWorking)
-                {
-                    if (glm::distance(mousePos2D, myPos2D) <= m_InteractRange)
-                    {
-                        PickUpHelper(transform);
-                    }
-                }
-            }
-        }
-        else
-        {
+            glm::vec3 mousePos = GetMouseWorldPosition();
             float snappedX = std::floor(mousePos.x / m_CellSize) * m_CellSize + (m_CellSize / 2.0f);
             float snappedZ = std::floor(mousePos.z / m_CellSize) * m_CellSize + (m_CellSize / 2.0f);
             glm::vec3 snappedPos = { snappedX, m_YOffset + 0.5f, snappedZ };
@@ -90,13 +102,16 @@ public:
 
             transform->SetPosition(snappedPos);
 
-            if (Input::IsMouseButtonJustPressed(0))
+            // Dodane sprawdzenie cooldownu przed puszczeniem
+            if (Input::IsMouseButtonJustPressed(0) && m_Cooldown <= 0.0f)
             {
                 TryDropHelper(transform, hoveredMachine, snappedPos);
+                m_Cooldown = 0.2f; // Ustawiamy cooldown po puszczeniu
             }
             else if (Input::IsMouseButtonJustPressed(1))
             {
                 CancelCarry(transform);
+                m_Cooldown = 0.2f; // Ustawiamy cooldown po anulowaniu
             }
         }
     }
@@ -109,7 +124,7 @@ private:
         m_PositionBeforeDrag = transform->GetPosition();
         m_IsWaitingToHelp = false;
         m_IsWorking = false;
-        spdlog::info("Podniesiono Helpera!");
+        m_Cooldown = 0.2f; // Ustawiamy cooldown po podniesieniu
     }
 
     void TryDropHelper(TransformComponent* transform, Entity hoveredMachine, glm::vec3 dropPos)
@@ -132,7 +147,6 @@ private:
                         if (auto* machine = dynamic_cast<MachineScript*>(scriptElement.Instance))
                         {
                             machine->m_IsAutomated = false;
-                            spdlog::info("Odpieto helpera od starej maszyny - IsAutomated = false");
                             break;
                         }
                     }
@@ -151,7 +165,6 @@ private:
                     if (auto* machine = dynamic_cast<MachineScript*>(scriptElement.Instance))
                     {
                         machine->m_IsAutomated = true;
-                        spdlog::info("Helper przypisany - IsAutomated = true!");
                         break;
                     }
                 }
@@ -164,7 +177,6 @@ private:
                 float angle = glm::degrees(std::atan2(dir.x, dir.z));
                 transform->SetRotation({ 0.0f, angle + 180.0f, 0.0f });
             }
-            spdlog::info("Helper przypisany do nowej maszyny!");
         }
         else
         {
@@ -178,7 +190,6 @@ private:
                         if (auto* machine = dynamic_cast<MachineScript*>(scriptElement.Instance))
                         {
                             machine->m_IsAutomated = false;
-                            spdlog::info("Helper odpieto od maszyny - IsAutomated = false");
                             break;
                         }
                     }
@@ -187,7 +198,6 @@ private:
 
             m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
             m_IsWaitingToHelp = true;
-            spdlog::info("Helper postawiony na ziemi, czeka na zadanie.");
         }
     }
 
@@ -196,7 +206,6 @@ private:
         m_IsCarried = false;
         IsAnyHelperDragged = false;
         transform->SetPosition(m_PositionBeforeDrag);
-        spdlog::info("Anulowano przenoszenie Helpera.");
     }
 
     Entity GetHoveredMachine(glm::vec3 mousePos)

@@ -81,10 +81,10 @@ public:
             // RAYCAST: Publikujemy EntityClickedEvent przy kliknieciu LPM.
             // To jedyne miejsce gdzie generujemy ten event - MachineScript go odbiera.
             // ========================================================
-            if (Input::IsMouseButtonJustPressed(0))
+            /*if (Input::IsMouseButtonJustPressed(0))
             {
                 PublishClickEvent(mousePos);
-            }
+            }*/
         }
     }
 
