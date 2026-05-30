@@ -67,6 +67,10 @@ void AssetManager::InitCoreAssets() {
 		"shaders://vsShaders/shader.vs",
 		"shaders://fragShaders/shader.frag");
 
+	s_Shaders.Load("HighlightShader",
+		"shaders://vsShaders/highlight.vs",
+		"shaders://fragShaders/highlight.frag");
+
 	spdlog::info("[AssetManager] Zaladowano bazowe shadery z systemu VFS.");
 }
 
