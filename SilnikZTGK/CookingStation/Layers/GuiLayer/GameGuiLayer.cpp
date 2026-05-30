@@ -44,6 +44,7 @@ void GameGuiLayer::OnAttach()
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
 
+    // --- Ładowanie tekstur ---
     m_CornerIcon = AssetManager::GetTexture("assets://UI/bottomCornerClouds.png");
     m_TomatoIcon = AssetManager::GetTexture("assets://UI/tomato.png");
     m_CheeseIcon = AssetManager::GetTexture("assets://UI/Cheese.png");
@@ -67,47 +68,62 @@ void GameGuiLayer::OnAttach()
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
 
-    m_InventorySubId = m_ActiveScene->GetWorld().GetEventBus().Subscribe<InventoryChangedEvent>(
-        [this](const InventoryChangedEvent& e) {
-            if (!m_IsActive) return;
-            std::string key;
-            switch (e.Type) {
-            case IngredientType::Tomato: key = "Tomato"; m_CurrentTomatoes = e.NewAmount; break;
-            case IngredientType::Cheese: key = "Cheese"; break;
-            case IngredientType::Ham:    key = "Ham";    break;
-            case IngredientType::Milk:   key = "Milk";   break;
-            case IngredientType::Flour:  key = "Flour";  break;
-            default: break;
+    // ======================================================================================
+    // Główna subskrypcja na zdarzenie STARTU GRY.
+    // Wywoływane przez MainMenuLayer po załadowaniu nowej sceny!
+    // ======================================================================================
+    m_GameStartedSubId = Application::Get().GetEventBus().Subscribe<GameStartedEvent>(
+        [this](const GameStartedEvent&) {
+
+            // 1. Odpinamy stare subskrypcje ze starej (właśnie zniszczonej/ukrytej) sceny
+            if (m_ActiveScene) {
+                auto& oldBus = m_ActiveScene->GetWorld().GetEventBus();
+                if (m_InventorySubId != 0) oldBus.Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
+                if (m_MoneySubId != 0) oldBus.Unsubscribe<MoneyChangedEvent>(m_MoneySubId);
             }
-            if (!key.empty()) m_IngredientCounts[key] = e.NewAmount;
-        }
-    );
 
-    m_MoneySubId = m_ActiveScene->GetWorld().GetEventBus().Subscribe<MoneyChangedEvent>(
-        [this](const MoneyChangedEvent& e) {
-            if (!m_IsActive) return;
-            m_CurrentMoney = e.NewAmount;
-            m_LastMoney = e.NewAmount;
-            m_MoneyStr = std::to_string(e.NewAmount);
-        }
-    );
-
-    m_GameStartedSubId = Application::Get().GetEventBus().Subscribe<GameStartedEvent>(
-        [this](const GameStartedEvent&) {
-            m_ActiveScene = SceneManager::GetActiveScene();
-            SetVisible(true);
-        }
-    );
-
-    m_GameStartedSubId = Application::Get().GetEventBus().Subscribe<GameStartedEvent>(
-        [this](const GameStartedEvent&) {
+            // 2. Pobieramy NOWĄ, świeżo załadowaną scenę gry
             m_ActiveScene = SceneManager::GetActiveScene();
 
-            // --- NOWE: Wymuś odświeżenie skali na chwilę przed pokazaniem GUI ---
+            // 3. Wymuszamy odświeżenie wymiarów GUI na ułamek sekundy przed jego pokazaniem
+            // Zabezpiecza to przed błędami wyrenderowania, jeśli gracz zmieniał rozdzielczość w Menu.
             auto windowSize = Input::GetWindowSize();
             m_ViewportWidth = (float)windowSize.first;
             m_ViewportHeight = (float)windowSize.second;
 
+            // 4. Zapinamy nasłuchiwanie zdarzeń na nowym EventBusie nowej sceny
+            if (m_ActiveScene) {
+                auto& newBus = m_ActiveScene->GetWorld().GetEventBus();
+
+                // Nasłuchiwanie na zmianę ekwipunku
+                m_InventorySubId = newBus.Subscribe<InventoryChangedEvent>(
+                    [this](const InventoryChangedEvent& e) {
+                        if (!m_IsActive) return;
+                        std::string key;
+                        switch (e.Type) {
+                        case IngredientType::Tomato: key = "Tomato"; m_CurrentTomatoes = e.NewAmount; break;
+                        case IngredientType::Cheese: key = "Cheese"; break;
+                        case IngredientType::Ham:    key = "Ham";    break;
+                        case IngredientType::Milk:   key = "Milk";   break;
+                        case IngredientType::Flour:  key = "Flour";  break;
+                        default: break;
+                        }
+                        if (!key.empty()) m_IngredientCounts[key] = e.NewAmount;
+                    }
+                );
+
+                // Nasłuchiwanie na zmianę ilości pieniędzy
+                m_MoneySubId = newBus.Subscribe<MoneyChangedEvent>(
+                    [this](const MoneyChangedEvent& e) {
+                        if (!m_IsActive) return;
+                        m_CurrentMoney = e.NewAmount;
+                        m_LastMoney = e.NewAmount;
+                        m_MoneyStr = std::to_string(e.NewAmount);
+                    }
+                );
+            }
+
+            // 5. Włączamy widoczność GUI gry (zdejmujemy kurtynę!)
             SetVisible(true);
         }
     );
