@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
+#include <cstddef>
 
 class MainMenuLayer : public Layer {
 public:
@@ -14,8 +15,14 @@ public:
     virtual ~MainMenuLayer() = default;
 
     virtual void OnAttach() override;
+    virtual void OnDetach() override;
     virtual void OnUpdate(Timestep ts) override;
     virtual void OnEvent(Event& e) override;
+
+    // Publiczne, bo GameGuiLayer ustawiał to bezpośrednio –
+    // teraz NIE jest już potrzebne z zewnątrz (sterujemy przez ShowMainMenuEvent),
+    // ale zostawiamy na wypadek kodu edytora lub testów.
+    bool m_IsActive = true;
 
 private:
     void PlayGame();
@@ -28,16 +35,19 @@ private:
         glm::vec4 colorNormal, glm::vec4 colorHover,
         bool hovered);
 
+    bool OnWindowResize(WindowResizeEvent& e);
+
+    // --- Tekstury / wymiary ---
     std::shared_ptr<Texture> m_Background;
     float m_ViewportWidth = 1920.0f;
     float m_ViewportHeight = 1080.0f;
-    bool  m_IsActive = true;
 
+    // --- Skale przycisków głównego menu ---
     float m_PlayBtnScale = 1.0f;
     float m_SettingsBtnScale = 1.0f;
 
+    // --- Stan panelu ustawień ---
     bool  m_SettingsOpen = false;
-
     float m_BackBtnScale = 1.0f;
     float m_ApplyBtnScale = 1.0f;
     float m_ResLeftBtnScale = 1.0f;
@@ -51,5 +61,6 @@ private:
     static constexpr int MsaaOptions[] = { 1, 2, 4, 8 };
     static constexpr int MsaaOptionCount = 4;
 
-    bool OnWindowResize(WindowResizeEvent& e);
+    // --- EventBus – subskrypcja ShowMainMenuEvent ---
+    std::size_t m_ShowMenuSubId = 0;
 };

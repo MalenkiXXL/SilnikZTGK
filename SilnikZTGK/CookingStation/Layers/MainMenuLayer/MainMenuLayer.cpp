@@ -5,9 +5,9 @@
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Scene/SceneSerializer.h"
 #include "CookingStation/Core/Application.h"
-#include "CookingStation/Layers/GuiLayer/GameGuiLayer.h"
 #include "CookingStation/Core/GraphicsSettings.h"
 #include <glm/gtc/matrix_transform.hpp>
+#include "CookingStation/Events/GameEvents.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <string>
@@ -17,7 +17,8 @@ constexpr int MainMenuLayer::MsaaOptions[];
 // -----------------------------------------------------------------------
 // OnAttach
 // -----------------------------------------------------------------------
-void MainMenuLayer::OnAttach() {
+void MainMenuLayer::OnAttach()
+{
     auto windowSize = Input::GetWindowSize();
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
@@ -27,7 +28,6 @@ void MainMenuLayer::OnAttach() {
 
     // Synchronizuj indeksy pending z aktualnie zastosowanymi ustawieniami
     auto& gs = GraphicsSettings::Get();
-
     for (int i = 0; i < GraphicsSettings::ResolutionCount; i++) {
         if (GraphicsSettings::Resolutions[i].first == gs.WindowWidth &&
             GraphicsSettings::Resolutions[i].second == gs.WindowHeight) {
@@ -41,7 +41,28 @@ void MainMenuLayer::OnAttach() {
             break;
         }
     }
+
+    // ------------------------------------------------------------------
+    // EventBus (application-level): ShowMainMenuEvent
+    // GameGuiLayer publikuje ten event po kliknięciu EXIT.
+    // Zastępuje bezpośrednie rzutowanie po m_LayerStack.
+    // ------------------------------------------------------------------
+    m_ShowMenuSubId = Application::Get().GetEventBus().Subscribe<ShowMainMenuEvent>(
+        [this](const ShowMainMenuEvent&) {
+            m_IsActive = true;
+            m_SettingsOpen = false;   // reset stanu ustawień przy powrocie
+        }
+    );
 }
+
+void MainMenuLayer::OnDetach()
+{
+    if (m_ShowMenuSubId != 0) {
+        Application::Get().GetEventBus().Unsubscribe<ShowMainMenuEvent>(m_ShowMenuSubId);
+        m_ShowMenuSubId = 0;
+    }
+}
+
 
 // -----------------------------------------------------------------------
 // Pomocnicza: przycisk ze skalą animowaną i tekstem wyśrodkowanym
@@ -52,36 +73,7 @@ bool MainMenuLayer::DrawScaledButton(const std::string& label,
     glm::vec4 colorNormal, glm::vec4 colorHover,
     bool hovered)
 {
-    glm::vec2 scaledSize = baseSize * btnScale;
-    glm::vec2 scaledPos = {
-        basePos.x + (baseSize.x - scaledSize.x) * 0.5f,
-        basePos.y + (baseSize.y - scaledSize.y) * 0.5f
-    };
-
-    glm::vec4 bgColor = hovered ? colorHover : colorNormal;
-    if (hovered && Input::IsMouseButtonPressed(0))
-        bgColor = bgColor * glm::vec4(0.75f, 0.75f, 0.75f, 1.0f);
-
-    // Cien
-    Gui::Panel(scaledPos + glm::vec2(4.0f * bsc, 5.0f * bsc),
-        scaledSize, { 0.0f, 0.0f, 0.0f, 0.35f }, 15.0f * bsc);
-    // Tlo
-    Gui::Panel(scaledPos, scaledSize, bgColor, 15.0f * bsc);
-
-    // Tekst wyśrodkowany
-    float textScale = 1.3f * bsc;
-    float textWidth = Gui::MeasureTextWidth(label, textScale);
-    float textHeight = Gui::MeasureTextHeight(label, textScale);
-    float baselineOffset = 32.0f * 0.8f * textScale;
-    glm::vec2 textPos = {
-        scaledPos.x + (scaledSize.x - textWidth) * 0.5f,
-        scaledPos.y + (scaledSize.y - textHeight) * 0.5f - baselineOffset + (textHeight * 0.5f)
-    };
-
-    Gui::DrawGuiText(label, textPos + glm::vec2(2.0f, 2.0f), textScale, { 0.0f, 0.0f, 0.0f, 0.7f });
-    Gui::DrawGuiText(label, textPos, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
-
-    return hovered && Input::IsMouseButtonJustPressed(0);
+    return Gui::ScaledButton(label, basePos, baseSize, btnScale, bsc, colorNormal, colorHover, hovered);
 }
 
 // -----------------------------------------------------------------------
@@ -160,25 +152,25 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
 // -----------------------------------------------------------------------
 // DrawSettingsPanel
 // -----------------------------------------------------------------------
-void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
+void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
+{
     glm::vec2 mouse = Gui::GetMappedMousePos();
 
-    // --- Panel tla ---
     float panelW = 700.0f * baseScale;
     float panelH = 500.0f * baseScale;
     float panelX = (m_ViewportWidth - panelW) * 0.5f;
     float panelY = (m_ViewportHeight - panelH) * 0.5f;
 
-    // Ciemne tlo z cienka ramka
+    // Ramka + tło
     Gui::Panel({ panelX - 3.0f, panelY - 3.0f }, { panelW + 6.0f, panelH + 6.0f },
         { 0.6f, 0.6f, 0.7f, 0.5f }, 20.0f * baseScale);
     Gui::Panel({ panelX, panelY }, { panelW, panelH },
         { 0.10f, 0.10f, 0.14f, 0.97f }, 18.0f * baseScale);
 
-    // --- Naglowek ---
-    float titleScale = 1.6f * baseScale;
+    // Nagłówek
+    float       titleScale = 1.6f * baseScale;
     std::string title = "SETTINGS";
-    float titleW = Gui::MeasureTextWidth(title, titleScale);
+    float       titleW = Gui::MeasureTextWidth(title, titleScale);
     Gui::DrawGuiText(title,
         { panelX + (panelW - titleW) * 0.5f + 2.0f, panelY + 38.0f * baseScale + 2.0f },
         titleScale, { 0.0f, 0.0f, 0.0f, 0.6f });
@@ -193,18 +185,13 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
     float arrowH = 48.0f * baseScale;
     float valueBoxW = 260.0f * baseScale;
     float valueBoxH = 52.0f * baseScale;
-    float controlsX = panelX + panelW * 0.45f;   // lewa krawedz kontrolek
-
+    float controlsX = panelX + panelW * 0.45f;
     float labelScale = 0.9f * baseScale;
     float animSpeed = 14.0f;
 
-    // ====================================================
-    // RZAD 1: Rozdzielczosc
-    // ====================================================
+    // ---- Rząd 1: Rozdzielczość ----
     {
-        float rowY = rowStart;
-
-        // Etykieta
+        float      rowY = rowStart;
         std::string lbl = "Resolution";
         float lblH = Gui::MeasureTextHeight(lbl, labelScale);
         float baselineOff = 32.0f * 0.8f * labelScale;
@@ -212,8 +199,7 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
             { labelX, rowY + (arrowH - lblH) * 0.5f - baselineOff + lblH * 0.5f },
             labelScale, { 0.85f, 0.85f, 0.90f, 1.0f });
 
-        // Strzalka lewo
-        glm::vec2 leftPos = { controlsX, rowY + (arrowH - arrowH) * 0.5f };
+        glm::vec2 leftPos = { controlsX, rowY };
         glm::vec2 rightPos = { controlsX + arrowW + valueBoxW + 8.0f * baseScale, rowY };
         glm::vec2 arrowSize = { arrowW, arrowH };
 
@@ -225,7 +211,6 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
         m_ResLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_ResLeftBtnScale) * dt * animSpeed;
         m_ResRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_ResRightBtnScale) * dt * animSpeed;
 
-        // Strzalki jako przyciski
         if (DrawScaledButton("<", leftPos, arrowSize, m_ResLeftBtnScale, baseScale,
             { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovL))
         {
@@ -238,8 +223,8 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
             m_PendingResIndex = (m_PendingResIndex + 1) % GraphicsSettings::ResolutionCount;
         }
 
-        // Pole wartosci
-        glm::vec2 vbPos = { controlsX + arrowW + 8.0f * baseScale, rowY + (arrowH - valueBoxH) * 0.5f };
+        glm::vec2 vbPos = { controlsX + arrowW + 8.0f * baseScale,
+                            rowY + (arrowH - valueBoxH) * 0.5f };
         Gui::Panel(vbPos, { valueBoxW, valueBoxH }, { 0.18f, 0.18f, 0.22f, 1.0f }, 10.0f * baseScale);
 
         auto [rw, rh] = GraphicsSettings::Resolutions[m_PendingResIndex];
@@ -254,15 +239,12 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
             valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
-    // ====================================================
-    // RZAD 2: Anti-Aliasing (MSAA)
-    // ====================================================
+    // ---- Rząd 2: Anti-Aliasing (MSAA) ----
     {
-        float rowY = rowStart + rowH;
-
+        float       rowY = rowStart + rowH;
         std::string lbl = "Anti-Aliasing";
-        float lblH = Gui::MeasureTextHeight(lbl, labelScale);
-        float baselineOff = 32.0f * 0.8f * labelScale;
+        float       lblH = Gui::MeasureTextHeight(lbl, labelScale);
+        float       baselineOff = 32.0f * 0.8f * labelScale;
         Gui::DrawGuiText(lbl,
             { labelX, rowY + (arrowH - lblH) * 0.5f - baselineOff + lblH * 0.5f },
             labelScale, { 0.85f, 0.85f, 0.90f, 1.0f });
@@ -290,10 +272,11 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
             m_PendingMsaaIndex = (m_PendingMsaaIndex + 1) % MsaaOptionCount;
         }
 
-        glm::vec2 vbPos = { controlsX + arrowW + 8.0f * baseScale, rowY + (arrowH - valueBoxH) * 0.5f };
+        glm::vec2 vbPos = { controlsX + arrowW + 8.0f * baseScale,
+                            rowY + (arrowH - valueBoxH) * 0.5f };
         Gui::Panel(vbPos, { valueBoxW, valueBoxH }, { 0.18f, 0.18f, 0.22f, 1.0f }, 10.0f * baseScale);
 
-        int msaaSamples = MsaaOptions[m_PendingMsaaIndex];
+        int         msaaSamples = MsaaOptions[m_PendingMsaaIndex];
         std::string msaaStr = (msaaSamples == 1) ? "OFF" : ("x" + std::to_string(msaaSamples));
         float valScale = 0.85f * baseScale;
         float mW = Gui::MeasureTextWidth(msaaStr, valScale);
@@ -305,13 +288,10 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
             valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
-    // ====================================================
-    // Przyciski APPLY i BACK
-    // ====================================================
-    float bottomY = panelY + panelH - 80.0f * baseScale;
-    float smallBtnW = 180.0f * baseScale;
-    float smallBtnH = 56.0f * baseScale;
-
+    // ---- Przyciski BACK i APPLY ----
+    float     bottomY = panelY + panelH - 80.0f * baseScale;
+    float     smallBtnW = 180.0f * baseScale;
+    float     smallBtnH = 56.0f * baseScale;
     glm::vec2 backPos = { panelX + 40.0f * baseScale, bottomY };
     glm::vec2 applyPos = { panelX + panelW - smallBtnW - 40.0f * baseScale, bottomY };
     glm::vec2 sbSize = { smallBtnW, smallBtnH };
@@ -327,13 +307,13 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
     if (DrawScaledButton("BACK", backPos, sbSize, m_BackBtnScale, baseScale,
         { 0.28f, 0.28f, 0.32f, 1.0f }, { 0.42f, 0.42f, 0.48f, 1.0f }, hovBack))
     {
+        // Wracamy do głównego menu
         m_SettingsOpen = false;
     }
 
     if (DrawScaledButton("APPLY", applyPos, sbSize, m_ApplyBtnScale, baseScale,
         { 0.15f, 0.50f, 0.18f, 1.0f }, { 0.20f, 0.70f, 0.25f, 1.0f }, hovApply))
     {
-        // Zapisz do singletona i popros Application o zastosowanie
         auto& gs = GraphicsSettings::Get();
         gs.MsaaSamples = MsaaOptions[m_PendingMsaaIndex];
         gs.WindowWidth = GraphicsSettings::Resolutions[m_PendingResIndex].first;
@@ -341,7 +321,6 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
 
         Application::Get().ApplyGraphicsSettings();
 
-        // Zaktualizuj lokalne wymiary (po resize okno wyśle event, ale na wszelki wypadek)
         m_ViewportWidth = (float)gs.WindowWidth;
         m_ViewportHeight = (float)gs.WindowHeight;
 
@@ -349,10 +328,12 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt) {
     }
 }
 
+
 // -----------------------------------------------------------------------
 // PlayGame
 // -----------------------------------------------------------------------
-void MainMenuLayer::PlayGame() {
+void MainMenuLayer::PlayGame()
+{
     m_IsActive = false;
 
     auto activeScene = SceneManager::NewScene();
@@ -364,15 +345,15 @@ void MainMenuLayer::PlayGame() {
         activeScene->SetState(SceneState::Play);
         activeScene->OnRuntimeStart();
 
-        for (auto* layer : Application::Get().m_LayerStack) {
-            if (layer->GetName() == "GameGuiLayer") {
-                ((GameGuiLayer*)layer)->SetVisible(true);
-                break;
-            }
-        }
+        // Zamiast szukać GameGuiLayer po m_LayerStack i rzutować,
+        // publikujemy event – GameGuiLayer sam się aktywuje.
+        Application::Get().GetEventBus().Publish(GameStartedEvent{});
+
         spdlog::info("Pomyslnie zaladowano level02.json!");
     }
     else {
+        // Jeśli ładowanie się nie powiodło, wróć do menu
+        m_IsActive = true;
         spdlog::error("Blad: Nie udalo sie wczytac level02.json");
     }
 }

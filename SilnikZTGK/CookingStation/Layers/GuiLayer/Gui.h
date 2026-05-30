@@ -1,7 +1,10 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <string>
-#include <CookingStation/Layers/GuiLayer/Font.h>
+#include <memory>
+#include <unordered_map>
+#include "CookingStation/Layers/GuiLayer/Font.h"
+#include "CookingStation/Core/Texture.h"
 
 class Gui {
 public:
@@ -26,13 +29,28 @@ public:
     static float MeasureTextWidth(const std::string& text, float scale);
     static float MeasureTextHeight(const std::string& text, float scale);
 
+    // Uniwersalny animowany przycisk
+    static bool ScaledButton(const std::string& label,
+        glm::vec2 basePos, glm::vec2 baseSize,
+        float btnScale, float bsc,
+        glm::vec4 colorNormal, glm::vec4 colorHover,
+        bool hovered);
+
+    // Uniwersalny sprężysty obrazek/ikona UI
+    static bool BubblyImage(const std::string& id,
+        const std::shared_ptr<Texture>& icon,
+        glm::vec2 basePos, glm::vec2 baseSize,
+        float dt, float hoverScale,
+        bool darkenOnHover, float hitRadiusMultiplier = 0.5f,
+        glm::vec4 tintColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+        bool* outIsHovered = nullptr);
 
 private:
     static std::shared_ptr<Font> s_Font;
     static float s_ScreenWidth;
     static float s_ScreenHeight;
-    static std::string s_CharacterBuffer;
     static std::string s_ActiveWidgetID;
+    static std::string s_CharacterBuffer;
     static float s_DeltaTime;
     static bool s_WantCaptureMouse;
 };

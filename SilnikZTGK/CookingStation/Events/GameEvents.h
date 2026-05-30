@@ -3,6 +3,10 @@
 #include "CookingStation/Scene/Entity.h"
 #include <cstddef>
 
+// ---------------------------------------------------------------------------
+// Zdarzenia rozgrywki
+// ---------------------------------------------------------------------------
+
 struct IngredientUsedEvent {
     IngredientType Type;
     int Amount;
@@ -55,3 +59,15 @@ struct StartDragRequestEvent {
     IngredientType Type;
     std::string ModelPath;
 };
+
+// ---------------------------------------------------------------------------
+// Zdarzenia nawigacji między warstwami (zamiast rzutowania po m_LayerStack)
+// ---------------------------------------------------------------------------
+
+// Publikuje GameGuiLayer → odbiera MainMenuLayer
+// Sygnalizuje powrót do menu głównego po wyjściu z gry.
+struct ShowMainMenuEvent {};
+
+// Publikuje MainMenuLayer → odbiera GameGuiLayer
+// Sygnalizuje, że scena gry została załadowana i GUI gry ma się pokazać.
+struct GameStartedEvent {};

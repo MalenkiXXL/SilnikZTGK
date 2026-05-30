@@ -287,22 +287,66 @@ void Gui::Panel(const glm::vec2& pos, const glm::vec2& size, const glm::vec4& co
 }
 
 float Gui::MeasureTextWidth(const std::string& text, float scale) {
-    float width = 0.0f;
-    for (char c : text) {
-        if (s_Font->GetCharacters().find(c) != s_Font->GetCharacters().end()) {
-            width += s_Font->GetChar(c).Advance * scale;
-        }
-    }
-    return width;
+	float width = 0.0f;
+	for (char c : text) {
+		if (s_Font->GetCharacters().find(c) != s_Font->GetCharacters().end()) {
+			width += s_Font->GetChar(c).Advance * scale;
+		}
+	}
+	return width;
 }
 
 float Gui::MeasureTextHeight(const std::string& text, float scale) {
-    float maxHeight = 0.0f;
-    for (char c : text) {
-        if (s_Font->GetCharacters().find(c) != s_Font->GetCharacters().end()) {
-            float h = s_Font->GetChar(c).Size.y * scale;
-            if (h > maxHeight) maxHeight = h;
-        }
-    }
-    return maxHeight;
+	float maxHeight = 0.0f;
+	for (char c : text) {
+		if (s_Font->GetCharacters().find(c) != s_Font->GetCharacters().end()) {
+			float h = s_Font->GetChar(c).Size.y * scale;
+			if (h > maxHeight) maxHeight = h;
+		}
+	}
+	return maxHeight;
+}
+bool Gui::ScaledButton(const std::string& label,
+	glm::vec2 basePos, glm::vec2 baseSize,
+	float btnScale, float bsc,
+	glm::vec4 colorNormal, glm::vec4 colorHover,
+	bool hovered)
+{
+	// Skalowane wymiary, wyrownane do srodka bazowego prostokata
+	glm::vec2 scaledSize = baseSize * btnScale;
+	glm::vec2 scaledPos = {
+		basePos.x + (baseSize.x - scaledSize.x) * 0.5f,
+		basePos.y + (baseSize.y - scaledSize.y) * 0.5f
+	};
+
+	// Kolor: hover, pressed (przyciemnienie), normalny
+	glm::vec4 bgColor = hovered ? colorHover : colorNormal;
+	if (hovered && Input::IsMouseButtonPressed(0))
+		bgColor = bgColor * glm::vec4(0.75f, 0.75f, 0.75f, 1.0f);
+
+	if (hovered) s_WantCaptureMouse = true;
+
+	// Cien przycisku
+	Gui::Panel(scaledPos + glm::vec2(4.0f * bsc, 5.0f * bsc),
+		scaledSize, { 0.0f, 0.0f, 0.0f, 0.35f }, 15.0f * bsc);
+
+	// Tlo przycisku
+	Gui::Panel(scaledPos, scaledSize, bgColor, 15.0f * bsc);
+
+	// Tekst wyśrodkowany z poprawnym baselineOffset
+	float textScale = 1.3f * bsc;
+	float textW = MeasureTextWidth(label, textScale);
+	float textH = MeasureTextHeight(label, textScale);
+	float baselineOffset = 32.0f * 0.8f * textScale;
+	glm::vec2 textPos = {
+		scaledPos.x + (scaledSize.x - textW) * 0.5f,
+		scaledPos.y + (scaledSize.y - textH) * 0.5f - baselineOffset + (textH * 0.5f)
+	};
+
+	// Cien tekstu
+	DrawGuiText(label, textPos + glm::vec2(2.0f, 2.0f), textScale, { 0.0f, 0.0f, 0.0f, 0.7f });
+	// Tekst
+	DrawGuiText(label, textPos, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+	return hovered && Input::IsMouseButtonJustPressed(0);
 }

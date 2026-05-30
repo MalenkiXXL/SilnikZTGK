@@ -66,11 +66,9 @@ namespace {
 
 void GameGuiLayer::OnAttach()
 {
-    // 1. ZAWSZE przypisz scenę przed użyciem!
     m_ActiveScene = SceneManager::GetActiveScene();
     m_IsActive = true;
 
-    // 2. Dodaj zabezpieczenie: jeśli scena nie istnieje, przerwij
     if (!m_ActiveScene)
     {
         spdlog::error("GameGuiLayer: Nie znaleziono aktywnej sceny w OnAttach!");
@@ -85,7 +83,23 @@ void GameGuiLayer::OnAttach()
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
 
-    // Inicjalizacja tekstur
+    // Synchronizuj pending-indeksy z aktualnie zastosowanymi ustawieniami
+    auto& gs = GraphicsSettings::Get();
+    for (int i = 0; i < GraphicsSettings::ResolutionCount; i++) {
+        if (GraphicsSettings::Resolutions[i].first == gs.WindowWidth &&
+            GraphicsSettings::Resolutions[i].second == gs.WindowHeight) {
+            m_PendingResIndex = i;
+            break;
+        }
+    }
+    for (int i = 0; i < MsaaOptionCount; i++) {
+        if (MsaaOptions[i] == gs.MsaaSamples) {
+            m_PendingMsaaIndex = i;
+            break;
+        }
+    }
+
+    // --- Tekstury (bez zmian) ---
     m_CornerIcon = AssetManager::GetTexture("assets://UI/bottomCornerClouds.png");
     m_TomatoIcon = AssetManager::GetTexture("assets://UI/tomato.png");
     m_CheeseIcon = AssetManager::GetTexture("assets://UI/Cheese.png");
@@ -109,30 +123,80 @@ void GameGuiLayer::OnAttach()
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
 
-    // 3. Bezpieczna subskrypcja (z flagą m_IsActive)
+    // ------------------------------------------------------------------
+    // EventBus (scena-level): InventoryChangedEvent
+    // Obsługujemy WSZYSTKIE typy składników, nie tylko Tomato.
+    // ------------------------------------------------------------------
     m_InventorySubId = m_ActiveScene->GetWorld().GetEventBus().Subscribe<InventoryChangedEvent>(
         [this](const InventoryChangedEvent& e) {
-            // BEZPIECZNIK!
             if (!m_IsActive) return;
 
-            // Zapisujemy nową wartość do zmiennej klasy
-            if (e.Type == IngredientType::Tomato) {
-                this->m_CurrentTomatoes = e.NewAmount;
-                spdlog::info("GUI: Zaktualizowano m_CurrentTomatoes na {}", m_CurrentTomatoes);
+            // Aktualizacja ogólnej mapy (używanej przez karuzele)
+            std::string key;
+            switch (e.Type) {
+            case IngredientType::Tomato: key = "Tomato"; m_CurrentTomatoes = e.NewAmount; break;
+            case IngredientType::Cheese: key = "Cheese"; break;
+            case IngredientType::Ham:    key = "Ham";    break;
+            case IngredientType::Milk:   key = "Milk";   break;
+            case IngredientType::Flour:  key = "Flour";  break;
+            default: break;
             }
+            if (!key.empty())
+                m_IngredientCounts[key] = e.NewAmount;
+        }
+    );
+
+    // ------------------------------------------------------------------
+    // EventBus (scena-level): MoneyChangedEvent
+    // Zastępuje polling co klatkę w OnUpdate.
+    // ------------------------------------------------------------------
+    m_MoneySubId = m_ActiveScene->GetWorld().GetEventBus().Subscribe<MoneyChangedEvent>(
+        [this](const MoneyChangedEvent& e) {
+            if (!m_IsActive) return;
+            m_CurrentMoney = e.NewAmount;
+            m_LastMoney = e.NewAmount;
+            m_MoneyStr = std::to_string(e.NewAmount);
+        }
+    );
+
+    // ------------------------------------------------------------------
+    // EventBus (application-level): GameStartedEvent
+    // MainMenuLayer publikuje ten event po załadowaniu sceny.
+    // Zastępuje bezpośrednie wywołanie SetVisible(true) z zewnątrz.
+    // ------------------------------------------------------------------
+    m_GameStartedSubId = Application::Get().GetEventBus().Subscribe<GameStartedEvent>(
+        [this](const GameStartedEvent&) {
+            // Odśwież referencję do nowo załadowanej sceny
+            m_ActiveScene = SceneManager::GetActiveScene();
+            SetVisible(true);
         }
     );
 }
 
+// ==========================================================================
+// OnDetach
+// ==========================================================================
 void GameGuiLayer::OnDetach()
 {
-    // BEZPIECZNIK: wyłącza odbiór eventów
     m_IsActive = false;
 
-    // Bezpieczne odpięcie się od EventBusa, by uniknąć naruszenia dostępu do odczytu
-    if (m_ActiveScene && m_InventorySubId != 0) {
-        m_ActiveScene->GetWorld().GetEventBus().Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
-        m_InventorySubId = 0;
+    // Odpinamy subskrypcje sceny
+    if (m_ActiveScene) {
+        auto& bus = m_ActiveScene->GetWorld().GetEventBus();
+        if (m_InventorySubId != 0) {
+            bus.Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
+            m_InventorySubId = 0;
+        }
+        if (m_MoneySubId != 0) {
+            bus.Unsubscribe<MoneyChangedEvent>(m_MoneySubId);
+            m_MoneySubId = 0;
+        }
+    }
+
+    // Odpinamy subskrypcję application-level
+    if (m_GameStartedSubId != 0) {
+        Application::Get().GetEventBus().Unsubscribe<GameStartedEvent>(m_GameStartedSubId);
+        m_GameStartedSubId = 0;
     }
 }
 
@@ -601,56 +665,108 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     glDisable(GL_DEPTH_TEST);
 
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
-    Renderer2D::BeginScene(uiProj);
 
-    // --- SCISSOR TEST ---
-    Renderer2D::EndScene();
+    // --- SCISSOR TEST: ustawiamy PRZED BeginScene, nie w środku ---
     glEnable(GL_SCISSOR_TEST);
     int scissorY = (int)(m_ViewportHeight - (gameY + gameHeight));
     glScissor((int)gameX, scissorY, (int)gameWidth, (int)gameHeight);
 
+    // --- NORMALNY UI GRY (jeden BeginScene/EndScene) ---
     Renderer2D::BeginScene(uiProj);
+
     DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
     DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     DrawRecipeBook(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
     // --- PIENIĄDZE ---
     if (m_CoinIcon) {
-        int money = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetMoney() : 0;
-
-        if (money != m_LastMoney) {
-            m_MoneyStr = std::to_string(money);
+        // Fallback przy pierwszym uruchomieniu: jeśli zdarzenie jeszcze nie przyszło,
+        // odczytaj raz z GameManagerScript.
+        if (m_LastMoney == -1 && GameManagerScript::s_Instance) {
+            int money = GameManagerScript::s_Instance->GetMoney();
+            m_CurrentMoney = money;
             m_LastMoney = money;
+            m_MoneyStr = std::to_string(money);
         }
 
         float textScale = 2.0f * baseScale;
         float textWidth = Gui::MeasureTextWidth(m_MoneyStr, textScale);
         glm::vec2 textPos = {
-                gameX + gameWidth * 0.97f - textWidth,
-                gameY + gameHeight * 0.02f
+            gameX + gameWidth * 0.97f - textWidth,
+            gameY + gameHeight * 0.02f
         };
-
         DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
     }
+
 
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
 
-    Renderer2D::BeginScene(uiProj);
-    Renderer2D::EndScene();
+    // --- PAUSE MENU: osobny pass, poza scissorem, na wierzchu całego ekranu ---
+    if (m_IsPaused) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_DEPTH_TEST);
+
+        Renderer2D::BeginScene(uiProj);
+
+        // Poszarzenie tła
+        Gui::Panel({ 0.0f, 0.0f }, { m_ViewportWidth, m_ViewportHeight }, { 0.05f, 0.05f, 0.05f, 0.75f }, 0.0f);
+
+        // Wybieramy co rysujemy na wierzchu:
+        if (m_SettingsOpen) {
+            DrawSettingsPanel(baseScale, dt);
+        }
+        else {
+            DrawPauseMenu(baseScale, dt);
+        }
+
+        Renderer2D::EndScene();
+        glEnable(GL_DEPTH_TEST);
+    }
+
     glEnable(GL_DEPTH_TEST);
 }
 
 
 void GameGuiLayer::OnEvent(Event& e) {
+#ifdef CS_DISTRIBUTION
+    if (!m_IsVisible) return;
+#endif
+
     EventDispatcher dispatcher(e);
+    dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& ev) {
+        if (ev.GetKeyCode() == GLFW_KEY_ESCAPE) {
+            if (m_SettingsOpen) {
+                // Jeśli opcje są otwarte, to ESC zamyka tylko opcje
+                m_SettingsOpen = false;
+            }
+            else {
+                // W przeciwnym razie odpauzowuje gre
+                m_IsPaused = !m_IsPaused;
+                auto activeScene = SceneManager::GetActiveScene();
+                if (activeScene) {
+                    activeScene->SetState(m_IsPaused ? SceneState::Pause : SceneState::Play);
+                }
+            }
+            return true;
+        }
+        return false;
+        });
+
+    if (m_IsPaused) {
+        if (e.GetEventType() == EventType::MouseButtonPressed ||
+            e.GetEventType() == EventType::MouseMoved ||
+            e.GetEventType() == EventType::MouseScrolled)
+        {
+            e.Handled = true;
+        }
+    }
 
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {
         m_ViewportWidth = (float)ev.GetWidth();
         m_ViewportHeight = (float)ev.GetHeight();
 
-        // POPRAWKA: synchronizujemy przestrzeń logiczną Gui z nowym rozmiarem okna
-        // aby GetMappedMousePos() działało poprawnie po zmianie rozdzielczości
         Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
         return false;
         });
@@ -710,5 +826,192 @@ void GameGuiLayer::ReloadQuests() {
     }
     else {
         spdlog::error("GameUiLayer: Nie udalo sie wczytac pliku wygenerowane_quests.json przez VFS.");
+    }
+}
+
+void GameGuiLayer::DrawPauseMenu(float baseScale, float dt)
+{
+    auto windowSize = Input::GetWindowSize();
+    float screenW = (float)windowSize.first;
+    float screenH = (float)windowSize.second;
+
+    float btnWidth = 350.0f * baseScale;
+    float btnHeight = 80.0f * baseScale;
+    float btnGap = 25.0f * baseScale;
+
+    float btnX = (screenW - btnWidth) * 0.5f;
+    float totalH = (3.0f * btnHeight) + (2.0f * btnGap);
+    float startY = (screenH - totalH) * 0.5f;
+
+    glm::vec2 mouse = Gui::GetMappedMousePos();
+    auto isHov = [&](glm::vec2 p, glm::vec2 s) {
+        return mouse.x >= p.x && mouse.x <= p.x + s.x &&
+            mouse.y >= p.y && mouse.y <= p.y + s.y;
+        };
+
+    glm::vec2 btnSize = { btnWidth, btnHeight };
+    float     animSpeed = 14.0f;
+
+    // ---- RETURN TO GAME ----
+    glm::vec2 retPos = { btnX, startY };
+    bool      hoverRet = isHov(retPos, btnSize);
+    m_ReturnBtnScale += ((hoverRet ? 1.05f : 1.0f) - m_ReturnBtnScale) * dt * animSpeed;
+
+    if (DrawScaledButton("RETURN", retPos, btnSize, m_ReturnBtnScale, baseScale,
+        { 0.18f, 0.62f, 0.22f, 1.0f }, { 0.25f, 0.80f, 0.30f, 1.0f }, hoverRet))
+    {
+        m_IsPaused = false;
+        SceneManager::GetActiveScene()->SetState(SceneState::Play);
+    }
+
+    // ---- SETTINGS ----
+    glm::vec2 setPos = { btnX, startY + btnHeight + btnGap };
+    bool hoverSet = isHov(setPos, btnSize);
+    m_SettingsBtnScale += ((hoverSet ? 1.05f : 1.0f) - m_SettingsBtnScale) * dt * animSpeed;
+
+    if (DrawScaledButton("SETTINGS", setPos, btnSize, m_SettingsBtnScale, baseScale,
+        { 0.28f, 0.28f, 0.32f, 1.0f }, { 0.42f, 0.42f, 0.48f, 1.0f }, hoverSet))
+    {
+        m_SettingsOpen = true; // Otwieramy panel!
+
+        // Zczytujemy z silnika bieżące ustawienia, żeby menu wyświetlało poprawną wartość
+        auto& gs = GraphicsSettings::Get();
+        for (int i = 0; i < GraphicsSettings::ResolutionCount; i++) {
+            if (GraphicsSettings::Resolutions[i].first == gs.WindowWidth &&
+                GraphicsSettings::Resolutions[i].second == gs.WindowHeight) {
+                m_PendingResIndex = i;
+                break;
+            }
+        }
+        for (size_t i = 0; i < m_MsaaOptions.size(); i++) {
+            if (m_MsaaOptions[i] == gs.MsaaSamples) {
+                m_PendingMsaaIndex = (int)i;
+                break;
+            }
+        }
+    }
+
+    // ---- EXIT TO MENU ----
+    glm::vec2 exitPos = { btnX, startY + 2.0f * (btnHeight + btnGap) };
+    bool      hoverExit = isHov(exitPos, btnSize);
+    m_ExitBtnScale += ((hoverExit ? 1.05f : 1.0f) - m_ExitBtnScale) * dt * animSpeed;
+
+    if (DrawScaledButton("EXIT", exitPos, btnSize, m_ExitBtnScale, baseScale,
+        { 0.70f, 0.20f, 0.20f, 1.0f }, { 0.85f, 0.30f, 0.30f, 1.0f }, hoverExit))
+    {
+        m_IsPaused = false;
+        m_SettingsOpen = false;
+        SetVisible(false);
+        SceneManager::NewScene();
+
+        Application::Get().GetEventBus().Publish(ShowMainMenuEvent{});
+    }
+}
+
+
+bool GameGuiLayer::DrawScaledButton(const std::string& label, glm::vec2 basePos, glm::vec2 baseSize, float btnScale, float bsc, glm::vec4 colorNormal, glm::vec4 colorHover, bool hovered)
+{
+    return Gui::ScaledButton(label, basePos, baseSize, btnScale, bsc, colorNormal, colorHover, hovered);
+}
+
+void GameGuiLayer::DrawSettingsPanel(float baseScale, float dt)
+{
+    float screenW = m_ViewportWidth;
+    float screenH = m_ViewportHeight;
+
+    // Duży panel tła opcji
+    glm::vec2 panelSize = { 800.0f * baseScale, 550.0f * baseScale };
+    glm::vec2 panelPos = { (screenW - panelSize.x) * 0.5f, (screenH - panelSize.y) * 0.5f };
+    Gui::Panel(panelPos, panelSize, { 0.12f, 0.12f, 0.15f, 0.95f }, 20.0f * baseScale);
+
+    // Tytuł
+    float titleScale = 1.0f * baseScale;
+    float titleW = Gui::MeasureTextWidth("USTAWIENIA GRAFICZNE", titleScale);
+    Gui::DrawGuiText("USTAWIENIA GRAFICZNE", { panelPos.x + (panelSize.x - titleW) * 0.5f, panelPos.y + 60.0f * baseScale }, titleScale, { 1.0f, 0.8f, 0.2f, 1.0f });
+
+    glm::vec2 mouse = Gui::GetMappedMousePos();
+    auto isHov = [&](glm::vec2 p, glm::vec2 s) {
+        return mouse.x >= p.x && mouse.x <= p.x + s.x &&
+            mouse.y >= p.y && mouse.y <= p.y + s.y;
+        };
+
+    float animSpeed = 15.0f;
+    float startY = panelPos.y + 180.0f * baseScale;
+    float leftColX = panelPos.x + 80.0f * baseScale;
+    float rightColX = panelPos.x + 350.0f * baseScale;
+    glm::vec2 arrowSize = { 50.0f * baseScale, 50.0f * baseScale };
+
+    // ================== ROZDZIELCZOSC ==================
+    Gui::DrawGuiText("Rozdzielczosc:", { leftColX, startY }, 0.7f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f });
+
+    // Lewa strzalka <
+    glm::vec2 resLeftPos = { rightColX, startY - 35.0f * baseScale };
+    bool hovResL = isHov(resLeftPos, arrowSize);
+    m_ResLeftBtnScale += ((hovResL ? 1.15f : 1.0f) - m_ResLeftBtnScale) * dt * animSpeed;
+    if (DrawScaledButton("<", resLeftPos, arrowSize, m_ResLeftBtnScale, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovResL)) {
+        if (m_PendingResIndex > 0) m_PendingResIndex--;
+    }
+
+    // Tekst Rozdzielczości
+    std::string resText = std::to_string(GraphicsSettings::Resolutions[m_PendingResIndex].first) + " x " +
+        std::to_string(GraphicsSettings::Resolutions[m_PendingResIndex].second);
+    Gui::DrawGuiText(resText, { rightColX + 70.0f * baseScale, startY }, 0.7f * baseScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+    // Prawa strzalka >
+    glm::vec2 resRightPos = { rightColX + 260.0f * baseScale, startY - 35.0f * baseScale };
+    bool hovResR = isHov(resRightPos, arrowSize);
+    m_ResRightBtnScale += ((hovResR ? 1.15f : 1.0f) - m_ResRightBtnScale) * dt * animSpeed;
+    if (DrawScaledButton(">", resRightPos, arrowSize, m_ResRightBtnScale, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovResR)) {
+        if (m_PendingResIndex < GraphicsSettings::ResolutionCount - 1) m_PendingResIndex++;
+    }
+
+    // ================== MSAA ==================
+    float startY2 = startY + 100.0f * baseScale;
+    Gui::DrawGuiText("Antialiasing:", { leftColX, startY2 }, 0.7f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f });
+
+    // Lewa strzalka MSAA <
+    glm::vec2 msaaLeftPos = { rightColX, startY2 - 35.0f * baseScale };
+    bool hovMsaaL = isHov(msaaLeftPos, arrowSize);
+    m_MsaaLeftBtnScale += ((hovMsaaL ? 1.15f : 1.0f) - m_MsaaLeftBtnScale) * dt * animSpeed;
+    if (DrawScaledButton("<", msaaLeftPos, arrowSize, m_MsaaLeftBtnScale, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovMsaaL)) {
+        if (m_PendingMsaaIndex > 0) m_PendingMsaaIndex--;
+    }
+
+    // Tekst MSAA
+    std::string msaaText = m_MsaaOptions[m_PendingMsaaIndex] == 1 ? "Off" : "MSAA x" + std::to_string(m_MsaaOptions[m_PendingMsaaIndex]);
+    Gui::DrawGuiText(msaaText, { rightColX + 70.0f * baseScale, startY2 }, 0.7f * baseScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+    // Prawa strzalka MSAA >
+    glm::vec2 msaaRightPos = { rightColX + 260.0f * baseScale, startY2 - 35.0f * baseScale };
+    bool hovMsaaR = isHov(msaaRightPos, arrowSize);
+    m_MsaaRightBtnScale += ((hovMsaaR ? 1.15f : 1.0f) - m_MsaaRightBtnScale) * dt * animSpeed;
+    if (DrawScaledButton(">", msaaRightPos, arrowSize, m_MsaaRightBtnScale, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovMsaaR)) {
+        if (m_PendingMsaaIndex < m_MsaaOptions.size() - 1) m_PendingMsaaIndex++;
+    }
+
+    // ================== ZASTOSUJ / WROC ==================
+    glm::vec2 btnSize = { 200.0f * baseScale, 70.0f * baseScale };
+
+    // BACK
+    glm::vec2 backPos = { panelPos.x + 80.0f * baseScale, panelPos.y + panelSize.y - 110.0f * baseScale };
+    bool hovBack = isHov(backPos, btnSize);
+    m_BackBtnScale += ((hovBack ? 1.05f : 1.0f) - m_BackBtnScale) * dt * animSpeed;
+    if (DrawScaledButton("BACK", backPos, btnSize, m_BackBtnScale, baseScale, { 0.5f, 0.2f, 0.2f, 1.0f }, { 0.7f, 0.3f, 0.3f, 1.0f }, hovBack)) {
+        m_SettingsOpen = false;
+    }
+
+    // APPLY
+    glm::vec2 applyPos = { panelPos.x + panelSize.x - 280.0f * baseScale, panelPos.y + panelSize.y - 110.0f * baseScale };
+    bool hovApply = isHov(applyPos, btnSize);
+    m_ApplyBtnScale += ((hovApply ? 1.05f : 1.0f) - m_ApplyBtnScale) * dt * animSpeed;
+    if (DrawScaledButton("APPLY", applyPos, btnSize, m_ApplyBtnScale, baseScale, { 0.2f, 0.5f, 0.2f, 1.0f }, { 0.3f, 0.7f, 0.3f, 1.0f }, hovApply)) {
+        // Zapisujemy wybrane ustawienia
+        auto& gs = GraphicsSettings::Get();
+        gs.WindowWidth = GraphicsSettings::Resolutions[m_PendingResIndex].first;
+        gs.WindowHeight = GraphicsSettings::Resolutions[m_PendingResIndex].second;
+        gs.MsaaSamples = m_MsaaOptions[m_PendingMsaaIndex];
+
+        // Zlecamy silnikowi ich zastosowanie!
+        Application::Get().ApplyGraphicsSettings();
     }
 }
