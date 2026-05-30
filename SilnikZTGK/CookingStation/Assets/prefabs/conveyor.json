@@ -6,7 +6,7 @@
         "rotation": [ 0.0, 0.0, 0.0 ],
         "scale": [ 1.0, 1.0, 1.0 ],
         "collider": {
-            "offset": [ 0.0, 0.0, 0.0 ],
+            "offset": [ 0.0, 0.5, 0.0 ],
             "size": [ 1.0, 0.5, 1.0 ]
         },
         "script": "ConveyorScript"

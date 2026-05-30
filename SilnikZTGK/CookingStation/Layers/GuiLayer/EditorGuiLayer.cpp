@@ -625,6 +625,8 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             float padX = inspPos.x + 5.0f;
             float elementW = 290.0f;
 
+            bool hasChildren = false;
+
             auto* tag = world.GetComponent<TagComponent>(selected);
             if (tag) {
                 Gui::InputGuiText("Nazwa", tag->Tag, { padX, currentY }, { elementW, 25.0f });
@@ -649,6 +651,8 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 // 2. LISTA DZIECI
                 if (rel->FirstChild != std::numeric_limits<std::size_t>::max())
                 {
+                    hasChildren = true;
+
                     Gui::DrawGuiText("Dzieci:", { padX, currentY }, 0.4f, { 0.8f, 0.8f, 0.8f, 1.0f });
                     currentY += 20.0f;
 
@@ -787,6 +791,40 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 EntityDeletedEvent e(selected);
                 Application::Get().OnEvent(e);
                 activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
+            }
+
+            currentY += 35.0f;
+
+
+            if (hasChildren) {
+                if (Gui::Button("USUN RAZEM Z DZIECMI", {padX, currentY}, {elementW, 30.0f})) {
+                    std::vector<Entity> toDelete;
+                    toDelete.push_back(selected);
+
+                    for (size_t i = 0; i < toDelete.size(); ++i) {
+                        Entity current = toDelete[i];
+                        auto *r = world.GetComponent<RelationshipComponent>(current);
+
+                        if (r && r->FirstChild != std::numeric_limits<std::size_t>::max()) {
+                            std::size_t childId = r->FirstChild;
+
+                            while (childId != std::numeric_limits<std::size_t>::max()) {
+                                Entity child = {childId, 0};
+                                toDelete.push_back(child);
+
+                                auto *childR = world.GetComponent<RelationshipComponent>(child);
+                                childId = childR ? childR->NextSibling : std::numeric_limits<std::size_t>::max();
+                            }
+                        }
+                    }
+
+                    for (auto it = toDelete.rbegin(); it != toDelete.rend(); ++it) {
+                        EntityDeletedEvent e(*it);
+                        Application::Get().OnEvent(e);
+                    }
+
+                    activeScene->SetSelectedEntity({std::numeric_limits<std::size_t>::max(), 0});
+                }
             }
         }
     }
