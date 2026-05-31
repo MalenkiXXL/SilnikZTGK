@@ -411,6 +411,67 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     bool isPlayMode = (activeScene && activeScene->GetState() == SceneState::Play);
 
+    // ======================================================================================
+    // PANCERNA POPRAWKA: Automatyczna, dynamiczna synchronizacja EventBusa w Edytorze i Grze
+    // ======================================================================================
+    static Scene* lastSubscribedScene = nullptr;
+    static bool lastWasPlayMode = false;
+
+    if (isPlayMode) {
+        // Jeśli zmienił się wskaźnik sceny lub właśnie kliknięto PLAY (przejście z Edit do Play)
+        if (activeScene.get() != lastSubscribedScene || !lastWasPlayMode) {
+
+            // 1. Zwalniamy stare subskrypcje, jeśli były do czegoś przypięte
+            if (lastSubscribedScene) {
+                auto& oldBus = lastSubscribedScene->GetWorld().GetEventBus();
+                if (m_InventorySubId != 0) oldBus.Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
+                if (m_MoneySubId != 0) oldBus.Unsubscribe<MoneyChangedEvent>(m_MoneySubId);
+            }
+
+            // 2. Zapamiętujemy aktualną instancję sceny uruchomieniowej
+            lastSubscribedScene = activeScene.get();
+            m_ActiveScene = activeScene; // Synchronizacja składowej klasy dla spójności OnDetach()
+
+            auto& newBus = activeScene->GetWorld().GetEventBus();
+
+            // 3. Rejestrujemy subskrypcję ekwipunku dla działającej sceny
+            m_InventorySubId = newBus.Subscribe<InventoryChangedEvent>(
+                [this](const InventoryChangedEvent& e) {
+                    if (!m_IsActive) return;
+                    std::string key;
+                    switch (e.Type) {
+                    case IngredientType::Tomato: key = "Tomato"; m_CurrentTomatoes = e.NewAmount; break;
+                    case IngredientType::Cheese: key = "Cheese"; break;
+                    case IngredientType::Ham:    key = "Ham";    break;
+                    case IngredientType::Milk:   key = "Milk";   break;
+                    case IngredientType::Flour:  key = "Flour";  break;
+                    default: break;
+                    }
+                    if (!key.empty()) m_IngredientCounts[key] = e.NewAmount;
+                }
+            );
+
+            // 4. Rejestrujemy subskrypcję pieniędzy dla działającej sceny
+            m_MoneySubId = newBus.Subscribe<MoneyChangedEvent>(
+                [this](const MoneyChangedEvent& e) {
+                    if (!m_IsActive) return;
+                    m_CurrentMoney = e.NewAmount;
+                    m_LastMoney = e.NewAmount;
+                    m_MoneyStr = std::to_string(e.NewAmount);
+                }
+            );
+
+            // 5. Wymuszamy pobranie początkowego stanu portfela z GameManagerScript w tej klatce
+            m_LastMoney = -1;
+        }
+    }
+    else {
+        // Jeśli wyszliśmy z trybu Play (kliknięto STOP), resetujemy wskaźnik pomocniczy
+        lastSubscribedScene = nullptr;
+    }
+    lastWasPlayMode = isPlayMode;
+    // ======================================================================================
+
 #ifdef CS_DISTRIBUTION
     float gameX = 0.0f;
     float gameY = 0.0f;
@@ -506,6 +567,7 @@ void GameGuiLayer::OnEvent(Event& e) {
         return false;
         });
 
+    // 5. OBSŁUGA WCIŚNIĘCIA PRZYCISKU PLAY W EDYTORZE (tylko questy)
     dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) {
         ReloadQuests();
         return false;
