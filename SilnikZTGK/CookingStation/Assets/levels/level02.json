@@ -69,11 +69,16 @@
     {
       "animator": {
         "clips": {
-          "Walk": "assets://models/animacje/grzybek/grzybek_walk.gltf"
+          "Walk": "assets://models/animacje/grzybek/grzybek_walk.gltf",
+          "Wave": "assets://models/animacje/grzybek/grzybek-macha.gltf",
+          "Idle": "assets://models/animacje/grzybek/grzybek-stoi.gltf",
+          "Note": "assets://models/animacje/grzybek/grzybek-notes.gltf",
+          "Page": "assets://models/animacje/grzybek/grzybek-kartka.gltf",
+          "Order": "assets://models/animacje/grzybek/grzybek-zamowienia.gltf"
         },
         "is_playing": true,
         "playback_speed": 1.0,
-        "start_clip": "Walk"
+        "start_clip": "Idle"
       },
       "id": 4,
       "model_path": "assets://models/warzywka/grzybek/grzybek.gltf",

@@ -64,14 +64,26 @@ public:
         }
     }
 
+    void PlayAnimation(const std::string& name)
+    {
+        auto* animComp = GetComponent<AnimatorComponent>();
+        if (animComp && animComp->AnimatorInstance)
+        {
+            animComp->AnimatorInstance->PlayAnimation(name);
+            animComp->IsPlaying = true;
+        }
+    }
+
     void OnUpdate(Timestep ts) override
     {
         switch (m_CurrentState)
         {
         case State::IDLE:
+            PlayAnimation("Idle");
             CheckForFoodAndCustomers();
             break;
         case State::MOVING_TO_FOOD:
+            PlayAnimation("Walk");
             if (!IsValidEntity(m_TargetPlate) || !IsValidEntity(m_TargetCustomer))
             {
                 CancelDelivery();
@@ -88,6 +100,7 @@ public:
             }
             break;
         case State::MOVING_TO_CUSTOMER:
+            PlayAnimation("Walk");
             if (!IsValidEntity(m_TargetCustomer))
             {
                 CancelDelivery();
@@ -104,6 +117,7 @@ public:
             }
             break;
         case State::RETURNING:
+            PlayAnimation("Walk");
             if (FlatDistanceToPosition(m_HomePosition) <= 0.1f)
             {
                 ReturnToIdle();
@@ -226,11 +240,11 @@ private:
                     break;
                 }
             }
-            // Zdejmujemy skrypty, ¿eby talerz przesta³ zachowywaæ siê jak obiekt na taœmie
+            // Zdejmujemy skrypty, zeby talerz przestal zachowywal sie jak obiekt na tasmie
             nsc->Scripts.clear();
         }
 
-        // NAPRAWA: Zamiast niszczyæ talerz, tylko oznaczamy go jako niesiony przez kelnera!
+        // NAPRAWA: Zamiast niszczyc talerz, tylko oznaczamy go jako niesiony przez kelnera!
         auto* tag = GetScene()->GetWorld().GetComponent<TagComponent>(m_TargetPlate);
         if (tag) tag->Tag = "PlateCarried";
 
@@ -249,11 +263,11 @@ private:
         if (IsValidEntity(m_TargetPlate))
         {
             auto* rel = GetScene()->GetWorld().GetComponent<RelationshipComponent>(m_TargetPlate);
-            // Sprawdzamy, czy talerz ma podpiête jedzenie (dziecko w ECS)
+            // Sprawdzamy, czy talerz ma podpiete jedzenie (dziecko w ECS)
             if (rel && rel->FirstChild != std::numeric_limits<std::size_t>::max())
             {
                 isCorrect = true;
-                // Niszczymy jedzenie, ¿eby nie zawis³o w powietrzu
+                // Niszczymy jedzenie, zeby nie zawislo w powietrzu
                 Entity foodChild = { rel->FirstChild, 0 };
                 GetScene()->GetWorld().DestroyEntity(foodChild);
             }
@@ -276,7 +290,7 @@ private:
             {
                 if (auto* customer = dynamic_cast<CustomerScript*>(scriptElement.Instance))
                 {
-                    // Przekazujemy weryfikacjê do klienta (zap³aci tylko, jeœli isCorrect == true)
+                    // Przekazujemy weryfikacje do klienta (zaplaci tylko, jesli isCorrect == true)
                     customer->ReceiveFood(isCorrect);
                     break;
                 }
@@ -481,12 +495,12 @@ private:
                     std::string t = tagComp->Tag;
                     if (t.find("Table") != std::string::npos ||
                         t.find("Tasma") != std::string::npos ||
-                        t.find("tasma") != std::string::npos || 
+                        t.find("tasma") != std::string::npos ||
                         t.find("Chair") != std::string::npos ||
                         t.find("krzeslo") != std::string::npos ||
                         t.find("Krzeslo") != std::string::npos ||
                         t.find("budka") != std::string::npos ||
-                        t.find("naro¿nik") != std::string::npos ||
+                        t.find("naroznik") != std::string::npos ||
                         t.find("PlateSpawner") != std::string::npos ||
                         t.find("budka") != std::string::npos ||
                         t.find("Garnek") != std::string::npos)

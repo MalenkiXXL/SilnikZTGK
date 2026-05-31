@@ -167,7 +167,8 @@ bool SceneSerializer::Deserialize(const std::string& path) {
                         // KLUCZOWY MOMENT: Ustawiamy kasetę w odtwarzaczu
                         if (item["animator"].contains("start_clip")) {
                             std::string sClip = item["animator"]["start_clip"];
-                            // To ustawia m_CurrentAnimation na "Walk" jeszcze przed startem klatki
+                            // To ustawia m_CurrentAnimation na "
+                            // " jeszcze przed startem klatki
                             animator->PlayAnimation(sClip);
                         }
                         else {
