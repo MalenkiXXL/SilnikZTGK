@@ -1,6 +1,7 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scene/ecs.h" 
+#include "CookingStation/Events/GameEvents.h"
 #include <string>
 #include <vector>
 
@@ -19,6 +20,8 @@ public:
         WantedIngredient = "Tomato";
         OrderTaken = false; // Domyślnie klient oczekuje na kelnera
         spdlog::info("Klient nr {} usiadl i czeka na zlozenie zamowienia", m_Entity.id);
+    
+        GetScene()->GetWorld().GetEventBus().Publish(CustomerSeatedEvent{ m_Entity });
     }
     // Ta funkcja b�dzie wywo�ywana p�niej przez Kelnera
     bool IsOrderMatching(const std::vector<std::string>& ingredientsOnPlate)

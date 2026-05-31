@@ -3,12 +3,12 @@
 #include "CookingStation/Core/GridSystem.h"
 #include "CookingStation/Scripts/CustomerScript.h"
 #include "CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
+#include "CookingStation/Events/GameEvents.h" // Obsługa event busa
 #include "CookingStation/Core/Input.h"
 #include <spdlog/spdlog.h>
 #include <queue>
 #include <vector>
 #include <unordered_map>
-#include <unordered_set>
 #include <algorithm>
 #include <cmath>
 
@@ -40,12 +40,14 @@ public:
         RETURNING_FROM_ORDER,
         MOVING_TO_FOOD,
         MOVING_TO_CUSTOMER,
+        MOVING_TO_STATION_TO_WAVE,
+        WAVING_AT_STATION,
         RETURNING
     };
     State m_CurrentState = State::IDLE;
 
     float m_TakeOrderTimer = 0.0f;
-    float m_WaitAtPassTimer = 0.0f; // <--- NOWY TIMER DO CZEKANIA NA WYDAWCE
+    float m_WaitAtPassTimer = 0.0f;
 
     glm::vec3 m_NextWaypoint;
     bool m_HasWaypoint = false;
@@ -56,22 +58,42 @@ public:
 
     Entity m_TargetCustomer = { std::numeric_limits<std::size_t>::max(), 0 };
     Entity m_TargetPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-
     bool m_IsCarryingPlate = false;
 
-    static inline std::vector<Entity> s_CustomerQueue;
+    // Architektura Event-Driven: Struktura FIFO należąca do tego konkretnego kelnera
+    struct WaiterTask {
+        int Type; // 0 = ZBIERZ_ZAMOWIENIE, 1 = PODAJ_TALERZ
+        Entity Target;
+    };
+    std::vector<WaiterTask> m_TaskQueue;
 
-    static void RegisterCustomer(Entity customer)
-    {
-        s_CustomerQueue.push_back(customer);
-    }
+    std::size_t m_CustomerSubId = 0;
+    std::size_t m_PlateSubId = 0;
 
     void OnCreate() override
     {
         auto* tc = GetComponent<TransformComponent>();
-        if (tc)
-        {
-            m_HomePosition = tc->GetPosition();
+        if (tc) m_HomePosition = tc->GetPosition();
+
+        // Subskrybowanie eventów o zadaniach!
+        auto& bus = GetScene()->GetWorld().GetEventBus();
+
+        m_CustomerSubId = bus.Subscribe<CustomerSeatedEvent>([this](const CustomerSeatedEvent& e) {
+            m_TaskQueue.push_back({ 0, e.Customer });
+            });
+
+        m_PlateSubId = bus.Subscribe<PlateReadyEvent>([this](const PlateReadyEvent& e) {
+            m_TaskQueue.push_back({ 1, e.Plate });
+            });
+    }
+
+    void OnDestroy() override
+    {
+        auto* scene = GetScene();
+        if (scene) {
+            auto& bus = scene->GetWorld().GetEventBus();
+            if (m_CustomerSubId != 0) bus.Unsubscribe<CustomerSeatedEvent>(m_CustomerSubId);
+            if (m_PlateSubId != 0) bus.Unsubscribe<PlateReadyEvent>(m_PlateSubId);
         }
     }
 
@@ -91,61 +113,55 @@ public:
         {
         case State::IDLE:
         {
-            CheckForTasks(); // To może potencjalnie zmienić stan na MOVING_TO...
+            CheckForTasks();
 
-            // Jeśli po sprawdzeniu zadań kelner dalej nie ma co robić (czyli jest w IDLE)
             if (m_CurrentState == State::IDLE)
             {
-                // Sprawdzamy, czy w ogóle ktokolwiek złożył już zamówienie i czeka na talerz
-                bool waitingForFood = false;
-                for (Entity cust : s_CustomerQueue)
-                {
-                    if (!IsValidEntity(cust)) continue;
-                    auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(cust);
-                    if (nsc)
-                    {
-                        for (auto& s : nsc->Scripts)
-                        {
-                            if (auto* cs = dynamic_cast<CustomerScript*>(s.Instance))
-                            {
-                                if (cs->OrderTaken) // Klient ma złożone zamówienie
-                                {
-                                    waitingForFood = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if (waitingForFood) break;
-                }
+                bool waitingForFood = IsValidEntity(FindCustomerWaitingForFood());
 
-                // Jeśli czekamy na jedzenie, nabijamy stoper
                 if (waitingForFood)
                 {
                     m_WaitAtPassTimer += ts.GetSeconds();
                     if (m_WaitAtPassTimer > 3.0f)
                     {
-                        PlayAnimation("Wave"); // Po 3 sekundach zaczyna machać/poganiać
+                        m_CurrentState = State::MOVING_TO_STATION_TO_WAVE;
+                        m_HasWaypoint = false;
+                        m_WaitAtPassTimer = 0.0f;
                     }
-                    else
-                    {
-                        PlayAnimation("Idle"); // Na razie grzecznie czeka
-                    }
+                    else { PlayAnimation("Idle"); }
                 }
                 else
                 {
-                    // Nikt nie czeka na jedzenie - resetujemy timer i odpoczywamy
                     m_WaitAtPassTimer = 0.0f;
                     PlayAnimation("Idle");
                 }
             }
-            else
-            {
-                // Jeśli stan się zmienił (znalazł jedzenie lub nowego klienta), zerujemy timer
-                m_WaitAtPassTimer = 0.0f;
-            }
+            else { m_WaitAtPassTimer = 0.0f; }
             break;
         }
+
+        case State::MOVING_TO_STATION_TO_WAVE:
+            PlayAnimation("Walk");
+            CheckForTasks(); // Może coś wskoczyło podczas marszu!
+            if (m_CurrentState != State::MOVING_TO_STATION_TO_WAVE) break;
+
+            {
+                Entity station = FindPickupStation();
+                if (!IsValidEntity(station)) { ReturnToIdle(); break; }
+
+                if (FlatDistanceTo(station) <= m_InteractRange) {
+                    m_CurrentState = State::WAVING_AT_STATION;
+                }
+                else {
+                    MoveTowardsWaypoint(ts);
+                }
+            }
+            break;
+
+        case State::WAVING_AT_STATION:
+            PlayAnimation("Wave");
+            CheckForTasks(); // Przerywamy jak tylko pojawi się talerz
+            break;
 
         case State::MOVING_TO_TAKE_ORDER:
             PlayAnimation("Walk");
@@ -162,7 +178,6 @@ public:
 
         case State::TAKING_ORDER:
             PlayAnimation("Order");
-
             m_TakeOrderTimer -= ts.GetSeconds();
 
             if (m_TakeOrderTimer <= 0.0f) {
@@ -215,20 +230,14 @@ private:
     {
         auto* myTc = GetComponent<TransformComponent>();
         auto* targetTc = GetScene()->GetWorld().GetComponent<TransformComponent>(target);
-        if (myTc && targetTc)
-        {
-            return FlatDistance(myTc->GetPosition(), targetTc->GetPosition());
-        }
+        if (myTc && targetTc) return FlatDistance(myTc->GetPosition(), targetTc->GetPosition());
         return 9999.0f;
     }
 
     float FlatDistanceToPosition(const glm::vec3& pos)
     {
         auto* myTc = GetComponent<TransformComponent>();
-        if (myTc)
-        {
-            return FlatDistance(myTc->GetPosition(), pos);
-        }
+        if (myTc) return FlatDistance(myTc->GetPosition(), pos);
         return 9999.0f;
     }
 
@@ -237,28 +246,9 @@ private:
         return e.id != std::numeric_limits<std::size_t>::max() && GetScene()->GetWorld().GetComponent<TransformComponent>(e) != nullptr;
     }
 
-    void CleanQueue()
-    {
-        auto it = s_CustomerQueue.begin();
-        while (it != s_CustomerQueue.end())
-        {
-            if (!IsValidEntity(*it))
-            {
-                it = s_CustomerQueue.erase(it);
-            }
-            else
-            {
-                ++it;
-            }
-        }
-    }
-
     void CancelDelivery()
     {
-        if (IsValidEntity(m_TargetPlate))
-        {
-            GetScene()->GetWorld().DestroyEntity(m_TargetPlate);
-        }
+        if (IsValidEntity(m_TargetPlate)) GetScene()->GetWorld().DestroyEntity(m_TargetPlate);
         ReturnToIdle();
     }
 
@@ -269,47 +259,97 @@ private:
         m_IsCarryingPlate = false;
         m_HasWaypoint = false;
         m_CurrentState = State::IDLE;
-        m_WaitAtPassTimer = 0.0f; // Na wszelki wypadek resetujemy też przy wymuszonym powrocie
+        m_WaitAtPassTimer = 0.0f;
     }
 
-    void CheckForTasks()
+    CustomerScript* GetCustomerScript(Entity e)
     {
-        CleanQueue();
-        if (s_CustomerQueue.empty()) return;
+        if (!IsValidEntity(e)) return nullptr;
+        auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(e);
+        if (nsc) {
+            for (auto& s : nsc->Scripts) {
+                if (auto* cs = dynamic_cast<CustomerScript*>(s.Instance)) return cs;
+            }
+        }
+        return nullptr;
+    }
 
-        for (Entity cust : s_CustomerQueue) {
-            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(cust);
-            if (nsc) {
-                for (auto& s : nsc->Scripts) {
-                    if (auto* cs = dynamic_cast<CustomerScript*>(s.Instance)) {
-                        if (!cs->OrderTaken) {
-                            m_TargetCustomer = cust;
-                            m_HasWaypoint = false;
-                            m_CurrentState = State::MOVING_TO_TAKE_ORDER;
-                            return;
-                        }
+    // Automatycznie odnajduje pierwszego klienta na sali, który ZŁOŻYŁ ZAMÓWIENIE i nie dostał żarcia
+    Entity FindCustomerWaitingForFood()
+    {
+        auto* nscArray = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+        if (!nscArray) return { std::numeric_limits<std::size_t>::max(), 0 };
+
+        for (size_t i = 0; i < nscArray->dense.size(); ++i)
+        {
+            auto& nsc = nscArray->dense[i];
+            for (auto& script : nsc.Scripts)
+            {
+                if (auto* cs = dynamic_cast<CustomerScript*>(script.Instance))
+                {
+                    if (cs->OrderTaken && !cs->IsServed)
+                    {
+                        return nscArray->reverse[i];
                     }
                 }
             }
         }
+        return { std::numeric_limits<std::size_t>::max(), 0 };
+    }
 
-        Entity readyPlate = FindReadyPlateOnDelivery();
-        if (IsValidEntity(readyPlate)) {
-            for (Entity cust : s_CustomerQueue) {
-                auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(cust);
-                if (nsc) {
-                    for (auto& s : nsc->Scripts) {
-                        if (auto* cs = dynamic_cast<CustomerScript*>(s.Instance)) {
-                            if (cs->OrderTaken) {
-                                m_TargetPlate = readyPlate;
-                                m_TargetCustomer = cust;
-                                m_HasWaypoint = false;
-                                m_CurrentState = State::MOVING_TO_FOOD;
-                                return;
-                            }
-                        }
+    // Analiza stricte FIFO z zachowaniem porządku chronologicznego!
+    void CheckForTasks()
+    {
+        auto it = m_TaskQueue.begin();
+        while (it != m_TaskQueue.end())
+        {
+            auto task = *it;
+            bool invalid = false;
+
+            if (task.Type == 0) // ZBIERZ ZAMÓWIENIE
+            {
+                auto* cs = GetCustomerScript(task.Target);
+                if (!cs || cs->OrderTaken) {
+                    invalid = true; // Zepsuty/już obsłużony klient -> usuwamy śmiecia
+                }
+                else {
+                    m_TargetCustomer = task.Target;
+                    m_HasWaypoint = false;
+                    m_CurrentState = State::MOVING_TO_TAKE_ORDER;
+                    m_TaskQueue.erase(it); // Usuwamy zadanie z kolejki po przypisaniu do kelnera!
+                    return;
+                }
+            }
+            else if (task.Type == 1) // WYDAJ TALERZ
+            {
+                auto* tag = GetScene()->GetWorld().GetComponent<TagComponent>(task.Target);
+                if (!tag || tag->Tag != "PlateReady") {
+                    invalid = true; // Ktoś wyrzucił talerz albo już go niesiemy -> usuwamy śmiecia
+                }
+                else {
+                    Entity cust = FindCustomerWaitingForFood();
+                    if (IsValidEntity(cust)) {
+                        m_TargetPlate = task.Target;
+                        m_TargetCustomer = cust;
+                        m_HasWaypoint = false;
+                        m_CurrentState = State::MOVING_TO_FOOD;
+                        m_TaskQueue.erase(it); // Bierzemy!
+                        return;
+                    }
+                    else {
+                        // Talerz leży, ALE NIKT NIE ZŁOŻYŁ ZAMÓWIENIA! 
+                        // Ignorujemy ten talerz NA RAZIE (zostaje na liście!), i przechodzimy do starszych zadań (np. przyjąć zamówienie)
+                        ++it;
+                        continue;
                     }
                 }
+            }
+
+            if (invalid) {
+                it = m_TaskQueue.erase(it); // Usuwamy zadania niespełnialne
+            }
+            else {
+                ++it;
             }
         }
     }
@@ -317,31 +357,25 @@ private:
     void RevealCustomerOrder(Entity customer)
     {
         if (IsValidEntity(customer)) {
-            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(customer);
-            if (nsc) {
-                for (auto& s : nsc->Scripts) {
-                    if (auto* cs = dynamic_cast<CustomerScript*>(s.Instance)) {
-                        cs->OrderTaken = true;
-                        spdlog::info("Kelner zanotowal zamowienie dla klienta {}", customer.id);
-                        break;
-                    }
-                }
+            auto* cs = GetCustomerScript(customer);
+            if (cs) {
+                cs->OrderTaken = true;
+                spdlog::info("Kelner zanotowal zamowienie dla klienta {}", customer.id);
             }
         }
     }
 
-    Entity FindReadyPlateOnDelivery()
+    Entity FindPickupStation()
     {
-        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
-        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+        auto* nscArray = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+        if (!nscArray) return { std::numeric_limits<std::size_t>::max(), 0 };
 
-        if (!tags || !transforms) return { std::numeric_limits<std::size_t>::max(), 0 };
-
-        for (size_t i = 0; i < tags->dense.size(); ++i)
+        for (size_t i = 0; i < nscArray->dense.size(); ++i)
         {
-            if (tags->dense[i].Tag == "PlateReady")
+            auto& nsc = nscArray->dense[i];
+            for (auto& script : nsc.Scripts)
             {
-                return tags->reverse[i];
+                if (script.Name == "WaiterPickupStationScript") return nscArray->reverse[i];
             }
         }
         return { std::numeric_limits<std::size_t>::max(), 0 };
@@ -372,7 +406,6 @@ private:
     {
         m_IsCarryingPlate = false;
         m_HasWaypoint = false;
-
         bool isCorrect = false;
 
         if (IsValidEntity(m_TargetPlate))
@@ -384,29 +417,13 @@ private:
                 Entity foodChild = { rel->FirstChild, 0 };
                 GetScene()->GetWorld().DestroyEntity(foodChild);
             }
-
             GetScene()->GetWorld().DestroyEntity(m_TargetPlate);
         }
 
         m_TargetPlate = { std::numeric_limits<std::size_t>::max(), 0 };
 
-        if (!s_CustomerQueue.empty() && s_CustomerQueue.front().id == m_TargetCustomer.id)
-        {
-            s_CustomerQueue.erase(s_CustomerQueue.begin());
-        }
-
-        auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_TargetCustomer);
-        if (nsc)
-        {
-            for (auto& scriptElement : nsc->Scripts)
-            {
-                if (auto* customer = dynamic_cast<CustomerScript*>(scriptElement.Instance))
-                {
-                    customer->ReceiveFood(isCorrect);
-                    break;
-                }
-            }
-        }
+        auto* cs = GetCustomerScript(m_TargetCustomer);
+        if (cs) cs->ReceiveFood(isCorrect);
 
         m_TargetCustomer = { std::numeric_limits<std::size_t>::max(), 0 };
         m_CurrentState = State::RETURNING;
@@ -485,6 +502,16 @@ private:
             targetCell = GridSystem::WorldToCell(exactTargetPos);
             isObstacle = true;
         }
+        else if (m_CurrentState == State::MOVING_TO_STATION_TO_WAVE)
+        {
+            Entity station = FindPickupStation();
+            if (!IsValidEntity(station)) return;
+            auto* statTc = GetScene()->GetWorld().GetComponent<TransformComponent>(station);
+            if (!statTc) return;
+            exactTargetPos = statTc->GetPosition();
+            targetCell = GridSystem::WorldToCell(exactTargetPos);
+            isObstacle = true; // Zazwyczaj stół stanowi przeszkodę
+        }
         else if (m_CurrentState == State::RETURNING || m_CurrentState == State::RETURNING_FROM_ORDER)
         {
             exactTargetPos = m_HomePosition;
@@ -542,17 +569,13 @@ private:
             if (current.pos == target)
             {
                 auto path = ReconstructPath(cameFrom, current.pos, start);
-                if (targetIsObstacle && !path.empty())
-                {
-                    path.pop_back();
-                }
+                if (targetIsObstacle && !path.empty()) path.pop_back();
                 return path;
             }
 
             for (const auto& offset : neighbors)
             {
                 glm::ivec2 neighborPos = current.pos + offset;
-
                 if (neighborPos != target && !IsWalkable(neighborPos)) continue;
 
                 float tentativeG = gScore[current.pos] + 1.0f;

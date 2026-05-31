@@ -6,7 +6,6 @@
 #include <random>
 #include "CustomerScript.h"
 #include "HelperCustomerScript.h" 
-#include "Waiter/WaiterScript.h"
 
 class CustomerManagerScript : public ScriptableEntity
 {
@@ -17,7 +16,6 @@ private:
 
     // Zwykli klienci
     std::vector<std::string> m_CustomerModels = {
-
         "CookingStation/Assets/models/klienci/klient.gltf",
         "CookingStation/Assets/models/klienci/klient2.gltf",
         "CookingStation/Assets/models/klienci/klient3.gltf",
@@ -82,22 +80,22 @@ private:
             // MARCHEWKA
             if (chosenModel.find("marchewka") != std::string::npos || chosenModel.find("test.gltf") != std::string::npos)
             {
-                finalScale = glm::vec3(1.0f, 1.0f, 1.0f);  
-                rotationOffsetY = -90.0f;                  
+                finalScale = glm::vec3(1.0f, 1.0f, 1.0f);
+                rotationOffsetY = -90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/marchewka-siedzi.gltf";
             }
             // POMIDOR
             else if (chosenModel.find("pomidor") != std::string::npos)
             {
-                finalScale = glm::vec3(1.0f, 1.0f, 1.0f);  
-                rotationOffsetY = -90.0f;                   
+                finalScale = glm::vec3(1.0f, 1.0f, 1.0f);
+                rotationOffsetY = -90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/pomidor-siedzi.gltf";
             }
             // RZODKIEWKA
             else if (chosenModel.find("rzodkiewka") != std::string::npos)
             {
-                finalScale = glm::vec3(1.2f, 1.2f, 1.2f);  
-                rotationOffsetY = 90.0f;                   
+                finalScale = glm::vec3(1.2f, 1.2f, 1.2f);
+                rotationOffsetY = 90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/rzodkiewka-siedzi.gltf";
             }
         }
@@ -156,7 +154,8 @@ private:
         builder.With<NativeScriptComponent>(nsc);
         Entity newCustomer = builder.Build();
 
-        WaiterScript::RegisterCustomer(newCustomer);
+        // USUNIĘTE: WaiterScript::RegisterCustomer(newCustomer); 
+        // Skrypty CustomerScript i HelperCustomerScript robią to teraz same przez EventBusa!
 
         spdlog::info("Zespawnowano nowego {} (Model: {}) - Patrzy na stolik!", isHelper ? "Helpera" : "Klienta", chosenModel);
     }
@@ -170,7 +169,7 @@ private:
         {
             const std::string& tagName = tags->dense[i].Tag;
 
-            if (tagName.find("Chair") != std::string::npos || tagName.find("Krzeslo") != std::string::npos){
+            if (tagName.find("Chair") != std::string::npos || tagName.find("Krzeslo") != std::string::npos) {
                 Entity chairEntity = tags->reverse[i];
                 if (IsChairEmpty(chairEntity))
                 {

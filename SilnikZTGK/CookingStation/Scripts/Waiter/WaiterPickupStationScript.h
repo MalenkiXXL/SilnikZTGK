@@ -2,6 +2,7 @@
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Core/GridSystem.h"
 #include "CookingStation/Scripts/Plates/ItemScript.h"
+#include "CookingStation/Events/GameEvents.h" 
 #include <string>
 
 class WaiterPickupStationScript : public ScriptableEntity
@@ -13,10 +14,7 @@ public:
     void OnCreate() override
     {
         auto* transform = GetComponent<TransformComponent>();
-        if (transform)
-        {
-            m_StationCell = GridSystem::WorldToCell(transform->GetPosition());
-        }
+        if (transform) m_StationCell = GridSystem::WorldToCell(transform->GetPosition());
     }
 
     void OnUpdate(Timestep ts) override
@@ -46,16 +44,15 @@ public:
                     bool isItem = false;
                     for (auto& script : nsc->Scripts)
                     {
-                        if (script.Name == "ItemScript")
-                        {
-                            isItem = true;
-                            break;
-                        }
+                        if (script.Name == "ItemScript") { isItem = true; break; }
                     }
 
                     if (isItem && tagComp->Tag != "PlateReady" && tagComp->Tag != "PlateCarried")
                     {
                         tagComp->Tag = "PlateReady";
+
+                        // EVENT BUS: Powiadamiamy wszystkich kelnerów na sali, że talerz czeka
+                        GetScene()->GetWorld().GetEventBus().Publish(PlateReadyEvent{ entity });
                     }
                 }
             }

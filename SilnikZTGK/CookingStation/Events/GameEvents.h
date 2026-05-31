@@ -75,3 +75,11 @@ struct GameStartedEvent {};
 struct EntityHoveredEvent {
     Entity TargetEntity;
 };
+
+struct CustomerSeatedEvent {
+    Entity Customer;
+};
+
+struct PlateReadyEvent {
+    Entity Plate;
+};
