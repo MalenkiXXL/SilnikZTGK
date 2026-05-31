@@ -64,6 +64,7 @@ void GameGuiLayer::OnAttach()
     m_SandwichIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
     m_CupcakeIcon = AssetManager::GetTexture("assets://UI/cupcake.png");
     m_CroissantIcon = AssetManager::GetTexture("assets://UI/croissant.png");
+    m_QuestionMarkIcon = AssetManager::GetTexture("assets://UI/QuestionMark.png"); 
 
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
@@ -501,6 +502,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
     DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     DrawRecipeBook(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+    DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);
 
     if (m_CoinIcon) {
         if (m_LastMoney == -1 && GameManagerScript::s_Instance) {
@@ -546,34 +548,43 @@ void GameGuiLayer::OnEvent(Event& e) {
         });
 
 #ifdef CS_DISTRIBUTION
-    // 2. Jeśli jesteśmy w Main Menu, zablokuj CAŁĄ RESZTĘ (żeby np. nie klikać guzików gry pod spodem menu)
+    // 2. Jeśli jesteśmy w Main Menu, zablokuj CAŁĄ RESZTĘ
     if (!m_IsVisible) return;
 #endif
 
-    // 3. Przekazywanie eventów do Panelu Pauzy (łapie klawisz ESC)
+    // 3. Przekazywanie eventów do Panelu Pauzy
     if (m_PausePanel) {
         m_PausePanel->OnEvent(e);
         if (e.Handled) return; // Zapobiega klikaniu w grę, gdy opcje są otwarte
     }
 
-    // 4. Reszta eventów gry (myszka, scrolle)
+    // 4. Reszta eventów gry (myszka wciskanie)
     dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& ev) {
         return OnMouseButtonPressed(ev);
         });
 
+    // 5. POPRAWKA: Obsługa scrolla myszki
     dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& ev) {
         m_IngredientsCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);
         m_MachinesCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);
+
+        // Zabezpieczenie: Jeśli gra jest w trybie Play, ZABLOKUJ przekazywanie 
+        // scrolla do kamery 3D, dzięki czemu kamera nie będzie robić niechcianego zoomu,
+        // a ikonki nie będą przesuwać się nad głowami.
+        std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
+        if (activeScene && activeScene->GetState() == SceneState::Play) {
+            return true; // True oznacza, że GUI "połknęło" zdarzenie.
+        }
+
         return false;
         });
 
-    // 5. OBSŁUGA WCIŚNIĘCIA PRZYCISKU PLAY W EDYTORZE (tylko questy)
+    // 6. OBSŁUGA WCIŚNIĘCIA PRZYCISKU PLAY W EDYTORZE (tylko questy)
     dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) {
         ReloadQuests();
         return false;
         });
 }
-
 bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     if (!activeScene || activeScene->GetState() != SceneState::Play) return false;
@@ -601,6 +612,69 @@ void GameGuiLayer::ReloadQuests() {
         }
         catch (...) {
             spdlog::error("GameUiLayer: Blad JSON podczas parsowania z VFS.");
+        }
+    }
+}
+
+void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
+{
+    if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
+
+    auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
+    auto* scripts = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
+    auto* transforms = m_ActiveScene->GetWorld().GetComponentVector<TransformComponent>();
+    if (!tags || !scripts || !transforms) return;
+
+    auto* camera = m_ActiveScene->GetCamera();
+    glm::mat4 view = camera->GetViewMatrix();
+    float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+    float orthoSize = camera->OrthoSize;
+    glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+    glm::mat4 viewProj = proj3D * view;
+
+    for (size_t i = 0; i < tags->dense.size(); ++i) {
+        std::string tag = tags->dense[i].Tag;
+        if (tag == "NormalCustomer" || tag == "HelperCustomer") {
+            Entity custEntity = tags->reverse[i];
+            auto* nsc = scripts->Get(custEntity);
+            auto* tf = transforms->Get(custEntity);
+            if (!nsc || !tf) continue;
+
+            CustomerScript* custScript = nullptr;
+            for (auto& s : nsc->Scripts) {
+                if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript") {
+                    custScript = (CustomerScript*)s.Instance;
+                    break;
+                }
+            }
+            // Zignoruj obsluzonych klientów
+            if (!custScript || custScript->IsServed) continue;
+
+            // Zrzutowanie pozycji głowy klienta na 2D
+            glm::vec3 headPos = tf->GetPosition() + glm::vec3(0.0f, 3.0f, 0.0f);
+            glm::vec4 clipSpace = viewProj * glm::vec4(headPos, 1.0f);
+            if (clipSpace.w == 0.0f) continue;
+
+            glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
+            float screenX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
+            float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
+
+            std::shared_ptr<Texture> iconToDraw = nullptr;
+            if (!custScript->OrderTaken) {
+                iconToDraw = m_QuestionMarkIcon;
+            }
+            else {
+                // Gdyby w przyszlosci bylo wiecej dan mozesz tu dodac mapowanie z WantedIngredient na Texturę
+                if (custScript->WantedIngredient == "Tomato") iconToDraw = m_TomatoIcon;
+            }
+
+            if (iconToDraw) {
+                glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, 70.0f * baseScale);
+                glm::vec2 iconPos = { screenX - iconSize.x * 0.5f, screenY - iconSize.y };
+
+                // Rysujemy uzywajac wczesniej zdefiniowanej macierzy z Renderer2D
+                Renderer2D::DrawQuad(iconPos, iconSize, iconToDraw, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+            }
         }
     }
 }

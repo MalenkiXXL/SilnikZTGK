@@ -11,13 +11,15 @@ public:
     std::string WantedIngredient = "";
     bool IsServed = false;
 
+    // NOWE: Flaga sprawdzająca, czy kelner przyjął zamówienie
+    bool OrderTaken = false;
+
     void OnCreate() override
     {
-        // Na razie mamy tylko pomidora
         WantedIngredient = "Tomato";
-        spdlog::info("Klient nr {} usiadl i chce: {}", m_Entity.id, WantedIngredient);
+        OrderTaken = false; // Domyślnie klient oczekuje na kelnera
+        spdlog::info("Klient nr {} usiadl i czeka na zlozenie zamowienia", m_Entity.id);
     }
-
     // Ta funkcja b�dzie wywo�ywana p�niej przez Kelnera
     bool IsOrderMatching(const std::vector<std::string>& ingredientsOnPlate)
     {

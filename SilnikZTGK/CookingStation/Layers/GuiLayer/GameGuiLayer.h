@@ -91,6 +91,7 @@ private:
     std::shared_ptr<Texture> m_SandwichIcon;
     std::shared_ptr<Texture> m_CroissantIcon;
     std::shared_ptr<Texture> m_CupcakeIcon;
+    std::shared_ptr<Texture> m_QuestionMarkIcon;
 
     struct BubblyState {
         float    scale = 1.0f;
@@ -111,4 +112,5 @@ private:
     void DrawQuestPanel(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, bool isPlayMode);
     void DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
     void DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
+    void DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale);
 };
