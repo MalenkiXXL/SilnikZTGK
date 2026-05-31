@@ -39,7 +39,7 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
-        MachineScript::OnUpdate(ts); 
+        MachineScript::OnUpdate(ts);
 
         if (m_IsHeld) return;
 
@@ -107,23 +107,15 @@ protected:
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            auto builder = GetScene()->GetWorld().BuildEntity();
-            builder.With<TagComponent>({ "W_Garnku" });
+            m_SpawnedFood = SpawnMachineFood(IngredientType::None, "CookingStation/Assets/models/skladniki/pomidor/pomidorowa.gltf", "W_Garnku");
 
-            TransformComponent tc;
-            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
-            tc.SetScale(glm::vec3(0.7f, 0.7f, 0.7f));
-            builder.With<TransformComponent>(tc);
+            // Zupa  zawsze wyl¹duje dok³adnie o 1.0 wy¿ej od garnka
+            auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
+            if (foodTf)
+            {
+                foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
+            }
 
-            MeshComponent mesh;
-            mesh.ModelPtr = AssetManager::GetModel("CookingStation/Assets/models/skladniki/pomidor/pomidorowa.gltf");
-            builder.With<MeshComponent>(mesh);
-
-            BoxColliderComponent collider;
-            collider.Size = glm::vec3(1.2f);
-            builder.With<BoxColliderComponent>(collider);
-
-            m_SpawnedFood = builder.Build();
             spdlog::info("Danie gotowe, pojawia sie nad garnkiem.");
         }
         else
