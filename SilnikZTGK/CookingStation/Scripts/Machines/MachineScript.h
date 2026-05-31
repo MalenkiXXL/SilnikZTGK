@@ -28,9 +28,7 @@ protected:
     bool m_IsMouseHoveringFood = false;
 
     std::size_t m_FoodClickSubId = 0;
-
     std::size_t m_HoverSubId = 0;
-
 
 public:
     std::vector<IngredientType> m_Ingredients;
@@ -186,6 +184,33 @@ public:
     }
 
 protected:
+
+    // Buduje jedzenie na podstawie metadanych
+    Entity SpawnMachineFood(IngredientType type, const std::string& modelPath, const std::string& tag)
+    {
+        auto builder = GetScene()->GetWorld().BuildEntity();
+        if (!tag.empty()) builder.With<TagComponent>({ tag });
+
+        TransformComponent tc;
+        IngredientMetadata meta = GetIngredientMetadata(type);
+
+        tc.SetScale(meta.scale);
+        tc.SetRotation(meta.rotation);
+
+        builder.With<TransformComponent>(tc);
+
+        MeshComponent mesh;
+        mesh.ModelPtr = AssetManager::GetModel(modelPath);
+        builder.With<MeshComponent>(mesh);
+
+        // Dodaje od razu collider ¿eby system wiedzia³ w co myszka mo¿e klikaæ
+        BoxColliderComponent collider;
+        collider.Size = glm::vec3(1.2f);
+        builder.With<BoxColliderComponent>(collider);
+
+        return builder.Build();
+    }
+
     bool IsCellOccupied(const glm::vec3& targetPos)
     {
         glm::ivec2 targetCell = GridSystem::WorldToCell(targetPos);
@@ -277,7 +302,6 @@ protected:
 
     virtual void UpdateVisuals() = 0;
 
-    // LOGIKA PODŒWIETLANIA TALERZA 
     void SetPlateHighlight(Entity plateEntity, bool state)
     {
         if (plateEntity.id == std::numeric_limits<std::size_t>::max()) return;
@@ -304,7 +328,6 @@ protected:
             m_LastHighlightedPlate = { std::numeric_limits<std::size_t>::max(), 0 };
         }
     }
-
 
     void PlaceSpawnedFoodOnPlate(Entity plate)
     {
