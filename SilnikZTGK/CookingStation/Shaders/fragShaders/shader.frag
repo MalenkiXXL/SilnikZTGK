@@ -27,6 +27,14 @@ void main()
 {    
     vec3 baseColor = texture(texture_diffuse1, TexCoords).rgb;
 
+if(useTexture2) {
+    vec4 tex2Sample = texture(texture_diffuse2, TexCoords2);
+    float lum = max(tex2Sample.r, max(tex2Sample.g, tex2Sample.b));
+    // Odtwórz prawdziwy kolor plamy (np. ciemnopomarańczowy na krawędzi → pełny pomarańczowy)
+    vec3 trueColor = tex2Sample.rgb / max(lum, 0.001);
+    // lum jako waga: 0 = tło czarne, 1 = środek plamy
+    baseColor = mix(baseColor, trueColor, lum * tex2Sample.a);
+}
     // Szachownica na podłodze (logika bez zmian)
     if (FragPos.y < 0.0) 
     {
@@ -66,12 +74,6 @@ void main()
 
     // Złożenie oświetlenia
     vec3 result = (ambient + diffuse) * baseColor + specular;
-
-    // Obsługa drugiej tekstury (np. Emissive)
-    if(useTexture2) {
-        vec3 emissiveColor = texture(texture_diffuse2, TexCoords2).rgb;
-        result += emissiveColor;
-    }
 
     // Korekcja gamma
     float gammaParam = 1.4; 

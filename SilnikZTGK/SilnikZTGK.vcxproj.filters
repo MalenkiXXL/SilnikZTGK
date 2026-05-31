@@ -138,7 +138,6 @@
     <None Include="CookingStation\Shaders\fragShaders\Rim.frag" />
     <None Include="CookingStation\Shaders\vsShaders\lightCubeShader.vs" />
     <None Include="CookingStation\Shaders\fragShaders\shader.frag" />
-    <None Include="CookingStation\Shaders\vsShaders\shader.vs" />
     <None Include="CookingStation\Assets\prefabs\plate.json" />
     <None Include="CookingStation\Shaders\vsShaders\highlight.vs" />
     <None Include="CookingStation\Shaders\fragShaders\highlight.frag" />
