@@ -65,7 +65,7 @@ public:
                 }
                 else {
                     
-                    spdlog::warn("ECS: Entity generation mismatch (entity destroyed)! ID: {}", entity.id);
+                   // spdlog::warn("ECS: Entity generation mismatch (entity destroyed)! ID: {}", entity.id);
                     return nullptr;
                 }
             }
