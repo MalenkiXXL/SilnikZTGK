@@ -56,6 +56,21 @@ private:
         }
     }
 
+    std::string GetTagForIngredient(IngredientType type)
+    {
+        switch (type) {
+        case IngredientType::Tomato:
+        case IngredientType::ChoppedTomato: return "Tomato";
+        case IngredientType::Cheese:
+        case IngredientType::ChoppedCheese: return "Cheese";
+        case IngredientType::Ham:
+        case IngredientType::ChoppedHam:    return "Ham";
+        case IngredientType::Sandwich:      return "Sandwich";
+        case IngredientType::CutBaguette:   return "CutBaguette";
+        default: return "Unknown";
+        }
+    }
+
     void SpawnIngredientVisual(IngredientType type)
     {
         std::string modelPath = GetModelPath(type);
@@ -64,24 +79,22 @@ private:
         auto builder = GetScene()->GetWorld().BuildEntity();
 
         TransformComponent tc;
-
         float stackYOffset = 0.2f + (m_Ingredients.size() * 0.20f);
-
         tc.SetPosition(glm::vec3(0.0f, stackYOffset, 0.0f));
 
         IngredientMetadata meta = GetIngredientMetadata(type);
         tc.SetScale(meta.scale);
         tc.SetRotation(meta.rotation);
-
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
         mesh.ModelPtr = AssetManager::GetModel(modelPath);
         builder.With<MeshComponent>(mesh);
 
+        builder.With<TagComponent>({ GetTagForIngredient(type) });
+
         Entity visualEntity = builder.Build();
 
-        // Poniewa¿ robimy SetParent, nasza pozycja (0.0, offset, 0.0) na³o¿y siê idealnie na œrodek talerza
         GetScene()->SetParent(visualEntity, m_Entity);
         m_VisualModels.push_back(visualEntity);
     }
@@ -90,7 +103,6 @@ private:
     {
         if (m_Ingredients.size() != recipe.size()) return false;
 
-        // Kopiujemy i sortujemy, ¿eby kolejnoœæ wrzucania nie mia³a znaczenia
         std::vector<IngredientType> myIng = m_Ingredients;
         std::vector<IngredientType> recIng = recipe;
         std::sort(myIng.begin(), myIng.end());
@@ -129,41 +141,40 @@ private:
         auto builder = GetScene()->GetWorld().BuildEntity();
 
         TransformComponent tc;
-
         tc.SetPosition(glm::vec3(0.0f, 0.05f, 0.0f));
 
         IngredientMetadata meta = GetIngredientMetadata(dishType);
         tc.SetScale(meta.scale);
         tc.SetRotation(meta.rotation);
-
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
         mesh.ModelPtr = AssetManager::GetModel(dishModelPath);
         builder.With<MeshComponent>(mesh);
 
+        // NOWE: Dodajemy poprawny Tag dla kanapki/dania
+        builder.With<TagComponent>({ GetTagForIngredient(dishType) });
+
         Entity dishEntity = builder.Build();
         GetScene()->SetParent(dishEntity, m_Entity);
         m_VisualModels.push_back(dishEntity);
     }
 
-    private:
-        Entity m_HighlightModelEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+private:
+    Entity m_HighlightModelEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
-    public:
-        void SetHighlight(bool isHighlighted)
+public:
+    void SetHighlight(bool isHighlighted)
+    {
+        const std::string targetShader = isHighlighted ? "HighlightShader" : "ModelShader";
+
+        auto* mesh = GetComponent<MeshComponent>();
+        if (mesh) mesh->ShaderName = targetShader;
+
+        for (Entity e : m_VisualModels)
         {
-            const std::string targetShader = isHighlighted ? "HighlightShader" : "ModelShader";
-
-            // Shader samego talerza
-            auto* mesh = GetComponent<MeshComponent>();
-            if (mesh) mesh->ShaderName = targetShader;
-
-            // Shader wszystkich sk³adników/dañ na talerzu
-            for (Entity e : m_VisualModels)
-            {
-                auto* childMesh = GetScene()->GetWorld().GetComponent<MeshComponent>(e);
-                if (childMesh) childMesh->ShaderName = targetShader;
-            }
+            auto* childMesh = GetScene()->GetWorld().GetComponent<MeshComponent>(e);
+            if (childMesh) childMesh->ShaderName = targetShader;
         }
+    }
 };

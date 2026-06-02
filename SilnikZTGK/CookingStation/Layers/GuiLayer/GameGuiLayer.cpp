@@ -695,8 +695,19 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
                 iconToDraw = m_QuestionMarkIcon;
             }
             else {
-                // Gdyby w przyszlosci bylo wiecej dan mozesz tu dodac mapowanie z WantedIngredient na Texturę
-                if (custScript->WantedIngredient == "Tomato") iconToDraw = m_TomatoIcon;
+                // Mapowanie zamawianego dania na właściwą teksturę UI
+                if (custScript->WantedIngredient == "Tomato") {
+                    iconToDraw = m_TomatoIcon;
+                }
+                else if (custScript->WantedIngredient == "Cheese") {
+                    iconToDraw = m_CheeseIcon;
+                }
+                else if (custScript->WantedIngredient == "Ham") {
+                    iconToDraw = m_HamIcon;
+                }
+                else if (custScript->WantedIngredient == "Sandwich") {
+                    iconToDraw = m_SandwichIcon;
+                }
             }
 
             if (iconToDraw) {

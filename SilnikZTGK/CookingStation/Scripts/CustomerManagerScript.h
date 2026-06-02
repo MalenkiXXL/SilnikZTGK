@@ -196,8 +196,7 @@ private:
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
             std::string tag = tags->dense[i].Tag;
-            if (tag == "NormalCustomer" || tag == "HelperCustomer")
-            {
+            if (tag == "NormalCustomer" || tag == "HelperCustomer" || tag == "NajedzonyPomocnik") {
                 Entity customer = tags->reverse[i];
                 auto* custTransform = transforms->Get(customer);
 

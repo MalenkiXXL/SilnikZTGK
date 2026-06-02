@@ -114,7 +114,7 @@ struct PlateReadyEvent {
 
 struct CustomerServedEvent {
     Entity Customer;
-    bool IsCorrectOrder;
+    std::vector<std::string> ServedIngredients; 
 };
 
 struct OrderTakenEvent {

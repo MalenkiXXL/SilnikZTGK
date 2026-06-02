@@ -152,7 +152,7 @@ private:
     Frustum m_Frustum;
     void UpdateFrustum()
     {
-        // Generujemy po��czon� macierz P * V i wyci�gamy z niej p�aszczyzny
+        // Generujemy polaczone macierz P * V i wyciagamy z niej plaszczyzny
         glm::mat4 viewProj = GetProjectionMatrix() * GetViewMatrix();
         m_Frustum = ExtractFrustum(viewProj);
     }

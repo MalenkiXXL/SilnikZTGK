@@ -14,7 +14,6 @@ enum class IngredientType : uint32_t
     Milk, Flour, Egg, Potato,
     RawDough, Baguette, CutBaguette,
     Sandwich
-    // ... 
 };
 
 // Struktura trzymająca metadane składnika

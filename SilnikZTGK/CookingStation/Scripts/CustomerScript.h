@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <spdlog/spdlog.h>
+#include <random>
 
 class CustomerScript : public ScriptableEntity
 {
@@ -18,11 +19,20 @@ public:
     std::size_t m_ServedSubId = 0;
     std::size_t m_OrderSubId = 0;
 
-    void OnCreate() override
+   void OnCreate() override
     {
-        WantedIngredient = "Tomato";
+        // 1. Definiujemy, co jest w menu (możesz tu dodawać kolejne stringi, byle odpowiadały systemowi potraw)
+        std::vector<std::string> menu = { "Tomato", "Cheese", "Ham", "Sandwich"};
+
+        // 2. Losujemy jeden ze składników
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(0, menu.size() - 1);
+
+        WantedIngredient = menu[dist(gen)];
         OrderTaken = false;
-        spdlog::info("Klient nr {} usiadl i czeka na zlozenie zamowienia", m_Entity.id);
+        
+        spdlog::info("Klient nr {} usiadl i czeka na: {}", m_Entity.id, WantedIngredient);
 
         auto& bus = GetScene()->GetWorld().GetEventBus();
 
@@ -32,7 +42,9 @@ public:
         // 2. Nasłuchujemy, czy kelner przyniósł nam jedzenie
         m_ServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
             if (e.Customer.id == m_Entity.id) {
-                this->ReceiveFood(e.IsCorrectOrder);
+                // Klient sam ocenia, czy to co dostał to jest to, co chciał!
+                bool isCorrect = this->IsOrderMatching(e.ServedIngredients);
+                this->ReceiveFood(isCorrect);
             }
             });
 
@@ -41,12 +53,10 @@ public:
             if (e.Customer.id == m_Entity.id) {
                 this->OrderTaken = true;
             }
-            });
+        });
     }
-
     void OnDestroy() override
     {
-        // PAMIĘTAJMY O ODPIĘCIU SIĘ Z MAGISTRALI
         auto* scene = GetScene();
         if (scene) {
             auto& bus = scene->GetWorld().GetEventBus();
@@ -57,6 +67,8 @@ public:
 
     bool IsOrderMatching(const std::vector<std::string>& ingredientsOnPlate)
     {
+        if (ingredientsOnPlate.empty()) return false; 
+
         for (const auto& item : ingredientsOnPlate)
         {
             if (item == WantedIngredient) return true;
@@ -76,7 +88,7 @@ public:
             spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
             if (GameManagerScript::s_Instance)
             {
-                OrderFulfilledEvent e(50.0f); // Nagroda
+                OrderFulfilledEvent e(50.0f); 
                 GetScene()->GetWorld().GetEventBus().Publish(e);
                 spdlog::info("Klient nr {} zaplacil 50 monet!", m_Entity.id);
             }
@@ -90,7 +102,6 @@ public:
             if (tag) tag->Tag = "ZlyKlient";
         }
 
-        // Używamy Event Busa do bezpiecznego usunięcia encji na koniec klatki!
         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
         spdlog::info("PUBLISHED DESTROY EVENT");
     }

@@ -23,7 +23,7 @@ public:
     glm::vec3 m_PositionBeforeDrag;
     std::size_t m_HelperClickSubId = 0;
 
-    // --- NOWE: Cooldown zapobiegaj¹cy natychmiastowemu podnoszeniu ---
+    // --- NOWE: Cooldown zapobiegajacy natychmiastowemu podnoszeniu ---
     float m_Cooldown = 0.0f;
 
     void OnCreate() override
@@ -34,7 +34,7 @@ public:
             [this](const EntityClickedEvent& e) {
                 if (e.TargetEntity.id == m_Entity.id)
                 {
-                    // Blokujemy podnoszenie, jeœli cooldown jeszcze trwa
+                    // Blokujemy podnoszenie, jesli cooldown jeszcze trwa
                     if (!m_IsCarried && !IsAnyHelperDragged && (m_IsWaitingToHelp || m_IsWorking) && m_Cooldown <= 0.0f)
                     {
                         PickUpHelper(GetComponent<TransformComponent>());
@@ -59,13 +59,6 @@ public:
             m_IsWaitingToHelp = true;
             auto* tag = GetComponent<TagComponent>();
             if (tag) tag->Tag = "NajedzonyPomocnik";
-
-            auto* transform = GetComponent<TransformComponent>();
-            if (transform)
-            {
-                glm::vec3 pos = transform->GetPosition();
-                transform->SetPosition(glm::vec3(pos.x, m_YOffset, pos.z));
-            }
         }
         else
         {
@@ -75,10 +68,10 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
-        // Zmniejszamy cooldown co klatkê
+        // Zmniejszamy cooldown co klatke
         if (m_Cooldown > 0.0f)
         {
-            m_Cooldown -= (float)ts;
+            m_Cooldown -= ts.GetSeconds();
         }
 
         if (!IsServed) return;
