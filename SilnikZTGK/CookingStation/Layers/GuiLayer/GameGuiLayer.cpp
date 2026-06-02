@@ -9,7 +9,6 @@
 #include "CookingStation/Core/Application.h"
 #include "CookingStation/json.hpp"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
-#include <algorithm> 
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Scripts/Quests/DeliveryBoothScript.h"
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
@@ -17,8 +16,10 @@
 #include "CookingStation/Core/VFS/VFS.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
 #include "CookingStation/Scripts/Machines/MachineScript.h"
+#include "CookingStation/Events/KeyEvent.h"
 #include "CookingStation/Events/GameEvents.h" 
 #include <spdlog/spdlog.h>
+#include <algorithm> 
 
 bool GameGuiLayer::s_NeedsQuestReload = false;
 
@@ -516,6 +517,30 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         glm::vec2 textPos = { gameX + gameWidth * 0.97f - textWidth, gameY + gameHeight * 0.02f };
         DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
     }
+
+    if (m_ShowFPS)
+    {
+        static float fpsTimer = 0.0f;
+        static int currentFps = 0;
+
+        fpsTimer += dt;
+        // Odświeżaj wynik co 0.25 sekundy, by cyfry były czytelne
+        if (fpsTimer >= 0.25f) {
+            // Zabezpieczenie przed dzieleniem przez 0
+            if (dt > 0.0f) currentFps = static_cast<int>(1.0f / dt);
+            fpsTimer = 0.0f;
+        }
+
+        std::string fpsText = "FPS: " + std::to_string(currentFps);
+        float fpsTextScale = 1.0f * baseScale;
+        glm::vec2 fpsPos = { gameX + 20.0f * baseScale, gameY + 15.0f * baseScale };
+
+        // Cień dla tekstu, żeby był widoczny na każdym tle
+        Gui::DrawGuiText(fpsText, { fpsPos.x + 2.0f, fpsPos.y + 2.0f }, fpsTextScale, { 0.1f, 0.1f, 0.1f, 0.9f });
+        // Właściwy zielony tekst
+        Gui::DrawGuiText(fpsText, fpsPos, fpsTextScale, { 0.2f, 1.0f, 0.2f, 1.0f });
+    }
+
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
 
@@ -563,17 +588,14 @@ void GameGuiLayer::OnEvent(Event& e) {
         return OnMouseButtonPressed(ev);
         });
 
-    // 5. POPRAWKA: Obsługa scrolla myszki
+    // 5. Obsługa scrolla myszki
     dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& ev) {
         m_IngredientsCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);
         m_MachinesCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);
 
-        // Zabezpieczenie: Jeśli gra jest w trybie Play, ZABLOKUJ przekazywanie 
-        // scrolla do kamery 3D, dzięki czemu kamera nie będzie robić niechcianego zoomu,
-        // a ikonki nie będą przesuwać się nad głowami.
         std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
         if (activeScene && activeScene->GetState() == SceneState::Play) {
-            return true; // True oznacza, że GUI "połknęło" zdarzenie.
+            return true; 
         }
 
         return false;
@@ -583,6 +605,15 @@ void GameGuiLayer::OnEvent(Event& e) {
     dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) {
         ReloadQuests();
         return false;
+        });
+
+    dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& ev) {
+        if (ev.GetKeyCode() == 292) {
+            if (ev.GetRepeatCode() == 0) {
+                m_ShowFPS = !m_ShowFPS; 
+            }
+        }
+        return false; 
         });
 }
 bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {

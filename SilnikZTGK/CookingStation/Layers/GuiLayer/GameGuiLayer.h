@@ -4,15 +4,15 @@
 #include "CookingStation/Events/MouseEvent.h"
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Scene/Scene.h"
-#include <vector>
-#include <string>
-#include <glm/glm.hpp>
 #include "CookingStation/Core/Texture.h"
-#include <memory>
+#include "Panels/PauseMenuPanel.h"
 #include "CookingStation/Renderer/Framebuffer.h"
 #include "CarouselUI.h"
 #include <unordered_map>
-#include "Panels/PauseMenuPanel.h"
+#include <vector>
+#include <string>
+#include <glm/glm.hpp>
+#include <memory>
 
 class Scene;
 
@@ -37,6 +37,7 @@ public:
 private:
     bool m_IsVisible = false;
     bool m_IsActive = false;
+    bool m_ShowFPS = false;
 
     // --- Panele ---
     std::unique_ptr<PauseMenuPanel> m_PausePanel;

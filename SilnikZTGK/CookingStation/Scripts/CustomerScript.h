@@ -1,7 +1,7 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scene/ecs.h" 
-#include "CookingStation/Events/GameEvents.h" // Dodajemy EventBusa!
+#include "CookingStation/Events/GameEvents.h" 
 #include <string>
 #include <vector>
 #include <spdlog/spdlog.h>
