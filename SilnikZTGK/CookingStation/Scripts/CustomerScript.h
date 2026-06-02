@@ -4,6 +4,7 @@
 #include "CookingStation/Events/GameEvents.h" // Dodajemy EventBusa!
 #include <string>
 #include <vector>
+#include <spdlog/spdlog.h>
 
 class CustomerScript : public ScriptableEntity
 {
@@ -31,7 +32,7 @@ public:
         // 2. Nasłuchujemy, czy kelner przyniósł nam jedzenie
         m_ServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
             if (e.Customer.id == m_Entity.id) {
-                this->ReceiveFood(e.IsCorrectOrder); // Wywołujemy naszą własną funkcję!
+                this->ReceiveFood(e.IsCorrectOrder);
             }
             });
 
@@ -45,7 +46,7 @@ public:
 
     void OnDestroy() override
     {
-        // PAMIĘTAJMY O ODPIĘCIU SIĘ Z MAGISTRALI!
+        // PAMIĘTAJMY O ODPIĘCIU SIĘ Z MAGISTRALI
         auto* scene = GetScene();
         if (scene) {
             auto& bus = scene->GetWorld().GetEventBus();
@@ -75,7 +76,7 @@ public:
             spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
             if (GameManagerScript::s_Instance)
             {
-                OrderFulfilledEvent e(50.0f);
+                OrderFulfilledEvent e(50.0f); // Nagroda
                 GetScene()->GetWorld().GetEventBus().Publish(e);
                 spdlog::info("Klient nr {} zaplacil 50 monet!", m_Entity.id);
             }
@@ -86,7 +87,11 @@ public:
         {
             spdlog::info("Klient nr {} dostal puste/zle zamowienie! Wychodzi bez placenia.", m_Entity.id);
             auto* tag = GetComponent<TagComponent>();
-            if (tag) tag->Tag = "WkurzonyKlient";
+            if (tag) tag->Tag = "ZlyKlient";
         }
+
+        // Używamy Event Busa do bezpiecznego usunięcia encji na koniec klatki!
+        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
+        spdlog::info("PUBLISHED DESTROY EVENT");
     }
 };

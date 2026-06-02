@@ -3,6 +3,8 @@
 #include "CookingStation/Core/GridSystem.h"
 #include "CookingStation/Events/GameEvents.h"
 #include "CookingStation/Core/Input.h"
+#include "CookingStation/Layers/AssetLayer/AssetManager.h"
+#include "CookingStation/Renderer/Model.h"
 #include <spdlog/spdlog.h>
 #include <vector>
 #include <queue>
@@ -74,10 +76,20 @@ public:
     std::size_t m_OrderTakenSubId = 0;
     std::size_t m_CustomerServedSubId = 0;
 
+    std::shared_ptr<Model> m_OriginalModel = nullptr;
+    std::shared_ptr<Model> m_PageModel = nullptr;
+    bool m_WasWavingState = false;
+
     void OnCreate() override
     {
         auto* tc = GetComponent<TransformComponent>();
         if (tc) m_HomePosition = tc->GetPosition();
+
+        auto* meshComp = GetComponent<MeshComponent>();
+        if (meshComp) {
+            m_OriginalModel = meshComp->ModelPtr; 
+        }
+        m_PageModel = AssetManager::GetModel("assets://models/animacje/grzybek/grzybek-notes.gltf");
 
         auto& bus = GetScene()->GetWorld().GetEventBus();
 
@@ -239,6 +251,18 @@ public:
             break;
         }
         UpdateCarriedPlatePosition();
+
+     
+        bool isWavingOrNoting = (m_CurrentState == State::WAVING_AT_STATION || m_CurrentState == State::TAKING_ORDER);
+
+        if (isWavingOrNoting && !m_WasWavingState) {
+            SwapModel(true);
+        }
+        else if (!isWavingOrNoting && m_WasWavingState) {
+            SwapModel(false);
+        }
+
+        m_WasWavingState = isWavingOrNoting;
     }
 
 private:
@@ -636,5 +660,18 @@ private:
             }
         }
         return true;
+    }
+
+    void SwapModel(bool usePageModel)
+    {
+        auto* meshComp = GetComponent<MeshComponent>();
+        if (!meshComp) return;
+
+        if (usePageModel && m_PageModel) {
+            meshComp->ModelPtr = m_PageModel;
+        }
+        else if (!usePageModel && m_OriginalModel) {
+            meshComp->ModelPtr = m_OriginalModel;
+        }
     }
 };
