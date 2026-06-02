@@ -19,13 +19,14 @@ public:
     glm::vec3 m_ExitPos  = { -11.0f, 2.0f, -25.0f };
 
     float m_Speed = 8.0f;
-    float m_WaitTimer = 0.0f;
 
-    std::string m_PackagePrefabPath = "CookingStation/Assets/prefabs/package.json";
+    DeliveryCarScript() = default;
 
     void OnCreate() override;
     void OnUpdate(Timestep ts) override;
+    void OnDestroy();
 
 private:
-    void SpawnPackages();
+    std::size_t m_CollectedSubId = 0;
+    bool m_ArePackagesCollected = false;
 };

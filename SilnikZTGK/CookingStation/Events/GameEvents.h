@@ -60,6 +60,29 @@ struct StartDragRequestEvent {
     std::string ModelPath;
 };
 
+// Delivery -------
+
+struct DeliveryCollectedEvent {};
+
+struct CarArrivedEvent
+{
+    glm::vec3 DropPosition;
+};
+
+struct ConfigurePackageEvent
+{
+    Entity TargetEntity;
+    IngredientType Type;
+    int Amount;
+};
+
+struct PackageSpawnedEvent
+{
+    Entity TargetEntity;
+};
+// ----------------
+
+
 // ---------------------------------------------------------------------------
 // Zdarzenia nawigacji między warstwami (zamiast rzutowania po m_LayerStack)
 // ---------------------------------------------------------------------------

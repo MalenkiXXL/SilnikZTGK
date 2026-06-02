@@ -1,5 +1,4 @@
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
-#include "CookingStation/Scripts/Delivery/DeliveryCarScript.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
 #include <spdlog/spdlog.h>
 
@@ -27,13 +26,6 @@ void GameManagerScript::OnCreate()
     );
 }
 
-void GameManagerScript::OnUpdate(Timestep ts)
-{
-    if (GetIngredientCount(IngredientType::Tomato) <= 0 && !m_IsDeliveryOnTheWay)
-    {
-        CallForDelivery();
-    }
-}
 
 void GameManagerScript::OnDestroy()
 {
@@ -73,15 +65,6 @@ int GameManagerScript::GetIngredientCount(IngredientType type)
         return m_Inventory[type];
     }
     return 0;
-}
-
-void GameManagerScript::CallForDelivery()
-{
-    glm::vec3 startPos = DeliveryCarScript::m_StartPos;
-    PrefabSerializer::Deserialize(GetScene(), m_VanPrefabPath, startPos);
-
-    m_IsDeliveryOnTheWay = true;
-    spdlog::info("GameManager: Brak składników! Wysłano nowego dostawczaka.");
 }
 
 int GameManagerScript::GetMoney() {

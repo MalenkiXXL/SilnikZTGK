@@ -4,8 +4,12 @@
 
 void PackageScript::HandleClick()
 {
-    
+    if (m_IsCollected) return;
+    m_IsCollected = true;
+
     GetScene()->GetWorld().GetEventBus().Publish(AddIngredientEvent{ m_Type, m_IngredientAmount });
+
+    GetScene()->GetWorld().GetEventBus().Publish(DeliveryCollectedEvent{});
 
     spdlog::info("Gracz zebrał paczkę (Wysłano zdarzenie AddIngredientEvent)");
 
@@ -14,12 +18,8 @@ void PackageScript::HandleClick()
 
     for (Entity e : allPackages)
     {
-        if (e.id != m_Entity.id)
-        {
-            GetScene()->GetWorld().DestroyEntity(e);
-        }
+        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ e });
     }
 
-    GetScene()->GetWorld().DestroyEntity(m_Entity);
 }
 
