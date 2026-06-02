@@ -1,13 +1,19 @@
-//
-// Created by Amelia on 17.05.2026.
-//
 #include "CookingStation/Scripts/Delivery/DeliveryCarScript.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
 #include <spdlog/spdlog.h>
 
 void DeliveryCarScript::OnCreate()
 {
-    spdlog::info("Dostawczak wyruszył w drogę!");
+    m_CollectedSubId = GetScene()->GetWorld().GetEventBus().Subscribe<DeliveryCollectedEvent>(
+            [this](const DeliveryCollectedEvent& e) {
+                this->m_ArePackagesCollected = true;
+            }
+    );
+}
+
+void DeliveryCarScript::OnDestroy()
+{
+    GetScene()->GetWorld().GetEventBus().Unsubscribe<DeliveryCollectedEvent>(m_CollectedSubId);
 }
 
 void DeliveryCarScript::OnUpdate(Timestep ts)
@@ -28,7 +34,10 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             {
                 transform->SetPosition(m_DropPos);
                 m_State = DeliveryState::DROPPING;
-                m_WaitTimer = 0.0f;
+
+                GetScene()->GetWorld().GetEventBus().Publish(CarArrivedEvent{ m_DropPos });
+
+                spdlog::info("[DeliveryCar] Dojechalem. Czekam na gracza.");
             }
             else
             {
@@ -41,11 +50,10 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
         case DeliveryState::DROPPING:
         {
-            m_WaitTimer += (float)ts.GetSeconds();
-            if (m_WaitTimer >= 1.0f)
+            if (m_ArePackagesCollected)
             {
-                SpawnPackages();
                 m_State = DeliveryState::DRIVING_OUT;
+                spdlog::info("[DeliveryCar] Paczki odebrane! Wracam do bazy.");
             }
             break;
         }
@@ -69,25 +77,4 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             break;
         }
     }
-}
-
-void DeliveryCarScript::SpawnPackages()
-{
-    // 1. Pobierz transformację i obecną pozycję dostawczaka
-    auto* transform = GetComponent<TransformComponent>();
-    if (!transform) return;
-
-    glm::vec3 currentPos = transform->GetPosition();
-
-    // 2. Przesunięcie względem pozycji auta
-    glm::vec3 package1Pos = currentPos + glm::vec3(2.0f, -1.0f, -1.0f);
-    glm::vec3 package2Pos = currentPos + glm::vec3(2.0f, -1.0f, 1.0f);
-
-    // 3. Zespawnuj paczki
-    PrefabSerializer::Deserialize(GetScene(), m_PackagePrefabPath, package1Pos);
-    PrefabSerializer::Deserialize(GetScene(), m_PackagePrefabPath, package2Pos);
-
-    spdlog::info("Wyrzucono 2 paczki! Pozycje: ({}, {}, {}) oraz ({}, {}, {})",
-                 package1Pos.x, package1Pos.y, package1Pos.z,
-                 package2Pos.x, package2Pos.y, package2Pos.z);
 }

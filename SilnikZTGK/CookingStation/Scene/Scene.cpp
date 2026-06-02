@@ -14,6 +14,7 @@
 #include "CookingStation/Layers/GameLayer/Animator.h"
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Scripts/Delivery/DeliveryManagerScript.h"
 #include <iostream> 
 
 
@@ -72,6 +73,7 @@ void Scene::OnRuntimeStart()
 
     NativeScriptComponent managerScriptComp;
     managerScriptComp.AddScript<GameManagerScript>("GameManagerScript");
+    managerScriptComp.AddScript<DeliveryManagerScript>("DeliveryManagerScript");
     m_ECSWorld.AddComponent(gameManager, managerScriptComp);
 
     // Przeszukujemy wszystkie encje, które mają w sobie komponent animacji
@@ -223,6 +225,7 @@ void Scene::OnUpdateRuntime(Timestep ts)
 
         // 3. Następnie fizycznie niszczymy encję w ECS
         m_ECSWorld.DestroyEntity(e);
+        GetWorld().GetEventBus().Publish(EntityDestroyedEvent{ e });
     }
     m_EntitiesToDestroy.clear();
 }
