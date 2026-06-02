@@ -1,42 +1,57 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
+#include "CookingStation/Events/GameEvents.h" // Dodane do nasluchiwania!
 #include <cmath>
 
 class ItemScript : public ScriptableEntity
 {
     glm::vec3 m_TargetPosition = { 0.0f, 0.0f, 0.0f };
     bool m_IsMoving = false;
-    float m_GridSize = 2.0f; // Rozmiar kratki
+    float m_GridSize = 2.0f;
     float m_CurrentSpeed = 2.0f;
 
     ConveyorScript* m_CurrentConveyor = nullptr;
     ConveyorScript* m_TargetConveyor = nullptr;
 
+    std::size_t m_GrabbedSubId = 0;
+
 public:
-    void OnCreate() override {}
+    void OnCreate() override
+    {
+        // Podpinamy się pod EventBusa - czekamy aż zostaniemy podniesieni!
+        auto& bus = GetScene()->GetWorld().GetEventBus();
+        m_GrabbedSubId = bus.Subscribe<PlateGrabbedEvent>([this](const PlateGrabbedEvent& e) {
+            if (e.Plate.id == m_Entity.id) {
+                this->ReleaseConveyors(); // Sami schodzimy z taśmy
+            }
+            });
+    }
 
     void OnDestroy() override
     {
-        // 1. Zwalniamy taśmę, na której staliśmy
+        auto* scene = GetScene();
+        if (scene) {
+            auto& bus = scene->GetWorld().GetEventBus();
+            if (m_GrabbedSubId != 0) bus.Unsubscribe<PlateGrabbedEvent>(m_GrabbedSubId);
+        }
+
         if (m_CurrentConveyor)
         {
             m_CurrentConveyor->IsOccupied = false;
             m_CurrentConveyor->IsJammed = false;
         }
 
-        // 2. Zwalniamy taśmę, na którą właśnie wjeżdżaliśmy
         if (m_TargetConveyor)
         {
             m_TargetConveyor->IsOccupied = false;
             m_TargetConveyor->IsJammed = false;
         }
 
-        // Zabezpieczenie pointerów
         m_CurrentConveyor = nullptr;
         m_TargetConveyor = nullptr;
     }
-    
+
     void ReleaseConveyors()
     {
         if (m_CurrentConveyor) {
@@ -133,15 +148,13 @@ private:
 
         glm::vec3 nextPos = currentPos + (currentConveyor->PushDirection * m_GridSize);
         ConveyorScript* nextConveyor = GetScene()->GetConveyorAt(nextPos.x, nextPos.z);
-        
+
         if (nextConveyor)
         {
             if (!nextConveyor->IsOccupied)
             {
                 nextConveyor->IsOccupied = true;
-
                 m_TargetConveyor = nextConveyor;
-
                 m_TargetPosition = nextPos;
                 m_IsMoving = true;
 

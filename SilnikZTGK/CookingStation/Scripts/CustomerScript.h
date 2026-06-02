@@ -1,7 +1,7 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scene/ecs.h" 
-#include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Events/GameEvents.h" // Dodajemy EventBusa!
 #include <string>
 #include <vector>
 
@@ -11,19 +11,49 @@ public:
     bool IsPendingDestroy = false;
     std::string WantedIngredient = "";
     bool IsServed = false;
-
-    // NOWE: Flaga sprawdzająca, czy kelner przyjął zamówienie
     bool OrderTaken = false;
+
+    // Zapisujemy ID subskrypcji, by móc się wyrejestrować przy zniszczeniu
+    std::size_t m_ServedSubId = 0;
+    std::size_t m_OrderSubId = 0;
 
     void OnCreate() override
     {
         WantedIngredient = "Tomato";
-        OrderTaken = false; // Domyślnie klient oczekuje na kelnera
+        OrderTaken = false;
         spdlog::info("Klient nr {} usiadl i czeka na zlozenie zamowienia", m_Entity.id);
-    
-        GetScene()->GetWorld().GetEventBus().Publish(CustomerSeatedEvent{ m_Entity });
+
+        auto& bus = GetScene()->GetWorld().GetEventBus();
+
+        // 1. Publikujemy info do kelnerów, że usiedliśmy
+        bus.Publish(CustomerSeatedEvent{ m_Entity });
+
+        // 2. Nasłuchujemy, czy kelner przyniósł nam jedzenie
+        m_ServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
+            if (e.Customer.id == m_Entity.id) {
+                this->ReceiveFood(e.IsCorrectOrder); // Wywołujemy naszą własną funkcję!
+            }
+            });
+
+        // 3. Nasłuchujemy, czy kelner spisał już nasze zamówienie
+        m_OrderSubId = bus.Subscribe<OrderTakenEvent>([this](const OrderTakenEvent& e) {
+            if (e.Customer.id == m_Entity.id) {
+                this->OrderTaken = true;
+            }
+            });
     }
-    // Ta funkcja b�dzie wywo�ywana p�niej przez Kelnera
+
+    void OnDestroy() override
+    {
+        // PAMIĘTAJMY O ODPIĘCIU SIĘ Z MAGISTRALI!
+        auto* scene = GetScene();
+        if (scene) {
+            auto& bus = scene->GetWorld().GetEventBus();
+            if (m_ServedSubId != 0) bus.Unsubscribe<CustomerServedEvent>(m_ServedSubId);
+            if (m_OrderSubId != 0) bus.Unsubscribe<OrderTakenEvent>(m_OrderSubId);
+        }
+    }
+
     bool IsOrderMatching(const std::vector<std::string>& ingredientsOnPlate)
     {
         for (const auto& item : ingredientsOnPlate)
@@ -35,11 +65,9 @@ public:
 
     virtual void ReceiveFood(bool isCorrectOrder = true)
     {
-        if (IsPendingDestroy)
-            return;
+        if (IsPendingDestroy) return;
 
         IsPendingDestroy = true;
-
         IsServed = true;
 
         if (isCorrectOrder)
@@ -47,7 +75,7 @@ public:
             spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
             if (GameManagerScript::s_Instance)
             {
-                OrderFulfilledEvent e(50.0f); // 10.0f to nagroda
+                OrderFulfilledEvent e(50.0f);
                 GetScene()->GetWorld().GetEventBus().Publish(e);
                 spdlog::info("Klient nr {} zaplacil 50 monet!", m_Entity.id);
             }
@@ -58,10 +86,7 @@ public:
         {
             spdlog::info("Klient nr {} dostal puste/zle zamowienie! Wychodzi bez placenia.", m_Entity.id);
             auto* tag = GetComponent<TagComponent>();
-            if (tag) tag->Tag = "ZlyKlient";
+            if (tag) tag->Tag = "WkurzonyKlient";
         }
-
-        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
-        spdlog::info("PUBLISHED DESTROY EVENT");
     }
 };

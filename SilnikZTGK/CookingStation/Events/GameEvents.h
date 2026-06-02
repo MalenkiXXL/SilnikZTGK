@@ -76,10 +76,28 @@ struct EntityHoveredEvent {
     Entity TargetEntity;
 };
 
+
+
+
+// DO SKRYPTOW KELNERA
+
 struct CustomerSeatedEvent {
     Entity Customer;
 };
 
 struct PlateReadyEvent {
+    Entity Plate;
+};
+
+struct CustomerServedEvent {
+    Entity Customer;
+    bool IsCorrectOrder;
+};
+
+struct OrderTakenEvent {
+    Entity Customer;
+};
+
+struct PlateGrabbedEvent {
     Entity Plate;
 };
