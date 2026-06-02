@@ -335,6 +335,10 @@
     {
         "name": "Skrzynka",
         "path": "CookingStation/Assets/models/wystroj/skrzynka/skrzynka.gltf"
+    },
+    {
+        "name": "Wydawka",
+        "path": "CookingStation/Assets/models/wystroj/wydawka/wydawka.gltf"
     }
   ]
 }
