@@ -31,6 +31,7 @@
 #include "Machines/OvenScript.h"
 #include "PlateScript.h"
 #include "CookingStation/Scripts/Delivery/DeliveryMushroomScript.h"
+#include "CrateScript.h"
 
 //globalny slownik ktory mapuke tekst na funkcje
 class ScriptRegistry
@@ -79,6 +80,7 @@ public:
         Register<OvenScript>("OvenScript");
         Register<PlateScript>("PlateScript");
         Register<DeliveryMushroomScript>("DeliveryMushroomScript");
+        Register<CrateScript>("CrateScript");
     }
 
     static void AddScriptToComponent(NativeScriptComponent& nsc, const std::string& name)
