@@ -6,6 +6,7 @@
 #include <nlohmann/json.hpp>
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
+#include "SceneSerializer.h"
 
 class PrefabSerializer {
 public:
@@ -150,9 +151,11 @@ public:
         }
         builder.With<TransformComponent>(transComp);
 
+        std::shared_ptr<Model> model = nullptr;
         if (item.contains("model_path")) {
             std::string path = item["model_path"];
             MeshComponent meshComp;
+            model = AssetManager::GetModel(path);
             meshComp.ModelPtr = AssetManager::GetModel(path);
             meshComp.ShaderPtr = nullptr;
             meshComp.Path = path;
@@ -177,6 +180,13 @@ public:
             NativeScriptComponent nsc;
             ScriptRegistry::AddScriptToComponent(nsc, item["script"].get<std::string>());
             builder.With<NativeScriptComponent>(nsc);
+        }
+
+        if (model) {
+            AnimatorComponent animComp;
+            if (SceneSerializer::ParseAnimatorFromJson(item, model, animComp)) {
+                builder.With<AnimatorComponent>(animComp);
+            }
         }
 
         Entity newEntity = builder.Build();

@@ -35,6 +35,11 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
                 transform->SetPosition(m_DropPos);
                 m_State = DeliveryState::DROPPING;
 
+                if (!m_MushroomSpawned) {
+                    m_MushroomEntity = PrefabSerializer::Deserialize(GetScene(), "assets://prefabs/deliveryMushroom.json", m_DropPos);
+                    m_MushroomSpawned = true;
+                }
+
                 GetScene()->GetWorld().GetEventBus().Publish(CarArrivedEvent{ m_DropPos });
 
                 spdlog::info("[DeliveryCar] Dojechalem. Czekam na gracza.");
@@ -52,6 +57,14 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
         {
             if (m_ArePackagesCollected)
             {
+
+                if (m_MushroomSpawned)
+                {
+                    GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_MushroomEntity });
+                    m_MushroomEntity = {};
+                    m_MushroomSpawned = false;
+                }
+
                 m_State = DeliveryState::DRIVING_OUT;
                 spdlog::info("[DeliveryCar] Paczki odebrane! Wracam do bazy.");
             }
