@@ -126,62 +126,8 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 
 
             if (model) {
-                auto animator = std::make_shared<Animator>();
-                bool hasAnyAnimation = false;
-
-                // 1. Sprawdzamy animację wbudowaną (np. grzybek.gltf)
-                auto defaultAnim = std::make_shared<Animation>(modelPath, model.get());
-                if (defaultAnim->GetDuration() > 0.0f) {
-                    animator->AddAnimation("Default", defaultAnim);
-                    hasAnyAnimation = true;
-                }
-
-                if (item.contains("animator") && item["animator"].contains("clips")) {
-                    for (auto& el : item["animator"]["clips"].items()) {
-                        std::string clipName = el.key();
-                        std::string clipPath = el.value();
-
-                        // UŻYCIE FIXA DLA KLIPU ANIMACJI
-                        SanitizePath(clipPath);
-
-                        // Kluczowa zmiana: osobny model dla pliku animacji
-                        auto clipModel = AssetManager::GetModel(clipPath);
-                        auto clipAnim = std::make_shared<Animation>(clipPath, clipModel.get());
-
-                        if (clipAnim->GetDuration() > 0.0f) {
-                            animator->AddAnimation(clipName, clipAnim);
-                            hasAnyAnimation = true;
-                        }
-                    }
-                }
-
-                // 3. Jeśli cokolwiek się załadowało, montujemy komponent
-                if (hasAnyAnimation) {
-                    AnimatorComponent animComp(animator);
-
-                    if (item.contains("animator")) {
-                        // Wczytujemy ustawienia z JSON
-                        animComp.IsPlaying = item["animator"].value("is_playing", false);
-                        animComp.PlaybackSpeed = item["animator"].value("playback_speed", 1.0f);
-
-                        // KLUCZOWY MOMENT: Ustawiamy kasetę w odtwarzaczu
-                        if (item["animator"].contains("start_clip")) {
-                            std::string sClip = item["animator"]["start_clip"];
-                            // To ustawia m_CurrentAnimation na "
-                            // " jeszcze przed startem klatki
-                            animator->PlayAnimation(sClip);
-                        }
-                        else {
-                            animator->PlayAnimation("Default");
-                        }
-                    }
-                    else {
-                        // Domyślne wartości dla obiektów bez wpisu "animator" w JSON
-                        animComp.IsPlaying = false;
-                        animComp.PlaybackSpeed = 1.0f;
-                        animator->PlayAnimation("Default");
-                    }
-
+                AnimatorComponent animComp;
+                if (SceneSerializer::ParseAnimatorFromJson(item, model, animComp)) {
                     builder.With<AnimatorComponent>(animComp);
                 }
             }
@@ -339,4 +285,70 @@ void SceneSerializer::Serialize(const std::string& filepath) {
     else {
         spdlog::error("[SceneSerializer] Nie udalo sie zapisac pliku {}", filepath);
     }
+}
+
+bool SceneSerializer::ParseAnimatorFromJson(const nlohmann::json& item, std::shared_ptr<Model> model,
+                                            AnimatorComponent& outAnimComp)
+{
+    if (!model) return false;
+
+    // Lokalna wersja sanitizera ścieżek
+    auto SanitizePath = [](std::string& pathStr) {
+        std::string badPrefix = "CookingStation/Assets/";
+        size_t pos = pathStr.find(badPrefix);
+        if (pos != std::string::npos) {
+            pathStr.replace(pos, badPrefix.length(), "assets://");
+        }
+    };
+
+    auto animator = std::make_shared<Animator>();
+    bool hasAnyAnimation = false;
+
+    std::string modelPath = item.contains("model_path") ? item["model_path"].get<std::string>() : "";
+    SanitizePath(modelPath);
+
+    auto defaultAnim = std::make_shared<Animation>(modelPath, model.get());
+    if (defaultAnim->GetDuration() > 0.0f) {
+        animator->AddAnimation("Default", defaultAnim);
+        hasAnyAnimation = true;
+    }
+
+    if (item.contains("animator") && item["animator"].contains("clips")) {
+        for (auto& el : item["animator"]["clips"].items()) {
+            std::string clipName = el.key();
+            std::string clipPath = el.value();
+            SanitizePath(clipPath);
+
+            auto clipModel = AssetManager::GetModel(clipPath);
+            auto clipAnim = std::make_shared<Animation>(clipPath, clipModel.get());
+
+            if (clipAnim->GetDuration() > 0.0f) {
+                animator->AddAnimation(clipName, clipAnim);
+                hasAnyAnimation = true;
+            }
+        }
+    }
+
+    if (hasAnyAnimation) {
+        outAnimComp = AnimatorComponent(animator);
+
+        if (item.contains("animator")) {
+            outAnimComp.IsPlaying = item["animator"].value("is_playing", false);
+            outAnimComp.PlaybackSpeed = item["animator"].value("playback_speed", 1.0f);
+
+            if (item["animator"].contains("start_clip")) {
+                std::string sClip = item["animator"]["start_clip"];
+                animator->PlayAnimation(sClip);
+            } else {
+                animator->PlayAnimation("Default");
+            }
+        } else {
+            outAnimComp.IsPlaying = false;
+            outAnimComp.PlaybackSpeed = 1.0f;
+            animator->PlayAnimation("Default");
+        }
+        return true;
+    }
+
+    return false;
 }

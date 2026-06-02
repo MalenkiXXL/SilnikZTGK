@@ -1,6 +1,14 @@
 {
-  "model_path": "CookingStation/Assets/models/dostawa/dostawczak.gltf",
-  "rotation": [ 0.0, -90.0, 0.0 ],
-  "scale": [ 1.0, 1.0, 1.0 ],
+  "name": "Dostawczak",
+  "model_path": "assets://models/animacje/dostawa/dostawczak-open.gltf",
+  "animator": {
+    "is_playing": false,
+    "start_clip": "Open",
+    "clips": {
+      "Open": "assets://models/animacje/dostawa/dostawczak-open.gltf"
+    }
+  },
+  "rotation": [0.0, -90.0, 0.0],
+  "scale" : [2.0, 2.0, 2.0],
   "script": "DeliveryCarScript"
 }
