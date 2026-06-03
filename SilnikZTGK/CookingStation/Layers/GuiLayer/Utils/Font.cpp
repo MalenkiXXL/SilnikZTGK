@@ -39,25 +39,51 @@ Font::Font(const std::string& fontPath, float fontSize) {
     // Generowanie mapy SDF dla znaków ASCII (32-126)
     for (int i = 0; i < 96; i++) {
         char c = (char)(32 + i);
-        int w, h, xoff, yoff;
+        int w = 0, h = 0, xoff = 0, yoff = 0;
 
         // Magia dzieje siê tutaj - zamiast standardowej bitmapy, wyci¹gamy Dystans!
         unsigned char* sdf = stbtt_GetCodepointSDF(&info, scale, c, padding, onedge_value, pixel_dist_scale, &w, &h, &xoff, &yoff);
 
+        // POPRAWKA 1: jeœli glif jest pusty (np. spacja), pomijamy zapis do atlasu
+        if (!sdf || w == 0 || h == 0) {
+            if (sdf) stbtt_FreeSDF(sdf, nullptr);
+
+            // Mimo to zapisujemy metryki znaku (np. szerokoœæ spacji)
+            int advanceWidth, leftSideBearing;
+            stbtt_GetCodepointHMetrics(&info, c, &advanceWidth, &leftSideBearing);
+
+            Character ch;
+            ch.UV_Min = { 0.0f, 0.0f };
+            ch.UV_Max = { 0.0f, 0.0f };
+            ch.Size = { 0.0f, 0.0f };
+            ch.Offset = { 0.0f, 0.0f };
+            ch.Advance = advanceWidth * scale;
+
+            m_Characters[c] = ch;
+            continue;
+        }
+
+        // POPRAWKA 2: sprawdzenie poziome (zawijanie wiersza)
         if (currentX + w >= atlasWidth) {
             currentX = 0;
             currentY += maxRowHeight;
             maxRowHeight = 0;
         }
 
-        if (sdf) {
-            for (int y = 0; y < h; y++) {
-                for (int x = 0; x < w; x++) {
-                    bitmap[(currentY + y) * atlasWidth + (currentX + x)] = sdf[y * w + x];
-                }
-            }
+        // POPRAWKA 3: sprawdzenie pionowe — atlas nie mo¿e byæ przepe³niony
+        if (currentY + h > atlasHeight) {
+            spdlog::error("[Font] Atlas przepelniony! Zwieksz rozmiar atlasu lub zmniejsz fontSize.");
             stbtt_FreeSDF(sdf, nullptr);
+            break;
         }
+
+        // Zapis SDF do bitmapy atlasu
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                bitmap[(currentY + y) * atlasWidth + (currentX + x)] = sdf[y * w + x];
+            }
+        }
+        stbtt_FreeSDF(sdf, nullptr);
 
         int advanceWidth, leftSideBearing;
         stbtt_GetCodepointHMetrics(&info, c, &advanceWidth, &leftSideBearing);
@@ -71,6 +97,7 @@ Font::Font(const std::string& fontPath, float fontSize) {
 
         m_Characters[c] = ch;
 
+        // POPRAWKA 4: aktualizujemy pozycjê TYLKO gdy glif faktycznie istnieje
         currentX += w;
         if (h > maxRowHeight) maxRowHeight = h;
     }
