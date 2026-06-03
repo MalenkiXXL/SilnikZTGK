@@ -7,7 +7,6 @@
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Events/EditorEvents.h" 
 #include "CookingStation/Core/Application.h"
-#include "CookingStation/json.hpp"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Scripts/Quests/DeliveryBoothScript.h"
@@ -18,6 +17,7 @@
 #include "CookingStation/Scripts/Machines/MachineScript.h"
 #include "CookingStation/Events/KeyEvent.h"
 #include "CookingStation/Events/GameEvents.h" 
+#include "CookingStation/json.hpp"
 #include <spdlog/spdlog.h>
 #include <algorithm> 
 
@@ -64,8 +64,6 @@ void GameGuiLayer::OnAttach()
     m_CupcakeIcon = AssetManager::GetTexture("assets://UI/cupcake.png");
     m_CroissantIcon = AssetManager::GetTexture("assets://UI/croissant.png");
     m_QuestionMarkIcon = AssetManager::GetTexture("assets://UI/QuestionMark.png");
-
-    // Ładowanie karteczek z zamówieniami! 
     m_CustomerOrderTex = AssetManager::GetTexture("assets://UI/customerOrder.png");
     m_HelperOrderTex = AssetManager::GetTexture("assets://UI/helperOrder.png");
 
@@ -289,65 +287,16 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     glm::vec2 leftPosBase = { gameX, gameY + gameHeight - baseIconSize.y };
     glm::vec2 rightPosBase = { gameX + gameWidth - baseIconSize.x, gameY + gameHeight - baseIconSize.y };
 
-    //DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
-    //DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
-
     float itemBaseH = baseIconSize.y * 0.3f;
     glm::vec2 arcRadius = { baseIconSize.x * 0.66f, baseIconSize.y * 0.64f };
     float paddingX = 30.0f * baseScale;
     float paddingY = 10.0f * baseScale;
-
-    /*glm::vec2 leftCenter = { gameX + paddingX, gameY + gameHeight - paddingY };
-
-    struct UIIngredient { std::string id; std::shared_ptr<Texture> tex; IngredientType type; std::string modelPath; };
-    std::vector<UIIngredient> leftItems = {
-        {"BtnTomato", m_TomatoIcon, IngredientType::Tomato, "assets://models/skladniki/pomidor/pomidor.gltf"},
-        {"BtnTCheese", m_CheeseIcon, IngredientType::Cheese, "assets://models/skladniki/ser/ser.gltf"},
-        {"BtnHam", m_HamIcon, IngredientType::Ham, "assets://models/skladniki/szynka/szynka.gltf"},
-        {"BtnMilk", m_MilkIcon, IngredientType::Milk, "assets://models/skladniki/mleko/milk.gltf"},
-        {"BtnFlour", m_FlourIcon, IngredientType::Flour, "assets://models/skladniki/maka/maka.gltf"}
-    };
-
-    for (int i = 0; i < leftItems.size(); i++) {
-        glm::vec2 actualSize = GuiUtils::CalculateAspectSize(leftItems[i].tex, itemBaseH);
-        glm::vec2 pos;
-        if (m_IngredientsCarousel.GetItemTransform(i, leftCenter, arcRadius, actualSize, pos)) {
-            int countToDraw = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(leftItems[i].type) : 0;
-            if (DrawIngredientIcon(leftItems[i].id, leftItems[i].tex, pos, actualSize, dt, baseScale, countToDraw, true)) {
-                DragAndDropScript::StartDrag(leftItems[i].type, leftItems[i].modelPath);
-            }
-        }
-    }*/
-
-    /*glm::vec2 rightCenter = { gameX + gameWidth - paddingX, gameY + gameHeight - paddingY };
-    struct UIMachine { std::string id; std::shared_ptr<Texture> tex; std::string prefabPath; };
-    std::vector<UIMachine> rightItems = {
-        {"BtnPot", m_PotIcon, "assets://prefabs/pot.json"},
-        {"BtnMixer", m_PotIcon, "assets://prefabs/mixer.json"},
-        {"BtnOven", m_OvenIcon, "assets://prefabs/oven.json"},
-        {"BtnPot4", m_PotIcon, "assets://prefabs/pot.json"}
-    };
-
-    for (int i = 0; i < rightItems.size(); i++) {
-        glm::vec2 actualSize = GuiUtils::CalculateAspectSize(rightItems[i].tex, itemBaseH);
-        glm::vec2 pos;
-        if (m_MachinesCarousel.GetItemTransform(i, rightCenter, arcRadius, actualSize, pos)) {
-            if (DrawIngredientIcon(rightItems[i].id, rightItems[i].tex, pos, actualSize, dt, baseScale, 0, false)) {
-                Entity spawnedMachine = PrefabSerializer::Deserialize(
-                    SceneManager::GetActiveScene().get(),
-                    rightItems[i].prefabPath,
-                    glm::vec3(0.0f)
-                );
-                DragAndDropScript::PickupSpawnedMachine(spawnedMachine);
-            }
-        }
-    }*/
 }
 
 void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
     if (m_BookIcon) {
-        glm::vec2 cloudSize = { 280.0f * baseScale, 280.0f * baseScale };
-        glm::vec2 cloudPos = { gameX + 20.0f * baseScale, gameY + 20.0f * baseScale };
+        glm::vec2 cloudSize = { 210.0f * baseScale, 210.0f * baseScale };
+        glm::vec2 cloudPos = { gameX + 10.0f * baseScale, gameY * baseScale };
         glm::vec2 actualCloudSize = cloudSize * 1.3f;
 
         if (m_BookCloudIcon) DrawBubblyImage("BookCloud", m_BookCloudIcon, cloudPos, actualCloudSize, dt, 1.1f, false);
@@ -393,8 +342,11 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
     glm::vec2 coinPos = { textPos.x - coinSize.x - 8.0f * baseScale, textCenterY - (coinSize.y * 0.5f) };
 
     DrawBubblyImage("CoinIcon", iconTex, coinPos, coinSize, dt, 1.05f, false);
-    Gui::DrawGuiText(text, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.85f });
-    Gui::DrawGuiText(text, textPos, textScale, { 1.0f, 0.95f, 0.3f, 1.0f });
+    glm::vec2 shadowPos = { std::floor(textPos.x + 2.0f), std::floor(textPos.y + 2.0f) };
+    glm::vec2 finalPos = { std::floor(textPos.x), std::floor(textPos.y) };
+
+    Gui::DrawGuiText(text, shadowPos, textScale, { 0.0f, 0.0f, 0.0f, 0.85f });
+    Gui::DrawGuiText(text, finalPos, textScale, { 1.0f, 0.95f, 0.3f, 1.0f });
 }
 
 void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
@@ -427,7 +379,6 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         ++it;
     }
 
-    // POPRAWKA: Zmniejszamy offset z 80.0f na 15.0f, żeby podciągnąć karteczki do samej góry!
     float currentY = gameY + (15.0f * baseScale);
     float rightMargin = 20.0f * baseScale;
 
@@ -769,12 +720,6 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
             std::shared_ptr<Texture> iconToDraw = nullptr;
             if (!custScript->OrderTaken) {
                 iconToDraw = m_QuestionMarkIcon;
-            }
-            else {
-                if (custScript->WantedIngredient == "Tomato") iconToDraw = m_TomatoIcon;
-                else if (custScript->WantedIngredient == "Cheese") iconToDraw = m_CheeseIcon;
-                else if (custScript->WantedIngredient == "Ham") iconToDraw = m_HamIcon;
-                else if (custScript->WantedIngredient == "Sandwich") iconToDraw = m_SandwichIcon;
             }
 
             if (iconToDraw) {

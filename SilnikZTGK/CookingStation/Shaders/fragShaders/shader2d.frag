@@ -9,44 +9,59 @@ out vec4 FragColor;
 uniform sampler2D u_Textures[16];
 
 void main() {
-    vec4 texColor = v_Color;
     int index = int(v_TexIndex);
+    vec4 sampled = vec4(1.0);
 
+    // 1. Zwykłe pobranie piksela tekstury
     switch(index) {
-        case  0: texColor *= texture(u_Textures[0],  v_TexCoord); break;
-        case  1: texColor *= texture(u_Textures[1],  v_TexCoord); break;
-        case  2: texColor *= texture(u_Textures[2],  v_TexCoord); break;
-        case  3: texColor *= texture(u_Textures[3],  v_TexCoord); break;
-        case  4: texColor *= texture(u_Textures[4],  v_TexCoord); break;
-        case  5: texColor *= texture(u_Textures[5],  v_TexCoord); break;
-        case  6: texColor *= texture(u_Textures[6],  v_TexCoord); break;
-        case  7: texColor *= texture(u_Textures[7],  v_TexCoord); break;
-        case  8: texColor *= texture(u_Textures[8],  v_TexCoord); break;
-        case  9: texColor *= texture(u_Textures[9],  v_TexCoord); break;
-        case 10: texColor *= texture(u_Textures[10], v_TexCoord); break;
-        case 11: texColor *= texture(u_Textures[11], v_TexCoord); break;
-        case 12: texColor *= texture(u_Textures[12], v_TexCoord); break;
-        case 13: texColor *= texture(u_Textures[13], v_TexCoord); break;
-        case 14: texColor *= texture(u_Textures[14], v_TexCoord); break;
-        case 15: texColor *= texture(u_Textures[15], v_TexCoord); break;
+        case  0: sampled = texture(u_Textures[0],  v_TexCoord); break;
+        case  1: sampled = texture(u_Textures[1],  v_TexCoord); break;
+        case  2: sampled = texture(u_Textures[2],  v_TexCoord); break;
+        case  3: sampled = texture(u_Textures[3],  v_TexCoord); break;
+        case  4: sampled = texture(u_Textures[4],  v_TexCoord); break;
+        case  5: sampled = texture(u_Textures[5],  v_TexCoord); break;
+        case  6: sampled = texture(u_Textures[6],  v_TexCoord); break;
+        case  7: sampled = texture(u_Textures[7],  v_TexCoord); break;
+        case  8: sampled = texture(u_Textures[8],  v_TexCoord); break;
+        case  9: sampled = texture(u_Textures[9],  v_TexCoord); break;
+        case 10: sampled = texture(u_Textures[10], v_TexCoord); break;
+        case 11: sampled = texture(u_Textures[11], v_TexCoord); break;
+        case 12: sampled = texture(u_Textures[12], v_TexCoord); break;
+        case 13: sampled = texture(u_Textures[13], v_TexCoord); break;
+        case 14: sampled = texture(u_Textures[14], v_TexCoord); break;
+        case 15: sampled = texture(u_Textures[15], v_TexCoord); break;
     }
 
-    // Zaokraglanie rogow (SDF rounded box)
+    // -----------------------------------------------------------
+    // TRYB 1: Renderowanie tekstów (SDF) 
+    // Shader wie że to tekst, gdy promień (v_Radius) ma wartość -1.0
+    // -----------------------------------------------------------
+    if (v_Radius < -0.5) {
+        float distance = sampled.a;
+        
+        // fwidth analizuje jak szybko piksele zmieniają się na ekranie.
+        // Skutkuje to ZAWSZE ostrymi krawędziami niezależnie od skali x2, x10 czy x100.
+        float smoothing = fwidth(distance); 
+        float alpha = smoothstep(0.5 - smoothing, 0.5 + smoothing, distance);
+        
+        FragColor = vec4(v_Color.rgb, v_Color.a * alpha);
+        
+        if (FragColor.a < 0.01) discard;
+        return; // Zakończ od razu dla tekstów!
+    }
+
+    // -----------------------------------------------------------
+    // TRYB 2: Zwykłe obrazki i panele z zaokrąglanymi rogami
+    // -----------------------------------------------------------
+    vec4 texColor = v_Color * sampled;
+
     if (v_Radius > 0.0 && v_QuadSize.x > 0.0 && v_QuadSize.y > 0.0) {
-        // Konwertuj UV [0,1] na wspolrzedne pikselowe
         vec2 pixelPos = v_TexCoord * v_QuadSize;
-
-        // Polowa rozmiaru quada
         vec2 halfSize = v_QuadSize * 0.5;
-
-        // Dystans od centrum (wartosci bezwzgledne - symetria)
         vec2 centerOffset = abs(pixelPos - halfSize);
-
-        // SDF zaokraglonego prostokata
         vec2 q = centerOffset - (halfSize - vec2(v_Radius));
         float dist = length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - v_Radius;
-
-        // dist < 0 = wewnatrz, dist > 0 = na zewnatrz
+        
         float alpha = 1.0 - smoothstep(-0.5, 1.0, dist);
         texColor.a *= alpha;
     }

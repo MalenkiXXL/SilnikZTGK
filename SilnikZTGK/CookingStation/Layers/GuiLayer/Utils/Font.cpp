@@ -1,15 +1,13 @@
 #include "Font.h"
 #include <vector>
 #include <spdlog/spdlog.h>
-
-// ZMIANA VFS: Dodajemy system wirtualny
 #include "CookingStation/Core/VFS/VFS.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.h>
 
 Font::Font(const std::string& fontPath, float fontSize) {
-    // 1. VFS: Wczytujemy plik .ttf do pamiêci RAM jako ci¹g bajtów
+    // 1. Wczytujemy plik czcionki do pamiêci RAM
     std::vector<uint8_t> fontBuffer = VFS::ReadFile(fontPath);
 
     if (fontBuffer.empty()) {
@@ -17,38 +15,73 @@ Font::Font(const std::string& fontPath, float fontSize) {
         return;
     }
 
-    // 2. przygotowujemy parametry atlasu
-    const int atlasWidth = 512;
-    const int atlasHeight = 512;
-    std::vector<unsigned char> bitmap(atlasWidth * atlasHeight);
-    stbtt_bakedchar chardata[96]; // ASCII 32-126
+    stbtt_fontinfo info;
+    if (!stbtt_InitFont(&info, fontBuffer.data(), 0)) {
+        spdlog::error("[Font] Nie udalo sie zainicjowac czcionki stb_truetype!");
+        return;
+    }
 
-    // 3. bakujemy bitmapê czcionki bezposrednio z RAM-u
-    stbtt_BakeFontBitmap(fontBuffer.data(), 0, fontSize, bitmap.data(),
-        atlasWidth, atlasHeight, 32, 96, chardata);
+    // U¿ywamy nieco wiêkszego atlasu dla wy¿szej jakoœci SDF
+    const int atlasWidth = 1024;
+    const int atlasHeight = 1024;
+    std::vector<unsigned char> bitmap(atlasWidth * atlasHeight, 0);
 
-    // 4. konwertujemy 8-bitow¹ bitmapê (alpha) na 32-bitowe RGBA
+    // Parametry generatora SDF
+    float scale = stbtt_ScaleForPixelHeight(&info, fontSize);
+    int padding = 4; // Margines wokó³ znaku dla p³ynnego przejœcia SDF
+    unsigned char onedge_value = 128; // Po³owa kana³u alfa to matematyczna granica litery (0.5)
+    float pixel_dist_scale = 32.0f; // Skala szybkoœci opadania promienia (im wy¿sza, tym ostrzejszy gradient)
+
+    int currentX = 0;
+    int currentY = 0;
+    int maxRowHeight = 0;
+
+    // Generowanie mapy SDF dla znaków ASCII (32-126)
+    for (int i = 0; i < 96; i++) {
+        char c = (char)(32 + i);
+        int w, h, xoff, yoff;
+
+        // Magia dzieje siê tutaj - zamiast standardowej bitmapy, wyci¹gamy Dystans!
+        unsigned char* sdf = stbtt_GetCodepointSDF(&info, scale, c, padding, onedge_value, pixel_dist_scale, &w, &h, &xoff, &yoff);
+
+        if (currentX + w >= atlasWidth) {
+            currentX = 0;
+            currentY += maxRowHeight;
+            maxRowHeight = 0;
+        }
+
+        if (sdf) {
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    bitmap[(currentY + y) * atlasWidth + (currentX + x)] = sdf[y * w + x];
+                }
+            }
+            stbtt_FreeSDF(sdf, nullptr);
+        }
+
+        int advanceWidth, leftSideBearing;
+        stbtt_GetCodepointHMetrics(&info, c, &advanceWidth, &leftSideBearing);
+
+        Character ch;
+        ch.UV_Min = { (float)currentX / atlasWidth, (float)currentY / atlasHeight };
+        ch.UV_Max = { (float)(currentX + w) / atlasWidth, (float)(currentY + h) / atlasHeight };
+        ch.Size = { (float)w, (float)h };
+        ch.Offset = { (float)xoff, (float)yoff };
+        ch.Advance = advanceWidth * scale;
+
+        m_Characters[c] = ch;
+
+        currentX += w;
+        if (h > maxRowHeight) maxRowHeight = h;
+    }
+
+    // Przerzucamy czarno-bia³y SDF do kana³u ALFA dla naszej tekstury!
     std::vector<uint32_t> rgbaData(atlasWidth * atlasHeight);
     for (int i = 0; i < atlasWidth * atlasHeight; i++) {
         unsigned char alpha = bitmap[i];
-        rgbaData[i] = (alpha << 24) | (0xffffff); // bia³y kolor + kana³ alpha
+        rgbaData[i] = (alpha << 24) | (0xffffff); // Bia³y kolor (RGB), Dystans SDF (Alpha)
     }
 
-    // 5. tworzymy teksturê i przesy³amy dane
     m_Texture = std::make_shared<Texture>(atlasWidth, atlasHeight);
     m_Texture->SetData(rgbaData.data(), rgbaData.size() * sizeof(uint32_t));
-
-    // 6. mapujemy dane znaków
-    for (int i = 0; i < 96; i++) {
-        char c = (char)(32 + i);
-        stbtt_bakedchar b = chardata[i];
-        Character ch;
-        // skalujemy wspó³rzêdne pikselowe na zakres 0.0 - 1.0 (UV)
-        ch.UV_Min = { (float)b.x0 / atlasWidth, (float)b.y0 / atlasHeight };
-        ch.UV_Max = { (float)b.x1 / atlasWidth, (float)b.y1 / atlasHeight };
-        ch.Size = { (float)(b.x1 - b.x0), (float)(b.y1 - b.y0) };
-        ch.Offset = { (float)b.xoff, (float)b.yoff };
-        ch.Advance = b.xadvance;
-        m_Characters[c] = ch;
-    }
 }

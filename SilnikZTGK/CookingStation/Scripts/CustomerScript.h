@@ -16,6 +16,8 @@ public:
     bool IsServed = false;
     bool OrderTaken = false;
 
+    Entity m_ReceivedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+
     std::size_t m_ServedSubId = 0;
     std::size_t m_OrderSubId = 0;
 
@@ -40,7 +42,10 @@ public:
 
         m_ServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
             if (e.Customer.id == m_Entity.id) {
-                // ZAMIAST SPRAWDZAĆ TAGI: Pytamy System o skład!
+
+                m_ReceivedFood = e.ServedFood;
+
+                // Pytamy System o skład!
                 GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderRequestEvent{
                     m_Entity, e.ServedFood, WantedIngredient
                     });
@@ -90,12 +95,16 @@ public:
         IsPendingDestroy = true;
         IsServed = true;
 
+        if (m_ReceivedFood.id != std::numeric_limits<std::size_t>::max()) {
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ReceivedFood });
+            m_ReceivedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+        }
+
         if (isCorrectOrder)
         {
             spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
             if (GameManagerScript::s_Instance)
             {
-                // Zapłata w wysokości 50 monet:
                 OrderFulfilledEvent e(50.0f);
                 GetScene()->GetWorld().GetEventBus().Publish(e);
                 spdlog::info("Klient nr {} zaplacil 50 monet!", m_Entity.id);

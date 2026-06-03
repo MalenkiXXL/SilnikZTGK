@@ -6,10 +6,10 @@
 #include "CookingStation/Core/GridSystem.h"
 #include "CookingStation/Layers/CameraLayer/Camera.h"
 #include "CookingStation/Scene/ScriptableEntity.h"
-#include <GLFW/glfw3.h>
-#include "CookingStation/Events/GameEvents.h" // DODANE: Wymagane dla EntityClickedEvent
-#include <spdlog/spdlog.h> 
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
+#include "CookingStation/Events/GameEvents.h"
+#include <GLFW/glfw3.h>
+#include <spdlog/spdlog.h> 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
