@@ -28,14 +28,16 @@ layout (location = 7) in vec4 aWeights;
 layout (location = 8) in mat4 aInstanceMatrix;
 // zajmuje 8, 9, 10, 11
 layout (location = 12) in float a_uvOffset;
+layout (location = 13) in vec4 a_InstanceHighlightColor;
 
 out float v_uvOffset;
 out vec2 TexCoords;
 out vec2 TexCoords2; 
 out vec3 Normal;
 out vec3 FragPos;
+out vec4 v_HighlightColor;
 
-// POZOSTA£E UNIFORMY
+// POZOSTAï¿½E UNIFORMY
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 finalBonesMatrices[MAX_BONES];
@@ -45,7 +47,9 @@ void main()
 {
     TexCoords = aTexCoords;
     TexCoords2 = aTexCoords2;
-    v_uvOffset = a_uvOffset; 
+    v_uvOffset = a_uvOffset;
+
+    v_HighlightColor = a_InstanceHighlightColor;
 
     vec4 totalPosition = vec4(0.0);
     vec3 totalNormal = vec3(0.0);

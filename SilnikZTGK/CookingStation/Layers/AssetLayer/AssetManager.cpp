@@ -64,11 +64,11 @@ void AssetManager::Clean() {
 
 void AssetManager::InitCoreAssets() {
 	s_Shaders.Load("ModelShader",
-		"shaders://vsShaders/shader.vs",
+		"shaders://vsShaders/shader.vert",
 		"shaders://fragShaders/shader.frag");
 
 	s_Shaders.Load("HighlightShader",
-		"shaders://vsShaders/highlight.vs",
+		"shaders://vsShaders/highlight.vert",
 		"shaders://fragShaders/highlight.frag");
 
 	spdlog::info("[AssetManager] Zaladowano bazowe shadery z systemu VFS.");
@@ -78,7 +78,7 @@ std::unordered_map<std::string, std::shared_ptr<Animation>> AssetManager::s_Anim
 
 std::shared_ptr<Animation> AssetManager::LoadAnimation(const std::string& name, const std::string& path, Model* model) {
 	if (s_Animations.find(name) != s_Animations.end()) {
-		return s_Animations[name]; // Zwróæ z pamiêci podrêcznej
+		return s_Animations[name]; // Zwrï¿½ï¿½ z pamiï¿½ci podrï¿½cznej
 	}
 
 	auto animation = std::make_shared<Animation>(path, model);
@@ -95,13 +95,13 @@ std::shared_ptr<Animation> AssetManager::GetAnimation(const std::string& name) {
 std::unordered_map<std::string, std::shared_ptr<Texture2D>> AssetManager::m_Textures2D;
 
 std::shared_ptr<Texture2D> AssetManager::GetTexture2D(const std::string& path) {
-    // 1. Sprawdzamy, czy tekstura jest ju¿ w pamiêci RAM/VRAM
+    // 1. Sprawdzamy, czy tekstura jest juï¿½ w pamiï¿½ci RAM/VRAM
     auto it = m_Textures2D.find(path);
     if (it != m_Textures2D.end()) {
-        return it->second; // Zwracamy gotowy wskaŸnik - zero wczytywania!
+        return it->second; // Zwracamy gotowy wskaï¿½nik - zero wczytywania!
     }
 
-    // 2. Jeœli jej nie ma, wczytujemy z VFS i zapisujemy do pamiêci na przysz³oœæ
+    // 2. Jeï¿½li jej nie ma, wczytujemy z VFS i zapisujemy do pamiï¿½ci na przyszï¿½oï¿½ï¿½
     auto tex = std::make_shared<Texture2D>(path);
     m_Textures2D[path] = tex;
     return tex;

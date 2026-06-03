@@ -16,13 +16,13 @@
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
 
 void RendererLayer::OnAttach() {
-    m_ShaderLibrary.Load("Standard", "shaders://vsShaders/shader.vs", "shaders://fragShaders/shader.frag");
-    m_ShaderLibrary.Load("RAMP", "shaders://vsShaders/shader.vs", "shaders://fragShaders/RAMP.frag");
-    m_ShaderLibrary.Load("FakeBRDF", "shaders://vsShaders/shader.vs", "shaders://fragShaders/FakeBRDF.frag");
-    m_ShaderLibrary.Load("BlinnPhong", "shaders://vsShaders/shader.vs", "shaders://fragShaders/BlinnPhong.frag");
-    m_ShaderLibrary.Load("Rim", "shaders://vsShaders/shader.vs", "shaders://fragShaders/Rim.frag");
-    m_ShaderLibrary.Load("Conveyor", "shaders://vsShaders/shader.vs", "shaders://fragShaders/conveyor.frag");
-    m_ShaderLibrary.Load("HighlightShader", "shaders://vsShaders/highlight.vs", "shaders://fragShaders/highlight.frag");
+    m_ShaderLibrary.Load("Standard", "shaders://vsShaders/shader.vert", "shaders://fragShaders/shader.frag");
+    m_ShaderLibrary.Load("RAMP", "shaders://vsShaders/shader.vert", "shaders://fragShaders/RAMP.frag");
+    m_ShaderLibrary.Load("FakeBRDF", "shaders://vsShaders/shader.vert", "shaders://fragShaders/FakeBRDF.frag");
+    m_ShaderLibrary.Load("BlinnPhong", "shaders://vsShaders/shader.vert", "shaders://fragShaders/BlinnPhong.frag");
+    m_ShaderLibrary.Load("Rim", "shaders://vsShaders/shader.vert", "shaders://fragShaders/Rim.frag");
+    m_ShaderLibrary.Load("Conveyor", "shaders://vsShaders/shader.vert", "shaders://fragShaders/conveyor.frag");
+    m_ShaderLibrary.Load("HighlightShader", "shaders://vsShaders/highlight.vert", "shaders://fragShaders/highlight.frag");
 
     m_RampTexture = std::make_shared<Texture2D>("assets://textures/RAMP_texture.png");
     m_BackgroundTexture = std::make_shared<Texture2D>("assets://background/background.png");
@@ -170,7 +170,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
                     }
                     else if (!meshComp.ShaderName.empty() && meshComp.ShaderName != "Standard")
                     {
-                        // ShaderName ustawiony przez skrypt (np. "HighlightShader") — szukamy w bibliotece
+                        // ShaderName ustawiony przez skrypt (np. "HighlightShader") ï¿½ szukamy w bibliotece
                         shaderToUse = m_ShaderLibrary.Exists(meshComp.ShaderName)
                             ? m_ShaderLibrary.Get(meshComp.ShaderName)
                             : stdShader;
@@ -187,11 +187,18 @@ void RendererLayer::OnUpdate(Timestep ts) {
                     AnimatorComponent* animComp = animatorStorage ? animatorStorage->Get(owner) : nullptr;
 
                     if (animComp && animComp->AnimatorInstance) {
-                        animatedDraws.push_back({ shaderToUse, meshComp.ModelPtr.get(), { transform->WorldMatrix, currentUVOffset }, animComp });
+                        animatedDraws.push_back({ shaderToUse, meshComp.ModelPtr.get(), {
+                            transform->WorldMatrix,
+                            currentUVOffset,
+                            meshComp.HighlightColor }, animComp });
                     }
                     else {
                         Model* modelKey = meshComp.ModelPtr.get();
-                        instancedBatches[modelKey][shaderToUse].push_back({ transform->WorldMatrix, currentUVOffset });
+                        instancedBatches[modelKey][shaderToUse].push_back({
+                            transform->WorldMatrix,
+                            currentUVOffset,
+                            meshComp.HighlightColor
+                        });
                     }
                 }
             }
@@ -210,9 +217,6 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
                 const auto& finalBones = animDraw.animComp->AnimatorInstance->GetFinalBoneMatrices();
 
-                // ==========================================================
-                // --- POPRAWKA: Wysy³anie ca³ej tablicy naraz zamiast pêtli!
-                // ==========================================================
                 animDraw.shader->setMat4Array("finalBonesMatrices", finalBones);
 
                 std::vector<InstanceData> singleInstance = { animDraw.instanceData };
@@ -281,11 +285,11 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
 #ifdef CS_DISTRIBUTION
         // =========================================================
-        // FIX STANDALONE: Przenosimy uwiêzione 3D prosto na ekran!
+        // FIX STANDALONE: Przenosimy uwiï¿½zione 3D prosto na ekran!
         // =========================================================
 
-        // Zale¿nie od tego, jak nazwa³eœ swój getter w klasie Framebuffer, 
-        // u¿yj GetRendererID(), GetID() lub GetColorAttachmentRendererID().
+        // Zaleï¿½nie od tego, jak nazwaï¿½eï¿½ swï¿½j getter w klasie Framebuffer, 
+        // uï¿½yj GetRendererID(), GetID() lub GetColorAttachmentRendererID().
         // W architekturach a'la Cherno zazwyczaj jest to GetRendererID().
         uint32_t resolveFboId = m_ResolveFBO->GetRendererID();
 
@@ -298,7 +302,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
         // Kopiowanie piksel po pikselu z VRAM na ekran
         glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-        // Reset, aby nastêpne w kolejce warstwy (jak Twoje GUI) normalnie rysowa³y po ekranie
+        // Reset, aby nastï¿½pne w kolejce warstwy (jak Twoje GUI) normalnie rysowaï¿½y po ekranie
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif
     }

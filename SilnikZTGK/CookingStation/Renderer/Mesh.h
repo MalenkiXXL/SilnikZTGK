@@ -248,6 +248,11 @@ private:
         glVertexAttribPointer(12, 1, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, UVOffset));
         glVertexAttribDivisor(12, 1);
 
+        // 3. Ustawienie wskaźnika dla HIGHLIGHT COLOR (Lokacja 13)
+        glEnableVertexAttribArray(13);
+        glVertexAttribPointer(13, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, HighlightColor));
+        glVertexAttribDivisor(13, 1);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         m_VertexArray->Unbind();
     }

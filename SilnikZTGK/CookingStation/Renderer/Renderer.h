@@ -17,20 +17,21 @@ namespace UBOBindings {
 }
 
 // Struktura dopasowana do layout(std140) w GLSL.
-// W std140 typ vec3 jest wyrównywany do 16 bajtów (rozmiar vec4).
+// W std140 typ vec3 jest wyrï¿½wnywany do 16 bajtï¿½w (rozmiar vec4).
 struct SceneUBO {
     glm::mat4 ViewProjection;   // 64 bajty (offset 0)
-    glm::vec3 SunDir;           // 12 bajtów (offset 64)
+    glm::vec3 SunDir;           // 12 bajtï¿½w (offset 64)
     float      _pad0 = 0.0f;    // 4 bajty paddingu -> suma 16 (offset 76)
-    glm::vec3 LightColor;       // 12 bajtów (offset 80)
+    glm::vec3 LightColor;       // 12 bajtï¿½w (offset 80)
     float      _pad1 = 0.0f;    // 4 bajty paddingu -> suma 16 (offset 92)
-    glm::vec3 ViewPos;          // 12 bajtów (offset 96)
+    glm::vec3 ViewPos;          // 12 bajtï¿½w (offset 96)
     float      _pad2 = 0.0f;    // 4 bajty paddingu -> suma 16 (offset 108)
 };
 
 struct InstanceData {
     glm::mat4 Transform;
     float UVOffset;
+    glm::vec4 HighlightColor;
 };
 
 struct RendererStatistics {
@@ -44,9 +45,9 @@ struct RendererStatistics {
     float CPURenderTime = 0.0f;
     float GPURenderTime = 0.0f;
 
-    uint32_t InstanceBatches = 0;     // Ile grup modeli wys³ano
+    uint32_t InstanceBatches = 0;     // Ile grup modeli wysï¿½ano
     uint32_t MatrixCalculations = 0;  // Ile macierzy przeliczono (Dirty Flag)
-    uint32_t SkippedCalculations = 0; // Ile obiektów pominiêto dziêki Dirty Flag
+    uint32_t SkippedCalculations = 0; // Ile obiektï¿½w pominiï¿½to dziï¿½ki Dirty Flag
 
     void Reset() {
         DrawCalls3D = 0;
@@ -70,7 +71,7 @@ public:
     static void ResetStats() { s_Stats.Reset(); }
     static RendererStatistics& GetStats() { return s_Stats; }
 
-    // Rozpoczyna klatkê - aktualizuje dane w UBO
+    // Rozpoczyna klatkï¿½ - aktualizuje dane w UBO
     static void BeginScene(const glm::mat4& viewProjectionMatrix, const glm::vec3& viewPos = glm::vec3(0.0f));
     static void EndScene();
 
@@ -93,6 +94,6 @@ private:
     static uint32_t s_GPUQueryID;
     static bool s_GPUQueryInitialized;
 
-    // Statyczny wskaŸnik do bufora UBO
+    // Statyczny wskaï¿½nik do bufora UBO
     static std::unique_ptr<UniformBuffer> s_SceneUBO;
 };

@@ -13,13 +13,13 @@ struct RelationshipComponent {
     std::size_t NextSibling = NULL_ENTITY;
     std::size_t PreviousSibling = NULL_ENTITY;
 
-    // do szybkiego sprawdzenia iloœci dzieci
+    // do szybkiego sprawdzenia iloï¿½ci dzieci
     int ChildrenCount = 0;
 };
 
 struct TransformComponent {
 private:
-    // Lokalna pozycja wzgledem rodzica ukryta za enkapsulacj¹
+    // Lokalna pozycja wzgledem rodzica ukryta za enkapsulacjï¿½
     glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
     glm::vec3 m_Rotation = { 0.0f, 0.0f, 0.0f };
     glm::vec3 m_Scale = { 1.0f, 1.0f, 1.0f };
@@ -48,7 +48,7 @@ public:
     bool IsWorldDirty() const { return m_WorldIsDirty; }
     void ClearWorldDirty() { m_WorldIsDirty = false; }
 
-    // Funkcja licz¹ca lokaln¹ macierz ze zintegrowan¹ pamiêci¹ podrêczn¹
+    // Funkcja liczï¿½ca lokalnï¿½ macierz ze zintegrowanï¿½ pamiï¿½ciï¿½ podrï¿½cznï¿½
     const glm::mat4& GetLocalMatrix() {
         if (m_IsDirty) {
             glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(m_Rotation.x), { 1, 0, 0 })
@@ -57,7 +57,7 @@ public:
 
             m_LocalMatrix = glm::translate(glm::mat4(1.0f), m_Position) * rotation * glm::scale(glm::mat4(1.0f), m_Scale);
 
-            m_IsDirty = false; // Zdejmujemy flagê
+            m_IsDirty = false; // Zdejmujemy flagï¿½
         }
         return m_LocalMatrix;
     }
@@ -68,8 +68,9 @@ struct MeshComponent {
     std::shared_ptr<Shader> ShaderPtr = nullptr; 
     std::string Path = "";
     std::string ShaderName = "ModelShader";
+    glm::vec4 HighlightColor = glm::vec4(1.0f, 0.9f, 0.0f, 1.0f);
 
-    // Konstruktor domyœlny
+    // Konstruktor domyï¿½lny
     MeshComponent() = default;
 
     // Konstruktor z parametrami
@@ -108,7 +109,7 @@ struct ShaderComponent {
 struct AnimatorComponent {
     std::shared_ptr<Animator> AnimatorInstance;
 
-    // Opcjonalne parametry steruj¹ce
+    // Opcjonalne parametry sterujï¿½ce
     bool IsPlaying = true;
     float PlaybackSpeed = 1.0f;
 

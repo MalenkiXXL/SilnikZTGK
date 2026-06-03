@@ -1,5 +1,5 @@
 #include "Renderer2D.h"
-// ZMIANA 1: Poprawny include wskazuj¹cy na Twoj¹ uniwersaln¹ klasê Texture z VFS
+// ZMIANA 1: Poprawny include wskazujï¿½cy na Twojï¿½ uniwersalnï¿½ klasï¿½ Texture z VFS
 #include "CookingStation/Core/Texture.h"   
 #include <glm/gtc/matrix_transform.hpp>
 #include "CookingStation/Renderer/Renderer.h"
@@ -44,7 +44,7 @@ void Renderer2D::Init() {
     s_Data = new Renderer2DData();
 
     s_Data->UI_Shader = std::make_unique<Shader>(
-        "shaders://vsShaders/shader2d.vs",
+        "shaders://vsShaders/shader2d.vert",
         "shaders://fragShaders/shader2d.frag"
     );
 
@@ -84,8 +84,8 @@ void Renderer2D::Init() {
 
     s_Data->QuadVertexBufferBase = new QuadVertex[s_Data->MaxVertices];
 
-    // Tworzymy bia³¹ teksturê 1x1 przez Texture(width,height) + SetData
-    // Texture u¿ywa glTexSubImage2D bezpoœrednio - bez stbi, bez b³êdów
+    // Tworzymy biaï¿½ï¿½ teksturï¿½ 1x1 przez Texture(width,height) + SetData
+    // Texture uï¿½ywa glTexSubImage2D bezpoï¿½rednio - bez stbi, bez bï¿½ï¿½dï¿½w
     uint32_t whiteTextureData = 0xffffffff;
     s_Data->WhiteTexture = std::make_shared<Texture>(1, 1);
     s_Data->WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
@@ -149,7 +149,7 @@ void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, cons
     DrawQuad(position, size, 0, color, { 0.0f, 0.0f }, { 1.0f, 1.0f }, radius);
 }
 
-// ZMIANA 2: Zast¹piono Texture2D na std::shared_ptr<Texture>
+// ZMIANA 2: Zastï¿½piono Texture2D na std::shared_ptr<Texture>
 void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<Texture>& texture, const glm::vec4& color, const glm::vec2& uvMin, const glm::vec2& uvMax, float radius) {
     DrawQuad(position, size, texture->GetRendererID(), color, uvMin, uvMax, radius);
 }
@@ -193,8 +193,8 @@ void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, uint
 }
 
 // =========================================================================================
-// ZMIANA 3: To jest najwa¿niejsza zmiana na samym dole! Zwróæ na to uwagê.
-// Poni¿sze funkcje przekazuj¹ radius do GPU.
+// ZMIANA 3: To jest najwaï¿½niejsza zmiana na samym dole! Zwrï¿½ï¿½ na to uwagï¿½.
+// Poniï¿½sze funkcje przekazujï¿½ radius do GPU.
 // =========================================================================================
 
 void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, float radius) {
@@ -228,12 +228,12 @@ void Renderer2D::DrawQuad(const glm::mat4& transform, uint32_t textureID, const 
         s_Data->QuadVertexBufferPtr->TexCoord = uvs[i];
         s_Data->QuadVertexBufferPtr->TexIndex = textureIndex;
 
-        // Wydobywamy skalê bezpoœrednio z macierzy transformacji, bo Shader tego wymaga 
-        // do wyliczenia dystansu (SDF - Signed Distance Field) dla zaokr¹gleñ
+        // Wydobywamy skalï¿½ bezpoï¿½rednio z macierzy transformacji, bo Shader tego wymaga 
+        // do wyliczenia dystansu (SDF - Signed Distance Field) dla zaokrï¿½gleï¿½
         glm::vec2 scale = { glm::length(glm::vec3(transform[0])), glm::length(glm::vec3(transform[1])) };
         s_Data->QuadVertexBufferPtr->QuadSize = scale;
 
-        s_Data->QuadVertexBufferPtr->Radius = radius; // Tego tutaj wczeœniej brakowa³o!
+        s_Data->QuadVertexBufferPtr->Radius = radius; // Tego tutaj wczeï¿½niej brakowaï¿½o!
         s_Data->QuadVertexBufferPtr++;
     }
 

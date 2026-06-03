@@ -9,7 +9,39 @@ public:
 
     IngredientType m_Type = IngredientType::Tomato;
     int m_IngredientAmount = 5;
-    void OnUpdate(Timestep ts) override {};
+
+    float m_TimeAlive = 0.0f;
+    glm::vec3 m_BaseScale = glm::vec3(0.0f);
+    bool m_BaseScaleInitialized = false;
+
+    void OnUpdate(Timestep ts) override {
+        m_TimeAlive += (float)ts;
+
+        auto* transform = GetComponent<TransformComponent>();
+        auto* mesh = GetComponent<MeshComponent>();
+
+        if (transform && mesh) {
+            if (!m_BaseScaleInitialized) {
+                m_BaseScale = transform->GetScale();
+                m_BaseScaleInitialized = true;
+            }
+
+            // Fala zwraca od -1.0 (najmniejsza) do 1.0 (największa paczka)
+            float wave = std::sin(m_TimeAlive * 4.0f);
+
+            // 1. SKALA
+            transform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
+
+            // 2. OBLICZANIE OPACITY Z ROZMIAREM
+            float currentOpacity = (wave + 1.0f) * 0.5f;
+
+            float maxOpacity = 0.6f;
+            currentOpacity *= maxOpacity;
+
+            mesh->ShaderName = "HighlightShader";
+            mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity);
+        }
+    };
 
     void HandleClick();
 

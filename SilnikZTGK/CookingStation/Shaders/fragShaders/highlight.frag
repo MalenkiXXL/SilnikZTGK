@@ -1,12 +1,13 @@
 #version 420 core
 out vec4 FragColor;
 
-// Dane wejœciowe z Vertex Shadera
+// Dane wejï¿½ciowe z Vertex Shadera
 in float v_uvOffset;
 in vec2 TexCoords;
 in vec2 TexCoords2; 
 in vec3 Normal;
 in vec3 FragPos;
+in vec4 v_HighlightColor;
 
 layout (std140, binding = 0) uniform SceneData {
     mat4 u_ViewProjection;
@@ -18,20 +19,20 @@ layout (std140, binding = 0) uniform SceneData {
     float _pad2;
 };
 
-// Tekstury (nawet ich tu nie u¿yjemy do koloru, bo wymuszamy ¿ó³ty)
+// Tekstury
 uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_diffuse2;
 uniform bool useTexture2; 
 
 void main()
-{    
-    // =========================================================
-    // TUTAJ ZMIANA: Zamiast czytaæ teksturê, narzucamy mocny ¿ó³ty kolor
-    // (1.0 czerwonego, 0.9 zielonego, 0.0 niebieskiego = soczysty ¿ó³ty)
-    // =========================================================
-    vec3 baseColor = vec3(1.0, 0.9, 0.0);
+{
+    vec4 texColor = texture(texture_diffuse1, TexCoords);
+    float tintOpacity = v_HighlightColor.a;
 
-    // Standardowe obliczanie œwiat³a, ¿eby talerz wygl¹da³ trójwymiarowo
+    // mix tekstury z kolorem
+    vec3 baseColor = mix(texColor.rgb, v_HighlightColor.rgb, tintOpacity);
+
+    // Standardowe obliczanie ï¿½wiatï¿½a, ï¿½eby talerz wyglï¿½daï¿½ trï¿½jwymiarowo
     float ambientStrength = 0.55;
     vec3 ambient = ambientStrength * vec3(1.0); 
 
@@ -48,7 +49,7 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     vec3 specular = specularStrength * spec * u_LightColor;  
 
-    // Po³¹czenie naszego czystego ¿ó³tego z cieniami i œwiat³em
+    // Poï¿½ï¿½czenie naszego czystego ï¿½ï¿½tego z cieniami i ï¿½wiatï¿½em
     vec3 result = (ambient + diffuse) * baseColor + specular;
 
     if(useTexture2) {
@@ -60,5 +61,5 @@ void main()
     float gammaParam = 1.4;
     result = pow(result, vec3(1.0 / gammaParam)); 
 
-    FragColor = vec4(result, 1.0);
+    FragColor = vec4(result, texColor.a);
 }
