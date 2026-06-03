@@ -5,7 +5,9 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Scripts/Managers/IngredientType.h"
 #include "CookingStation/Scripts/Plates/ItemScript.h" 
-#include "CookingStation/Scripts/Machines/MachineScript.h" 
+#include "CookingStation/Scripts/Machines/MachineScript.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
+#include "CookingStation/Events/GameEvents.h"
 #include <glm/glm.hpp>
 #include <limits>
 #include <string>
@@ -13,11 +15,16 @@
 class CrateScript : public ScriptableEntity
 {
 public:
-    IngredientType m_CrateIngredient = IngredientType::Tomato;
+    // ZMIANA: Teraz domyœlnym stanem jest None! 
+    IngredientType m_CrateIngredient = IngredientType::None;
+
+    Entity m_VisualFood = { std::numeric_limits<std::size_t>::max(), 0 };
+    float m_SpawnCooldown = 0.0f;
+    bool m_HasStock = false;
+    bool m_IsInitialized = false;
 
     void OnCreate() override
     {
-        // Sprawdzamy nazwê skrzynki z JSON-a
         auto* tagComp = GetComponent<TagComponent>();
         if (tagComp) {
             std::string name = tagComp->Tag;
@@ -27,15 +34,46 @@ public:
                 m_CrateIngredient = IngredientType::Cheese;
             else if (name.find("Ham") != std::string::npos || name.find("Szynka") != std::string::npos)
                 m_CrateIngredient = IngredientType::Ham;
+            else if (name.find("Baguette") != std::string::npos || name.find("Bagietka") != std::string::npos)
+                m_CrateIngredient = IngredientType::Baguette;
             else if (name.find("Milk") != std::string::npos || name.find("Mleko") != std::string::npos)
                 m_CrateIngredient = IngredientType::Milk;
-            else if (name.find("Flour") != std::string::npos || name.find("Maka") != std::string::npos)
+            else if (name.find("Flour") != std::string::npos || name.find("Maka") != std::string::npos || name.find("M¹ka") != std::string::npos)
                 m_CrateIngredient = IngredientType::Flour;
         }
+
+        if (m_CrateIngredient == IngredientType::None) {
+            spdlog::error("Skrzynka o ID {} ma nierozpoznany tag! Jest pusta i nie bedzie dzialac.", m_Entity.id);
+        }
+    }
+
+    void OnDestroy() override
+    {
+        if (m_VisualFood.id != std::numeric_limits<std::size_t>::max())
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_VisualFood });
     }
 
     void OnUpdate(Timestep ts) override
     {
+        // Jeœli skrzynka jest uszkodzona/nie ma przypisanego typu, nie robimy nic
+        if (m_CrateIngredient == IngredientType::None) return;
+
+        if (m_SpawnCooldown > 0.0f) {
+            m_SpawnCooldown -= ts.GetSeconds();
+        }
+
+        // =========================================================
+        // SPRAWDZANIE INWENTARZA
+        // =========================================================
+        int currentStock = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(m_CrateIngredient) : 0;
+        bool shouldHaveStock = (currentStock > 0);
+
+        if (!m_IsInitialized || shouldHaveStock != m_HasStock) {
+            m_HasStock = shouldHaveStock;
+            m_IsInitialized = true;
+            UpdateVisuals();
+        }
+
         auto* tf = GetComponent<TransformComponent>();
         if (!tf) return;
 
@@ -43,27 +81,123 @@ public:
         glm::vec2 mouse2D = { mousePos.x, mousePos.z };
         glm::vec2 crate2D = { tf->GetPosition().x, tf->GetPosition().z };
 
-        // Jeœli kursor jest blisko skrzynki i klikamy
-        if (glm::distance(mouse2D, crate2D) < 2.0f)
+        // Powiêkszony, wygodny dystans klikania
+        if (glm::distance(mouse2D, crate2D) < 1.2f)
         {
-            if (Input::IsMouseButtonJustPressed(0) && !MachineScript::GlobalIsHoveringUI && !MachineScript::GlobalIsMachineHeld)
+            if (Input::IsMouseButtonJustPressed(0) && m_SpawnCooldown <= 0.0f && !MachineScript::GlobalIsHoveringUI && !MachineScript::GlobalIsMachineHeld)
             {
-                SpawnIngredientOnConveyor();
+                // ZMIANA: Filtr wykluczaj¹cy podwójne klikanie skrzynek stoj¹cych obok siebie
+                if (IsClosestCrate(mouse2D))
+                {
+                    if (m_HasStock)
+                    {
+                        m_SpawnCooldown = 0.2f;
+                        SpawnIngredientOnConveyor();
+                        GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ m_CrateIngredient, 1 });
+                    }
+                    else
+                    {
+                        spdlog::warn("Skrzynka: Brak zapasow tego skladnika w magazynie (0 sztuk)!");
+                    }
+                }
             }
         }
     }
 
 private:
+
+    // Funkcja weryfikuj¹ca, czy myszka nie jest przypadkiem bli¿ej innej skrzynki
+    bool IsClosestCrate(glm::vec2 mousePos2D)
+    {
+        auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+        if (!scripts || !transforms) return true;
+
+        float myDist = glm::distance(mousePos2D, glm::vec2(GetComponent<TransformComponent>()->GetPosition().x, GetComponent<TransformComponent>()->GetPosition().z));
+
+        for (size_t i = 0; i < scripts->dense.size(); ++i) {
+            auto& nsc = scripts->dense[i];
+            for (auto& s : nsc.Scripts) {
+                if (s.Name == "CrateScript") {
+                    Entity otherEntity = scripts->reverse[i];
+                    if (otherEntity.id == m_Entity.id) continue;
+
+                    auto* tf = transforms->Get(otherEntity);
+                    if (tf) {
+                        float otherDist = glm::distance(mousePos2D, glm::vec2(tf->GetPosition().x, tf->GetPosition().z));
+                        // Jeœli inna skrzynka jest bli¿ej kursora ni¿ my, zwracamy fa³sz
+                        if (otherDist < myDist) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    void UpdateVisuals()
+    {
+        auto* crateMesh = GetComponent<MeshComponent>();
+        if (crateMesh) {
+            if (m_HasStock) {
+                // Odkomentuj sposób, w jaki przywracacie normalny kolor modelu w Waszym silniku
+                // crateMesh->Color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); 
+                // crateMesh->ShaderName = "ModelShader";
+            }
+            else {
+                // Odkomentuj sposób, w jaki "szarzycie" model w Waszym silniku
+                // crateMesh->Color = glm::vec4(0.4f, 0.4f, 0.4f, 1.0f); 
+                // crateMesh->ShaderName = "GrayShader"; 
+            }
+        }
+
+        if (m_HasStock) {
+            if (m_VisualFood.id == std::numeric_limits<std::size_t>::max()) {
+                SpawnVisualFoodInsideCrate();
+            }
+        }
+        else {
+            if (m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_VisualFood });
+                m_VisualFood = { std::numeric_limits<std::size_t>::max(), 0 };
+            }
+        }
+    }
+
     std::string GetModelPath(IngredientType type)
     {
         switch (type) {
         case IngredientType::Tomato: return "assets://models/warzywka/pomidor/pomidor.gltf";
         case IngredientType::Cheese: return "assets://models/skladniki/ser/ser.gltf";
-        case IngredientType::Ham: return "assets://models/skladniki/szynka/szynka.gltf";;
+        case IngredientType::Ham: return "assets://models/skladniki/szynka/szynka.gltf";
+        case IngredientType::Baguette: return "assets://models/skladniki/bagietka/bagietka.gltf";
         case IngredientType::Milk: return "assets://models/skladniki/mleko/milk.gltf";
         case IngredientType::Flour: return "assets://models/skladniki/maka/maka.gltf";
         default: return "";
         }
+    }
+
+    void SpawnVisualFoodInsideCrate()
+    {
+        std::string modelPath = GetModelPath(m_CrateIngredient);
+        if (modelPath.empty()) return;
+
+        auto builder = GetScene()->GetWorld().BuildEntity();
+        builder.With<TagComponent>({ "Crate_Visual_Item" });
+
+        TransformComponent tc;
+        IngredientMetadata meta = GetIngredientMetadata(m_CrateIngredient);
+        tc.SetScale(meta.scale * 0.7f);
+        tc.SetPosition(GetComponent<TransformComponent>()->GetPosition() + glm::vec3(0.0f, 0.4f, 0.0f));
+        tc.SetRotation(meta.rotation);
+        builder.With<TransformComponent>(tc);
+
+        MeshComponent mesh;
+        mesh.ModelPtr = AssetManager::GetModel(modelPath);
+        builder.With<MeshComponent>(mesh);
+
+        m_VisualFood = builder.Build();
     }
 
     void SpawnIngredientOnConveyor()
@@ -75,7 +209,6 @@ private:
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
 
-        // Szukamy taœmoci¹gu w okolicy naszej skrzynki
         if (scripts && transforms) {
             for (size_t i = 0; i < scripts->dense.size(); ++i) {
                 auto& nsc = scripts->dense[i];
@@ -89,7 +222,9 @@ private:
                                 closestDist = dist;
                                 closestConveyor = conveyorEntity;
                                 spawnPos = conveyorTf->GetPosition();
-                                spawnPos.y += 0.8f; // Zrzucamy sk³adnik nad siatkê taœmy
+
+                                // ZMIANA: Sk³adnik podniesiony wy¿ej na taœmie, ¿eby nie by³ zatopiony w modelu
+                                spawnPos.y += 1.3f;
                             }
                         }
                         break;
@@ -102,7 +237,9 @@ private:
             spdlog::info("Skrzynka: Pomyslnie wyrzucono skladnik na tasmociag!");
 
             auto builder = GetScene()->GetWorld().BuildEntity();
-            builder.With<TagComponent>({ "SurowySkladnik" });
+
+            // ZMIANA: Przypinamy typ sk³adnika jako String w Tagnam, aby system wiedzia³, co naje¿d¿a z taœmy
+            builder.With<TagComponent>({ "BeltItem_" + std::to_string((int)m_CrateIngredient) });
 
             TransformComponent tc;
             IngredientMetadata meta = GetIngredientMetadata(m_CrateIngredient);
@@ -115,12 +252,10 @@ private:
             mesh.ModelPtr = AssetManager::GetModel(GetModelPath(m_CrateIngredient));
             builder.With<MeshComponent>(mesh);
 
-            // Fizyka niezbêdna do interakcji w grze
             BoxColliderComponent collider;
-            collider.Size = glm::vec3(1.2f);
+            collider.Size = glm::vec3(0.5f);
             builder.With<BoxColliderComponent>(collider);
 
-            // Podpiêcie ruchu po taœmie (ItemScript)
             NativeScriptComponent nsc;
             nsc.AddScript<ItemScript>("ItemScript");
             builder.With<NativeScriptComponent>(nsc);

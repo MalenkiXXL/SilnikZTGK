@@ -15,14 +15,13 @@ public:
     bool IsServed = false;
     bool OrderTaken = false;
 
-    // Zapisujemy ID subskrypcji, by móc się wyrejestrować przy zniszczeniu
     std::size_t m_ServedSubId = 0;
     std::size_t m_OrderSubId = 0;
 
-   void OnCreate() override
+    void OnCreate() override
     {
-        // 1. Definiujemy, co jest w menu (możesz tu dodawać kolejne stringi, byle odpowiadały systemowi potraw)
-        std::vector<std::string> menu = { "Tomato", "Cheese", "Ham", "Sandwich"};
+        // 1. Definiujemy, co jest w menu (zakomentowana reszta - zostaje tylko Pomidor)
+        std::vector<std::string> menu = { "Tomato" /*, "Cheese", "Ham", "Sandwich"*/ };
 
         // 2. Losujemy jeden ze składników
         std::random_device rd;
@@ -31,29 +30,25 @@ public:
 
         WantedIngredient = menu[dist(gen)];
         OrderTaken = false;
-        
+
         spdlog::info("Klient nr {} usiadl i czeka na: {}", m_Entity.id, WantedIngredient);
 
         auto& bus = GetScene()->GetWorld().GetEventBus();
 
-        // 1. Publikujemy info do kelnerów, że usiedliśmy
         bus.Publish(CustomerSeatedEvent{ m_Entity });
 
-        // 2. Nasłuchujemy, czy kelner przyniósł nam jedzenie
         m_ServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
             if (e.Customer.id == m_Entity.id) {
-                // Klient sam ocenia, czy to co dostał to jest to, co chciał!
                 bool isCorrect = this->IsOrderMatching(e.ServedIngredients);
                 this->ReceiveFood(isCorrect);
             }
             });
 
-        // 3. Nasłuchujemy, czy kelner spisał już nasze zamówienie
         m_OrderSubId = bus.Subscribe<OrderTakenEvent>([this](const OrderTakenEvent& e) {
             if (e.Customer.id == m_Entity.id) {
                 this->OrderTaken = true;
             }
-        });
+            });
     }
     void OnDestroy() override
     {
@@ -67,7 +62,7 @@ public:
 
     bool IsOrderMatching(const std::vector<std::string>& ingredientsOnPlate)
     {
-        if (ingredientsOnPlate.empty()) return false; 
+        if (ingredientsOnPlate.empty()) return false;
 
         for (const auto& item : ingredientsOnPlate)
         {
@@ -88,7 +83,8 @@ public:
             spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
             if (GameManagerScript::s_Instance)
             {
-                OrderFulfilledEvent e(50.0f); 
+                // Zapłata w wysokości 50 monet:
+                OrderFulfilledEvent e(50.0f);
                 GetScene()->GetWorld().GetEventBus().Publish(e);
                 spdlog::info("Klient nr {} zaplacil 50 monet!", m_Entity.id);
             }
