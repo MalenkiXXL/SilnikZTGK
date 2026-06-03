@@ -290,7 +290,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     glm::vec2 rightPosBase = { gameX + gameWidth - baseIconSize.x, gameY + gameHeight - baseIconSize.y };
 
     //DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
-    DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
+    //DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
 
     float itemBaseH = baseIconSize.y * 0.3f;
     glm::vec2 arcRadius = { baseIconSize.x * 0.66f, baseIconSize.y * 0.64f };
@@ -319,7 +319,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
         }
     }*/
 
-    glm::vec2 rightCenter = { gameX + gameWidth - paddingX, gameY + gameHeight - paddingY };
+    /*glm::vec2 rightCenter = { gameX + gameWidth - paddingX, gameY + gameHeight - paddingY };
     struct UIMachine { std::string id; std::shared_ptr<Texture> tex; std::string prefabPath; };
     std::vector<UIMachine> rightItems = {
         {"BtnPot", m_PotIcon, "assets://prefabs/pot.json"},
@@ -341,7 +341,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
                 DragAndDropScript::PickupSpawnedMachine(spawnedMachine);
             }
         }
-    }
+    }*/
 }
 
 void GameGuiLayer::DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
@@ -592,7 +592,16 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         float textScale = 2.0f * baseScale;
         float textWidth = Gui::MeasureTextWidth(m_MoneyStr, textScale);
 
-        glm::vec2 textPos = { gameX + gameWidth * 0.97f - textWidth, gameY + gameHeight * 0.04f };
+        // 1. Obliczamy całkowitą szerokość grupy (Ikonka monety + odstęp + tekst)
+        float coinH = 80.0f * baseScale;
+        float totalWidth = coinH + (8.0f * baseScale) + textWidth;
+
+        // 2. Wyznaczamy pozycję startową tak, aby CAŁA grupa była na idealnym środku ekranu
+        float startX = gameX + (gameWidth - totalWidth) * 0.5f;
+
+        // 3. Ustawiamy pozycję samego tekstu (ikonka narysuje się automatycznie z jego lewej strony)
+        glm::vec2 textPos = { startX + coinH + (8.0f * baseScale), gameY + 40.0f * baseScale };
+
         DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
     }
 
