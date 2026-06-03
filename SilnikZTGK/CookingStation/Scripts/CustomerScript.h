@@ -10,6 +10,7 @@
 class CustomerScript : public ScriptableEntity
 {
 public:
+    std::size_t m_ValidationResponseSubId = 0;
     bool IsPendingDestroy = false;
     std::string WantedIngredient = "";
     bool IsServed = false;
@@ -39,8 +40,17 @@ public:
 
         m_ServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
             if (e.Customer.id == m_Entity.id) {
-                bool isCorrect = this->IsOrderMatching(e.ServedIngredients);
-                this->ReceiveFood(isCorrect);
+                // ZAMIAST SPRAWDZAĆ TAGI: Pytamy System o skład!
+                GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderRequestEvent{
+                    m_Entity, e.ServedFood, WantedIngredient
+                    });
+            }
+            });
+
+        // NOWE: Odbieranie odpowiedzi od systemu, czy zamówienie jest prawidłowe
+        m_ValidationResponseSubId = bus.Subscribe<ValidateOrderResponseEvent>([this](const ValidateOrderResponseEvent& e) {
+            if (e.Customer.id == m_Entity.id) {
+                this->ReceiveFood(e.IsCorrect);
             }
             });
 
@@ -50,6 +60,7 @@ public:
             }
             });
     }
+
     void OnDestroy() override
     {
         auto* scene = GetScene();
@@ -57,6 +68,7 @@ public:
             auto& bus = scene->GetWorld().GetEventBus();
             if (m_ServedSubId != 0) bus.Unsubscribe<CustomerServedEvent>(m_ServedSubId);
             if (m_OrderSubId != 0) bus.Unsubscribe<OrderTakenEvent>(m_OrderSubId);
+            if (m_ValidationResponseSubId != 0) bus.Unsubscribe<ValidateOrderResponseEvent>(m_ValidationResponseSubId);
         }
     }
 

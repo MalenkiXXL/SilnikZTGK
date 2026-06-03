@@ -148,6 +148,12 @@ public:
 
         UpdateFrustum();
     }
+    
+    // Zwraca wektor skierowany "w przód" względem kamery, ale leżący płasko na płaszczyźnie XZ
+    glm::vec3 GetFlatForward() const
+    {
+        return glm::normalize(glm::cross(WorldUp, Right));
+    }
 private:
     Frustum m_Frustum;
     void UpdateFrustum()

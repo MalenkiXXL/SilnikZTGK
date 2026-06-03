@@ -112,15 +112,42 @@ struct PlateReadyEvent {
     Entity Plate;
 };
 
-struct CustomerServedEvent {
-    Entity Customer;
-    std::vector<std::string> ServedIngredients; 
-};
-
 struct OrderTakenEvent {
     Entity Customer;
 };
 
 struct PlateGrabbedEvent {
     Entity Plate;
+};
+
+
+// Struktura przechowująca DNA naszej potrawy
+struct DishHistory {
+    std::vector<IngredientType> BaseIngredients;
+    std::string OriginMachine;
+};
+
+// Event wysyłany, gdy nowa potrawa (lub przetworzony składnik) pojawia się w świecie
+struct DishCreatedEvent {
+    Entity FoodEntity;
+    DishHistory History;
+};
+
+// Event z zapytaniem od klienta "Czy to co dostałem, to to, czego chciałem?"
+struct ValidateOrderRequestEvent {
+    Entity Customer;
+    Entity ServedFood;
+    std::string WantedIngredientStr;
+};
+
+// Odpowiedź od systemu dla konkretnego klienta
+struct ValidateOrderResponseEvent {
+    Entity Customer;
+    bool IsCorrect;
+};
+
+// Zmodyfikowany CustomerServedEvent - teraz przekazujemy encję jedzenia, a nie zbiór tagów
+struct CustomerServedEvent {
+    Entity Customer;
+    Entity ServedFood;
 };

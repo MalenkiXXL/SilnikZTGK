@@ -109,14 +109,20 @@ protected:
 
             m_SpawnedFood = SpawnMachineFood(IngredientType::None, "CookingStation/Assets/models/skladniki/pomidor/pomidorowa.gltf", "W_Garnku");
 
-            // Zupa  zawsze wyl¹duje dok³adnie o 1.0 wy¿ej od garnka
+            // Zupa zawsze wyl¹duje dok³adnie o 1.0 wy¿ej od garnka
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)
             {
                 foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
             }
 
-            spdlog::info("Danie gotowe, pojawia sie nad garnkiem.");
+            // NOWE: Rejestrujemy pochodzenie potrawy w systemie
+            DishHistory history;
+            history.BaseIngredients = m_Ingredients;
+            history.OriginMachine = "Pot";
+            GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
+
+            spdlog::info("Danie gotowe, pojawia sie nad garnkiem i zostalo wpisane do rejestru.");
         }
         else
         {
