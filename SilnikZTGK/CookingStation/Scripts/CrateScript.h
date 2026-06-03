@@ -168,7 +168,7 @@ private:
     std::string GetModelPath(IngredientType type)
     {
         switch (type) {
-        case IngredientType::Tomato: return "assets://models/warzywka/pomidor/pomidor.gltf";
+        case IngredientType::Tomato: return "assets://models/skladniki/pomidor/pomidor.gltf";
         case IngredientType::Cheese: return "assets://models/skladniki/ser/ser.gltf";
         case IngredientType::Ham: return "assets://models/skladniki/szynka/szynka.gltf";
         case IngredientType::Baguette: return "assets://models/skladniki/bagietka/bagietka.gltf";

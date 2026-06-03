@@ -427,7 +427,8 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         ++it;
     }
 
-    float currentY = gameY + (80.0f * baseScale);
+    // POPRAWKA: Zmniejszamy offset z 80.0f na 15.0f, żeby podciągnąć karteczki do samej góry!
+    float currentY = gameY + (15.0f * baseScale);
     float rightMargin = 20.0f * baseScale;
 
     for (size_t i = 0; i < m_ActiveOrderTickets.size(); ++i) {
@@ -456,7 +457,6 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
             glm::vec2 ticketSize = GuiUtils::CalculateAspectSize(ticketTex, ticketHeight);
             glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin, currentY };
 
-            // Rysujemy SAMO tło karteczki
             Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
             currentY += ticketHeight + (10.0f * baseScale);

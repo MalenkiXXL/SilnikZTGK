@@ -339,7 +339,7 @@ void MainMenuLayer::PlayGame()
     auto activeScene = SceneManager::NewScene();
     SceneSerializer serializer(activeScene.get());
 
-    if (serializer.Deserialize("assets://saves/KuchennaEwolucja.json")) {
+    if (serializer.Deserialize("assets://saves/gary.json")) {
         activeScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
         Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
         activeScene->SetState(SceneState::Play);
