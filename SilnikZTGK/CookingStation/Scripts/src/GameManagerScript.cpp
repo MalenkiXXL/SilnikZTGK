@@ -7,33 +7,75 @@ void GameManagerScript::OnCreate()
     s_Instance = this;
     spdlog::info("GameManager uruchomiony!");
 
-    m_IngredientUsedSubId = GetScene()->GetWorld().GetEventBus().Subscribe<IngredientUsedEvent>(
+    auto& bus = GetScene()->GetWorld().GetEventBus();
+
+    m_IngredientUsedSubId = bus.Subscribe<IngredientUsedEvent>(
         [this](const IngredientUsedEvent& e) {
             this->UseIngredient(e.Type, e.Amount);
         }
     );
 
-    m_AddIngredientSubId = GetScene()->GetWorld().GetEventBus().Subscribe<AddIngredientEvent>(
+    m_AddIngredientSubId = bus.Subscribe<AddIngredientEvent>(
         [this](const AddIngredientEvent& e) {
             this->AddIngredients(e.Type, e.Amount);
         }
     );
 
-    m_OrderFulfilledSubId = GetScene()->GetWorld().GetEventBus().Subscribe<OrderFulfilledEvent>(
+    m_OrderFulfilledSubId = bus.Subscribe<OrderFulfilledEvent>(
         [this](const OrderFulfilledEvent& e) {
             this->OnOrderFulfilled(e);
+        }
+    );
+
+    // NOWE: Rejestrowanie Historii Dań
+    m_DishCreatedSubId = bus.Subscribe<DishCreatedEvent>(
+        [this](const DishCreatedEvent& e) {
+            m_DishMemory[e.FoodEntity.id] = e.History;
+        }
+    );
+
+    // NOWE: Weryfikacja zamówień przez system
+    m_ValidateOrderSubId = bus.Subscribe<ValidateOrderRequestEvent>(
+        [this](const ValidateOrderRequestEvent& e) {
+            bool isCorrect = false;
+
+            if (m_DishMemory.find(e.ServedFood.id) != m_DishMemory.end()) {
+                const auto& history = m_DishMemory[e.ServedFood.id];
+
+                IngredientType wantedType = IngredientType::None;
+                if (e.WantedIngredientStr == "Tomato") wantedType = IngredientType::Tomato;
+                else if (e.WantedIngredientStr == "ChoppedTomato") wantedType = IngredientType::ChoppedTomato;
+                // Jeśli dodasz nowe zamówienia (np. ser), dopisz je tutaj:
+                // else if (e.WantedIngredientStr == "Cheese") wantedType = IngredientType::Cheese;
+
+                for (auto ingredient : history.BaseIngredients) {
+                    if (ingredient == wantedType ||
+                        (wantedType == IngredientType::Tomato && ingredient == IngredientType::ChoppedTomato)) {
+                        isCorrect = true;
+                        break;
+                    }
+                }
+            }
+
+            // Wysyłamy wyrok do klienta
+            GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderResponseEvent{ e.Customer, isCorrect });
         }
     );
 
     AddIngredients(IngredientType::Tomato, 5);
 }
 
-
 void GameManagerScript::OnDestroy()
 {
-    GetScene()->GetWorld().GetEventBus().Unsubscribe<IngredientUsedEvent>(m_IngredientUsedSubId);
-    GetScene()->GetWorld().GetEventBus().Unsubscribe<AddIngredientEvent>(m_AddIngredientSubId);
-    GetScene()->GetWorld().GetEventBus().Unsubscribe<OrderFulfilledEvent>(m_OrderFulfilledSubId);
+    auto& bus = GetScene()->GetWorld().GetEventBus();
+
+    bus.Unsubscribe<IngredientUsedEvent>(m_IngredientUsedSubId);
+    bus.Unsubscribe<AddIngredientEvent>(m_AddIngredientSubId);
+    bus.Unsubscribe<OrderFulfilledEvent>(m_OrderFulfilledSubId);
+
+    // Zwalnianie nowych eventów!
+    bus.Unsubscribe<DishCreatedEvent>(m_DishCreatedSubId);
+    bus.Unsubscribe<ValidateOrderRequestEvent>(m_ValidateOrderSubId);
 
     s_Instance = nullptr;
 }
@@ -55,7 +97,6 @@ void GameManagerScript::UseIngredient(IngredientType type, int amount)
     if (m_Inventory[type] >= amount)
     {
         m_Inventory[type] -= amount;
-
         GetScene()->GetWorld().GetEventBus().Publish(InventoryChangedEvent{ type, m_Inventory[type] });
     }
 }

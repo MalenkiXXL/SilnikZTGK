@@ -342,5 +342,15 @@ protected:
                 foodTf->SetRotation(meta.rotation);
             }
         }
+
+        // NOWE: Publikujemy event dopiero wtedy, gdy gracz skoñczy kroiæ
+        if (m_IsReady)
+        {
+            DishHistory history;
+            history.BaseIngredients = m_Ingredients;
+            history.OriginMachine = "CuttingBoard";
+            GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
+            spdlog::info("Sk³adnik pokrojony i wpisany do rejestru historii.");
+        }
     }
 };
