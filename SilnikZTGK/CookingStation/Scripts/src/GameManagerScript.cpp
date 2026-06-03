@@ -24,6 +24,8 @@ void GameManagerScript::OnCreate()
             this->OnOrderFulfilled(e);
         }
     );
+
+    AddIngredients(IngredientType::Tomato, 5);
 }
 
 
