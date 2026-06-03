@@ -2,6 +2,7 @@
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Core/Physics.h"
+#include "CookingStation/Core/GridSystem.h" // NOWE: Importujemy system siatki!
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Scripts/Machines/MachineScript.h"
 #include "CookingStation/Scripts/Machines/PotScript.h"
@@ -20,12 +21,11 @@ public:
     static inline Scene* ActiveScene = nullptr;
 
     std::size_t m_DragSubId;
-    std::size_t m_HoverSubId; // NOWE: Subskrypcja na fizyczny event najechania myszką 3D
+    std::size_t m_HoverSubId;
 
     static inline Entity HighlightedPotFromPlate = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline Entity HighlightedMachineFromBelt = { std::numeric_limits<std::size_t>::max(), 0 };
 
-    // ZMIANA: Zmienna trzymająca encję, w którą aktualnie wcelowany jest promień z kamery
     Entity m_Hovered3DEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
     void OnCreate() override {
@@ -36,7 +36,6 @@ public:
             }
         );
 
-        // ZMIANA: Podpinamy się pod system silnika - będzie on nam meldował co celownik widzi w prawdziwym 3D
         m_HoverSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityHoveredEvent>(
             [this](const EntityHoveredEvent& e) {
                 m_Hovered3DEntity = e.TargetEntity;
@@ -73,7 +72,7 @@ public:
         else if (!IsDragging)
         {
             CheckPlateToPotTransfer(mousePos);
-            CheckBeltToMachineTransfer(mousePos); // Teraz ta funkcja ma ułatwione zadanie!
+            CheckBeltToMachineTransfer(mousePos);
         }
     }
 
@@ -134,7 +133,7 @@ public:
 private:
 
     // ==========================================================
-    // SEKCJA: TRANSFER Z TAŚMY DO MASZYNY (Zasięg 8 kratek)
+    // SEKCJA: TRANSFER Z TAŚMY DO MASZYNY (Kwadrat 3x3)
     // ==========================================================
 
     static void SetMachineHighlight(Entity machineEntity, bool state) {
@@ -165,13 +164,10 @@ private:
         Entity hoveredBeltItem = { std::numeric_limits<std::size_t>::max(), 0 };
         IngredientType hoveredType = IngredientType::None;
 
-        // ZMIANA: Zamiast płaskiego "radaru 2D", korzystamy ze znaleziska silnika fizycznego! 
-        // Zero błędów perspektywy i kamer - trafiamy po fizycznym hitboxie BoxCollidera.
         if (m_Hovered3DEntity.id != std::numeric_limits<std::size_t>::max()) {
             auto* tagComp = GetScene()->GetWorld().GetComponent<TagComponent>(m_Hovered3DEntity);
             if (tagComp && tagComp->Tag.find("BeltItem_") != std::string::npos) {
                 hoveredBeltItem = m_Hovered3DEntity;
-                // Wyciągamy ID ze stringa z taga żeby dowiedzieć się, co dokładnie przed nami jedzie
                 int typeId = std::stoi(tagComp->Tag.substr(9));
                 hoveredType = static_cast<IngredientType>(typeId);
             }
@@ -180,9 +176,11 @@ private:
         if (hoveredBeltItem.id != std::numeric_limits<std::size_t>::max()) {
             Entity closestMachine = { std::numeric_limits<std::size_t>::max(), 0 };
             MachineScript* targetMachineScript = nullptr;
-            float closestDist = 8.0f; // Max dystans to aż 8 kratek!
+            float closestDist = 999.0f; // Resetujemy do dużej wartości, by szukać wewnątrz kratek
 
             auto* itemTf = transforms->Get(hoveredBeltItem);
+            // ZMIANA: Zczytujemy pozycję na siatce elementu jadącego po taśmie
+            glm::ivec2 itemCell = GridSystem::WorldToCell(itemTf->GetPosition());
 
             for (size_t i = 0; i < scripts->dense.size(); ++i) {
                 auto& nsc = scripts->dense[i];
@@ -191,7 +189,6 @@ private:
                     if (mScript) {
                         bool canAccept = false;
 
-                        // Weryfikacja: Co maszyna może przyjąć?
                         if (s.Name == "CuttingBoardScript") {
                             if (mScript->m_Ingredients.empty() && !mScript->m_IsReady) {
                                 canAccept = (hoveredType == IngredientType::Tomato || hoveredType == IngredientType::Baguette ||
@@ -209,11 +206,19 @@ private:
                             Entity machineEntity = scripts->reverse[i];
                             auto* machineTf = transforms->Get(machineEntity);
                             if (machineTf && itemTf) {
-                                float dist = glm::distance(itemTf->GetPosition(), machineTf->GetPosition());
-                                if (dist < closestDist) {
-                                    closestDist = dist;
-                                    closestMachine = machineEntity;
-                                    targetMachineScript = mScript;
+                                // ZMIANA: Zamieniamy maszynę na współrzędne kratek (Grid)
+                                glm::ivec2 machineCell = GridSystem::WorldToCell(machineTf->GetPosition());
+
+                                // Ograniczamy do 8 kratek dookoła (odległość w osi X i Y to max 1)
+                                if (std::abs(itemCell.x - machineCell.x) <= 1 && std::abs(itemCell.y - machineCell.y) <= 1)
+                                {
+                                    // Bierzemy najbliższą fizycznie wewnątrz tego obszaru
+                                    float dist = glm::distance(itemTf->GetPosition(), machineTf->GetPosition());
+                                    if (dist < closestDist) {
+                                        closestDist = dist;
+                                        closestMachine = machineEntity;
+                                        targetMachineScript = mScript;
+                                    }
                                 }
                             }
                         }
@@ -221,7 +226,6 @@ private:
                 }
             }
 
-            // Rozświetlamy maszynę docelową
             if (closestMachine.id != HighlightedMachineFromBelt.id) {
                 ClearMachineHighlight();
                 if (closestMachine.id != std::numeric_limits<std::size_t>::max()) {
@@ -230,9 +234,8 @@ private:
                 HighlightedMachineFromBelt = closestMachine;
             }
 
-            // Po celnym kliknięciu w przedmiot, przenosimy go ze świata do wnętrza maszyny
             if (Input::IsMouseButtonJustPressed(0) && closestMachine.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
-                if (!Input::IsKeyPressed(340)) { // Brak shifta
+                if (!Input::IsKeyPressed(340)) {
                     if (targetMachineScript && targetMachineScript->AddIngredient(hoveredType)) {
                         spdlog::info("Składnik z taśmy wskoczył prosto na maszynę!");
                         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ hoveredBeltItem });
@@ -247,7 +250,7 @@ private:
     }
 
     // ==========================================================
-    // SEKCJA: TRANSFER Z TALERZA DO GARNKA (działa na płaskim)
+    // SEKCJA: TRANSFER Z TALERZA DO GARNKA (Kwadrat 3x3)
     // ==========================================================
 
     static void SetPotHighlight(Entity potEntity, bool state) {
@@ -299,8 +302,11 @@ private:
         if (hoveredPlateScript) {
             Entity closestPot = { std::numeric_limits<std::size_t>::max(), 0 };
             MachineScript* targetPotScript = nullptr;
-            float closestDist = 8.0f;
+            float closestDist = 999.0f; // Reset do dużej wartości
+
             auto* plateTf = transforms->Get(currentHoveredPlate);
+            // ZMIANA: Zczytujemy pozycję na siatce Talerza
+            glm::ivec2 plateCell = GridSystem::WorldToCell(plateTf->GetPosition());
 
             for (size_t i = 0; i < scripts->dense.size(); ++i) {
                 auto& nsc = scripts->dense[i];
@@ -311,11 +317,19 @@ private:
                         MachineScript* mScript = static_cast<MachineScript*>(s.Instance);
 
                         if (potTf && mScript && !mScript->m_IsReady && mScript->m_Ingredients.size() < 2) {
-                            float dist = glm::distance(plateTf->GetPosition(), potTf->GetPosition());
-                            if (dist < closestDist) {
-                                closestDist = dist;
-                                closestPot = potEntity;
-                                targetPotScript = mScript;
+
+                            // ZMIANA: Zczytujemy pozycję na siatce Garnka
+                            glm::ivec2 potCell = GridSystem::WorldToCell(potTf->GetPosition());
+
+                            // Ograniczamy do 8 kratek dookoła
+                            if (std::abs(plateCell.x - potCell.x) <= 1 && std::abs(plateCell.y - potCell.y) <= 1)
+                            {
+                                float dist = glm::distance(plateTf->GetPosition(), potTf->GetPosition());
+                                if (dist < closestDist) {
+                                    closestDist = dist;
+                                    closestPot = potEntity;
+                                    targetPotScript = mScript;
+                                }
                             }
                         }
                         break;

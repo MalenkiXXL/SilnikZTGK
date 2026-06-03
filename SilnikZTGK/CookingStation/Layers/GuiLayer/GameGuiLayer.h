@@ -46,6 +46,7 @@ private:
     std::size_t m_InventorySubId = 0;
     std::size_t m_MoneySubId = 0;
     std::size_t m_GameStartedSubId = 0;
+    std::size_t m_OrderTakenSubId = 0;
 
     std::shared_ptr<Scene> m_ActiveScene;
     std::shared_ptr<Framebuffer> m_ViewportFBO;
@@ -93,6 +94,10 @@ private:
     std::shared_ptr<Texture> m_CroissantIcon;
     std::shared_ptr<Texture> m_CupcakeIcon;
     std::shared_ptr<Texture> m_QuestionMarkIcon;
+    std::shared_ptr<Texture> m_HelperOrderTex;
+    std::shared_ptr<Texture> m_CustomerOrderTex;
+
+    std::vector<Entity> m_ActiveOrderTickets;
 
     struct BubblyState {
         float    scale = 1.0f;
@@ -114,4 +119,5 @@ private:
     void DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
     void DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
     void DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale);
+    void DrawOrderTickets(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale);
 };
