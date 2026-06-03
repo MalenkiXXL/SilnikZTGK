@@ -21,12 +21,12 @@
             ]
         },
         {
-            "id": 2,
+            "id": 1,
             "name": "PlateSpawner_62",
             "position": [
-                -7.0,
+                9.0,
                 2.0,
-                7.0
+                11.0
             ],
             "rotation": [
                 0.0,
@@ -43,7 +43,7 @@
             ]
         },
         {
-            "id": 3,
+            "id": 2,
             "model_path": "assets://models/przybory_kuchenne/small_pot/small_pot.gltf",
             "name": "DispenserManager",
             "position": [
@@ -69,18 +69,16 @@
         {
             "animator": {
                 "clips": {
-                    "Walk": "assets://models/animacje/grzybek/grzybek_walk.gltf",
-                    "Wave": "assets://models/animacje/grzybek/grzybek-macha.gltf",
                     "Idle": "assets://models/animacje/grzybek/grzybek-stoi.gltf",
-                    "Note": "assets://models/animacje/grzybek/grzybek-notes.gltf",
-                    "Page": "assets://models/animacje/grzybek/grzybek-kartka.gltf",
-                    "Order": "assets://models/animacje/grzybek/grzybek-zamowienia.gltf"
+                    "Order": "assets://models/animacje/grzybek/grzybek-zamowienia.gltf",
+                    "Walk": "assets://models/animacje/grzybek/grzybek_walk.gltf",
+                    "Wave": "assets://models/animacje/grzybek/grzybek-macha.gltf"
                 },
                 "is_playing": true,
                 "playback_speed": 1.0,
                 "start_clip": "Idle"
             },
-            "id": 4,
+            "id": 3,
             "model_path": "assets://models/warzywka/grzybek/grzybek.gltf",
             "name": "Pan Grzybek",
             "position": [
@@ -104,7 +102,7 @@
             ]
         },
         {
-            "id": 5,
+            "id": 4,
             "model_path": "assets://models/wystroj/budka.gltf",
             "name": "budka",
             "position": [
@@ -124,7 +122,7 @@
             ]
         },
         {
-            "id": 6,
+            "id": 5,
             "model_path": "assets://models/wystroj/balony.gltf",
             "name": "balony",
             "position": [
@@ -144,7 +142,7 @@
             ]
         },
         {
-            "id": 7,
+            "id": 6,
             "model_path": "assets://models/wystroj/balony.gltf",
             "name": "balony",
             "position": [
@@ -164,7 +162,7 @@
             ]
         },
         {
-            "id": 8,
+            "id": 7,
             "model_path": "assets://models/wystroj/balony.gltf",
             "name": "balony",
             "position": [
@@ -184,7 +182,7 @@
             ]
         },
         {
-            "id": 9,
+            "id": 8,
             "model_path": "assets://models/wystroj/balony.gltf",
             "name": "balony",
             "position": [
@@ -216,42 +214,7 @@
                     1.0
                 ]
             },
-            "id": 10,
-            "model_path": "assets://models/przybory_kuchenne/deska/board.gltf",
-            "name": "narożnikPas",
-            "position": [
-                -1.0,
-                0.0,
-                13.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "scripts": [
-                "CuttingBoardScript"
-            ]
-        },
-        {
-            "collider": {
-                "offset": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "size": [
-                    1.0,
-                    1.0,
-                    1.0
-                ]
-            },
-            "id": 11,
+            "id": 9,
             "model_path": "assets://models/wystroj/budka.gltf",
             "name": "narożnikPas",
             "position": [
@@ -286,7 +249,7 @@
                     1.0
                 ]
             },
-            "id": 12,
+            "id": 10,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
             "name": "tasma_1",
             "position": [
@@ -309,9 +272,68 @@
             ]
         },
         {
-            "id": 13,
+            "id": 11,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
             "name": "tasma_pas_1",
+            "parent_id": 10,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 12,
+            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_2",
+            "position": [
+                7.0,
+                0.0,
+                7.0
+            ],
+            "rotation": [
+                0.0,
+                180.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 13,
+            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_2",
             "parent_id": 12,
             "position": [
                 0.0,
@@ -347,9 +369,9 @@
             },
             "id": 14,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_2",
+            "name": "tasma_3",
             "position": [
-                7.0,
+                5.0,
                 0.0,
                 7.0
             ],
@@ -370,7 +392,7 @@
         {
             "id": 15,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_2",
+            "name": "tasma_pas_3",
             "parent_id": 14,
             "position": [
                 0.0,
@@ -406,9 +428,9 @@
             },
             "id": 16,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_3",
+            "name": "tasma_4",
             "position": [
-                5.0,
+                3.0,
                 0.0,
                 7.0
             ],
@@ -429,7 +451,7 @@
         {
             "id": 17,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_3",
+            "name": "tasma_pas_4",
             "parent_id": 16,
             "position": [
                 0.0,
@@ -465,9 +487,9 @@
             },
             "id": 18,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_4",
+            "name": "tasma_5",
             "position": [
-                3.0,
+                1.0,
                 0.0,
                 7.0
             ],
@@ -488,11 +510,11 @@
         {
             "id": 19,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_4",
+            "name": "tasma_pas_5",
             "parent_id": 18,
             "position": [
                 0.0,
-                0.009999999776482582,
+                0.0,
                 0.0
             ],
             "rotation": [
@@ -524,15 +546,15 @@
             },
             "id": 20,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_5",
+            "name": "tasma_6",
             "position": [
                 1.0,
                 0.0,
-                7.0
+                5.0
             ],
             "rotation": [
                 0.0,
-                180.0,
+                90.0,
                 0.0
             ],
             "scale": [
@@ -547,11 +569,11 @@
         {
             "id": 21,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_5",
+            "name": "tasma_pas_6",
             "parent_id": 20,
             "position": [
                 0.0,
-                0.0,
+                0.009999999776482582,
                 0.0
             ],
             "rotation": [
@@ -583,11 +605,11 @@
             },
             "id": 22,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_6",
+            "name": "tasma_7",
             "position": [
                 1.0,
                 0.0,
-                5.0
+                3.0
             ],
             "rotation": [
                 0.0,
@@ -606,11 +628,11 @@
         {
             "id": 23,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_6",
+            "name": "tasma_pas_7",
             "parent_id": 22,
             "position": [
                 0.0,
-                0.009999999776482582,
+                0.0,
                 0.0
             ],
             "rotation": [
@@ -642,65 +664,6 @@
             },
             "id": 24,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_7",
-            "position": [
-                1.0,
-                0.0,
-                3.0
-            ],
-            "rotation": [
-                0.0,
-                90.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "scripts": [
-                "ConveyorScript"
-            ]
-        },
-        {
-            "id": 25,
-            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_7",
-            "parent_id": 24,
-            "position": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "scripts": [
-                "BeltVisualScript"
-            ]
-        },
-        {
-            "collider": {
-                "offset": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "size": [
-                    1.0,
-                    0.5,
-                    1.0
-                ]
-            },
-            "id": 26,
-            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
             "name": "tasma_8",
             "position": [
                 1.0,
@@ -722,10 +685,10 @@
             ]
         },
         {
-            "id": 27,
+            "id": 25,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
             "name": "tasma_pas_8",
-            "parent_id": 26,
+            "parent_id": 24,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -758,7 +721,7 @@
                     1.0
                 ]
             },
-            "id": 28,
+            "id": 26,
             "model_path": "assets://models/przybory_kuchenne/tasma/switch/base.gltf",
             "name": "tasma_1",
             "position": [
@@ -781,13 +744,72 @@
             ]
         },
         {
-            "id": 29,
+            "id": 27,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
             "name": "tasma_pas_1",
-            "parent_id": 28,
+            "parent_id": 26,
             "position": [
                 0.0,
                 0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 28,
+            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_10",
+            "position": [
+                3.0,
+                0.0,
+                -1.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 29,
+            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_10",
+            "parent_id": 28,
+            "position": [
+                0.0,
+                0.009999999776482582,
                 0.0
             ],
             "rotation": [
@@ -819,9 +841,9 @@
             },
             "id": 30,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_10",
+            "name": "tasma_11",
             "position": [
-                3.0,
+                5.0,
                 0.0,
                 -1.0
             ],
@@ -842,8 +864,67 @@
         {
             "id": 31,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_10",
+            "name": "tasma_pas_11",
             "parent_id": 30,
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 32,
+            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_12",
+            "position": [
+                7.0,
+                0.0,
+                -1.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 33,
+            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_12",
+            "parent_id": 32,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -876,17 +957,17 @@
                     1.0
                 ]
             },
-            "id": 32,
+            "id": 34,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_11",
+            "name": "tasma_14",
             "position": [
-                5.0,
+                9.0,
                 0.0,
-                -1.0
+                5.0
             ],
             "rotation": [
                 0.0,
-                0.0,
+                270.0,
                 0.0
             ],
             "scale": [
@@ -899,13 +980,13 @@
             ]
         },
         {
-            "id": 33,
+            "id": 35,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_11",
-            "parent_id": 32,
+            "name": "tasma_pas_14",
+            "parent_id": 34,
             "position": [
                 0.0,
-                0.0,
+                0.009999999776482582,
                 0.0
             ],
             "rotation": [
@@ -935,17 +1016,17 @@
                     1.0
                 ]
             },
-            "id": 34,
+            "id": 36,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_12",
+            "name": "tasma_15",
             "position": [
-                7.0,
+                9.0,
                 0.0,
-                -1.0
+                3.0
             ],
             "rotation": [
                 0.0,
-                0.0,
+                270.0,
                 0.0
             ],
             "scale": [
@@ -958,10 +1039,10 @@
             ]
         },
         {
-            "id": 35,
+            "id": 37,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_12",
-            "parent_id": 34,
+            "name": "tasma_pas_15",
+            "parent_id": 36,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -996,11 +1077,11 @@
             },
             "id": 38,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_14",
+            "name": "tasma_16",
             "position": [
                 9.0,
                 0.0,
-                5.0
+                1.0
             ],
             "rotation": [
                 0.0,
@@ -1019,7 +1100,7 @@
         {
             "id": 39,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_14",
+            "name": "tasma_pas_16",
             "parent_id": 38,
             "position": [
                 0.0,
@@ -1055,11 +1136,11 @@
             },
             "id": 40,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_15",
+            "name": "tasma_17",
             "position": [
                 9.0,
                 0.0,
-                3.0
+                -3.0
             ],
             "rotation": [
                 0.0,
@@ -1078,7 +1159,7 @@
         {
             "id": 41,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_15",
+            "name": "tasma_pas_17",
             "parent_id": 40,
             "position": [
                 0.0,
@@ -1114,11 +1195,11 @@
             },
             "id": 42,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_16",
+            "name": "tasma_18",
             "position": [
                 9.0,
                 0.0,
-                1.0
+                -5.0
             ],
             "rotation": [
                 0.0,
@@ -1137,7 +1218,7 @@
         {
             "id": 43,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_16",
+            "name": "tasma_pas_18",
             "parent_id": 42,
             "position": [
                 0.0,
@@ -1173,11 +1254,11 @@
             },
             "id": 44,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_17",
+            "name": "tasma_PickupConveyor",
             "position": [
                 9.0,
                 0.0,
-                -3.0
+                -7.0
             ],
             "rotation": [
                 0.0,
@@ -1190,13 +1271,14 @@
                 1.0
             ],
             "scripts": [
-                "ConveyorScript"
+                "ConveyorScript",
+                "WaiterPickupStationScript"
             ]
         },
         {
             "id": 45,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_17",
+            "name": "tasma_pas_19",
             "parent_id": 44,
             "position": [
                 0.0,
@@ -1232,11 +1314,11 @@
             },
             "id": 46,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_18",
+            "name": "tasma_20",
             "position": [
-                9.0,
+                1.0,
                 0.0,
-                -5.0
+                -3.0
             ],
             "rotation": [
                 0.0,
@@ -1255,7 +1337,7 @@
         {
             "id": 47,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_18",
+            "name": "tasma_pas_20",
             "parent_id": 46,
             "position": [
                 0.0,
@@ -1291,15 +1373,15 @@
             },
             "id": 48,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_PickupConveyor",
+            "name": "tasma_21",
             "position": [
-                9.0,
+                1.0,
                 0.0,
-                -7.0
+                -5.0
             ],
             "rotation": [
                 0.0,
-                270.0,
+                0.0,
                 0.0
             ],
             "scale": [
@@ -1308,14 +1390,13 @@
                 1.0
             ],
             "scripts": [
-                "ConveyorScript",
-                "WaiterPickupStationScript"
+                "ConveyorScript"
             ]
         },
         {
             "id": 49,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_19",
+            "name": "tasma_pas_21",
             "parent_id": 48,
             "position": [
                 0.0,
@@ -1351,15 +1432,15 @@
             },
             "id": 50,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_20",
+            "name": "tasma_22",
             "position": [
-                1.0,
+                -1.0,
                 0.0,
-                -3.0
+                -5.0
             ],
             "rotation": [
                 0.0,
-                270.0,
+                0.0,
                 0.0
             ],
             "scale": [
@@ -1374,7 +1455,7 @@
         {
             "id": 51,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_20",
+            "name": "tasma_pas_22",
             "parent_id": 50,
             "position": [
                 0.0,
@@ -1410,9 +1491,9 @@
             },
             "id": 52,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_21",
+            "name": "tasma_23",
             "position": [
-                1.0,
+                -3.0,
                 0.0,
                 -5.0
             ],
@@ -1433,7 +1514,7 @@
         {
             "id": 53,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_21",
+            "name": "tasma_pas_23",
             "parent_id": 52,
             "position": [
                 0.0,
@@ -1469,9 +1550,9 @@
             },
             "id": 54,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_22",
+            "name": "tasma_24",
             "position": [
-                -1.0,
+                -5.0,
                 0.0,
                 -5.0
             ],
@@ -1492,7 +1573,7 @@
         {
             "id": 55,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_22",
+            "name": "tasma_pas_24",
             "parent_id": 54,
             "position": [
                 0.0,
@@ -1528,9 +1609,9 @@
             },
             "id": 56,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_23",
+            "name": "tasma_25",
             "position": [
-                -3.0,
+                -7.0,
                 0.0,
                 -5.0
             ],
@@ -1551,7 +1632,7 @@
         {
             "id": 57,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_23",
+            "name": "tasma_pas_25",
             "parent_id": 56,
             "position": [
                 0.0,
@@ -1587,15 +1668,15 @@
             },
             "id": 58,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_24",
+            "name": "tasma_26",
             "position": [
-                -5.0,
+                -1.0,
                 0.0,
-                -5.0
+                7.0
             ],
             "rotation": [
                 0.0,
-                0.0,
+                180.0,
                 0.0
             ],
             "scale": [
@@ -1610,7 +1691,7 @@
         {
             "id": 59,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_24",
+            "name": "tasma_pas_26",
             "parent_id": 58,
             "position": [
                 0.0,
@@ -1646,15 +1727,15 @@
             },
             "id": 60,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_25",
+            "name": "tasma_27",
             "position": [
-                -7.0,
+                -3.0,
                 0.0,
-                -5.0
+                7.0
             ],
             "rotation": [
                 0.0,
-                0.0,
+                180.0,
                 0.0
             ],
             "scale": [
@@ -1669,7 +1750,7 @@
         {
             "id": 61,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_25",
+            "name": "tasma_pas_27",
             "parent_id": 60,
             "position": [
                 0.0,
@@ -1705,9 +1786,9 @@
             },
             "id": 62,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_26",
+            "name": "tasma_28",
             "position": [
-                -1.0,
+                -5.0,
                 0.0,
                 7.0
             ],
@@ -1728,7 +1809,7 @@
         {
             "id": 63,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_26",
+            "name": "tasma_pas_28",
             "parent_id": 62,
             "position": [
                 0.0,
@@ -1764,15 +1845,15 @@
             },
             "id": 64,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_27",
+            "name": "tasma_29",
             "position": [
-                -3.0,
+                9.0,
                 0.0,
-                7.0
+                11.0
             ],
             "rotation": [
                 0.0,
-                180.0,
+                270.0,
                 0.0
             ],
             "scale": [
@@ -1787,7 +1868,7 @@
         {
             "id": 65,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_27",
+            "name": "tasma_pas_29",
             "parent_id": 64,
             "position": [
                 0.0,
@@ -1822,124 +1903,6 @@
                 ]
             },
             "id": 66,
-            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_28",
-            "position": [
-                -5.0,
-                0.0,
-                7.0
-            ],
-            "rotation": [
-                0.0,
-                180.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "scripts": [
-                "ConveyorScript"
-            ]
-        },
-        {
-            "id": 67,
-            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_28",
-            "parent_id": 66,
-            "position": [
-                0.0,
-                0.009999999776482582,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "scripts": [
-                "BeltVisualScript"
-            ]
-        },
-        {
-            "collider": {
-                "offset": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "size": [
-                    1.0,
-                    0.5,
-                    1.0
-                ]
-            },
-            "id": 68,
-            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_29",
-            "position": [
-                -7.0,
-                0.0,
-                7.0
-            ],
-            "rotation": [
-                0.0,
-                180.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "scripts": [
-                "ConveyorScript"
-            ]
-        },
-        {
-            "id": 69,
-            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_29",
-            "parent_id": 68,
-            "position": [
-                0.0,
-                0.009999999776482582,
-                0.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "scripts": [
-                "BeltVisualScript"
-            ]
-        },
-        {
-            "collider": {
-                "offset": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "size": [
-                    1.0,
-                    0.5,
-                    1.0
-                ]
-            },
-            "id": 74,
             "model_path": "assets://models/przybory_kuchenne/tasma/switch/base.gltf",
             "name": "tasma_3",
             "position": [
@@ -1962,10 +1925,10 @@
             ]
         },
         {
-            "id": 75,
+            "id": 67,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
             "name": "tasma_pas_3",
-            "parent_id": 74,
+            "parent_id": 66,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -1986,84 +1949,204 @@
             ]
         },
         {
-            "id": 76,
+            "id": 68,
             "model_path": "assets://models/wystroj/stolik.gltf",
             "name": "Table_1_1",
-            "position": [ -3.0, 0.0, -11.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
+            "position": [
+                -3.0,
+                0.0,
+                -11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "id": 69,
+            "model_path": "assets://models/wystroj/krzeslo.gltf",
+            "name": "Chair_1",
+            "position": [
+                -1.0,
+                0.0,
+                -11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "id": 70,
+            "model_path": "assets://models/wystroj/krzeslo.gltf",
+            "name": "Chair_1",
+            "position": [
+                -5.0,
+                0.0,
+                -11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "id": 71,
+            "model_path": "assets://models/wystroj/stolik.gltf",
+            "name": "Table_1_2",
+            "position": [
+                3.0,
+                0.0,
+                -13.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "id": 72,
+            "model_path": "assets://models/wystroj/krzeslo.gltf",
+            "name": "Chair_2",
+            "position": [
+                5.0,
+                0.0,
+                -13.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "id": 73,
+            "model_path": "assets://models/wystroj/krzeslo.gltf",
+            "name": "Chair_2",
+            "position": [
+                1.0,
+                0.0,
+                -13.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "id": 74,
+            "model_path": "assets://models/wystroj/stolik.gltf",
+            "name": "Table_1_4",
+            "position": [
+                11.0,
+                0.0,
+                -13.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "id": 75,
+            "model_path": "assets://models/wystroj/krzeslo.gltf",
+            "name": "Chair_4",
+            "position": [
+                13.0,
+                0.0,
+                -13.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "id": 76,
+            "model_path": "assets://models/wystroj/krzeslo.gltf",
+            "name": "Chair_4",
+            "position": [
+                9.0,
+                0.0,
+                -13.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
         },
         {
             "id": 77,
-            "model_path": "assets://models/wystroj/krzeslo.gltf",
-            "name": "Chair_1",
-            "position": [ -1.0, 0.0, -11.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
-        },
-        {
-            "id": 78,
-            "model_path": "assets://models/wystroj/krzeslo.gltf",
-            "name": "Chair_1",
-            "position": [ -5.0, 0.0, -11.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
-        },
-        {
-            "id": 79,
-            "model_path": "assets://models/wystroj/stolik.gltf",
-            "name": "Table_1_2",
-            "position": [ 3.0, 0.0, -13.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
-        },
-        {
-            "id": 80,
-            "model_path": "assets://models/wystroj/krzeslo.gltf",
-            "name": "Chair_2",
-            "position": [ 5.0, 0.0, -13.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
-        },
-        {
-            "id": 81,
-            "model_path": "assets://models/wystroj/krzeslo.gltf",
-            "name": "Chair_2",
-            "position": [ 1.0, 0.0, -13.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
-        },
-        {
-            "id": 82,
-            "model_path": "assets://models/wystroj/stolik.gltf",
-            "name": "Table_1_4",
-            "position": [ 11.0, 0.0, -13.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
-        },
-        {
-            "id": 83,
-            "model_path": "assets://models/wystroj/krzeslo.gltf",
-            "name": "Chair_4",
-            "position": [ 13.0, 0.0, -13.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
-        },
-        {
-            "id": 84,
-            "model_path": "assets://models/wystroj/krzeslo.gltf",
-            "name": "Chair_4",
-            "position": [ 9.0, 0.0, -13.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
-        },
-        {
-            "id": 85,
-            "model_path": "CookingStation/Assets/models/wystroj/event.gltf",
+            "model_path": "assets://models/wystroj/event.gltf",
             "name": "event_78",
-            "position": [ -30.0, 1.5, 1.0 ],
-            "rotation": [ 0.0, 0.0, 0.0 ],
-            "scale": [ 1.0, 1.0, 1.0 ]
+            "position": [
+                -30.0,
+                1.5,
+                1.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
         },
         {
             "collider": {
@@ -2078,23 +2161,23 @@
                     1.0827584266662598
                 ]
             },
-            "id": 86,
+            "id": 78,
             "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
             "name": "SkrzynkaMleko",
             "position": [
-                -5,
-                0,
-                9
+                -5.0,
+                0.0,
+                9.0
             ],
             "rotation": [
-                0,
-                0,
-                0
+                0.0,
+                0.0,
+                0.0
             ],
             "scale": [
-                0.9,
-                0.9,
-                0.9
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
             ],
             "scripts": [
                 "CrateScript"
@@ -2113,23 +2196,23 @@
                     1.0827584266662598
                 ]
             },
-            "id": 87,
+            "id": 79,
             "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
             "name": "Skrzynka",
             "position": [
-                -3,
-                0,
-                5
+                -3.0,
+                0.0,
+                5.0
             ],
             "rotation": [
-                0,
-                0,
-                0
+                0.0,
+                0.0,
+                0.0
             ],
             "scale": [
-                0.9,
-                0.9,
-                0.9
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
             ],
             "scripts": [
                 "CrateScript"
@@ -2148,23 +2231,23 @@
                     1.0827584266662598
                 ]
             },
-            "id": 88,
+            "id": 80,
             "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
             "name": "SkrzynkaPomidor",
             "position": [
-                -7,
-                0,
-                5
+                -7.0,
+                0.0,
+                5.0
             ],
             "rotation": [
-                0,
-                0,
-                0
+                0.0,
+                0.0,
+                0.0
             ],
             "scale": [
-                0.9,
-                0.9,
-                0.9
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
             ],
             "scripts": [
                 "CrateScript"
@@ -2183,23 +2266,23 @@
                     1.0827584266662598
                 ]
             },
-            "id": 89,
+            "id": 81,
             "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
             "name": "SkrzynkaSer",
             "position": [
-                -5,
-                0,
-                5
+                -5.0,
+                0.0,
+                5.0
             ],
             "rotation": [
-                0,
-                0,
-                0
+                0.0,
+                0.0,
+                0.0
             ],
             "scale": [
-                0.9,
-                0.9,
-                0.9
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
             ],
             "scripts": [
                 "CrateScript"
@@ -2218,23 +2301,23 @@
                     1.0827584266662598
                 ]
             },
-            "id": 90,
+            "id": 82,
             "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
             "name": "SkrzynkaSzynka",
             "position": [
-                -3,
-                0,
-                9
+                -3.0,
+                0.0,
+                9.0
             ],
             "rotation": [
-                0,
-                0,
-                0
+                0.0,
+                0.0,
+                0.0
             ],
             "scale": [
-                0.9,
-                0.9,
-                0.9
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
             ],
             "scripts": [
                 "CrateScript"
@@ -2245,7 +2328,7 @@
                 "offset": [
                     0.007066965103149414,
                     2.3567605018615723,
-                    -1.1920928955078125e-7
+                    -1.1920928955078125e-07
                 ],
                 "size": [
                     2.3487651348114014,
@@ -2253,23 +2336,23 @@
                     1.5922051668167114
                 ]
             },
-            "id": 91,
-            "model_path": "CookingStation/Assets/models/wystroj/wydawka/wydawka.gltf",
+            "id": 83,
+            "model_path": "assets://models/wystroj/wydawka/wydawka.gltf",
             "name": "Wydawka",
             "position": [
-                9,
-                0,
-                -9
+                9.0,
+                0.0,
+                -9.0
             ],
             "rotation": [
-                0,
-                0,
-                0
+                0.0,
+                0.0,
+                0.0
             ],
             "scale": [
-                1,
-                1,
-                1
+                1.0,
+                1.0,
+                1.0
             ]
         },
         {
@@ -2285,26 +2368,251 @@
                     1.0827584266662598
                 ]
             },
-            "id": 92,
+            "id": 84,
             "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
             "name": "SkrzynkaMaka",
             "position": [
-                -7,
-                0,
-                9
+                -7.0,
+                0.0,
+                9.0
             ],
             "rotation": [
-                0,
-                0,
-                0
+                0.0,
+                0.0,
+                0.0
             ],
             "scale": [
-                0.9,
-                0.9,
-                0.9
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
             ],
             "scripts": [
                 "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 85,
+            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_1",
+            "position": [
+                9.0,
+                3.814697265625e-06,
+                9.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 86,
+            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_1",
+            "parent_id": 85,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 87,
+            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_2",
+            "position": [
+                -7.0,
+                0.0,
+                7.0
+            ],
+            "rotation": [
+                0.0,
+                180.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 88,
+            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_2",
+            "parent_id": 87,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "id": 89,
+            "model_path": "assets://models/przybory_kuchenne/small_pot/small_pot.gltf",
+            "name": "Garnek_1",
+            "position": [
+                5.0,
+                0.0,
+                5.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "PotScript",
+                "SteamEmitterScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "id": 90,
+            "model_path": "assets://models/przybory_kuchenne/small_pot/small_pot.gltf",
+            "name": "Garnek_2",
+            "position": [
+                -1.0,
+                0.0,
+                1.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "PotScript",
+                "SteamEmitterScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.05783424526453018,
+                    0.0
+                ],
+                "size": [
+                    1.373424768447876,
+                    0.08198254555463791,
+                    1.0284260511398315
+                ]
+            },
+            "id": 91,
+            "model_path": "assets://models/przybory_kuchenne/deska/board.gltf",
+            "name": "deska",
+            "position": [
+                3.0,
+                0.0,
+                9.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "CuttingBoardScript"
             ]
         }
     ]

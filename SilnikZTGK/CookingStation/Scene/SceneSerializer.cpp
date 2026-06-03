@@ -292,7 +292,6 @@ bool SceneSerializer::ParseAnimatorFromJson(const nlohmann::json& item, std::sha
 {
     if (!model) return false;
 
-    // Lokalna wersja sanitizera ścieżek
     auto SanitizePath = [](std::string& pathStr) {
         std::string badPrefix = "CookingStation/Assets/";
         size_t pos = pathStr.find(badPrefix);
@@ -319,8 +318,7 @@ bool SceneSerializer::ParseAnimatorFromJson(const nlohmann::json& item, std::sha
             std::string clipPath = el.value();
             SanitizePath(clipPath);
 
-            auto clipModel = AssetManager::GetModel(clipPath);
-            auto clipAnim = std::make_shared<Animation>(clipPath, clipModel.get());
+            auto clipAnim = std::make_shared<Animation>(clipPath, model.get());
 
             if (clipAnim->GetDuration() > 0.0f) {
                 animator->AddAnimation(clipName, clipAnim);
@@ -338,14 +336,20 @@ bool SceneSerializer::ParseAnimatorFromJson(const nlohmann::json& item, std::sha
 
             if (item["animator"].contains("start_clip")) {
                 std::string sClip = item["animator"]["start_clip"];
-                animator->PlayAnimation(sClip);
+                if (!sClip.empty()) {
+                    animator->PlayAnimation(sClip);
+                }
             } else {
-                animator->PlayAnimation("Default");
+                if (animator->GetAnimations().find("Default") != animator->GetAnimations().end()) {
+                    animator->PlayAnimation("Default");
+                }
             }
         } else {
             outAnimComp.IsPlaying = false;
             outAnimComp.PlaybackSpeed = 1.0f;
-            animator->PlayAnimation("Default");
+            if (animator->GetAnimations().find("Default") != animator->GetAnimations().end()) {
+                animator->PlayAnimation("Default");
+            }
         }
         return true;
     }

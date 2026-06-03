@@ -30,16 +30,16 @@ public:
         }
     }
 
-    void PlayAnimation(const std::string& name)
+    void PlayAnimation(const std::string& name, bool forceReset = false)
     {
-        // BARDZO WA�NE: Nie resetuj czasu, je�li ta animacja JU� TERAZ leci
-        if (m_CurrentAnimationName == name) return;
+        if (m_CurrentAnimationName == name && !forceReset) return;
 
         if (m_Animations.find(name) != m_Animations.end())
         {
             m_CurrentAnimation = m_Animations[name];
             m_CurrentAnimationName = name;
             m_CurrentTime = 0.0f;
+            CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
             spdlog::info("Animator: Przelaczono na animacje '{}'", name);
         }
         else

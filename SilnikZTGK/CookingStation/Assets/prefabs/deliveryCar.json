@@ -1,14 +1,15 @@
 {
   "name": "Dostawczak",
-  "model_path": "assets://models/animacje/dostawa/dostawczak-open.gltf",
+  "model_path": "assets://models/animacje/grzybek/grzybek-macha.gltf",
   "animator": {
     "is_playing": false,
-    "start_clip": "Open",
+    "start_clip": "",
     "clips": {
-      "Open": "assets://models/animacje/dostawa/dostawczak-open.gltf"
+      "Open": "assets://models/animacje/grzybek/grzybek-macha.gltf",
+      "Close": "assets://models/animacje/grzybek/grzybek-zamowienia.gltf"
     }
   },
-  "rotation": [0.0, -90.0, 0.0],
+  "rotation": [0.0, 90.0, 0.0],
   "scale" : [2.0, 2.0, 2.0],
   "script": "DeliveryCarScript"
 }
