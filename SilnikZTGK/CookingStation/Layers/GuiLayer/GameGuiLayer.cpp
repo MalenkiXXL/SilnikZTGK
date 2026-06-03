@@ -121,7 +121,6 @@ void GameGuiLayer::OnAttach()
                     [this](const OrderTakenEvent& e) {
                         if (!m_IsActive) return;
 
-                        // NAPRAWA: Zamiast std::find używamy std::find_if żeby porównać pole .id obu encji!
                         auto it = std::find_if(m_ActiveOrderTickets.begin(), m_ActiveOrderTickets.end(),
                             [&e](const Entity& ticketEnt) {
                                 return ticketEnt.id == e.Customer.id;
@@ -457,25 +456,8 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
             glm::vec2 ticketSize = GuiUtils::CalculateAspectSize(ticketTex, ticketHeight);
             glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin, currentY };
 
+            // Rysujemy SAMO tło karteczki
             Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-
-            std::shared_ptr<Texture> foodTex = nullptr;
-            if (custScript->WantedIngredient == "Tomato") foodTex = m_TomatoIcon;
-            else if (custScript->WantedIngredient == "Cheese") foodTex = m_CheeseIcon;
-            else if (custScript->WantedIngredient == "Ham") foodTex = m_HamIcon;
-            else if (custScript->WantedIngredient == "Sandwich") foodTex = m_SandwichIcon;
-
-            if (foodTex) {
-                float foodHeight = ticketHeight * 0.55f;
-                glm::vec2 foodSize = GuiUtils::CalculateAspectSize(foodTex, foodHeight);
-
-                glm::vec2 foodPos = {
-                    ticketPos.x + (ticketSize.x - foodSize.x) * 0.5f,
-                    ticketPos.y + (ticketSize.y - foodSize.y) * 0.55f
-                };
-
-                Renderer2D::DrawQuad(foodPos, foodSize, foodTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-            }
 
             currentY += ticketHeight + (10.0f * baseScale);
         }
@@ -547,7 +529,6 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                 [this](const OrderTakenEvent& e) {
                     if (!m_IsActive) return;
 
-                    // NAPRAWA: Zamiast std::find używamy std::find_if żeby porównać pole .id obu encji!
                     auto it = std::find_if(m_ActiveOrderTickets.begin(), m_ActiveOrderTickets.end(),
                         [&e](const Entity& ticketEnt) {
                             return ticketEnt.id == e.Customer.id;
