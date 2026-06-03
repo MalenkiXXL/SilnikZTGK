@@ -414,7 +414,7 @@ private:
         m_IsCarryingPlate = false;
         m_HasWaypoint = false;
 
-        std::vector<std::string> servedIngredients;
+        Entity trueFoodChild = { std::numeric_limits<std::size_t>::max(), 0 };
 
         if (IsValidEntity(m_TargetPlate))
         {
@@ -423,22 +423,16 @@ private:
             {
                 // Szukamy PRAWDZIWEJ encji dziecka, by system ECS nie odrzucił generacji = 0
                 auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
-                Entity trueFoodChild = { std::numeric_limits<std::size_t>::max(), 0 };
 
                 if (tags) {
                     for (size_t i = 0; i < tags->dense.size(); ++i) {
                         if (tags->reverse[i].id == rel->FirstChild) {
                             trueFoodChild = tags->reverse[i]; // Mamy prawidłowe Entity i Generację!
-                            servedIngredients.push_back(tags->dense[i].Tag); // Zczytujemy Tag
                             break;
                         }
                     }
                 }
-
-                // Jeśli znaleźliśmy prawidłowe jedzenie - niszczymy je
-                if (trueFoodChild.id != std::numeric_limits<std::size_t>::max()) {
-                    GetScene()->GetWorld().DestroyEntity(trueFoodChild);
-                }
+                // UWAGA: Już nie niszczymy trueFoodChild tutaj!
             }
             GetScene()->GetWorld().DestroyEntity(m_TargetPlate);
         }
@@ -446,16 +440,15 @@ private:
         m_TargetPlate = { std::numeric_limits<std::size_t>::max(), 0 };
 
         if (IsValidEntity(m_TargetCustomer)) {
-            // DEBUG: Kelner zgłosi Ci w logach, co dokładnie myśli, że podaje klientowi!
-            if (servedIngredients.empty()) {
+            if (trueFoodChild.id == std::numeric_limits<std::size_t>::max()) {
                 spdlog::warn("Kelner podal PUSTY talerz (Brak jedzenia jako dziecka talerza)!");
             }
             else {
-                spdlog::info("Kelner zidentyfikowal na talerzu Tag: '{}'", servedIngredients[0]);
+                spdlog::info("Kelner podaje klientowi encje jedzenia: {}", trueFoodChild.id);
             }
 
-            // EVENT BUS: Informujemy klienta, przekazując wektor z Tagiem
-            GetScene()->GetWorld().GetEventBus().Publish(CustomerServedEvent{ m_TargetCustomer, servedIngredients });
+            // EVENT BUS: Informujemy klienta, przekazując ENCJE jedzenia zamiast wektora tagów
+            GetScene()->GetWorld().GetEventBus().Publish(CustomerServedEvent{ m_TargetCustomer, trueFoodChild });
         }
 
         m_TargetCustomer = { std::numeric_limits<std::size_t>::max(), 0 };

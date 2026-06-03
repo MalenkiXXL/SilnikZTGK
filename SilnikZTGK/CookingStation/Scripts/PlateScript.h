@@ -129,6 +129,10 @@ private:
     void TransformIntoDish(IngredientType dishType, const std::string& dishModelPath)
     {
         spdlog::info("Talerz: Z³o¿ono gotowe danie!");
+
+        // Zapisujemy sk³adniki do bufora przed wyczyszczeniem talerza, ¿eby przekazaæ je do historii!
+        std::vector<IngredientType> historyIngredients = m_Ingredients;
+
         m_CompletedDish = dishType;
         m_Ingredients.clear();
 
@@ -152,12 +156,17 @@ private:
         mesh.ModelPtr = AssetManager::GetModel(dishModelPath);
         builder.With<MeshComponent>(mesh);
 
-        // NOWE: Dodajemy poprawny Tag dla kanapki/dania
         builder.With<TagComponent>({ GetTagForIngredient(dishType) });
 
         Entity dishEntity = builder.Build();
         GetScene()->SetParent(dishEntity, m_Entity);
         m_VisualModels.push_back(dishEntity);
+
+        // NOWE: Rejestrujemy gotowe danie z³o¿one na talerzu w g³ównym systemie
+        DishHistory history;
+        history.BaseIngredients = historyIngredients;
+        history.OriginMachine = "Plate";
+        GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ dishEntity, history });
     }
 
 private:
