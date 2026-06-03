@@ -2,6 +2,7 @@
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Core/Physics.h"
+#include "CookingStation/Core/GridSystem.h" // NOWE: Importujemy system siatki!
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Scripts/Machines/MachineScript.h"
 #include "CookingStation/Scripts/Machines/PotScript.h"
@@ -9,6 +10,7 @@
 #include "CookingStation/Scripts/PlateScript.h"
 #include <glm/glm.hpp>
 #include <limits>
+#include <string>
 
 class DragAndDropScript : public ScriptableEntity
 {
@@ -17,10 +19,14 @@ public:
     static inline IngredientType CurrentIngredient = IngredientType::None;
     static inline Entity DraggedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline Scene* ActiveScene = nullptr;
-    std::size_t m_DragSubId;
 
-    // Zmienna trzymająca w pamięci ostatnio podświetlony garnek dla talerza
+    std::size_t m_DragSubId;
+    std::size_t m_HoverSubId;
+
     static inline Entity HighlightedPotFromPlate = { std::numeric_limits<std::size_t>::max(), 0 };
+    static inline Entity HighlightedMachineFromBelt = { std::numeric_limits<std::size_t>::max(), 0 };
+
+    Entity m_Hovered3DEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
     void OnCreate() override {
         ActiveScene = GetScene();
@@ -29,11 +35,18 @@ public:
                 this->StartDrag(e.Type, e.ModelPath);
             }
         );
+
+        m_HoverSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityHoveredEvent>(
+            [this](const EntityHoveredEvent& e) {
+                m_Hovered3DEntity = e.TargetEntity;
+            }
+        );
     }
 
     void OnDestroy() override
     {
         GetScene()->GetWorld().GetEventBus().Unsubscribe<StartDragRequestEvent>(m_DragSubId);
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId);
     }
 
     void OnUpdate(Timestep ts) override
@@ -58,8 +71,8 @@ public:
         }
         else if (!IsDragging)
         {
-            // Obydwa detektory uderzają tylko, jeśli niczego nie niesiemy w ręce
             CheckPlateToPotTransfer(mousePos);
+            CheckBeltToMachineTransfer(mousePos);
         }
     }
 
@@ -120,14 +133,128 @@ public:
 private:
 
     // ==========================================================
-    // SEKCJA: TRANSFER Z TALERZA DO GARNKA
+    // SEKCJA: TRANSFER Z TAŚMY DO MASZYNY (Kwadrat 3x3)
+    // ==========================================================
+
+    static void SetMachineHighlight(Entity machineEntity, bool state) {
+        if (machineEntity.id == std::numeric_limits<std::size_t>::max() || !ActiveScene) return;
+        const std::string targetShader = state ? "HighlightShader" : "ModelShader";
+        auto* mesh = ActiveScene->GetWorld().GetComponent<MeshComponent>(machineEntity);
+        if (mesh) mesh->ShaderName = targetShader;
+    }
+
+    static void ClearMachineHighlight() {
+        if (HighlightedMachineFromBelt.id != std::numeric_limits<std::size_t>::max()) {
+            SetMachineHighlight(HighlightedMachineFromBelt, false);
+            HighlightedMachineFromBelt = { std::numeric_limits<std::size_t>::max(), 0 };
+        }
+    }
+
+    void CheckBeltToMachineTransfer(glm::vec3 mousePos)
+    {
+        if (MachineScript::GlobalIsMachineHeld) {
+            ClearMachineHighlight();
+            return;
+        }
+
+        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+        auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+        if (!transforms || !scripts) return;
+
+        Entity hoveredBeltItem = { std::numeric_limits<std::size_t>::max(), 0 };
+        IngredientType hoveredType = IngredientType::None;
+
+        if (m_Hovered3DEntity.id != std::numeric_limits<std::size_t>::max()) {
+            auto* tagComp = GetScene()->GetWorld().GetComponent<TagComponent>(m_Hovered3DEntity);
+            if (tagComp && tagComp->Tag.find("BeltItem_") != std::string::npos) {
+                hoveredBeltItem = m_Hovered3DEntity;
+                int typeId = std::stoi(tagComp->Tag.substr(9));
+                hoveredType = static_cast<IngredientType>(typeId);
+            }
+        }
+
+        if (hoveredBeltItem.id != std::numeric_limits<std::size_t>::max()) {
+            Entity closestMachine = { std::numeric_limits<std::size_t>::max(), 0 };
+            MachineScript* targetMachineScript = nullptr;
+            float closestDist = 999.0f; // Resetujemy do dużej wartości, by szukać wewnątrz kratek
+
+            auto* itemTf = transforms->Get(hoveredBeltItem);
+            // ZMIANA: Zczytujemy pozycję na siatce elementu jadącego po taśmie
+            glm::ivec2 itemCell = GridSystem::WorldToCell(itemTf->GetPosition());
+
+            for (size_t i = 0; i < scripts->dense.size(); ++i) {
+                auto& nsc = scripts->dense[i];
+                for (auto& s : nsc.Scripts) {
+                    MachineScript* mScript = dynamic_cast<MachineScript*>(s.Instance);
+                    if (mScript) {
+                        bool canAccept = false;
+
+                        if (s.Name == "CuttingBoardScript") {
+                            if (mScript->m_Ingredients.empty() && !mScript->m_IsReady) {
+                                canAccept = (hoveredType == IngredientType::Tomato || hoveredType == IngredientType::Baguette ||
+                                    hoveredType == IngredientType::Cheese || hoveredType == IngredientType::Ham ||
+                                    hoveredType == IngredientType::Mozzarella);
+                            }
+                        }
+                        else if (s.Name == "PotScript") {
+                            if (mScript->m_Ingredients.size() < 2 && !mScript->m_IsReady) {
+                                canAccept = (hoveredType == IngredientType::ChoppedTomato);
+                            }
+                        }
+
+                        if (canAccept) {
+                            Entity machineEntity = scripts->reverse[i];
+                            auto* machineTf = transforms->Get(machineEntity);
+                            if (machineTf && itemTf) {
+                                // ZMIANA: Zamieniamy maszynę na współrzędne kratek (Grid)
+                                glm::ivec2 machineCell = GridSystem::WorldToCell(machineTf->GetPosition());
+
+                                // Ograniczamy do 8 kratek dookoła (odległość w osi X i Y to max 1)
+                                if (std::abs(itemCell.x - machineCell.x) <= 1 && std::abs(itemCell.y - machineCell.y) <= 1)
+                                {
+                                    // Bierzemy najbliższą fizycznie wewnątrz tego obszaru
+                                    float dist = glm::distance(itemTf->GetPosition(), machineTf->GetPosition());
+                                    if (dist < closestDist) {
+                                        closestDist = dist;
+                                        closestMachine = machineEntity;
+                                        targetMachineScript = mScript;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (closestMachine.id != HighlightedMachineFromBelt.id) {
+                ClearMachineHighlight();
+                if (closestMachine.id != std::numeric_limits<std::size_t>::max()) {
+                    SetMachineHighlight(closestMachine, true);
+                }
+                HighlightedMachineFromBelt = closestMachine;
+            }
+
+            if (Input::IsMouseButtonJustPressed(0) && closestMachine.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
+                if (!Input::IsKeyPressed(340)) {
+                    if (targetMachineScript && targetMachineScript->AddIngredient(hoveredType)) {
+                        spdlog::info("Składnik z taśmy wskoczył prosto na maszynę!");
+                        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ hoveredBeltItem });
+                        ClearMachineHighlight();
+                    }
+                }
+            }
+        }
+        else {
+            ClearMachineHighlight();
+        }
+    }
+
+    // ==========================================================
+    // SEKCJA: TRANSFER Z TALERZA DO GARNKA (Kwadrat 3x3)
     // ==========================================================
 
     static void SetPotHighlight(Entity potEntity, bool state) {
-        if (potEntity.id == std::numeric_limits<std::size_t>::max() || !ActiveScene) return;
-        const std::string targetShader = state ? "HighlightShader" : "ModelShader";
-        auto* mesh = ActiveScene->GetWorld().GetComponent<MeshComponent>(potEntity);
-        if (mesh) mesh->ShaderName = targetShader;
+        SetMachineHighlight(potEntity, state);
     }
 
     static void ClearPotHighlight() {
@@ -139,7 +266,6 @@ private:
 
     void CheckPlateToPotTransfer(glm::vec3 mousePos)
     {
-        // Jeśli aktualnie przestawiamy maszynę Shiftem, dezaktywujemy tę logikę
         if (MachineScript::GlobalIsMachineHeld) {
             ClearPotHighlight();
             return;
@@ -154,17 +280,14 @@ private:
         PlateScript* hoveredPlateScript = nullptr;
         Entity currentHoveredPlate = { std::numeric_limits<std::size_t>::max(), 0 };
 
-        // 1. Sprawdzamy czy nasza myszka jest nad jakimkolwiek talerzem
         for (size_t i = 0; i < scripts->dense.size(); ++i) {
             auto& nsc = scripts->dense[i];
             for (auto& s : nsc.Scripts) {
                 if (s.Name == "PlateScript") {
                     Entity plateEntity = scripts->reverse[i];
                     auto* tf = transforms->Get(plateEntity);
-                    // Dystans sprawdzania kolizji kursora z talerzem
                     if (tf && glm::distance(mousePos2D, glm::vec2(tf->GetPosition().x, tf->GetPosition().z)) < 2.0f) {
                         PlateScript* pScript = static_cast<PlateScript*>(s.Instance);
-                        // Talerz musi posiadać coś na sobie, co nie jest jeszcze w pełni złożoną kanapką/daniem
                         if (pScript && pScript->m_CompletedDish == IngredientType::None && !pScript->m_Ingredients.empty()) {
                             hoveredPlateScript = pScript;
                             currentHoveredPlate = plateEntity;
@@ -176,28 +299,37 @@ private:
             if (hoveredPlateScript) break;
         }
 
-        // 2. Jeśli jesteśmy nad prawidłowym talerzem, szukamy w pobliżu garnka
         if (hoveredPlateScript) {
             Entity closestPot = { std::numeric_limits<std::size_t>::max(), 0 };
             MachineScript* targetPotScript = nullptr;
-            float closestDist = 8.0f; // Limit dystansu = 8 kratek wokół talerza!
+            float closestDist = 999.0f; // Reset do dużej wartości
+
             auto* plateTf = transforms->Get(currentHoveredPlate);
+            // ZMIANA: Zczytujemy pozycję na siatce Talerza
+            glm::ivec2 plateCell = GridSystem::WorldToCell(plateTf->GetPosition());
 
             for (size_t i = 0; i < scripts->dense.size(); ++i) {
                 auto& nsc = scripts->dense[i];
                 for (auto& s : nsc.Scripts) {
-                    if (s.Name == "PotScript") { // Namierzamy tylko garnki
+                    if (s.Name == "PotScript") {
                         Entity potEntity = scripts->reverse[i];
                         auto* potTf = transforms->Get(potEntity);
                         MachineScript* mScript = static_cast<MachineScript*>(s.Instance);
 
-                        // Garnek musi nie być skończony i mieć miejsce
                         if (potTf && mScript && !mScript->m_IsReady && mScript->m_Ingredients.size() < 2) {
-                            float dist = glm::distance(plateTf->GetPosition(), potTf->GetPosition());
-                            if (dist < closestDist) {
-                                closestDist = dist;
-                                closestPot = potEntity;
-                                targetPotScript = mScript;
+
+                            // ZMIANA: Zczytujemy pozycję na siatce Garnka
+                            glm::ivec2 potCell = GridSystem::WorldToCell(potTf->GetPosition());
+
+                            // Ograniczamy do 8 kratek dookoła
+                            if (std::abs(plateCell.x - potCell.x) <= 1 && std::abs(plateCell.y - potCell.y) <= 1)
+                            {
+                                float dist = glm::distance(plateTf->GetPosition(), potTf->GetPosition());
+                                if (dist < closestDist) {
+                                    closestDist = dist;
+                                    closestPot = potEntity;
+                                    targetPotScript = mScript;
+                                }
                             }
                         }
                         break;
@@ -205,7 +337,6 @@ private:
                 }
             }
 
-            // 3. Podświetlamy najbliższy garnek (jeśli zmienił się cel podświetlenia)
             if (closestPot.id != HighlightedPotFromPlate.id) {
                 ClearPotHighlight();
                 if (closestPot.id != std::numeric_limits<std::size_t>::max()) {
@@ -214,26 +345,16 @@ private:
                 HighlightedPotFromPlate = closestPot;
             }
 
-            // 4. Mechanika przełożenia po kliknięciu
             if (Input::IsMouseButtonJustPressed(0) && closestPot.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
-                if (!Input::IsKeyPressed(340)) // Ochrona przez wciśniętym shiftem
+                if (!Input::IsKeyPressed(340))
                 {
-                    // Ściągamy najwyższy element ułożony na talerzu
                     IngredientType topIngredient = hoveredPlateScript->m_Ingredients.back();
-
-                    // Wrzucamy go do wybranego garnka (AddIngredient zwraca false, jeśli garnkowi typ nie pasuje, np. bagietka)
                     if (targetPotScript && targetPotScript->AddIngredient(topIngredient)) {
                         spdlog::info("Składnik wrzucony z talerza z powrotem do garnka!");
-
-                        // Zdejmujemy składnik z tablicy talerza
                         hoveredPlateScript->m_Ingredients.pop_back();
-
-                        // Niszczymy ułożony na talerzu model
                         Entity visualToRemove = hoveredPlateScript->m_VisualModels.back();
                         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
                         hoveredPlateScript->m_VisualModels.pop_back();
-
-                        // Oczyszczamy podświetlenie
                         ClearPotHighlight();
                     }
                     else {
@@ -243,11 +364,9 @@ private:
             }
         }
         else {
-            // Skoro kursor nie jest nad żadnym talerzem, po prostu wygaszamy garnki
             ClearPotHighlight();
         }
     }
-
 
     void TryDropIngredient(glm::vec3 dropPos)
     {

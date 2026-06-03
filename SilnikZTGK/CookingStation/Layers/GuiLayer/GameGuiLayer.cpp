@@ -34,7 +34,6 @@ void GameGuiLayer::OnAttach()
         return;
     }
 
-    // Inicjalizacja pod-panelu
     m_PausePanel = std::make_unique<PauseMenuPanel>();
 
 #ifdef CS_DISTRIBUTION
@@ -45,7 +44,6 @@ void GameGuiLayer::OnAttach()
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
 
-    // --- Ładowanie tekstur ---
     m_CornerIcon = AssetManager::GetTexture("assets://UI/bottomCornerClouds.png");
     m_TomatoIcon = AssetManager::GetTexture("assets://UI/tomato.png");
     m_CheeseIcon = AssetManager::GetTexture("assets://UI/Cheese.png");
@@ -65,39 +63,35 @@ void GameGuiLayer::OnAttach()
     m_SandwichIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
     m_CupcakeIcon = AssetManager::GetTexture("assets://UI/cupcake.png");
     m_CroissantIcon = AssetManager::GetTexture("assets://UI/croissant.png");
-    m_QuestionMarkIcon = AssetManager::GetTexture("assets://UI/QuestionMark.png"); 
+    m_QuestionMarkIcon = AssetManager::GetTexture("assets://UI/QuestionMark.png");
+
+    // Ładowanie karteczek z zamówieniami! 
+    m_CustomerOrderTex = AssetManager::GetTexture("assets://UI/customerOrder.png");
+    m_HelperOrderTex = AssetManager::GetTexture("assets://UI/helperOrder.png");
 
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
 
-    // ======================================================================================
-    // Główna subskrypcja na zdarzenie STARTU GRY.
-    // Wywoływane przez MainMenuLayer po załadowaniu nowej sceny!
-    // ======================================================================================
     m_GameStartedSubId = Application::Get().GetEventBus().Subscribe<GameStartedEvent>(
         [this](const GameStartedEvent&) {
 
-            // 1. Odpinamy stare subskrypcje ze starej (właśnie zniszczonej/ukrytej) sceny
             if (m_ActiveScene) {
                 auto& oldBus = m_ActiveScene->GetWorld().GetEventBus();
                 if (m_InventorySubId != 0) oldBus.Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
                 if (m_MoneySubId != 0) oldBus.Unsubscribe<MoneyChangedEvent>(m_MoneySubId);
+                if (m_OrderTakenSubId != 0) oldBus.Unsubscribe<OrderTakenEvent>(m_OrderTakenSubId);
             }
 
-            // 2. Pobieramy NOWĄ, świeżo załadowaną scenę gry
             m_ActiveScene = SceneManager::GetActiveScene();
+            m_ActiveOrderTickets.clear(); // Reset karteczek na początek gry
 
-            // 3. Wymuszamy odświeżenie wymiarów GUI na ułamek sekundy przed jego pokazaniem
-            // Zabezpiecza to przed błędami wyrenderowania, jeśli gracz zmieniał rozdzielczość w Menu.
             auto windowSize = Input::GetWindowSize();
             m_ViewportWidth = (float)windowSize.first;
             m_ViewportHeight = (float)windowSize.second;
 
-            // 4. Zapinamy nasłuchiwanie zdarzeń na nowym EventBusie nowej sceny
             if (m_ActiveScene) {
                 auto& newBus = m_ActiveScene->GetWorld().GetEventBus();
 
-                // Nasłuchiwanie na zmianę ekwipunku
                 m_InventorySubId = newBus.Subscribe<InventoryChangedEvent>(
                     [this](const InventoryChangedEvent& e) {
                         if (!m_IsActive) return;
@@ -114,7 +108,6 @@ void GameGuiLayer::OnAttach()
                     }
                 );
 
-                // Nasłuchiwanie na zmianę ilości pieniędzy
                 m_MoneySubId = newBus.Subscribe<MoneyChangedEvent>(
                     [this](const MoneyChangedEvent& e) {
                         if (!m_IsActive) return;
@@ -123,9 +116,24 @@ void GameGuiLayer::OnAttach()
                         m_MoneyStr = std::to_string(e.NewAmount);
                     }
                 );
+
+                m_OrderTakenSubId = newBus.Subscribe<OrderTakenEvent>(
+                    [this](const OrderTakenEvent& e) {
+                        if (!m_IsActive) return;
+
+                        // NAPRAWA: Zamiast std::find używamy std::find_if żeby porównać pole .id obu encji!
+                        auto it = std::find_if(m_ActiveOrderTickets.begin(), m_ActiveOrderTickets.end(),
+                            [&e](const Entity& ticketEnt) {
+                                return ticketEnt.id == e.Customer.id;
+                            });
+
+                        if (it == m_ActiveOrderTickets.end()) {
+                            m_ActiveOrderTickets.push_back(e.Customer);
+                        }
+                    }
+                );
             }
 
-            // 5. Włączamy widoczność GUI gry (zdejmujemy kurtynę!)
             SetVisible(true);
         }
     );
@@ -137,14 +145,9 @@ void GameGuiLayer::OnDetach()
 
     if (m_ActiveScene) {
         auto& bus = m_ActiveScene->GetWorld().GetEventBus();
-        if (m_InventorySubId != 0) {
-            bus.Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
-            m_InventorySubId = 0;
-        }
-        if (m_MoneySubId != 0) {
-            bus.Unsubscribe<MoneyChangedEvent>(m_MoneySubId);
-            m_MoneySubId = 0;
-        }
+        if (m_InventorySubId != 0) { bus.Unsubscribe<InventoryChangedEvent>(m_InventorySubId); m_InventorySubId = 0; }
+        if (m_MoneySubId != 0) { bus.Unsubscribe<MoneyChangedEvent>(m_MoneySubId); m_MoneySubId = 0; }
+        if (m_OrderTakenSubId != 0) { bus.Unsubscribe<OrderTakenEvent>(m_OrderTakenSubId); m_OrderTakenSubId = 0; }
     }
 
     if (m_GameStartedSubId != 0) {
@@ -287,7 +290,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     glm::vec2 leftPosBase = { gameX, gameY + gameHeight - baseIconSize.y };
     glm::vec2 rightPosBase = { gameX + gameWidth - baseIconSize.x, gameY + gameHeight - baseIconSize.y };
 
-    DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
+    //DrawBubblyImage("CloudLeft", m_CornerIcon, leftPosBase, baseIconSize, dt, 1.15f, false, 0.55f);
     DrawBubblyImage("CloudRight", m_CornerIcon, rightPosBase, baseIconSize, dt, 1.15f, false);
 
     float itemBaseH = baseIconSize.y * 0.3f;
@@ -295,7 +298,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     float paddingX = 30.0f * baseScale;
     float paddingY = 10.0f * baseScale;
 
-    glm::vec2 leftCenter = { gameX + paddingX, gameY + gameHeight - paddingY };
+    /*glm::vec2 leftCenter = { gameX + paddingX, gameY + gameHeight - paddingY };
 
     struct UIIngredient { std::string id; std::shared_ptr<Texture> tex; IngredientType type; std::string modelPath; };
     std::vector<UIIngredient> leftItems = {
@@ -315,7 +318,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
                 DragAndDropScript::StartDrag(leftItems[i].type, leftItems[i].modelPath);
             }
         }
-    }
+    }*/
 
     glm::vec2 rightCenter = { gameX + gameWidth - paddingX, gameY + gameHeight - paddingY };
     struct UIMachine { std::string id; std::shared_ptr<Texture> tex; std::string prefabPath; };
@@ -395,6 +398,90 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
     Gui::DrawGuiText(text, textPos, textScale, { 1.0f, 0.95f, 0.3f, 1.0f });
 }
 
+void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
+{
+    if (!m_ActiveScene) return;
+
+    auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
+    auto* scripts = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
+    if (!tags || !scripts) return;
+
+    for (auto it = m_ActiveOrderTickets.begin(); it != m_ActiveOrderTickets.end(); ) {
+        auto* nsc = scripts->Get(*it);
+        if (!nsc) {
+            it = m_ActiveOrderTickets.erase(it);
+            continue;
+        }
+
+        CustomerScript* custScript = nullptr;
+        for (auto& s : nsc->Scripts) {
+            if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript") {
+                custScript = (CustomerScript*)s.Instance;
+                break;
+            }
+        }
+
+        if (!custScript || custScript->IsServed || custScript->IsPendingDestroy) {
+            it = m_ActiveOrderTickets.erase(it);
+            continue;
+        }
+        ++it;
+    }
+
+    float currentY = gameY + (80.0f * baseScale);
+    float rightMargin = 20.0f * baseScale;
+
+    for (size_t i = 0; i < m_ActiveOrderTickets.size(); ++i) {
+        Entity custEntity = m_ActiveOrderTickets[i];
+        auto* tagComp = tags->Get(custEntity);
+        auto* nsc = scripts->Get(custEntity);
+        if (!tagComp || !nsc) continue;
+
+        CustomerScript* custScript = nullptr;
+        for (auto& s : nsc->Scripts) {
+            if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript") {
+                custScript = (CustomerScript*)s.Instance;
+                break;
+            }
+        }
+        if (!custScript) continue;
+
+        bool isFirst = (i == 0);
+        float ticketHeight = isFirst ? (220.0f * baseScale) : (140.0f * baseScale);
+
+        std::shared_ptr<Texture> ticketTex = (tagComp->Tag == "HelperCustomer") ? m_HelperOrderTex : m_CustomerOrderTex;
+
+        if (!ticketTex) ticketTex = m_BookCloudIcon;
+
+        if (ticketTex) {
+            glm::vec2 ticketSize = GuiUtils::CalculateAspectSize(ticketTex, ticketHeight);
+            glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin, currentY };
+
+            Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+            std::shared_ptr<Texture> foodTex = nullptr;
+            if (custScript->WantedIngredient == "Tomato") foodTex = m_TomatoIcon;
+            else if (custScript->WantedIngredient == "Cheese") foodTex = m_CheeseIcon;
+            else if (custScript->WantedIngredient == "Ham") foodTex = m_HamIcon;
+            else if (custScript->WantedIngredient == "Sandwich") foodTex = m_SandwichIcon;
+
+            if (foodTex) {
+                float foodHeight = ticketHeight * 0.55f;
+                glm::vec2 foodSize = GuiUtils::CalculateAspectSize(foodTex, foodHeight);
+
+                glm::vec2 foodPos = {
+                    ticketPos.x + (ticketSize.x - foodSize.x) * 0.5f,
+                    ticketPos.y + (ticketSize.y - foodSize.y) * 0.55f
+                };
+
+                Renderer2D::DrawQuad(foodPos, foodSize, foodTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+            }
+
+            currentY += ticketHeight + (10.0f * baseScale);
+        }
+    }
+}
+
 void GameGuiLayer::OnUpdate(Timestep ts) {
 #ifdef CS_DISTRIBUTION
     if (!m_IsVisible) return;
@@ -413,30 +500,24 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     bool isPlayMode = (activeScene && activeScene->GetState() == SceneState::Play);
 
-    // ======================================================================================
-    // PANCERNA POPRAWKA: Automatyczna, dynamiczna synchronizacja EventBusa w Edytorze i Grze
-    // ======================================================================================
     static Scene* lastSubscribedScene = nullptr;
     static bool lastWasPlayMode = false;
 
     if (isPlayMode) {
-        // Jeśli zmienił się wskaźnik sceny lub właśnie kliknięto PLAY (przejście z Edit do Play)
         if (activeScene.get() != lastSubscribedScene || !lastWasPlayMode) {
 
-            // 1. Zwalniamy stare subskrypcje, jeśli były do czegoś przypięte
             if (lastSubscribedScene) {
                 auto& oldBus = lastSubscribedScene->GetWorld().GetEventBus();
                 if (m_InventorySubId != 0) oldBus.Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
                 if (m_MoneySubId != 0) oldBus.Unsubscribe<MoneyChangedEvent>(m_MoneySubId);
+                if (m_OrderTakenSubId != 0) oldBus.Unsubscribe<OrderTakenEvent>(m_OrderTakenSubId);
             }
 
-            // 2. Zapamiętujemy aktualną instancję sceny uruchomieniowej
             lastSubscribedScene = activeScene.get();
-            m_ActiveScene = activeScene; // Synchronizacja składowej klasy dla spójności OnDetach()
+            m_ActiveScene = activeScene;
 
             auto& newBus = activeScene->GetWorld().GetEventBus();
 
-            // 3. Rejestrujemy subskrypcję ekwipunku dla działającej sceny
             m_InventorySubId = newBus.Subscribe<InventoryChangedEvent>(
                 [this](const InventoryChangedEvent& e) {
                     if (!m_IsActive) return;
@@ -453,7 +534,6 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                 }
             );
 
-            // 4. Rejestrujemy subskrypcję pieniędzy dla działającej sceny
             m_MoneySubId = newBus.Subscribe<MoneyChangedEvent>(
                 [this](const MoneyChangedEvent& e) {
                     if (!m_IsActive) return;
@@ -463,16 +543,30 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
                 }
             );
 
-            // 5. Wymuszamy pobranie początkowego stanu portfela z GameManagerScript w tej klatce
+            m_OrderTakenSubId = newBus.Subscribe<OrderTakenEvent>(
+                [this](const OrderTakenEvent& e) {
+                    if (!m_IsActive) return;
+
+                    // NAPRAWA: Zamiast std::find używamy std::find_if żeby porównać pole .id obu encji!
+                    auto it = std::find_if(m_ActiveOrderTickets.begin(), m_ActiveOrderTickets.end(),
+                        [&e](const Entity& ticketEnt) {
+                            return ticketEnt.id == e.Customer.id;
+                        });
+
+                    if (it == m_ActiveOrderTickets.end()) {
+                        m_ActiveOrderTickets.push_back(e.Customer);
+                    }
+                }
+            );
+
             m_LastMoney = -1;
+            m_ActiveOrderTickets.clear();
         }
     }
     else {
-        // Jeśli wyszliśmy z trybu Play (kliknięto STOP), resetujemy wskaźnik pomocniczy
         lastSubscribedScene = nullptr;
     }
     lastWasPlayMode = isPlayMode;
-    // ======================================================================================
 
 #ifdef CS_DISTRIBUTION
     float gameX = 0.0f;
@@ -500,10 +594,12 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     glScissor((int)gameX, scissorY, (int)gameWidth, (int)gameHeight);
 
     Renderer2D::BeginScene(uiProj);
+
     DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
     DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     DrawRecipeBook(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);
+    DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);
 
     if (m_CoinIcon) {
         if (m_LastMoney == -1 && GameManagerScript::s_Instance) {
@@ -514,7 +610,8 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         }
         float textScale = 2.0f * baseScale;
         float textWidth = Gui::MeasureTextWidth(m_MoneyStr, textScale);
-        glm::vec2 textPos = { gameX + gameWidth * 0.97f - textWidth, gameY + gameHeight * 0.02f };
+
+        glm::vec2 textPos = { gameX + gameWidth * 0.97f - textWidth, gameY + gameHeight * 0.04f };
         DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
     }
 
@@ -524,9 +621,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         static int currentFps = 0;
 
         fpsTimer += dt;
-        // Odświeżaj wynik co 0.25 sekundy, by cyfry były czytelne
         if (fpsTimer >= 0.25f) {
-            // Zabezpieczenie przed dzieleniem przez 0
             if (dt > 0.0f) currentFps = static_cast<int>(1.0f / dt);
             fpsTimer = 0.0f;
         }
@@ -535,16 +630,13 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         float fpsTextScale = 1.0f * baseScale;
         glm::vec2 fpsPos = { gameX + 20.0f * baseScale, gameY + 15.0f * baseScale };
 
-        // Cień dla tekstu, żeby był widoczny na każdym tle
         Gui::DrawGuiText(fpsText, { fpsPos.x + 2.0f, fpsPos.y + 2.0f }, fpsTextScale, { 0.1f, 0.1f, 0.1f, 0.9f });
-        // Właściwy zielony tekst
         Gui::DrawGuiText(fpsText, fpsPos, fpsTextScale, { 0.2f, 1.0f, 0.2f, 1.0f });
     }
 
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
 
-    // --- PAUSE MENU --- Z użyciem nowego systemu paneli!
     if (m_PausePanel && m_PausePanel->IsPaused()) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -564,44 +656,38 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
 void GameGuiLayer::OnEvent(Event& e) {
     EventDispatcher dispatcher(e);
 
-    // 1. ZAWSZE nasłuchuj zmiany rozmiaru okna, nawet gdy GUI gry jest ukryte!
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {
         m_ViewportWidth = (float)ev.GetWidth();
         m_ViewportHeight = (float)ev.GetHeight();
         Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
-        return false; // Zwracamy false, żeby event poleciał do warstwy Menu i silnika
+        return false;
         });
 
 #ifdef CS_DISTRIBUTION
-    // 2. Jeśli jesteśmy w Main Menu, zablokuj CAŁĄ RESZTĘ
     if (!m_IsVisible) return;
 #endif
 
-    // 3. Przekazywanie eventów do Panelu Pauzy
     if (m_PausePanel) {
         m_PausePanel->OnEvent(e);
-        if (e.Handled) return; // Zapobiega klikaniu w grę, gdy opcje są otwarte
+        if (e.Handled) return;
     }
 
-    // 4. Reszta eventów gry (myszka wciskanie)
     dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& ev) {
         return OnMouseButtonPressed(ev);
         });
 
-    // 5. Obsługa scrolla myszki
     dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& ev) {
         m_IngredientsCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);
         m_MachinesCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);
 
         std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
         if (activeScene && activeScene->GetState() == SceneState::Play) {
-            return true; 
+            return true;
         }
 
         return false;
         });
 
-    // 6. OBSŁUGA WCIŚNIĘCIA PRZYCISKU PLAY W EDYTORZE (tylko questy)
     dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) {
         ReloadQuests();
         return false;
@@ -610,12 +696,13 @@ void GameGuiLayer::OnEvent(Event& e) {
     dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& ev) {
         if (ev.GetKeyCode() == 292) {
             if (ev.GetRepeatCode() == 0) {
-                m_ShowFPS = !m_ShowFPS; 
+                m_ShowFPS = !m_ShowFPS;
             }
         }
-        return false; 
+        return false;
         });
 }
+
 bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     if (!activeScene || activeScene->GetState() != SceneState::Play) return false;
@@ -678,10 +765,9 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
                     break;
                 }
             }
-            // Zignoruj obsluzonych klientów
+
             if (!custScript || custScript->IsServed) continue;
 
-            // Zrzutowanie pozycji głowy klienta na 2D
             glm::vec3 headPos = tf->GetPosition() + glm::vec3(0.0f, 3.0f, 0.0f);
             glm::vec4 clipSpace = viewProj * glm::vec4(headPos, 1.0f);
             if (clipSpace.w == 0.0f) continue;
@@ -695,26 +781,15 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
                 iconToDraw = m_QuestionMarkIcon;
             }
             else {
-                // Mapowanie zamawianego dania na właściwą teksturę UI
-                if (custScript->WantedIngredient == "Tomato") {
-                    iconToDraw = m_TomatoIcon;
-                }
-                else if (custScript->WantedIngredient == "Cheese") {
-                    iconToDraw = m_CheeseIcon;
-                }
-                else if (custScript->WantedIngredient == "Ham") {
-                    iconToDraw = m_HamIcon;
-                }
-                else if (custScript->WantedIngredient == "Sandwich") {
-                    iconToDraw = m_SandwichIcon;
-                }
+                if (custScript->WantedIngredient == "Tomato") iconToDraw = m_TomatoIcon;
+                else if (custScript->WantedIngredient == "Cheese") iconToDraw = m_CheeseIcon;
+                else if (custScript->WantedIngredient == "Ham") iconToDraw = m_HamIcon;
+                else if (custScript->WantedIngredient == "Sandwich") iconToDraw = m_SandwichIcon;
             }
 
             if (iconToDraw) {
                 glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, 70.0f * baseScale);
                 glm::vec2 iconPos = { screenX - iconSize.x * 0.5f, screenY - iconSize.y };
-
-                // Rysujemy uzywajac wczesniej zdefiniowanej macierzy z Renderer2D
                 Renderer2D::DrawQuad(iconPos, iconSize, iconToDraw, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
             }
         }
