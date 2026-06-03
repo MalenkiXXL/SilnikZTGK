@@ -158,6 +158,22 @@ public:
             }
             return;
         }
+        if (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0))
+        {
+            if (m_IsReady && !m_IsAutomated && m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
+            {
+                auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
+                if (foodTf)
+                {
+                    glm::vec2 cursor2D = { GetMouseWorldPosition().x, GetMouseWorldPosition().z };
+                    glm::vec2 food2D = { foodTf->GetPosition().x, foodTf->GetPosition().z };
+
+                    if (glm::distance(cursor2D, food2D) < 1.5f) {
+                        TryTransferToPlate();
+                    }
+                }
+            }
+        }
     }
 
     virtual bool AddIngredient(IngredientType type)
@@ -275,7 +291,7 @@ protected:
 
         Entity targetPlate = m_LastHighlightedPlate;
 
-        if (targetPlate.id == std::numeric_limits<std::size_t>::max() && m_IsAutomated)
+        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
             targetPlate = GetClosestAvailablePlate();
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())

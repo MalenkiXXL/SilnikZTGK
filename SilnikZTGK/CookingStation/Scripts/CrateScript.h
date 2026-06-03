@@ -77,17 +77,23 @@ public:
         auto* tf = GetComponent<TransformComponent>();
         if (!tf) return;
 
-        glm::vec3 mousePos = GetMouseWorldPosition();
-        glm::vec2 mouse2D = { mousePos.x, mousePos.z };
-        glm::vec2 crate2D = { tf->GetPosition().x, tf->GetPosition().z };
+        // 1. Sprawdzamy, czy nast¹pi³a jakakolwiek akcja interakcji (Mysz: LPM, Pad: Kwadrat/X [ID 2])
+        bool isMouseClick = Input::IsMouseButtonJustPressed(0);
+        bool isGamepadSquare = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0);
 
-        // Powiêkszony, wygodny dystans klikania
-        if (glm::distance(mouse2D, crate2D) < 1.2f)
+        // 2. Wykonujemy zaawansowan¹ logikê TYLKO w momencie klikniêcia (du¿a optymalizacja)
+        if ((isMouseClick || isGamepadSquare) && m_SpawnCooldown <= 0.0f && !MachineScript::GlobalIsHoveringUI && !MachineScript::GlobalIsMachineHeld)
         {
-            if (Input::IsMouseButtonJustPressed(0) && m_SpawnCooldown <= 0.0f && !MachineScript::GlobalIsHoveringUI && !MachineScript::GlobalIsMachineHeld)
+            glm::vec3 cursorWorldPos = GetMouseWorldPosition(); // Teraz to samo wie, czy zwracaæ pada czy mysz!
+
+            glm::vec2 cursor2D = { cursorWorldPos.x, cursorWorldPos.z };
+            glm::vec2 crate2D = { tf->GetPosition().x, tf->GetPosition().z };
+
+            // Powiêkszony, wygodny dystans klikania
+            if (glm::distance(cursor2D, crate2D) < 1.2f)
             {
-                // ZMIANA: Filtr wykluczaj¹cy podwójne klikanie skrzynek stoj¹cych obok siebie
-                if (IsClosestCrate(mouse2D))
+                // Przekazujemy odpowiedni kursor (mysz albo ten wirtualny z pada) do weryfikacji s¹siadów
+                if (IsClosestCrate(cursor2D))
                 {
                     if (m_HasStock)
                     {

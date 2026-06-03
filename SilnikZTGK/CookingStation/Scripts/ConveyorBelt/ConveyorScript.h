@@ -128,4 +128,22 @@ public:
             spdlog::info("Zwrotnica: Nowy kierunek: {}", newRot.y);
         }
     }
+
+    void OnUpdate(Timestep ts) override
+    {
+        if (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0))
+        {
+            auto* tf = GetComponent<TransformComponent>();
+            if (tf) {
+                // Pobieramy pozycję wirtualnego kursora z klasy bazowej
+                glm::vec2 cursor2D = { GetMouseWorldPosition().x, GetMouseWorldPosition().z };
+                glm::vec2 my2D = { tf->GetPosition().x, tf->GetPosition().z };
+
+                // Zasięg interakcji zwrotnicy to 1.5 jednostki
+                if (glm::distance(cursor2D, my2D) < 1.5f) {
+                    HandleClick();
+                }
+            }
+        }
+    }
 };

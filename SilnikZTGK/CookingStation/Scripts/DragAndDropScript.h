@@ -234,7 +234,8 @@ private:
                 HighlightedMachineFromBelt = closestMachine;
             }
 
-            if (Input::IsMouseButtonJustPressed(0) && closestMachine.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
+            bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
+            if (isActionPressed && closestMachine.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
                 if (!Input::IsKeyPressed(340)) {
                     if (targetMachineScript && targetMachineScript->AddIngredient(hoveredType)) {
                         spdlog::info("Składnik z taśmy wskoczył prosto na maszynę!");
@@ -345,7 +346,8 @@ private:
                 HighlightedPotFromPlate = closestPot;
             }
 
-            if (Input::IsMouseButtonJustPressed(0) && closestPot.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
+            bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
+            if (isActionPressed && closestPot.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
                 if (!Input::IsKeyPressed(340))
                 {
                     IngredientType topIngredient = hoveredPlateScript->m_Ingredients.back();

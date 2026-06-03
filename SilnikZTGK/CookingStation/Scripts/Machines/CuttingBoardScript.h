@@ -145,6 +145,7 @@ public:
         if (!tf) return;
 
         glm::vec3 mousePos = GetMouseWorldPosition();
+
         glm::vec2 mouse2D = { mousePos.x, mousePos.z };
         glm::vec2 board2D = { tf->GetPosition().x, tf->GetPosition().z };
 
@@ -202,7 +203,11 @@ public:
             ClearHighlight();
         }
 
-        if (Input::IsMouseButtonJustPressed(0) && isHovering && !GlobalIsHoveringUI)
+        bool isMouseClick = Input::IsMouseButtonJustPressed(0);
+        bool isGamepadTransfer = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0); // Przycisk ID 2 - Transfer
+        bool isGamepadChop = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(3, 0); // Przycisk ID 3 - Ciach!
+
+        if ((isMouseClick || isGamepadTransfer || isGamepadChop) && isHovering && !GlobalIsHoveringUI)
         {
             if (Input::IsKeyPressed(340))
             {
@@ -220,11 +225,11 @@ public:
             {
                 if (m_IsReady)
                 {
-                    TryTransferToPlate();
+                    if (isMouseClick || isGamepadTransfer) TryTransferToPlate();
                 }
                 else if (!m_Ingredients.empty() && m_ChopCooldown <= 0.0f)
                 {
-                    PerformChop();
+                    if (isMouseClick || isGamepadChop) PerformChop();
                 }
             }
         }
@@ -265,7 +270,7 @@ protected:
 
         Entity targetPlate = m_LastHighlightedPlate;
 
-        if (targetPlate.id == std::numeric_limits<std::size_t>::max() && m_IsAutomated)
+        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
             targetPlate = GetClosestAvailablePlate();
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())

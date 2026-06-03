@@ -53,7 +53,22 @@ protected:
 	Scene* m_Scene;
 
 	glm::vec3 GetMouseWorldPosition()
-	{
+	{ 
+		if (Input::IsGamepadPresent(0))
+		{
+			auto* tags = m_Scene->GetWorld().GetComponentVector<TagComponent>();
+			auto* transforms = m_Scene->GetWorld().GetComponentVector<TransformComponent>();
+			if (tags && transforms) {
+				for (size_t i = 0; i < tags->dense.size(); ++i) {
+					if (tags->dense[i].Tag == "VirtualCursor") {
+						Entity cursorEnt = tags->reverse[i];
+						auto* cursorTf = transforms->Get(cursorEnt);
+						if (cursorTf) return cursorTf->GetPosition(); // Zwracamy pozycjê od razu
+					}
+				}
+			}
+		}
+
 		auto* camera = m_Scene->GetCamera();
 		if (!camera) return glm::vec3(0.0f);
 
