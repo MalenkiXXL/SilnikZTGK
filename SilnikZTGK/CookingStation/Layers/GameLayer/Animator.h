@@ -11,7 +11,7 @@
 class Animator
 {
 public:
-    Animator() // Pusty konstruktor, animacje dodamy p�niej
+    Animator()
     {
         m_CurrentTime = 0.0f;
         m_CurrentAnimationName = "";
@@ -20,11 +20,10 @@ public:
             m_FinalBoneMatrices.push_back(glm::mat4(1.0f));
     }
 
-    // Dodaje now� kaset� do naszego s�ownika
     void AddAnimation(const std::string& name, std::shared_ptr<Animation> anim)
     {
         m_Animations[name] = anim;
-        // Je�li to pierwsza dodana animacja, ustawmy j� domy�lnie
+        // Jeśli to pierwsza dodana animacja, ustawmy ją domyślnie
         if (m_CurrentAnimation == nullptr) {
             PlayAnimation(name);
         }
@@ -32,7 +31,7 @@ public:
 
     void PlayAnimation(const std::string& name)
     {
-        // BARDZO WA�NE: Nie resetuj czasu, je�li ta animacja JU� TERAZ leci
+        // BARDZO WAŻNE: Nie resetuj czasu, jeśli ta animacja JUŻ TERAZ leci
         if (m_CurrentAnimationName == name) return;
 
         if (m_Animations.find(name) != m_Animations.end())
@@ -41,10 +40,17 @@ public:
             m_CurrentAnimationName = name;
             m_CurrentTime = 0.0f;
             spdlog::info("Animator: Przelaczono na animacje '{}'", name);
+
+            // FIX "T-POSE FLASH": Przelicz kości natychmiast dla klatki startowej!
+            // Dzięki temu silnik ma poprawne macierze zanim dojdzie do pierwszego rysowania.
+            if (m_CurrentAnimation)
+            {
+                CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
+            }
         }
         else
         {
-            spdlog::warn("Animator B��D: Nie znaleziono animacji o nazwie '{}'!", name);
+            spdlog::warn("Animator BŁĄD: Nie znaleziono animacji o nazwie '{}'!", name);
         }
     }
 
