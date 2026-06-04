@@ -12,7 +12,7 @@ class CustomerScript : public ScriptableEntity
 public:
     std::size_t m_ValidationResponseSubId = 0;
     bool IsPendingDestroy = false;
-    std::string WantedIngredient = "";
+    IngredientType WantedIngredient = IngredientType::None;
     bool IsServed = false;
     bool OrderTaken = false;
 
@@ -24,7 +24,7 @@ public:
     void OnCreate() override
     {
         // 1. Definiujemy, co jest w menu (zakomentowana reszta - zostaje tylko Pomidor)
-        std::vector<std::string> menu = { "Tomato" /*, "Cheese", "Ham", "Sandwich"*/ };
+        std::vector<IngredientType> menu = { IngredientType::Tomato /*, IngredientType::Cheese, IngredientType::Ham, IngredientType::Sandwich*/ };
 
         // 2. Losujemy jeden ze składników
         std::random_device rd;
@@ -34,7 +34,7 @@ public:
         WantedIngredient = menu[dist(gen)];
         OrderTaken = false;
 
-        spdlog::info("Klient nr {} usiadl i czeka na: {}", m_Entity.id, WantedIngredient);
+        spdlog::info("Klient nr {} usiadl i czeka na: {}", m_Entity.id, IngredientTypeToString(WantedIngredient));
 
         auto& bus = GetScene()->GetWorld().GetEventBus();
 
@@ -77,7 +77,7 @@ public:
         }
     }
 
-    bool IsOrderMatching(const std::vector<std::string>& ingredientsOnPlate)
+    bool IsOrderMatching(const std::vector<IngredientType>& ingredientsOnPlate)
     {
         if (ingredientsOnPlate.empty()) return false;
 

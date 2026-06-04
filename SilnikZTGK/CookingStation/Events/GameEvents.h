@@ -137,7 +137,7 @@ struct DishCreatedEvent {
 struct ValidateOrderRequestEvent {
     Entity Customer;
     Entity ServedFood;
-    std::string WantedIngredientStr;
+    IngredientType WantedIngredient;
 };
 
 // Odpowiedź od systemu dla konkretnego klienta

@@ -42,11 +42,7 @@ void GameManagerScript::OnCreate()
             if (m_DishMemory.find(e.ServedFood.id) != m_DishMemory.end()) {
                 const auto& history = m_DishMemory[e.ServedFood.id];
 
-                IngredientType wantedType = IngredientType::None;
-                if (e.WantedIngredientStr == "Tomato") wantedType = IngredientType::Tomato;
-                else if (e.WantedIngredientStr == "ChoppedTomato") wantedType = IngredientType::ChoppedTomato;
-                // Jeśli dodasz nowe zamówienia (np. ser), dopisz je tutaj:
-                // else if (e.WantedIngredientStr == "Cheese") wantedType = IngredientType::Cheese;
+                IngredientType wantedType = e.WantedIngredient;
 
                 for (auto ingredient : history.BaseIngredients) {
                     if (ingredient == wantedType ||
@@ -57,8 +53,10 @@ void GameManagerScript::OnCreate()
                 }
             }
 
-            // Wysyłamy wyrok do klienta
-            GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderResponseEvent{ e.Customer, isCorrect });
+            GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderResponseEvent{
+                    e.Customer,
+                    isCorrect
+            });
         }
     );
 

@@ -22,6 +22,31 @@ struct IngredientMetadata {
     glm::vec3 rotation;
 };
 
+inline std::string IngredientTypeToString(IngredientType type)
+{
+    switch (type)
+    {
+        case IngredientType::None:              return "None";
+        case IngredientType::Tomato:            return "Tomato";
+        case IngredientType::ChoppedTomato:     return "ChoppedTomato";
+        case IngredientType::Cheese:            return "Cheese";
+        case IngredientType::ChoppedCheese:     return "ChoppedCheese";
+        case IngredientType::Ham:               return "Ham";
+        case IngredientType::ChoppedHam:        return "ChoppedHam";
+        case IngredientType::Mozzarella:        return "Mozzarella";
+        case IngredientType::ChoppedMozzarella: return "ChoppedMozzarella";
+        case IngredientType::Milk:              return "Milk";
+        case IngredientType::Flour:             return "Flour";
+        case IngredientType::Egg:               return "Egg";
+        case IngredientType::Potato:            return "Potato";
+        case IngredientType::RawDough:          return "RawDough";
+        case IngredientType::Baguette:          return "Baguette";
+        case IngredientType::CutBaguette:       return "CutBaguette";
+        case IngredientType::Sandwich:          return "Sandwich";
+        default:                                return "Unknown";
+    }
+}
+
 // Metadane składnika, rotacja, skala
 inline IngredientMetadata GetIngredientMetadata(IngredientType type)
 {

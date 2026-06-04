@@ -200,7 +200,7 @@ private:
 
                         if (custScript && !custScript->IsServed)
                         {
-                            std::vector<std::string> plateIngredients = { "Tomato" };
+                            std::vector<IngredientType> plateIngredients = { IngredientType::Tomato };
 
                             if (custScript->IsOrderMatching(plateIngredients))
                             {
