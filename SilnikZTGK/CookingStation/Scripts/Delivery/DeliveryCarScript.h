@@ -5,7 +5,9 @@
 
 enum class DeliveryState {
     DRIVING_IN,
+    ANIMATING_OPEN,
     DROPPING,
+    ANIMATING_CLOSE,
     DRIVING_OUT
 };
 
@@ -19,12 +21,13 @@ public:
     glm::vec3 m_ExitPos  = { -17.0f, 5.0f, -25.0f };
 
     float m_Speed = 8.0f;
+    float m_AnimationTimer = 0.0f;
 
     DeliveryCarScript() = default;
 
     void OnCreate() override;
     void OnUpdate(Timestep ts) override;
-    void OnDestroy();
+    void OnDestroy() override;
 
 private:
     std::size_t m_CollectedSubId = 0;

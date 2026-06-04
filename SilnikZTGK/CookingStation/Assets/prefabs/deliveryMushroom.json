@@ -1,12 +1,12 @@
 {
   "name": "DeliveryMushroom",
-  "model_path": "assets://models/animacje/dostawa/grzyb-dostawa.gltf",
+  "model_path": "assets://models/animacje/dostawa/grzyb-macha.gltf",
   "animator": {
     "is_playing": true,
     "start_clip": "Default",
     "clips": {}
   },
-  "rotation": [0.0, -90.0, 0.0],
-  "scale" : [2.0, 2.0, 2.0],
+  "rotation": [0.0, 180.0, 0.0],
+  "scale" : [1.0, 1.0, 1.0],
   "script": "DeliveryMushroomScript"
 }

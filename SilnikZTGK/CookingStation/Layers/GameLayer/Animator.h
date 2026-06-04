@@ -23,16 +23,15 @@ public:
     void AddAnimation(const std::string& name, std::shared_ptr<Animation> anim)
     {
         m_Animations[name] = anim;
-        // Jeśli to pierwsza dodana animacja, ustawmy ją domyślnie
+        // Je�li to pierwsza dodana animacja, ustawmy j� domy�lnie
         if (m_CurrentAnimation == nullptr) {
             PlayAnimation(name);
         }
     }
 
-    void PlayAnimation(const std::string& name)
+    void PlayAnimation(const std::string& name, bool forceReset = false)
     {
-        // BARDZO WAŻNE: Nie resetuj czasu, jeśli ta animacja JUŻ TERAZ leci
-        if (m_CurrentAnimationName == name) return;
+        if (m_CurrentAnimationName == name && !forceReset) return;
 
         if (m_Animations.find(name) != m_Animations.end())
         {
@@ -41,8 +40,6 @@ public:
             m_CurrentTime = 0.0f;
             spdlog::info("Animator: Przelaczono na animacje '{}'", name);
 
-            // FIX "T-POSE FLASH": Przelicz kości natychmiast dla klatki startowej!
-            // Dzięki temu silnik ma poprawne macierze zanim dojdzie do pierwszego rysowania.
             if (m_CurrentAnimation)
             {
                 CalculateBoneTransform(&m_CurrentAnimation->GetRootNode(), glm::mat4(1.0f));
