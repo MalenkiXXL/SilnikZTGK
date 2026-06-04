@@ -146,6 +146,12 @@ struct ValidateOrderResponseEvent {
     bool IsCorrect;
 };
 
+// Event wysyłany przez klienta do magazynu, gdy kelner zbierze zamówienie
+struct KitchenOrderPlacedEvent {
+    Entity Customer;
+    IngredientType WantedDish;
+};
+
 // Zmodyfikowany CustomerServedEvent - teraz przekazujemy encję jedzenia, a nie zbiór tagów
 struct CustomerServedEvent {
     Entity Customer;

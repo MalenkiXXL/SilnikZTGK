@@ -52,7 +52,6 @@ public:
             }
             });
 
-        // NOWE: Odbieranie odpowiedzi od systemu, czy zamówienie jest prawidłowe
         m_ValidationResponseSubId = bus.Subscribe<ValidateOrderResponseEvent>([this](const ValidateOrderResponseEvent& e) {
             if (e.Customer.id == m_Entity.id) {
                 this->ReceiveFood(e.IsCorrect);
@@ -62,6 +61,13 @@ public:
         m_OrderSubId = bus.Subscribe<OrderTakenEvent>([this](const OrderTakenEvent& e) {
             if (e.Customer.id == m_Entity.id) {
                 this->OrderTaken = true;
+
+                GetScene()->GetWorld().GetEventBus().Publish(KitchenOrderPlacedEvent{
+                        m_Entity,
+                        WantedIngredient
+                });
+
+                spdlog::info("[Customer] Zamówienie klienta {} (Na: {}) wysłane do magazynu!", m_Entity.id, IngredientTypeToString(WantedIngredient));
             }
             });
     }

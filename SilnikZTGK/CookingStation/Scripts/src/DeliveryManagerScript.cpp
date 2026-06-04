@@ -53,6 +53,27 @@ void DeliveryManagerScript::OnCreate()
                 GetScene()->GetWorld().GetEventBus().Publish(ConfigurePackageEvent{ e.TargetEntity, m_CurrentOrderType, 5 });
             }
     );
+
+    auto& bus = GetScene()->GetWorld().GetEventBus();
+
+    m_CustomerSeatedSubId = bus.Subscribe<KitchenOrderPlacedEvent>([this](const KitchenOrderPlacedEvent& e) {
+        if (e.WantedDish != IngredientType::None) {
+            m_ActiveOrdersQueue.push_back({ e.Customer.id, e.WantedDish });
+            spdlog::info("Magazyn dopisał zamówienie na pozycję {}: {}", m_ActiveOrdersQueue.size(), IngredientTypeToString(e.WantedDish));
+        }
+    });
+
+    // 2. Usuwamy zrealizowane zamówienie z kolejki
+    m_ValidationResponseSubId = bus.Subscribe<ValidateOrderResponseEvent>([this](const ValidateOrderResponseEvent& e) {
+
+        auto it = std::find_if(m_ActiveOrdersQueue.begin(), m_ActiveOrdersQueue.end(),
+                               [&e](const OrderRecord& order) { return order.CustomerId == e.Customer.id; });
+
+        if (it != m_ActiveOrdersQueue.end()) {
+            m_ActiveOrdersQueue.erase(it);
+            spdlog::info("Zamówienie klienta {} zrealizowane i usunięte z kolejki magazynu.", e.Customer.id);
+        }
+    });
 }
 
 void DeliveryManagerScript::OnUpdate(Timestep ts)
@@ -66,40 +87,65 @@ void DeliveryManagerScript::OnUpdate(Timestep ts)
 
 void DeliveryManagerScript::RunDeliveryDecisionTree()
 {
-    spdlog::info("[DeliveryAI] Sprawdzam spizarnie...");
 
-    if (m_IsDeliveryOnTheWay)
+    if (m_IsDeliveryOnTheWay) return;
+
+    auto* gm = GameManagerScript::s_Instance;
+    if (!gm) return;
+
+    spdlog::info("[DeliveryAI] Drzewo decyzyjne uruchomione. Aktualna kolejka zamówień: {}", m_ActiveOrdersQueue.size());
+
+    std::map<IngredientType, int> simulatedInventory;
+
+    IngredientType typeToDeliver = IngredientType::None;
+    bool canFulfillAllOrders = true;
+
+    // KROK 1: Sprawdzamy braki pod konkretne zamówienia klientów
+    for (const auto& order : m_ActiveOrdersQueue)
     {
-        spdlog::info("[DeliveryAI] Dostawa w trakcie, pomijam.");
-        return;
-    }
+        IngredientType neededType = order.WantedDish;
 
-    if (!GameManagerScript::s_Instance) return;
-
-    std::vector<IngredientType> shortages;
-    for (auto& [type, threshold] : m_MinThreshold)
-    {
-        int current = GameManagerScript::s_Instance->GetIngredientCount(type);
-        if (current < threshold)
+        if (simulatedInventory.find(neededType) == simulatedInventory.end())
         {
-            shortages.push_back(type);
-            spdlog::info("[DeliveryAI] Brakuje typu {}: mam {}, minimum {}", (int)type, current, threshold);
+            simulatedInventory[neededType] = gm->GetIngredientCount(neededType);
+        }
+
+        if (simulatedInventory[neededType] > 0)
+        {
+            simulatedInventory[neededType]--;
+        }
+        else
+        {
+            canFulfillAllOrders = false;
+            typeToDeliver = neededType;
+            spdlog::info("Brakuje składnika na priorytetowe zamówienie klienta {}: {}", order.CustomerId, IngredientTypeToString(typeToDeliver));
+            break;
         }
     }
 
-    std::sort(shortages.begin(), shortages.end(), [](IngredientType a, IngredientType b) {
-        return static_cast<uint32_t>(a) < static_cast<uint32_t>(b);
-    });
+    if (canFulfillAllOrders) {
+        for (const auto &[type, threshold]: m_MinThreshold) {
+            int currentAmount = gm->GetIngredientCount(type);
 
-    if (shortages.empty())
-    {
-        spdlog::info("[DeliveryAI] Spizarnia pelna.");
-        return;
+            int simulatedAmount = currentAmount;
+            if (simulatedInventory.find(type) != simulatedInventory.end())
+            {
+                simulatedAmount = simulatedInventory[type];
+            }
+
+            if (simulatedAmount < threshold)
+            {
+                typeToDeliver = type;
+                spdlog::info("[DeliveryAI] Składniki na zamówienia są. Uzupełniam braki spiżarni: {}", IngredientTypeToString(typeToDeliver));
+                break;
+            }
+        }
     }
 
-    IngredientType toDeliver = shortages.front();
-    spdlog::info("[DeliveryAI] Zamawiam dostawe skladnika {}.", (int)toDeliver);
-    CallForDelivery(toDeliver);
+    if (typeToDeliver != IngredientType::None)
+    {
+        CallForDelivery(typeToDeliver);
+    }
 }
 
 void DeliveryManagerScript::CallForDelivery(IngredientType type)
@@ -112,7 +158,7 @@ void DeliveryManagerScript::CallForDelivery(IngredientType type)
     {
         m_DeliveryCarEntityId = car.id;
         m_IsDeliveryOnTheWay = true;
-        spdlog::info("[DeliveryAI] Dostawczak wyruszyl ze skladnikiem {}.", (int)type);
+        spdlog::info("[DeliveryAI] Dostawczak wyruszyl z: {}.", IngredientTypeToString(type));
     }
 }
 void DeliveryManagerScript::OnDestroy()

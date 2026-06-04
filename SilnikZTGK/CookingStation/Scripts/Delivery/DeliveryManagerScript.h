@@ -5,6 +5,11 @@
 #include <string>
 #include <vector>
 
+struct OrderRecord {
+    std::size_t CustomerId;
+    IngredientType WantedDish;
+};
+
 class DeliveryManagerScript : public ScriptableEntity
 {
 public:
@@ -15,6 +20,8 @@ public:
 private:
     void RunDeliveryDecisionTree();
     void CallForDelivery(IngredientType type);
+
+    std::vector<OrderRecord> m_ActiveOrdersQueue;
 
     // Pozycja, z której startuje auto
     glm::vec3 m_CarStartPos = { -17.0f, 5.0f, 30.0f };
@@ -36,6 +43,8 @@ private:
     std::string m_PackagePrefabPath = "CookingStation/Assets/prefabs/package.json";
     std::size_t m_CarArrivedSubId = 0;
     std::size_t m_PackageSpawnedSubId = 0;
+    std::size_t m_CustomerSeatedSubId = 0;
+    std::size_t m_ValidationResponseSubId = 0;
 
     IngredientType m_CurrentOrderType = IngredientType::Tomato;
 };
