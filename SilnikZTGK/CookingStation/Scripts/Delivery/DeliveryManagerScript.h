@@ -1,14 +1,10 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scripts/Managers/IngredientType.h"
+#include "DeliveryLogic.h"
 #include <map>
 #include <string>
 #include <vector>
-
-struct OrderRecord {
-    std::size_t CustomerId;
-    IngredientType WantedDish;
-};
 
 class DeliveryManagerScript : public ScriptableEntity
 {

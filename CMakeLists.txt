@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(SilnikZTGK CXX)
+project(SilnikZTGK C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -19,13 +19,15 @@ file(GLOB_RECURSE SOURCES
 list(FILTER SOURCES EXCLUDE REGEX "cmake-build-.*")
 list(FILTER SOURCES EXCLUDE REGEX "out/.*")
 list(FILTER SOURCES EXCLUDE REGEX "build/.*")
+list(FILTER SOURCES EXCLUDE REGEX ".*venv.*")
+list(FILTER SOURCES EXCLUDE REGEX "tests/.*")
 
+# ==========================================
+# GŁÓWNY PROGRAM
+# ==========================================
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# ==========================================
 # Wskazanie ścieżek do plików nagłówkowych (.h)
-# ==========================================
-# Ścieżka ${CMAKE_SOURCE_DIR} to główny folder Twojego projektu.
 target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_SOURCE_DIR}
         ${CMAKE_SOURCE_DIR}/SilnikZTGK
@@ -50,9 +52,44 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
         assimp::assimp
 )
 
-# ==========================================
 # Tryb Dystrybucji (Eksport Gry bez Edytora)
-# ==========================================
 if (CS_IS_DISTRIBUTION)
     target_compile_definitions(${PROJECT_NAME} PRIVATE CS_DISTRIBUTION)
 endif()
+
+# ==========================================
+# TESTY JEDNOSTKOWE (GOOGLE TEST)
+# ==========================================
+include(FetchContent)
+
+# Deklarujemy, skąd CMake ma pobrać Google Test
+FetchContent_Declare(
+        googletest
+        GIT_REPOSITORY https://github.com/google/googletest.git
+        GIT_TAG        release-1.12.1
+)
+
+# Wymuszamy kompatybilność z bibliotekami standardowymi na Windowsie
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+# Pobieramy i udostępniamy GTest dla naszego projektu
+FetchContent_MakeAvailable(googletest)
+
+# Tworzymy osobną aplikację (.exe), która będzie odpalać tylko testy
+add_executable(SilnikZTGK_Tests
+        tests/test_delivery_ai.cpp
+)
+
+# Informacja gdzie leżą pliki nagłówkowe silnika
+target_include_directories(SilnikZTGK_Tests PRIVATE
+        ${CMAKE_SOURCE_DIR}
+        ${CMAKE_SOURCE_DIR}/SilnikZTGK
+)
+
+# Podpinamy GTest oraz niezbędne biblioteki
+target_link_libraries(SilnikZTGK_Tests PRIVATE
+        gtest
+        gtest_main
+        glm::glm
+        spdlog::spdlog
+)
