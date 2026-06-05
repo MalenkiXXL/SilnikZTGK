@@ -24,8 +24,8 @@ private:
 
     // Przesunięcia dla paczek względem auta
     glm::vec3 m_PackageOffsets[2] = {
-            glm::vec3(6.0f, -2.0f, 0.0f),
-            glm::vec3(6.0f, -2.0f, 2.0f)
+            glm::vec3(6.0f, -4.0f, 0.0f),
+            glm::vec3(6.0f, -4.0f, 2.0f)
     };
 
     std::map<IngredientType, int> m_MinThreshold;
