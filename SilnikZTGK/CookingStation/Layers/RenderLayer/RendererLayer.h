@@ -11,45 +11,51 @@
 #include <string>
 #include <atomic>
 
-// Struktura odwzorowuj¹ca JSON-a
 struct Quest {
-	std::string Title;
-	std::string Description;
-	std::string DishID;
-	int Portions;
-	std::string Reward;
+    std::string Title;
+    std::string Description;
+    std::string DishID;
+    int Portions;
+    std::string Reward;
 };
 
 class RendererLayer : public Layer
 {
 public:
-	RendererLayer() : Layer("RenderLayer") {};
-	~RendererLayer() = default;
+    RendererLayer() : Layer("RenderLayer") {};
+    ~RendererLayer() = default;
 
-	void OnAttach() override;
-	void OnUpdate(Timestep ts) override;
-	void OnEvent(Event& e) override;
-	void SetTargetFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_TargetFBO = fbo; }
+    void OnAttach() override;
+    void OnUpdate(Timestep ts) override;
+    void OnEvent(Event& e) override;
+    void SetTargetFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_TargetFBO = fbo; }
 
-	void LoadQuestFromFile(const std::string& filepath);
-	void SetResolveTarget(const std::shared_ptr<Framebuffer>& fbo) { m_ResolveFBO = fbo; }
+    void LoadQuestFromFile(const std::string& filepath);
+    void SetResolveTarget(const std::shared_ptr<Framebuffer>& fbo) { m_ResolveFBO = fbo; }
 
 private:
-	bool OnWindowResize(WindowResizeEvent& e);
+    bool OnWindowResize(WindowResizeEvent& e);
 
-	ShaderLibrary m_ShaderLibrary;
-	std::shared_ptr<Shader> m_Shader;
-	std::shared_ptr<Framebuffer> m_TargetFBO;
-	float m_ViewportWidth = 800.0f;
-	float m_ViewportHeight = 600.0f;
+    ShaderLibrary m_ShaderLibrary;
+    std::shared_ptr<Shader> m_Shader;
+    std::shared_ptr<Framebuffer> m_TargetFBO;
+    float m_ViewportWidth = 800.0f;
+    float m_ViewportHeight = 600.0f;
 
-	// Dane systemu questów
-	std::vector<Quest> m_ActiveQuests;
-	std::atomic<bool> m_IsGenerating{ false };
-	std::atomic<bool> m_GenerationDone{ false };
-	std::shared_ptr<Shader> m_ActiveShader;
-	std::shared_ptr<Texture2D> m_RampTexture;
-	std::shared_ptr<Texture2D> m_BackgroundTexture;
-	unsigned int m_RepeatSampler = 0;
-	std::shared_ptr<Framebuffer> m_ResolveFBO;
+    std::vector<Quest> m_ActiveQuests;
+    std::atomic<bool> m_IsGenerating{ false };
+    std::atomic<bool> m_GenerationDone{ false };
+
+    std::shared_ptr<Texture2D> m_RampTexture;
+    std::shared_ptr<Texture2D> m_BackgroundTexture;
+
+    std::shared_ptr<Framebuffer> m_ResolveFBO;
+
+    // --- BUFORY POST-PROCESSingu ---
+    std::shared_ptr<Framebuffer> m_PingPongFBO[2]; // Ping-pong do rozmycia Blooma
+    std::shared_ptr<Framebuffer> m_PostProcessFBO; // Finalny bufor po efektach
+
+    // Zmienne dla ekranowego quada (Post-processing)
+    uint32_t m_ScreenQuadVAO = 0;
+    uint32_t m_ScreenQuadVBO = 0;
 };

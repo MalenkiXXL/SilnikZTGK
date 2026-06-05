@@ -24,8 +24,50 @@ void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("Conveyor", "shaders://vsShaders/shader.vert", "shaders://fragShaders/conveyor.frag");
     m_ShaderLibrary.Load("HighlightShader", "shaders://vsShaders/highlight.vert", "shaders://fragShaders/highlight.frag");
 
+    // --- ŁADOWANIE SHADERÓW POST-PROCESS ---
+    m_ShaderLibrary.Load("BloomExtract", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_extract.frag");
+    m_ShaderLibrary.Load("BloomBlur", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_blur.frag");
+    m_ShaderLibrary.Load("BloomComposite", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_composite.frag");
+
     m_RampTexture = std::make_shared<Texture2D>("assets://textures/RAMP_texture.png");
     m_BackgroundTexture = std::make_shared<Texture2D>("assets://background/background.png");
+
+    // --- SETUP FBO DLA POST-PROCESSingu ---
+    // FIX: HDR = true — GL_RGBA16F pozwala przechowywać wartości > 1.0, co jest wymagane
+    //      do poprawnego Bloom. Bez tego wszystkie wartości są obcinane do [0,1].
+    FramebufferSpecification ppSpec;
+    ppSpec.Width = 1920 / 2;
+    ppSpec.Height = 1080 / 2;
+    ppSpec.HDR = true; // FIX: było brak flagi — domyślnie GL_RGBA8
+    m_PingPongFBO[0] = std::make_shared<Framebuffer>(ppSpec);
+    m_PingPongFBO[1] = std::make_shared<Framebuffer>(ppSpec);
+
+    FramebufferSpecification finalSpec;
+    finalSpec.Width = 1920;
+    finalSpec.Height = 1080;
+    finalSpec.HDR = true; // FIX: było brak flagi — domyślnie GL_RGBA8
+    m_PostProcessFBO = std::make_shared<Framebuffer>(finalSpec);
+
+    // --- QUAD EKRANOWY ---
+    float quadVertices[] = {
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+    };
+    glGenVertexArrays(1, &m_ScreenQuadVAO);
+    glGenBuffers(1, &m_ScreenQuadVBO);
+    glBindVertexArray(m_ScreenQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_ScreenQuadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
     auto rampShader = m_ShaderLibrary.Get("RAMP");
     rampShader->use();
@@ -91,25 +133,20 @@ void RendererLayer::OnUpdate(Timestep ts) {
     RenderCommand::SetClearColor(clearColor);
     RenderCommand::Clear();
 
+    // Rysowanie tła 2D
     glDisable(GL_DEPTH_TEST);
-
     glm::mat4 bgProjection = glm::ortho(0.0f, fboWidth, 0.0f, fboHeight, -1.0f, 1.0f);
     Renderer2D::BeginScene(bgProjection);
     Renderer2D::DrawQuad(
-        glm::vec2(0.0f, 0.0f),
-        glm::vec2(fboWidth, fboHeight),
-        m_BackgroundTexture->GetRendererID(),
-        glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
-        glm::vec2(0.0f, 0.0f),
-        glm::vec2(1.0f, 1.0f)
+        glm::vec2(0.0f, 0.0f), glm::vec2(fboWidth, fboHeight),
+        m_BackgroundTexture->GetRendererID(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+        glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 1.0f)
     );
     Renderer2D::EndScene();
-
     glEnable(GL_DEPTH_TEST);
 
     if (activeScene->GetCamera()) {
         glm::mat4 view = activeScene->GetCamera()->GetViewMatrix();
-
         float safeZoom = std::max(activeScene->GetCamera()->Zoom, 1.0f);
         float orthoSize = 10.0f * (safeZoom / 45.0f);
         glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
@@ -117,29 +154,20 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
         activeScene->CalculateTransforms();
 
-        Renderer::BeginScene(viewProjection, activeScene->GetCamera()->Position);
-
         auto stdShader = m_ShaderLibrary.Get(Renderer::ActiveShader);
         auto conveyorShader = m_ShaderLibrary.Get("Conveyor");
-
-        if (Renderer::ActiveShader == "RAMP") {
-            m_RampTexture->Bind(10);
-        }
-
         Frustum activeFrustum = ExtractFrustum(viewProjection);
 
+        std::unordered_map<Model*, std::unordered_map<std::shared_ptr<Shader>, std::vector<InstanceData>>> instancedBatches;
+        struct AnimatedDrawCmd {
+            std::shared_ptr<Shader> shader;
+            Model* model;
+            InstanceData instanceData;
+            AnimatorComponent* animComp;
+        };
+        std::vector<AnimatedDrawCmd> animatedDraws;
+
         if (meshStorage && transformStorage) {
-
-            std::unordered_map<Model*, std::unordered_map<std::shared_ptr<Shader>, std::vector<InstanceData>>> instancedBatches;
-
-            struct AnimatedDrawCmd {
-                std::shared_ptr<Shader> shader;
-                Model* model;
-                InstanceData instanceData;
-                AnimatorComponent* animComp;
-            };
-            std::vector<AnimatedDrawCmd> animatedDraws;
-
             for (size_t i = 0; i < meshStorage->dense.size(); i++) {
                 auto& meshComp = meshStorage->dense[i];
                 Entity owner = meshStorage->reverse[i];
@@ -150,159 +178,198 @@ void RendererLayer::OnUpdate(Timestep ts) {
                     for (auto& mesh : meshComp.ModelPtr->meshes) {
                         AABB worldAABB = mesh.GetWorldAABB(transform->WorldMatrix);
                         if (IsOnFrustum(activeFrustum, worldAABB)) {
-                            isVisible = true;
-                            break;
+                            isVisible = true; break;
                         }
                     }
 
                     if (!isVisible) {
-                        Renderer::GetStats().CulledObjects3D++;
-                        continue;
+                        Renderer::GetStats().CulledObjects3D++; continue;
                     }
 
                     UVScrollComponent* scroll = scrollStorage ? scrollStorage->Get(owner) : nullptr;
                     float currentUVOffset = scroll ? scroll->Offset : 0.0f;
                     std::shared_ptr<Shader> shaderToUse = nullptr;
 
-                    if (scroll)
-                    {
-                        shaderToUse = conveyorShader;
+                    if (scroll) shaderToUse = conveyorShader;
+                    else if (!meshComp.ShaderName.empty() && meshComp.ShaderName != "Standard") {
+                        shaderToUse = m_ShaderLibrary.Exists(meshComp.ShaderName) ? m_ShaderLibrary.Get(meshComp.ShaderName) : stdShader;
                     }
-                    else if (!meshComp.ShaderName.empty() && meshComp.ShaderName != "Standard")
-                    {
-                        // ShaderName ustawiony przez skrypt (np. "HighlightShader") � szukamy w bibliotece
-                        shaderToUse = m_ShaderLibrary.Exists(meshComp.ShaderName)
-                            ? m_ShaderLibrary.Get(meshComp.ShaderName)
-                            : stdShader;
-                    }
-                    else if (meshComp.ShaderPtr)
-                    {
-                        shaderToUse = meshComp.ShaderPtr;
-                    }
-                    else
-                    {
-                        shaderToUse = stdShader;
-                    }
+                    else if (meshComp.ShaderPtr) shaderToUse = meshComp.ShaderPtr;
+                    else shaderToUse = stdShader;
 
                     AnimatorComponent* animComp = animatorStorage ? animatorStorage->Get(owner) : nullptr;
 
                     if (animComp && animComp->AnimatorInstance) {
-                        animatedDraws.push_back({ shaderToUse, meshComp.ModelPtr.get(), {
-                            transform->WorldMatrix,
-                            currentUVOffset,
-                            meshComp.HighlightColor }, animComp });
+                        animatedDraws.push_back({ shaderToUse, meshComp.ModelPtr.get(), { transform->WorldMatrix, currentUVOffset, meshComp.HighlightColor }, animComp });
                     }
                     else {
-                        Model* modelKey = meshComp.ModelPtr.get();
-                        instancedBatches[modelKey][shaderToUse].push_back({
-                            transform->WorldMatrix,
-                            currentUVOffset,
-                            meshComp.HighlightColor
-                        });
+                        instancedBatches[meshComp.ModelPtr.get()][shaderToUse].push_back({ transform->WorldMatrix, currentUVOffset, meshComp.HighlightColor });
                     }
                 }
             }
+        }
 
-            for (auto& [modelPtr, shaderMap] : instancedBatches) {
-                for (auto& [shaderPtr, batchData] : shaderMap) {
-                    shaderPtr->use();
-                    shaderPtr->setBool("u_Animated", false);
-                    Renderer::SubmitInstanced(shaderPtr, modelPtr, batchData);
-                }
-            }
+        // --- GŁÓWNY RENDEROWANIE 3D (Bez cieni!) ---
+        Renderer::BeginScene(viewProjection, activeScene->GetCamera()->Position);
 
-            for (auto& animDraw : animatedDraws) {
-                animDraw.shader->use();
-                animDraw.shader->setBool("u_Animated", true);
+        if (Renderer::ActiveShader == "RAMP") m_RampTexture->Bind(10);
 
-                const auto& finalBones = animDraw.animComp->AnimatorInstance->GetFinalBoneMatrices();
-
-                animDraw.shader->setMat4Array("finalBonesMatrices", finalBones);
-
-                std::vector<InstanceData> singleInstance = { animDraw.instanceData };
-                Renderer::SubmitInstanced(animDraw.shader, animDraw.model, singleInstance);
-
-                animDraw.shader->setBool("u_Animated", false);
+        for (auto& [modelPtr, shaderMap] : instancedBatches) {
+            for (auto& [shaderPtr, batchData] : shaderMap) {
+                shaderPtr->use();
+                shaderPtr->setBool("u_Animated", false);
+                Renderer::SubmitInstanced(shaderPtr, modelPtr, batchData);
             }
         }
+
+        for (auto& animDraw : animatedDraws) {
+            animDraw.shader->use();
+            animDraw.shader->setBool("u_Animated", true);
+            animDraw.shader->setMat4Array("finalBonesMatrices", animDraw.animComp->AnimatorInstance->GetFinalBoneMatrices());
+            std::vector<InstanceData> singleInstance = { animDraw.instanceData };
+            Renderer::SubmitInstanced(animDraw.shader, animDraw.model, singleInstance);
+            animDraw.shader->setBool("u_Animated", false);
+        }
+
         Renderer::EndScene();
 
+        // Rysowanie cząsteczek
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthMask(GL_FALSE);
 
         Renderer2D::BeginScene(viewProjection);
-
         auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
         if (scriptStorage && activeScene->GetCamera())
         {
             glm::vec3 camRight = activeScene->GetCamera()->Right;
             glm::vec3 camUp = activeScene->GetCamera()->Up;
 
-            for (auto& scriptComp : scriptStorage->dense)
-            {
-                for (auto& scriptEl : scriptComp.Scripts)
-                {
-                    if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript" || scriptEl.Name == "DustEmitterScript") && scriptEl.Instance)
-                    {
+            for (auto& scriptComp : scriptStorage->dense) {
+                for (auto& scriptEl : scriptComp.Scripts) {
+                    if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript" || scriptEl.Name == "DustEmitterScript") && scriptEl.Instance) {
                         ParticleEmitterScript* emitter = dynamic_cast<ParticleEmitterScript*>(scriptEl.Instance);
-
-                        if (emitter)
-                        {
-                            for (const auto& particle : emitter->GetParticles())
-                            {
+                        if (emitter) {
+                            for (const auto& particle : emitter->GetParticles()) {
                                 if (!particle.Active || particle.LifeTime <= 0.0001f) continue;
-
                                 float lifeRatio = particle.LifeRemaining / particle.LifeTime;
                                 float currentSize = glm::mix(particle.SizeEnd, particle.SizeBegin, lifeRatio);
                                 glm::vec4 currentColor = glm::mix(particle.ColorEnd, particle.ColorBegin, lifeRatio);
-
                                 glm::mat4 transform = glm::translate(glm::mat4(1.0f), particle.Position);
                                 transform[0] = glm::vec4(camRight * currentSize, 0.0f);
                                 transform[1] = glm::vec4(camUp * currentSize, 0.0f);
                                 transform[2] = glm::vec4(glm::cross(camRight, camUp) * currentSize, 0.0f);
 
-                                if (particle.TextureID != 0)
-                                    Renderer2D::DrawQuad(transform, particle.TextureID, currentColor);
-                                else
-                                    Renderer2D::DrawQuad(transform, currentColor);
+                                if (particle.TextureID != 0) Renderer2D::DrawQuad(transform, particle.TextureID, currentColor);
+                                else Renderer2D::DrawQuad(transform, currentColor);
                             }
                         }
                     }
                 }
             }
         }
-
         Renderer2D::EndScene();
         glDepthMask(GL_TRUE);
     }
 
+    // ===========================================================
+    // FAZA POST-PROCESSING (BLOOM + COLOR GRADING)
+    // ===========================================================
     if (m_TargetFBO) {
-        if (m_ResolveFBO) {
-            m_TargetFBO->ResolveTo(m_ResolveFBO);
+        // FIX: sprawdzamy m_ResolveFBO przed użyciem — wcześniej null dereference był możliwy
+        if (!m_ResolveFBO) {
+            m_TargetFBO->Unbind();
+            return;
         }
+
+        // Zrzucamy obraz MSAA do zwykłego ResolveFBO
+        m_TargetFBO->ResolveTo(m_ResolveFBO);
         m_TargetFBO->Unbind();
 
+        // Zamykamy Blending — nie może wchodzić w interakcję z Bloomem
+        glDisable(GL_BLEND);
+
+        bool depthTestState = glIsEnabled(GL_DEPTH_TEST);
+        glDisable(GL_DEPTH_TEST);
+
+        // Dynamiczne dopasowanie rozdzielczości FBO pod obecny rozmiar
+        uint32_t currentWidth = (uint32_t)fboWidth;
+        uint32_t currentHeight = (uint32_t)fboHeight;
+
+        if (m_PostProcessFBO->GetSpecification().Width != currentWidth || m_PostProcessFBO->GetSpecification().Height != currentHeight) {
+            m_PostProcessFBO->Resize(currentWidth, currentHeight);
+            m_PingPongFBO[0]->Resize(currentWidth / 2, currentHeight / 2);
+            m_PingPongFBO[1]->Resize(currentWidth / 2, currentHeight / 2);
+        }
+
+        // 1. Wyciągamy jasne kolory do PingPongFBO[0]
+        m_PingPongFBO[0]->Bind();
+        auto extractShader = m_ShaderLibrary.Get("BloomExtract");
+        extractShader->use();
+        extractShader->setInt("sceneColor", 0);    // FIX: jawne przypisanie unit tekstury
+        extractShader->setFloat("threshold", 0.8f); 
+        // barw. Pastelowy różowy ma luminancję ~0.74
+        // i wpadał w bloom zamiast tylko jasne punkty.
+        // Docelowo: przy HDR TargetFBO podnieść do 1.0f
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_ResolveFBO->GetColorAttachmentRendererID());
+
+        glBindVertexArray(m_ScreenQuadVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // 2. Ping-Pong Blur (10 przebiegów Gaussa)
+        bool horizontal = true, first_iteration = true;
+        int amount = 10;
+        auto blurShader = m_ShaderLibrary.Get("BloomBlur");
+        blurShader->use();
+        blurShader->setInt("image", 0);
+
+        for (unsigned int i = 0; i < amount; i++)
+        {
+            m_PingPongFBO[horizontal]->Bind();
+            blurShader->setBool("horizontal", horizontal);
+            glActiveTexture(GL_TEXTURE0);
+
+            uint32_t textureToBind = first_iteration
+                ? m_PingPongFBO[0]->GetColorAttachmentRendererID()
+                : m_PingPongFBO[!horizontal]->GetColorAttachmentRendererID();
+            glBindTexture(GL_TEXTURE_2D, textureToBind);
+
+            glBindVertexArray(m_ScreenQuadVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+            horizontal = !horizontal;
+            if (first_iteration) first_iteration = false;
+        }
+
+        // 3. Finalny kompozyt i Color Grading
+        m_PostProcessFBO->Bind();
+        auto compositeShader = m_ShaderLibrary.Get("BloomComposite");
+        compositeShader->use();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_ResolveFBO->GetColorAttachmentRendererID()); // Czysta scena
+        compositeShader->setInt("sceneColor", 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, m_PingPongFBO[!horizontal]->GetColorAttachmentRendererID()); // Rozmyty bloom
+        compositeShader->setInt("bloomBlur", 1);
+
+        compositeShader->setFloat("exposure", 1.8f);      //
+        compositeShader->setFloat("bloomStrength", 0.4f); 
+
+        glBindVertexArray(m_ScreenQuadVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        m_PostProcessFBO->Unbind();
+
+        if (depthTestState) glEnable(GL_DEPTH_TEST);
+
+        // 4. Rysowanie przetworzonego obrazu na ekran
 #ifdef CS_DISTRIBUTION
-        // =========================================================
-        // FIX STANDALONE: Przenosimy uwi�zione 3D prosto na ekran!
-        // =========================================================
-
-        // Zale�nie od tego, jak nazwa�e� sw�j getter w klasie Framebuffer, 
-        // u�yj GetRendererID(), GetID() lub GetColorAttachmentRendererID().
-        // W architekturach a'la Cherno zazwyczaj jest to GetRendererID().
-        uint32_t resolveFboId = m_ResolveFBO->GetRendererID();
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFboId); // Czytamy z Viewportu
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);            // Rysujemy na ekran
-
-        uint32_t width = m_ResolveFBO->GetSpecification().Width;
-        uint32_t height = m_ResolveFBO->GetSpecification().Height;
-
-        // Kopiowanie piksel po pikselu z VRAM na ekran
-        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-        // Reset, aby nast�pne w kolejce warstwy (jak Twoje GUI) normalnie rysowa�y po ekranie
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_PostProcessFBO->GetRendererID());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, currentWidth, currentHeight, 0, 0, (uint32_t)m_ViewportWidth, (uint32_t)m_ViewportHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif
     }

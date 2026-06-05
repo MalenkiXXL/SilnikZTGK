@@ -32,18 +32,20 @@ Application::Application()
 
 	glEnable(GL_MULTISAMPLE);
 
-	// 1. ZWYKLY FBO (GUI)
+	// 1. ZWYKLY FBO (GUI) — resolve target i źródło dla Bloom composite
 	FramebufferSpecification fbSpec;
 	fbSpec.Width = m_Window->GetWidth();
 	fbSpec.Height = m_Window->GetHeight();
 	fbSpec.Samples = 1;
+	fbSpec.HDR = true; // FIX: GL_RGBA16F — wymagane żeby Bloom mógł działać na pełnym zakresie
 	m_ViewportFBO = std::make_shared<Framebuffer>(fbSpec);
 
-	// 2. FBO z MSAA (3D)
+	// 2. FBO z MSAA (3D) — główny render target
 	FramebufferSpecification msaaSpec;
 	msaaSpec.Width = m_Window->GetWidth();
 	msaaSpec.Height = m_Window->GetHeight();
 	msaaSpec.Samples = 4;
+	msaaSpec.HDR = true; // FIX: GL_RGBA16F — musi być spójny z ViewportFBO przy ResolveTo
 	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
 
 
@@ -201,7 +203,8 @@ void Application::Run()
 			// oblicza miniony czas i wpisuje go do zmiennej CPULogicTime
 		}
 
-		m_MsaaFBO->ResolveTo(m_ViewportFBO);
+		// FIX: usunięto m_MsaaFBO->ResolveTo(m_ViewportFBO) — RendererLayer::OnUpdate
+		// robi ten resolve sam przed Bloomem, więc tutaj było dwa razy.
 
 		// 4. AKTUALIZACJA OKNA I WEJSCIA
 		m_Window->OnUpdate(); // To wywola m.in. glfwSwapBuffers i glfwPollEvents

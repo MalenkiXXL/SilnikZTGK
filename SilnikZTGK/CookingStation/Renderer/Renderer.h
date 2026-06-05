@@ -16,16 +16,14 @@ namespace UBOBindings {
     constexpr uint32_t Scene = 0;
 }
 
-// Struktura dopasowana do layout(std140) w GLSL.
-// W std140 typ vec3 jest wyr�wnywany do 16 bajt�w (rozmiar vec4).
 struct SceneUBO {
-    glm::mat4 ViewProjection;   // 64 bajty (offset 0)
-    glm::vec3 SunDir;           // 12 bajt�w (offset 64)
-    float      _pad0 = 0.0f;    // 4 bajty paddingu -> suma 16 (offset 76)
-    glm::vec3 LightColor;       // 12 bajt�w (offset 80)
-    float      _pad1 = 0.0f;    // 4 bajty paddingu -> suma 16 (offset 92)
-    glm::vec3 ViewPos;          // 12 bajt�w (offset 96)
-    float      _pad2 = 0.0f;    // 4 bajty paddingu -> suma 16 (offset 108)
+    glm::mat4 ViewProjection;
+    glm::vec3 SunDir;
+    float      _pad0 = 0.0f;
+    glm::vec3 LightColor;
+    float      _pad1 = 0.0f;
+    glm::vec3 ViewPos;
+    float      _pad2 = 0.0f;
 };
 
 struct InstanceData {
@@ -45,9 +43,9 @@ struct RendererStatistics {
     float CPURenderTime = 0.0f;
     float GPURenderTime = 0.0f;
 
-    uint32_t InstanceBatches = 0;     // Ile grup modeli wys�ano
-    uint32_t MatrixCalculations = 0;  // Ile macierzy przeliczono (Dirty Flag)
-    uint32_t SkippedCalculations = 0; // Ile obiekt�w pomini�to dzi�ki Dirty Flag
+    uint32_t InstanceBatches = 0;
+    uint32_t MatrixCalculations = 0;
+    uint32_t SkippedCalculations = 0;
 
     void Reset() {
         DrawCalls3D = 0;
@@ -64,18 +62,15 @@ struct RendererStatistics {
 class Renderer
 {
 public:
-    // Inicjalizuje systemy rendera, w tym tworzy bufor UBO
     static void Init();
     static void Shutdown();
 
     static void ResetStats() { s_Stats.Reset(); }
     static RendererStatistics& GetStats() { return s_Stats; }
 
-    // Rozpoczyna klatk� - aktualizuje dane w UBO
     static void BeginScene(const glm::mat4& viewProjectionMatrix, const glm::vec3& viewPos = glm::vec3(0.0f));
     static void EndScene();
 
-    // Metody rysowania geometrii
     static void Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<VertexArray>& vertexArray, const glm::mat4 transform = glm::mat4(1.0f));
     static void Submit(const std::shared_ptr<Shader>& shader, const std::shared_ptr<Model>& model, const glm::mat4& transform);
     static void SubmitInstanced(std::shared_ptr<Shader> shader, Model* model, const std::vector<InstanceData>& instanceData);
@@ -93,7 +88,5 @@ private:
     static RendererStatistics s_Stats;
     static uint32_t s_GPUQueryID;
     static bool s_GPUQueryInitialized;
-
-    // Statyczny wska�nik do bufora UBO
     static std::unique_ptr<UniformBuffer> s_SceneUBO;
 };
