@@ -237,10 +237,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -296,10 +296,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -355,10 +355,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -414,10 +414,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -473,10 +473,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -532,10 +532,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -591,10 +591,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -650,10 +650,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -709,10 +709,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -768,10 +768,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -827,10 +827,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -886,10 +886,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -945,10 +945,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1004,10 +1004,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1063,10 +1063,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1122,10 +1122,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1181,10 +1181,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1243,7 +1243,7 @@
       "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1303,7 +1303,7 @@
       "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1359,10 +1359,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1418,10 +1418,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1477,10 +1477,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1536,10 +1536,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1595,10 +1595,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1654,10 +1654,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1713,10 +1713,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1772,10 +1772,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1831,10 +1831,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [
@@ -1890,10 +1890,10 @@
       ]
     },
     {
-      "collider": {
+  "collider": {
         "offset": [
           0.0,
-          0.0,
+          0.5,
           0.0
         ],
         "size": [

@@ -2,6 +2,7 @@
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Scripts/Delivery/PackageScript.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
+#include "CookingStation/Scripts/Delivery/DeliveryLogic.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 
@@ -95,55 +96,19 @@ void DeliveryManagerScript::RunDeliveryDecisionTree()
 
     spdlog::info("[DeliveryAI] Drzewo decyzyjne uruchomione. Aktualna kolejka zamówień: {}", m_ActiveOrdersQueue.size());
 
-    std::map<IngredientType, int> simulatedInventory;
-
-    IngredientType typeToDeliver = IngredientType::None;
-    bool canFulfillAllOrders = true;
-
-    // KROK 1: Sprawdzamy braki pod konkretne zamówienia klientów
-    for (const auto& order : m_ActiveOrdersQueue)
-    {
-        IngredientType neededType = order.WantedDish;
-
-        if (simulatedInventory.find(neededType) == simulatedInventory.end())
-        {
-            simulatedInventory[neededType] = gm->GetIngredientCount(neededType);
-        }
-
-        if (simulatedInventory[neededType] > 0)
-        {
-            simulatedInventory[neededType]--;
-        }
-        else
-        {
-            canFulfillAllOrders = false;
-            typeToDeliver = neededType;
-            spdlog::info("Brakuje składnika na priorytetowe zamówienie klienta {}: {}", order.CustomerId, IngredientTypeToString(typeToDeliver));
-            break;
-        }
+    std::map<IngredientType, int> realInventory;
+    for (const auto& [type, threshold] : m_MinThreshold) {
+        realInventory[type] = gm->GetIngredientCount(type);
     }
 
-    if (canFulfillAllOrders) {
-        for (const auto &[type, threshold]: m_MinThreshold) {
-            int currentAmount = gm->GetIngredientCount(type);
+    IngredientType typeToDeliver = DeliveryLogic::CalculateWhatToOrder(
+            m_ActiveOrdersQueue,
+            realInventory,
+            m_MinThreshold
+    );
 
-            int simulatedAmount = currentAmount;
-            if (simulatedInventory.find(type) != simulatedInventory.end())
-            {
-                simulatedAmount = simulatedInventory[type];
-            }
-
-            if (simulatedAmount < threshold)
-            {
-                typeToDeliver = type;
-                spdlog::info("[DeliveryAI] Składniki na zamówienia są. Uzupełniam braki spiżarni: {}", IngredientTypeToString(typeToDeliver));
-                break;
-            }
-        }
-    }
-
-    if (typeToDeliver != IngredientType::None)
-    {
+    if (typeToDeliver != IngredientType::None) {
+        spdlog::info("[DeliveryAI] Mózg zdecydował zamówić: {}", IngredientTypeToString(typeToDeliver));
         CallForDelivery(typeToDeliver);
     }
 }
