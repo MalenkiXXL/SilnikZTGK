@@ -29,6 +29,8 @@ private:
     void DrawMainMenu(float baseScale, float dt);
     void DrawSettingsPanel(float baseScale, float dt);
 
+    bool DrawImageButton(const std::shared_ptr<Texture>& tex, glm::vec2 basePos, glm::vec2 baseSize, float btnScale, float baseScale_, bool hovered);
+
     bool DrawScaledButton(const std::string& label,
         glm::vec2 basePos, glm::vec2 baseSize,
         float btnScale, float baseScale_,
@@ -39,12 +41,19 @@ private:
 
     // --- Tekstury / wymiary ---
     std::shared_ptr<Texture> m_Background;
+
+    std::shared_ptr<Texture> m_PlayBtnTex;
+    std::shared_ptr<Texture> m_SettingsBtnTex;
+    std::shared_ptr<Texture> m_CreditsBtnTex;
+    std::shared_ptr<Texture> m_ExitBtnTex;
+
     float m_ViewportWidth = 1920.0f;
     float m_ViewportHeight = 1080.0f;
 
-    // --- Skale przycisków głównego menu ---
     float m_PlayBtnScale = 1.0f;
     float m_SettingsBtnScale = 1.0f;
+    float m_CreditsBtnScale = 1.0f;
+    float m_ExitBtnScale = 1.0f;
 
     // --- Stan panelu ustawień ---
     bool  m_SettingsOpen = false;

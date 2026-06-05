@@ -14,9 +14,6 @@
 
 constexpr int MainMenuLayer::MsaaOptions[];
 
-// -----------------------------------------------------------------------
-// OnAttach
-// -----------------------------------------------------------------------
 void MainMenuLayer::OnAttach()
 {
     auto windowSize = Input::GetWindowSize();
@@ -24,7 +21,12 @@ void MainMenuLayer::OnAttach()
     m_ViewportHeight = (float)windowSize.second;
     Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
 
-    m_Background = std::make_shared<Texture>("assets://background/menu_background.png");
+    m_Background = std::make_shared<Texture>("assets://UI/menuImage.png");
+
+    m_PlayBtnTex = std::make_shared<Texture>("assets://UI/playButton.png");
+    m_SettingsBtnTex = std::make_shared<Texture>("assets://UI/settingsButton.png");
+    m_CreditsBtnTex = std::make_shared<Texture>("assets://UI/creditsButton.png");
+    m_ExitBtnTex = std::make_shared<Texture>("assets://UI/exitButton.png");
 
     // Synchronizuj indeksy pending z aktualnie zastosowanymi ustawieniami
     auto& gs = GraphicsSettings::Get();
@@ -42,15 +44,10 @@ void MainMenuLayer::OnAttach()
         }
     }
 
-    // ------------------------------------------------------------------
-    // EventBus (application-level): ShowMainMenuEvent
-    // GameGuiLayer publikuje ten event po kliknięciu EXIT.
-    // Zastępuje bezpośrednie rzutowanie po m_LayerStack.
-    // ------------------------------------------------------------------
     m_ShowMenuSubId = Application::Get().GetEventBus().Subscribe<ShowMainMenuEvent>(
         [this](const ShowMainMenuEvent&) {
             m_IsActive = true;
-            m_SettingsOpen = false;   // reset stanu ustawień przy powrocie
+            m_SettingsOpen = false;  
         }
     );
 }
@@ -64,9 +61,7 @@ void MainMenuLayer::OnDetach()
 }
 
 
-// -----------------------------------------------------------------------
-// Pomocnicza: przycisk ze skalą animowaną i tekstem wyśrodkowanym
-// -----------------------------------------------------------------------
+// Przycisk zwykły
 bool MainMenuLayer::DrawScaledButton(const std::string& label,
     glm::vec2 basePos, glm::vec2 baseSize,
     float btnScale, float bsc,
@@ -76,9 +71,30 @@ bool MainMenuLayer::DrawScaledButton(const std::string& label,
     return Gui::ScaledButton(label, basePos, baseSize, btnScale, bsc, colorNormal, colorHover, hovered);
 }
 
-// -----------------------------------------------------------------------
-// OnUpdate
-// -----------------------------------------------------------------------
+// Metoda do przycisków graficznych
+bool MainMenuLayer::DrawImageButton(const std::shared_ptr<Texture>& tex, glm::vec2 basePos, glm::vec2 baseSize, float btnScale, float baseScale_, bool hovered)
+{
+    glm::vec2 scaledSize = baseSize * btnScale;
+    glm::vec2 scaledPos = {
+        basePos.x + (baseSize.x - scaledSize.x) * 0.5f,
+        basePos.y + (baseSize.y - scaledSize.y) * 0.5f
+    };
+
+    glm::vec4 tint = hovered ? glm::vec4(0.85f, 0.85f, 0.85f, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    if (hovered && Input::IsMouseButtonPressed(0)) {
+        tint = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f);
+    }
+
+    if (tex && tex->GetRendererID() != 0) {
+        Renderer2D::DrawQuad(scaledPos, scaledSize, tex, tint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    }
+    else {
+        Gui::Panel(scaledPos, scaledSize, tint, 15.0f * baseScale_);
+    }
+
+    return hovered && Input::IsMouseButtonJustPressed(0);
+}
+
 void MainMenuLayer::OnUpdate(Timestep ts) {
     if (!m_IsActive) return;
 
@@ -110,48 +126,75 @@ void MainMenuLayer::OnUpdate(Timestep ts) {
     glEnable(GL_DEPTH_TEST);
 }
 
-// -----------------------------------------------------------------------
-// DrawMainMenu
-// -----------------------------------------------------------------------
 void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
-    float btnWidth = 420.0f * baseScale;
-    float btnHeight = 90.0f * baseScale;
-    float btnGap = 28.0f * baseScale;
-    float blockLeft = m_ViewportWidth * 0.1f;
-    float blockTop = m_ViewportHeight * 0.48f;
+
+    // Zębatka która otwiera ustawienia
+    float settingsPadding = 30.0f * baseScale;
+    float settingsTargetHeight = 85.0f * baseScale; 
+
+    // Obliczenie rozmiaru z zachowaniem proporcji
+    auto getBtnSize = [&](const std::shared_ptr<Texture>& tex, float targetHeight) -> glm::vec2 {
+        if (tex && tex->GetRendererID() != 0) {
+            float aspect = (float)tex->GetWidth() / (float)tex->GetHeight();
+            return { targetHeight * aspect, targetHeight };
+        }
+        return { targetHeight * 4.0f, targetHeight }; // Fallback w razie braku tekstury
+        };
+
+    glm::vec2 settingsSize = getBtnSize(m_SettingsBtnTex, settingsTargetHeight);
+    glm::vec2 settingsPos = { settingsPadding, settingsPadding };
+
+    //Główne przyciski
+    float mainBtnHeight = 120.0f * baseScale;
+    float btnGap = 60.0f * baseScale;
+    float blockLeft = m_ViewportWidth * 0.10f;
+    float blockTop = m_ViewportHeight * 0.435f;
+
+    glm::vec2 playSize = getBtnSize(m_PlayBtnTex, mainBtnHeight);
+    glm::vec2 creditsSize = getBtnSize(m_CreditsBtnTex, mainBtnHeight);
+    glm::vec2 exitSize = getBtnSize(m_ExitBtnTex, mainBtnHeight);
 
     glm::vec2 playPos = { blockLeft, blockTop };
-    glm::vec2 settingsPos = { blockLeft, blockTop + btnHeight + btnGap };
-    glm::vec2 btnSize = { btnWidth, btnHeight };
-    glm::vec2 mouse = Gui::GetMappedMousePos();
+    glm::vec2 creditsPos = { blockLeft, blockTop + (mainBtnHeight + btnGap) };
+    glm::vec2 exitPos = { blockLeft, blockTop + (mainBtnHeight + btnGap) * 2.0f };
 
+    // Hover i animacje
+    glm::vec2 mouse = Gui::GetMappedMousePos();
     auto isHov = [&](glm::vec2 p, glm::vec2 s) {
         return mouse.x >= p.x && mouse.x <= p.x + s.x &&
             mouse.y >= p.y && mouse.y <= p.y + s.y;
         };
-    bool hoverPlay = isHov(playPos, btnSize);
-    bool hoverSettings = isHov(settingsPos, btnSize);
 
-    float animSpeed = 12.0f;
-    m_PlayBtnScale += ((hoverPlay ? 1.04f : 1.0f) - m_PlayBtnScale) * dt * animSpeed;
-    m_SettingsBtnScale += ((hoverSettings ? 1.04f : 1.0f) - m_SettingsBtnScale) * dt * animSpeed;
+    bool hoverSettings = isHov(settingsPos, settingsSize);
+    bool hoverPlay = isHov(playPos, playSize);
+    bool hoverCredits = isHov(creditsPos, creditsSize);
+    bool hoverExit = isHov(exitPos, exitSize);
 
-    if (DrawScaledButton("PLAY", playPos, btnSize, m_PlayBtnScale, baseScale,
-        { 0.18f, 0.62f, 0.22f, 1.0f }, { 0.25f, 0.80f, 0.30f, 1.0f }, hoverPlay))
-    {
+    float animSpeed = 14.0f; // Minimalnie przyspieszyłem animację sprężystości
+    m_SettingsBtnScale += ((hoverSettings ? 1.08f : 1.0f) - m_SettingsBtnScale) * dt * animSpeed;
+    m_PlayBtnScale += ((hoverPlay ? 1.05f : 1.0f) - m_PlayBtnScale) * dt * animSpeed;
+    m_CreditsBtnScale += ((hoverCredits ? 1.05f : 1.0f) - m_CreditsBtnScale) * dt * animSpeed;
+    m_ExitBtnScale += ((hoverExit ? 1.05f : 1.0f) - m_ExitBtnScale) * dt * animSpeed;
+
+    // Zębatka na samej górze
+    if (DrawImageButton(m_SettingsBtnTex, settingsPos, settingsSize, m_SettingsBtnScale, baseScale, hoverSettings)) {
+        m_SettingsOpen = true;
+    }
+
+    // Blok menu 
+    if (DrawImageButton(m_PlayBtnTex, playPos, playSize, m_PlayBtnScale, baseScale, hoverPlay)) {
         PlayGame();
     }
 
-    if (DrawScaledButton("SETTINGS", settingsPos, btnSize, m_SettingsBtnScale, baseScale,
-        { 0.28f, 0.28f, 0.32f, 1.0f }, { 0.42f, 0.42f, 0.48f, 1.0f }, hoverSettings))
-    {
-        m_SettingsOpen = true;
+    if (DrawImageButton(m_CreditsBtnTex, creditsPos, creditsSize, m_CreditsBtnScale, baseScale, hoverCredits)) {
+        // Logika creditsów
+    }
+
+    if (DrawImageButton(m_ExitBtnTex, exitPos, exitSize, m_ExitBtnScale, baseScale, hoverExit)) {
+        // Logika exit
     }
 }
 
-// -----------------------------------------------------------------------
-// DrawSettingsPanel
-// -----------------------------------------------------------------------
 void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
 {
     glm::vec2 mouse = Gui::GetMappedMousePos();
@@ -189,7 +232,7 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
     float labelScale = 0.9f * baseScale;
     float animSpeed = 14.0f;
 
-    // ---- Rząd 1: Rozdzielczość ----
+    // Rozdzielczość
     {
         float      rowY = rowStart;
         std::string lbl = "Resolution";
@@ -239,7 +282,7 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
             valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
-    // ---- Rząd 2: Anti-Aliasing (MSAA) ----
+    // Anti-Aliasing
     {
         float       rowY = rowStart + rowH;
         std::string lbl = "Anti-Aliasing";
@@ -288,7 +331,7 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
             valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
-    // ---- Przyciski BACK i APPLY ----
+    // Przyciski back i apply w menu settings
     float     bottomY = panelY + panelH - 80.0f * baseScale;
     float     smallBtnW = 180.0f * baseScale;
     float     smallBtnH = 56.0f * baseScale;
@@ -328,10 +371,6 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
     }
 }
 
-
-// -----------------------------------------------------------------------
-// PlayGame
-// -----------------------------------------------------------------------
 void MainMenuLayer::PlayGame()
 {
     m_IsActive = false;
@@ -345,22 +384,16 @@ void MainMenuLayer::PlayGame()
         activeScene->SetState(SceneState::Play);
         activeScene->OnRuntimeStart();
 
-        // Zamiast szukać GameGuiLayer po m_LayerStack i rzutować,
-        // publikujemy event – GameGuiLayer sam się aktywuje.
         Application::Get().GetEventBus().Publish(GameStartedEvent{});
 
         spdlog::info("Pomyslnie zaladowano level02.json!");
     }
     else {
-        // Jeśli ładowanie się nie powiodło, wróć do menu
         m_IsActive = true;
         spdlog::error("Blad: Nie udalo sie wczytac level02.json");
     }
 }
 
-// -----------------------------------------------------------------------
-// OnEvent
-// -----------------------------------------------------------------------
 void MainMenuLayer::OnEvent(Event& e) {
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {

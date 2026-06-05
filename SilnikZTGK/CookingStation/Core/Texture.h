@@ -16,8 +16,8 @@ public:
     inline uint32_t GetHeight() const { return m_Height; }
 
 private:
-    uint32_t m_RendererID;
-    uint32_t m_Width, m_Height;
-    GLenum m_InternalFormat, m_DataFormat; 
+    uint32_t m_RendererID = 0; 
+    uint32_t m_Width = 0, m_Height = 0;
+    GLenum m_InternalFormat = 0, m_DataFormat = 0;
     std::string m_FilePath;
 };
