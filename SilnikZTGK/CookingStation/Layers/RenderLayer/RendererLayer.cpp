@@ -25,14 +25,57 @@ void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("HighlightShader", "shaders://vsShaders/highlight.vert", "shaders://fragShaders/highlight.frag");
     m_ShaderLibrary.Load("ShadowMap", "shaders://vsShaders/shadow.vert", "shaders://fragShaders/shadow.frag");
 
+    // --- ŁADOWANIE SHADERÓW POST-PROCESS ---
+    m_ShaderLibrary.Load("BloomExtract", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_extract.frag");
+    m_ShaderLibrary.Load("BloomBlur", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_blur.frag");
+    m_ShaderLibrary.Load("BloomComposite", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_composite.frag");
+
     m_RampTexture = std::make_shared<Texture2D>("assets://textures/RAMP_texture.png");
     m_BackgroundTexture = std::make_shared<Texture2D>("assets://background/background.png");
 
+    // --- SETUP FBO MAPY CIENI ---
     FramebufferSpecification shadowSpec;
     shadowSpec.Width = 4096;
     shadowSpec.Height = 4096;
     shadowSpec.DepthOnly = true;
     m_ShadowMapFBO = std::make_shared<Framebuffer>(shadowSpec);
+
+    // --- SETUP FBO DLA POST-PROCESSingu ---
+    // HDR = true — GL_RGBA16F pozwala przechowywać wartości > 1.0, co jest wymagane
+    // do poprawnego Bloom. Bez tego wszystkie wartości są obcinane do [0,1].
+    FramebufferSpecification ppSpec;
+    ppSpec.Width = 1920 / 2;
+    ppSpec.Height = 1080 / 2;
+    ppSpec.HDR = true;
+    m_PingPongFBO[0] = std::make_shared<Framebuffer>(ppSpec);
+    m_PingPongFBO[1] = std::make_shared<Framebuffer>(ppSpec);
+
+    FramebufferSpecification finalSpec;
+    finalSpec.Width = 1920;
+    finalSpec.Height = 1080;
+    finalSpec.HDR = true;
+    m_PostProcessFBO = std::make_shared<Framebuffer>(finalSpec);
+
+    // --- QUAD EKRANOWY ---
+    float quadVertices[] = {
+        // positions   // texCoords
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        -1.0f, -1.0f,  0.0f, 0.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+
+        -1.0f,  1.0f,  0.0f, 1.0f,
+         1.0f, -1.0f,  1.0f, 0.0f,
+         1.0f,  1.0f,  1.0f, 1.0f
+    };
+    glGenVertexArrays(1, &m_ScreenQuadVAO);
+    glGenBuffers(1, &m_ScreenQuadVBO);
+    glBindVertexArray(m_ScreenQuadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_ScreenQuadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
     auto rampShader = m_ShaderLibrary.Get("RAMP");
     rampShader->use();
@@ -186,10 +229,9 @@ void RendererLayer::OnUpdate(Timestep ts) {
         glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 1.0f, 50.0f);
         glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 
-        // Wywołanie zmienionej metody BeginScene (przesyła nową macierz do UBO)
         Renderer::BeginScene(viewProjection, lightSpaceMatrix, activeScene->GetCamera()->Position);
 
-        m_ShadowMapFBO->Bind(); // To automatycznie odpina TargetFBO!
+        m_ShadowMapFBO->Bind(); // Odpina TargetFBO — depth pass do oddzielnego bufora
         glClear(GL_DEPTH_BUFFER_BIT);
 
         auto shadowShader = m_ShaderLibrary.Get("ShadowMap");
@@ -213,14 +255,14 @@ void RendererLayer::OnUpdate(Timestep ts) {
         }
 
         // ===========================================================
-        // FAZA 2: GŁÓWNY RENDEROWANIE 3D
+        // FAZA 2: GŁÓWNE RENDEROWANIE 3D (z cieniami)
         // ===========================================================
-        if (m_TargetFBO) m_TargetFBO->Bind(); // Wracamy do głównego bufora!
+        if (m_TargetFBO) m_TargetFBO->Bind(); // Wracamy do głównego bufora HDR
         glViewport(0, 0, fboWidth, fboHeight); // Przywracamy właściwy rozmiar okna
 
         if (Renderer::ActiveShader == "RAMP") m_RampTexture->Bind(10);
 
-        // ZBINDOWANIE TEKSTURY CIENI NA SLOT 15
+        // Zbindowanie tekstury cieni na slot 15
         glActiveTexture(GL_TEXTURE15);
         glBindTexture(GL_TEXTURE_2D, m_ShadowMapFBO->GetDepthAttachmentRendererID());
 
@@ -228,7 +270,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
             for (auto& [shaderPtr, batchData] : shaderMap) {
                 shaderPtr->use();
                 shaderPtr->setBool("u_Animated", false);
-                shaderPtr->setInt("shadowMap", 15); // Wysyłamy informację, gdzie jest mapa cieni
+                shaderPtr->setInt("shadowMap", 15);
                 Renderer::SubmitInstanced(shaderPtr, modelPtr, batchData);
             }
         }
@@ -284,17 +326,101 @@ void RendererLayer::OnUpdate(Timestep ts) {
         glDepthMask(GL_TRUE);
     }
 
+    // ===========================================================
+    // FAZA POST-PROCESSING (BLOOM + COLOR GRADING)
+    // ===========================================================
     if (m_TargetFBO) {
-        if (m_ResolveFBO) m_TargetFBO->ResolveTo(m_ResolveFBO);
+        // Sprawdzamy m_ResolveFBO przed użyciem — null dereference zabezpieczenie
+        if (!m_ResolveFBO) {
+            m_TargetFBO->Unbind();
+            return;
+        }
+
+        // Zrzucamy obraz MSAA do zwykłego ResolveFBO
+        m_TargetFBO->ResolveTo(m_ResolveFBO);
         m_TargetFBO->Unbind();
 
+        // Zamykamy Blending — nie może wchodzić w interakcję z Bloomem
+        glDisable(GL_BLEND);
+
+        bool depthTestState = glIsEnabled(GL_DEPTH_TEST);
+        glDisable(GL_DEPTH_TEST);
+
+        // Dynamiczne dopasowanie rozdzielczości FBO pod obecny rozmiar
+        uint32_t currentWidth = (uint32_t)fboWidth;
+        uint32_t currentHeight = (uint32_t)fboHeight;
+
+        if (m_PostProcessFBO->GetSpecification().Width != currentWidth || m_PostProcessFBO->GetSpecification().Height != currentHeight) {
+            m_PostProcessFBO->Resize(currentWidth, currentHeight);
+            m_PingPongFBO[0]->Resize(currentWidth / 2, currentHeight / 2);
+            m_PingPongFBO[1]->Resize(currentWidth / 2, currentHeight / 2);
+        }
+
+        // 1. Wyciągamy jasne kolory do PingPongFBO[0]
+        m_PingPongFBO[0]->Bind();
+        auto extractShader = m_ShaderLibrary.Get("BloomExtract");
+        extractShader->use();
+        extractShader->setInt("sceneColor", 0);
+        extractShader->setFloat("threshold", 0.8f);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_ResolveFBO->GetColorAttachmentRendererID());
+
+        glBindVertexArray(m_ScreenQuadVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+
+        // 2. Ping-Pong Blur (10 przebiegów Gaussa)
+        bool horizontal = true, first_iteration = true;
+        int amount = 10;
+        auto blurShader = m_ShaderLibrary.Get("BloomBlur");
+        blurShader->use();
+        blurShader->setInt("image", 0);
+
+        for (unsigned int i = 0; i < amount; i++)
+        {
+            m_PingPongFBO[horizontal]->Bind();
+            blurShader->setBool("horizontal", horizontal);
+            glActiveTexture(GL_TEXTURE0);
+
+            uint32_t textureToBind = first_iteration
+                ? m_PingPongFBO[0]->GetColorAttachmentRendererID()
+                : m_PingPongFBO[!horizontal]->GetColorAttachmentRendererID();
+            glBindTexture(GL_TEXTURE_2D, textureToBind);
+
+            glBindVertexArray(m_ScreenQuadVAO);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+
+            horizontal = !horizontal;
+            if (first_iteration) first_iteration = false;
+        }
+
+        // 3. Finalny kompozyt i Color Grading
+        m_PostProcessFBO->Bind();
+        auto compositeShader = m_ShaderLibrary.Get("BloomComposite");
+        compositeShader->use();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, m_ResolveFBO->GetColorAttachmentRendererID()); // Czysta scena
+        compositeShader->setInt("sceneColor", 0);
+
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, m_PingPongFBO[!horizontal]->GetColorAttachmentRendererID()); // Rozmyty bloom
+        compositeShader->setInt("bloomBlur", 1);
+
+        compositeShader->setFloat("exposure", 1.8f);
+        compositeShader->setFloat("bloomStrength", 0.25f);
+
+        glBindVertexArray(m_ScreenQuadVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        m_PostProcessFBO->Unbind();
+
+        if (depthTestState) glEnable(GL_DEPTH_TEST);
+
+        // 4. Rysowanie przetworzonego obrazu na ekran
 #ifdef CS_DISTRIBUTION
-        uint32_t resolveFboId = m_ResolveFBO->GetRendererID();
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFboId);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_PostProcessFBO->GetRendererID());
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        uint32_t width = m_ResolveFBO->GetSpecification().Width;
-        uint32_t height = m_ResolveFBO->GetSpecification().Height;
-        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBlitFramebuffer(0, 0, currentWidth, currentHeight, 0, 0, (uint32_t)m_ViewportWidth, (uint32_t)m_ViewportHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif
     }
