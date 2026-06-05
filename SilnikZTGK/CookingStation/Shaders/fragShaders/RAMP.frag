@@ -9,6 +9,7 @@ uniform sampler2D rampTex; // Tekstura Ramp (256x19), slot 10
 
 layout (std140, binding = 0) uniform SceneData {
     mat4 u_ViewProjection;
+    mat4 u_LightSpaceMatrix;
     vec3 u_SunDir;
     float _pad0;
     vec3 u_LightColor;

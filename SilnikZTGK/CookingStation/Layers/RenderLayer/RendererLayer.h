@@ -52,4 +52,5 @@ private:
 	std::shared_ptr<Texture2D> m_BackgroundTexture;
 	unsigned int m_RepeatSampler = 0;
 	std::shared_ptr<Framebuffer> m_ResolveFBO;
+	std::shared_ptr<Framebuffer> m_ShadowMapFBO;
 };

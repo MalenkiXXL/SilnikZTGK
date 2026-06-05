@@ -2,6 +2,7 @@
 
 layout (std140, binding = 0) uniform SceneData {
     mat4 u_ViewProjection;
+    mat4 u_LightSpaceMatrix; // DODANE: Macierz rzutowania słońca
     vec3 u_SunDir;
     float _pad0;
     vec3 u_LightColor;
@@ -21,11 +22,12 @@ layout (location = 4) in vec3 aTangent;
 layout (location = 5) in vec3 aBitangent;
 
 // 4. ANIMACJA SZKIELETOWA
-layout (location = 6) in ivec4 aBoneIDs; 
+layout (location = 6) in ivec4 aBoneIDs;
 layout (location = 7) in vec4 aWeights;
 
 // 5. INSTANCJONOWANIE 
-layout (location = 8) in mat4 aInstanceMatrix; // zajmuje 8, 9, 10, 11
+layout (location = 8) in mat4 aInstanceMatrix;
+// zajmuje 8, 9, 10, 11
 layout (location = 12) in float a_uvOffset;
 
 out float v_uvOffset;
@@ -33,6 +35,7 @@ out vec2 TexCoords;
 out vec2 TexCoords2; 
 out vec3 Normal;
 out vec3 FragPos;
+out vec4 FragPosLightSpace; // DODANE: Pozycja z punktu widzenia słońca
 
 // POZOSTAŁE UNIFORMY (Per-Draw Call, nie do UBO)
 const int MAX_BONES = 100;
@@ -60,7 +63,7 @@ void main()
             mat4 boneTransform = finalBonesMatrices[aBoneIDs[i]];
             totalPosition += (boneTransform * vec4(aPos, 1.0)) * aWeights[i];
             totalNormal += (mat3(boneTransform) * aNormal) * aWeights[i];
-            totalWeight += aWeights[i]; 
+            totalWeight += aWeights[i];
         }
 
         if (totalWeight < 0.01) 
@@ -75,8 +78,14 @@ void main()
         totalNormal = aNormal;
     }
 
-    // Używamy u_ViewProjection z bloku UBO
     Normal = mat3(transpose(inverse(aInstanceMatrix))) * totalNormal;
-    FragPos = vec3(aInstanceMatrix * totalPosition);
-    gl_Position = u_ViewProjection * aInstanceMatrix * totalPosition;
+    
+    // Obliczamy pozycję fragmentu w świecie
+    vec4 worldPos = aInstanceMatrix * totalPosition;
+    FragPos = vec3(worldPos);
+    
+    // Obliczamy pozycję fragmentu z perspektywy słońca i wysyłamy do Fragment Shadera
+    FragPosLightSpace = u_LightSpaceMatrix * worldPos;
+
+    gl_Position = u_ViewProjection * worldPos;
 }
