@@ -8,6 +8,7 @@ uniform sampler2D texture_diffuse1;
 
 layout (std140, binding = 0) uniform SceneData {
     mat4 u_ViewProjection;
+    mat4 u_LightSpaceMatrix;
     vec3 u_SunDir;
     float _pad0;
     vec3 u_LightColor;

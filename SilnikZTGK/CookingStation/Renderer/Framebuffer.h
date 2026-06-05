@@ -1,10 +1,11 @@
 #pragma once
 #include <cstdint>
-#include <memory> // Wymagane dla std::shared_ptr
+#include <memory>
 
 struct FramebufferSpecification {
     uint32_t Width, Height;
-    uint32_t Samples = 1; // do MSAA
+    uint32_t Samples = 1;
+    bool DepthOnly = false; // DODANE: Flaga do map cieni
 };
 
 class Framebuffer {
@@ -17,11 +18,11 @@ public:
     void Unbind();
     void Resize(uint32_t width, uint32_t height);
 
-    // Kopiowanie i uœrednianie obrazu z bufora MSAA do docelowego bufora
     void ResolveTo(const std::shared_ptr<Framebuffer>& target);
     uint32_t GetRendererID() const { return m_RendererID; }
 
     uint32_t GetColorAttachmentRendererID() const { return m_ColorAttachment; }
+    uint32_t GetDepthAttachmentRendererID() const { return m_DepthAttachment; } // DODANE: Zwraca ID tekstury cieni
     const FramebufferSpecification& GetSpecification() const { return m_Specification; }
     void SetSamples(uint32_t samples);
 

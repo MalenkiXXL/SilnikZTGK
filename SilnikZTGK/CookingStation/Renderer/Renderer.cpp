@@ -34,11 +34,10 @@ void Renderer::Shutdown()
     s_SceneUBO.reset();
 }
 
-void Renderer::BeginScene(const glm::mat4& viewProjectionMatrix, const glm::vec3& viewPos)
+void Renderer::BeginScene(const glm::mat4& viewProjectionMatrix, const glm::mat4& lightSpaceMatrix, const glm::vec3& viewPos)
 {
     ResetStats();
 
-    // 1. Obs³uga zapytañ GPU (Profiling)
     if (!s_GPUQueryInitialized)
     {
         glGenQueries(1, &s_GPUQueryID);
@@ -46,19 +45,17 @@ void Renderer::BeginScene(const glm::mat4& viewProjectionMatrix, const glm::vec3
     }
     glBeginQuery(GL_TIME_ELAPSED, s_GPUQueryID);
 
-    // 2. Aktualizacja danych pomocniczych procesora
     s_SceneData->ViewProjectionMatrix = viewProjectionMatrix;
     s_SceneData->ActiveFrustum = ExtractFrustum(viewProjectionMatrix);
 
-    // 3. WYSY£KA DANYCH DO UBO (std140)
-    // Dziêki temu ka¿dy shader ma dostêp do macierzy kamery i œwiate³ bez glUniform!
+    // Wysy³amy poszerzone dane do GPU!
     SceneUBO uboData;
     uboData.ViewProjection = viewProjectionMatrix;
+    uboData.LightSpaceMatrix = lightSpaceMatrix; // DODANE
     uboData.ViewPos = viewPos;
-    uboData.SunDir = glm::vec3(-0.321f, -0.766f, -0.557f);
+    uboData.SunDir = glm::normalize(glm::vec3(-0.321f, -0.766f, -0.557f));
     uboData.LightColor = glm::vec3(1.0f, 1.0f, 1.0f);
 
-    // Explicitne czyszczenie paddingu (dla bezpieczeñstwa)
     uboData._pad0 = 0.0f;
     uboData._pad1 = 0.0f;
     uboData._pad2 = 0.0f;

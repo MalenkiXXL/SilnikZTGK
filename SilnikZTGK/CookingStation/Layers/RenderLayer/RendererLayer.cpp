@@ -23,9 +23,16 @@ void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("Rim", "shaders://vsShaders/shader.vert", "shaders://fragShaders/Rim.frag");
     m_ShaderLibrary.Load("Conveyor", "shaders://vsShaders/shader.vert", "shaders://fragShaders/conveyor.frag");
     m_ShaderLibrary.Load("HighlightShader", "shaders://vsShaders/highlight.vert", "shaders://fragShaders/highlight.frag");
+    m_ShaderLibrary.Load("ShadowMap", "shaders://vsShaders/shadow.vert", "shaders://fragShaders/shadow.frag");
 
     m_RampTexture = std::make_shared<Texture2D>("assets://textures/RAMP_texture.png");
     m_BackgroundTexture = std::make_shared<Texture2D>("assets://background/background.png");
+
+    FramebufferSpecification shadowSpec;
+    shadowSpec.Width = 4096;
+    shadowSpec.Height = 4096;
+    shadowSpec.DepthOnly = true;
+    m_ShadowMapFBO = std::make_shared<Framebuffer>(shadowSpec);
 
     auto rampShader = m_ShaderLibrary.Get("RAMP");
     rampShader->use();
@@ -91,25 +98,20 @@ void RendererLayer::OnUpdate(Timestep ts) {
     RenderCommand::SetClearColor(clearColor);
     RenderCommand::Clear();
 
+    // Rysowanie tła 2D
     glDisable(GL_DEPTH_TEST);
-
     glm::mat4 bgProjection = glm::ortho(0.0f, fboWidth, 0.0f, fboHeight, -1.0f, 1.0f);
     Renderer2D::BeginScene(bgProjection);
     Renderer2D::DrawQuad(
-        glm::vec2(0.0f, 0.0f),
-        glm::vec2(fboWidth, fboHeight),
-        m_BackgroundTexture->GetRendererID(),
-        glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
-        glm::vec2(0.0f, 0.0f),
-        glm::vec2(1.0f, 1.0f)
+        glm::vec2(0.0f, 0.0f), glm::vec2(fboWidth, fboHeight),
+        m_BackgroundTexture->GetRendererID(), glm::vec4(1.0f, 1.0f, 1.0f, 1.0f),
+        glm::vec2(0.0f, 0.0f), glm::vec2(1.0f, 1.0f)
     );
     Renderer2D::EndScene();
-
     glEnable(GL_DEPTH_TEST);
 
     if (activeScene->GetCamera()) {
         glm::mat4 view = activeScene->GetCamera()->GetViewMatrix();
-
         float safeZoom = std::max(activeScene->GetCamera()->Zoom, 1.0f);
         float orthoSize = 10.0f * (safeZoom / 45.0f);
         glm::mat4 projection = glm::ortho(-aspectRatio * orthoSize, aspectRatio * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
@@ -117,29 +119,21 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
         activeScene->CalculateTransforms();
 
-        Renderer::BeginScene(viewProjection, activeScene->GetCamera()->Position);
-
+        // Zebranie obiektów do narysowania
         auto stdShader = m_ShaderLibrary.Get(Renderer::ActiveShader);
         auto conveyorShader = m_ShaderLibrary.Get("Conveyor");
-
-        if (Renderer::ActiveShader == "RAMP") {
-            m_RampTexture->Bind(10);
-        }
-
         Frustum activeFrustum = ExtractFrustum(viewProjection);
 
+        std::unordered_map<Model*, std::unordered_map<std::shared_ptr<Shader>, std::vector<InstanceData>>> instancedBatches;
+        struct AnimatedDrawCmd {
+            std::shared_ptr<Shader> shader;
+            Model* model;
+            InstanceData instanceData;
+            AnimatorComponent* animComp;
+        };
+        std::vector<AnimatedDrawCmd> animatedDraws;
+
         if (meshStorage && transformStorage) {
-
-            std::unordered_map<Model*, std::unordered_map<std::shared_ptr<Shader>, std::vector<InstanceData>>> instancedBatches;
-
-            struct AnimatedDrawCmd {
-                std::shared_ptr<Shader> shader;
-                Model* model;
-                InstanceData instanceData;
-                AnimatorComponent* animComp;
-            };
-            std::vector<AnimatedDrawCmd> animatedDraws;
-
             for (size_t i = 0; i < meshStorage->dense.size(); i++) {
                 auto& meshComp = meshStorage->dense[i];
                 Entity owner = meshStorage->reverse[i];
@@ -150,159 +144,157 @@ void RendererLayer::OnUpdate(Timestep ts) {
                     for (auto& mesh : meshComp.ModelPtr->meshes) {
                         AABB worldAABB = mesh.GetWorldAABB(transform->WorldMatrix);
                         if (IsOnFrustum(activeFrustum, worldAABB)) {
-                            isVisible = true;
-                            break;
+                            isVisible = true; break;
                         }
                     }
 
                     if (!isVisible) {
-                        Renderer::GetStats().CulledObjects3D++;
-                        continue;
+                        Renderer::GetStats().CulledObjects3D++; continue;
                     }
 
                     UVScrollComponent* scroll = scrollStorage ? scrollStorage->Get(owner) : nullptr;
                     float currentUVOffset = scroll ? scroll->Offset : 0.0f;
                     std::shared_ptr<Shader> shaderToUse = nullptr;
 
-                    if (scroll)
-                    {
-                        shaderToUse = conveyorShader;
+                    if (scroll) shaderToUse = conveyorShader;
+                    else if (!meshComp.ShaderName.empty() && meshComp.ShaderName != "Standard") {
+                        shaderToUse = m_ShaderLibrary.Exists(meshComp.ShaderName) ? m_ShaderLibrary.Get(meshComp.ShaderName) : stdShader;
                     }
-                    else if (!meshComp.ShaderName.empty() && meshComp.ShaderName != "Standard")
-                    {
-                        // ShaderName ustawiony przez skrypt (np. "HighlightShader") � szukamy w bibliotece
-                        shaderToUse = m_ShaderLibrary.Exists(meshComp.ShaderName)
-                            ? m_ShaderLibrary.Get(meshComp.ShaderName)
-                            : stdShader;
-                    }
-                    else if (meshComp.ShaderPtr)
-                    {
-                        shaderToUse = meshComp.ShaderPtr;
-                    }
-                    else
-                    {
-                        shaderToUse = stdShader;
-                    }
+                    else if (meshComp.ShaderPtr) shaderToUse = meshComp.ShaderPtr;
+                    else shaderToUse = stdShader;
 
                     AnimatorComponent* animComp = animatorStorage ? animatorStorage->Get(owner) : nullptr;
 
                     if (animComp && animComp->AnimatorInstance) {
-                        animatedDraws.push_back({ shaderToUse, meshComp.ModelPtr.get(), {
-                            transform->WorldMatrix,
-                            currentUVOffset,
-                            meshComp.HighlightColor }, animComp });
+                        animatedDraws.push_back({ shaderToUse, meshComp.ModelPtr.get(), { transform->WorldMatrix, currentUVOffset, meshComp.HighlightColor }, animComp });
                     }
                     else {
-                        Model* modelKey = meshComp.ModelPtr.get();
-                        instancedBatches[modelKey][shaderToUse].push_back({
-                            transform->WorldMatrix,
-                            currentUVOffset,
-                            meshComp.HighlightColor
-                        });
+                        instancedBatches[meshComp.ModelPtr.get()][shaderToUse].push_back({ transform->WorldMatrix, currentUVOffset, meshComp.HighlightColor });
                     }
                 }
             }
+        }
 
-            for (auto& [modelPtr, shaderMap] : instancedBatches) {
-                for (auto& [shaderPtr, batchData] : shaderMap) {
-                    shaderPtr->use();
-                    shaderPtr->setBool("u_Animated", false);
-                    Renderer::SubmitInstanced(shaderPtr, modelPtr, batchData);
-                }
+        // ===========================================================
+        // FAZA 1: RENDEROWANIE MAPY CIENI (DEPTH PASS)
+        // ===========================================================
+        glm::vec3 sunDir = glm::normalize(glm::vec3(-0.321f, -0.766f, -0.557f));
+        glm::vec3 sunTarget = activeScene->GetCamera()->Position; // Słońce podąża za kamerą!
+        glm::vec3 sunPos = sunTarget - (sunDir * 25.0f);
+
+        glm::mat4 lightView = glm::lookAt(sunPos, sunTarget, glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, 1.0f, 50.0f);
+        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
+
+        // Wywołanie zmienionej metody BeginScene (przesyła nową macierz do UBO)
+        Renderer::BeginScene(viewProjection, lightSpaceMatrix, activeScene->GetCamera()->Position);
+
+        m_ShadowMapFBO->Bind(); // To automatycznie odpina TargetFBO!
+        glClear(GL_DEPTH_BUFFER_BIT);
+
+        auto shadowShader = m_ShaderLibrary.Get("ShadowMap");
+
+        for (auto& [modelPtr, shaderMap] : instancedBatches) {
+            std::vector<InstanceData> allInstances;
+            for (auto& [shaderPtr, batchData] : shaderMap) {
+                allInstances.insert(allInstances.end(), batchData.begin(), batchData.end());
             }
+            shadowShader->use();
+            shadowShader->setBool("u_Animated", false);
+            Renderer::SubmitInstanced(shadowShader, modelPtr, allInstances);
+        }
 
-            for (auto& animDraw : animatedDraws) {
-                animDraw.shader->use();
-                animDraw.shader->setBool("u_Animated", true);
+        for (auto& animDraw : animatedDraws) {
+            shadowShader->use();
+            shadowShader->setBool("u_Animated", true);
+            shadowShader->setMat4Array("finalBonesMatrices", animDraw.animComp->AnimatorInstance->GetFinalBoneMatrices());
+            std::vector<InstanceData> singleInstance = { animDraw.instanceData };
+            Renderer::SubmitInstanced(shadowShader, animDraw.model, singleInstance);
+        }
 
-                const auto& finalBones = animDraw.animComp->AnimatorInstance->GetFinalBoneMatrices();
+        // ===========================================================
+        // FAZA 2: GŁÓWNY RENDEROWANIE 3D
+        // ===========================================================
+        if (m_TargetFBO) m_TargetFBO->Bind(); // Wracamy do głównego bufora!
+        glViewport(0, 0, fboWidth, fboHeight); // Przywracamy właściwy rozmiar okna
 
-                animDraw.shader->setMat4Array("finalBonesMatrices", finalBones);
+        if (Renderer::ActiveShader == "RAMP") m_RampTexture->Bind(10);
 
-                std::vector<InstanceData> singleInstance = { animDraw.instanceData };
-                Renderer::SubmitInstanced(animDraw.shader, animDraw.model, singleInstance);
+        // ZBINDOWANIE TEKSTURY CIENI NA SLOT 15
+        glActiveTexture(GL_TEXTURE15);
+        glBindTexture(GL_TEXTURE_2D, m_ShadowMapFBO->GetDepthAttachmentRendererID());
 
-                animDraw.shader->setBool("u_Animated", false);
+        for (auto& [modelPtr, shaderMap] : instancedBatches) {
+            for (auto& [shaderPtr, batchData] : shaderMap) {
+                shaderPtr->use();
+                shaderPtr->setBool("u_Animated", false);
+                shaderPtr->setInt("shadowMap", 15); // Wysyłamy informację, gdzie jest mapa cieni
+                Renderer::SubmitInstanced(shaderPtr, modelPtr, batchData);
             }
         }
+
+        for (auto& animDraw : animatedDraws) {
+            animDraw.shader->use();
+            animDraw.shader->setBool("u_Animated", true);
+            animDraw.shader->setInt("shadowMap", 15);
+            animDraw.shader->setMat4Array("finalBonesMatrices", animDraw.animComp->AnimatorInstance->GetFinalBoneMatrices());
+            std::vector<InstanceData> singleInstance = { animDraw.instanceData };
+            Renderer::SubmitInstanced(animDraw.shader, animDraw.model, singleInstance);
+            animDraw.shader->setBool("u_Animated", false);
+        }
+
         Renderer::EndScene();
 
+        // Rysowanie cząsteczek
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthMask(GL_FALSE);
 
         Renderer2D::BeginScene(viewProjection);
-
         auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
         if (scriptStorage && activeScene->GetCamera())
         {
             glm::vec3 camRight = activeScene->GetCamera()->Right;
             glm::vec3 camUp = activeScene->GetCamera()->Up;
 
-            for (auto& scriptComp : scriptStorage->dense)
-            {
-                for (auto& scriptEl : scriptComp.Scripts)
-                {
-                    if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript" || scriptEl.Name == "DustEmitterScript") && scriptEl.Instance)
-                    {
+            for (auto& scriptComp : scriptStorage->dense) {
+                for (auto& scriptEl : scriptComp.Scripts) {
+                    if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript" || scriptEl.Name == "DustEmitterScript") && scriptEl.Instance) {
                         ParticleEmitterScript* emitter = dynamic_cast<ParticleEmitterScript*>(scriptEl.Instance);
-
-                        if (emitter)
-                        {
-                            for (const auto& particle : emitter->GetParticles())
-                            {
+                        if (emitter) {
+                            for (const auto& particle : emitter->GetParticles()) {
                                 if (!particle.Active || particle.LifeTime <= 0.0001f) continue;
-
                                 float lifeRatio = particle.LifeRemaining / particle.LifeTime;
                                 float currentSize = glm::mix(particle.SizeEnd, particle.SizeBegin, lifeRatio);
                                 glm::vec4 currentColor = glm::mix(particle.ColorEnd, particle.ColorBegin, lifeRatio);
-
                                 glm::mat4 transform = glm::translate(glm::mat4(1.0f), particle.Position);
                                 transform[0] = glm::vec4(camRight * currentSize, 0.0f);
                                 transform[1] = glm::vec4(camUp * currentSize, 0.0f);
                                 transform[2] = glm::vec4(glm::cross(camRight, camUp) * currentSize, 0.0f);
 
-                                if (particle.TextureID != 0)
-                                    Renderer2D::DrawQuad(transform, particle.TextureID, currentColor);
-                                else
-                                    Renderer2D::DrawQuad(transform, currentColor);
+                                if (particle.TextureID != 0) Renderer2D::DrawQuad(transform, particle.TextureID, currentColor);
+                                else Renderer2D::DrawQuad(transform, currentColor);
                             }
                         }
                     }
                 }
             }
         }
-
         Renderer2D::EndScene();
         glDepthMask(GL_TRUE);
     }
 
     if (m_TargetFBO) {
-        if (m_ResolveFBO) {
-            m_TargetFBO->ResolveTo(m_ResolveFBO);
-        }
+        if (m_ResolveFBO) m_TargetFBO->ResolveTo(m_ResolveFBO);
         m_TargetFBO->Unbind();
 
 #ifdef CS_DISTRIBUTION
-        // =========================================================
-        // FIX STANDALONE: Przenosimy uwi�zione 3D prosto na ekran!
-        // =========================================================
-
-        // Zale�nie od tego, jak nazwa�e� sw�j getter w klasie Framebuffer, 
-        // u�yj GetRendererID(), GetID() lub GetColorAttachmentRendererID().
-        // W architekturach a'la Cherno zazwyczaj jest to GetRendererID().
         uint32_t resolveFboId = m_ResolveFBO->GetRendererID();
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFboId); // Czytamy z Viewportu
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);            // Rysujemy na ekran
-
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, resolveFboId);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
         uint32_t width = m_ResolveFBO->GetSpecification().Width;
         uint32_t height = m_ResolveFBO->GetSpecification().Height;
-
-        // Kopiowanie piksel po pikselu z VRAM na ekran
         glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-        // Reset, aby nast�pne w kolejce warstwy (jak Twoje GUI) normalnie rysowa�y po ekranie
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 #endif
     }
