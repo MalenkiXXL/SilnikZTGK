@@ -408,7 +408,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
         compositeShader->setInt("bloomBlur", 1);
 
         compositeShader->setFloat("exposure", 1.8f);
-        compositeShader->setFloat("bloomStrength", 0.4f);
+        compositeShader->setFloat("bloomStrength", 0.25f);
 
         glBindVertexArray(m_ScreenQuadVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
