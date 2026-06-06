@@ -61,7 +61,8 @@ void SettingsMenuPanel::Draw(float baseScale) {
     glm::vec2 resLeftPos = { rightColX, startY - 35.0f * baseScale };
     bool hovResL = isHov(resLeftPos, arrowSize);
     if (GuiUtils::DrawScaledButton("<", resLeftPos, arrowSize, m_ResLeftBtnScale, hovResL ? 1.15f : 1.0f, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovResL, m_DeltaTime)) {
-        if (m_PendingResIndex > 0) m_PendingResIndex--;
+        // ZMIANA: Zapętlanie w lewo dla rozdzielczości
+        m_PendingResIndex = (m_PendingResIndex - 1 + GraphicsSettings::ResolutionCount) % GraphicsSettings::ResolutionCount;
     }
 
     std::string resText = std::to_string(GraphicsSettings::Resolutions[m_PendingResIndex].first) + " x " + std::to_string(GraphicsSettings::Resolutions[m_PendingResIndex].second);
@@ -70,7 +71,8 @@ void SettingsMenuPanel::Draw(float baseScale) {
     glm::vec2 resRightPos = { rightColX + 260.0f * baseScale, startY - 35.0f * baseScale };
     bool hovResR = isHov(resRightPos, arrowSize);
     if (GuiUtils::DrawScaledButton(">", resRightPos, arrowSize, m_ResRightBtnScale, hovResR ? 1.15f : 1.0f, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovResR, m_DeltaTime)) {
-        if (m_PendingResIndex < GraphicsSettings::ResolutionCount - 1) m_PendingResIndex++;
+        // ZMIANA: Zapętlanie w prawo dla rozdzielczości
+        m_PendingResIndex = (m_PendingResIndex + 1) % GraphicsSettings::ResolutionCount;
     }
 
     // --- MSAA --- (Analogicznie jak wyżej)
@@ -80,7 +82,8 @@ void SettingsMenuPanel::Draw(float baseScale) {
     glm::vec2 msaaLeftPos = { rightColX, startY2 - 35.0f * baseScale };
     bool hovMsaaL = isHov(msaaLeftPos, arrowSize);
     if (GuiUtils::DrawScaledButton("<", msaaLeftPos, arrowSize, m_MsaaLeftBtnScale, hovMsaaL ? 1.15f : 1.0f, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovMsaaL, m_DeltaTime)) {
-        if (m_PendingMsaaIndex > 0) m_PendingMsaaIndex--;
+        // ZMIANA: Zapętlanie w lewo dla MSAA
+        m_PendingMsaaIndex = (m_PendingMsaaIndex - 1 + m_MsaaOptions.size()) % m_MsaaOptions.size();
     }
 
     std::string msaaText = m_MsaaOptions[m_PendingMsaaIndex] == 1 ? "Off" : "MSAA x" + std::to_string(m_MsaaOptions[m_PendingMsaaIndex]);
@@ -89,7 +92,8 @@ void SettingsMenuPanel::Draw(float baseScale) {
     glm::vec2 msaaRightPos = { rightColX + 260.0f * baseScale, startY2 - 35.0f * baseScale };
     bool hovMsaaR = isHov(msaaRightPos, arrowSize);
     if (GuiUtils::DrawScaledButton(">", msaaRightPos, arrowSize, m_MsaaRightBtnScale, hovMsaaR ? 1.15f : 1.0f, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovMsaaR, m_DeltaTime)) {
-        if (m_PendingMsaaIndex < m_MsaaOptions.size() - 1) m_PendingMsaaIndex++;
+        // ZMIANA: Zapętlanie w prawo dla MSAA
+        m_PendingMsaaIndex = (m_PendingMsaaIndex + 1) % m_MsaaOptions.size();
     }
 
     // --- PRZYCISKI DOLNE ---

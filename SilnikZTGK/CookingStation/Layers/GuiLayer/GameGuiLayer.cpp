@@ -66,6 +66,7 @@ void GameGuiLayer::OnAttach()
     m_QuestionMarkIcon = AssetManager::GetTexture("assets://UI/QuestionMark.png");
     m_CustomerOrderTex = AssetManager::GetTexture("assets://UI/customerOrder.png");
     m_HelperOrderTex = AssetManager::GetTexture("assets://UI/helperOrder.png");
+ 
 
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);

@@ -47,7 +47,7 @@ void MainMenuLayer::OnAttach()
     m_ShowMenuSubId = Application::Get().GetEventBus().Subscribe<ShowMainMenuEvent>(
         [this](const ShowMainMenuEvent&) {
             m_IsActive = true;
-            m_SettingsOpen = false;  
+            m_SettingsOpen = false;
         }
     );
 }
@@ -99,7 +99,10 @@ void MainMenuLayer::OnUpdate(Timestep ts) {
     if (!m_IsActive) return;
 
     float dt = ts.GetSeconds();
-    float baseScale = std::max(m_ViewportHeight / 1080.0f, 0.5f);
+
+    // ZMIANA: Lepsze skalowanie bazujące na obu wymiarach. Chroni przed wychodzeniem przycisków.
+    float baseScale = std::min(m_ViewportWidth / 1920.0f, m_ViewportHeight / 1080.0f);
+    baseScale = std::max(baseScale, 0.35f); // Bezpieczny limit dolny
 
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
     glEnable(GL_BLEND);
@@ -130,7 +133,7 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
 
     // Zębatka która otwiera ustawienia
     float settingsPadding = 30.0f * baseScale;
-    float settingsTargetHeight = 85.0f * baseScale; 
+    float settingsTargetHeight = 85.0f * baseScale;
 
     // Obliczenie rozmiaru z zachowaniem proporcji
     auto getBtnSize = [&](const std::shared_ptr<Texture>& tex, float targetHeight) -> glm::vec2 {
@@ -144,10 +147,10 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
     glm::vec2 settingsSize = getBtnSize(m_SettingsBtnTex, settingsTargetHeight);
     glm::vec2 settingsPos = { settingsPadding, settingsPadding };
 
-    //Główne przyciski
-    float mainBtnHeight = 120.0f * baseScale;
-    float btnGap = 60.0f * baseScale;
-    float blockLeft = m_ViewportWidth * 0.10f;
+    // Główne przyciski
+    float mainBtnHeight = 110.0f * baseScale;
+    float btnGap = 45.0f * baseScale;
+    float blockLeft = m_ViewportWidth * 0.1125f;
     float blockTop = m_ViewportHeight * 0.435f;
 
     glm::vec2 playSize = getBtnSize(m_PlayBtnTex, mainBtnHeight);
@@ -170,7 +173,7 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
     bool hoverCredits = isHov(creditsPos, creditsSize);
     bool hoverExit = isHov(exitPos, exitSize);
 
-    float animSpeed = 14.0f; // Minimalnie przyspieszyłem animację sprężystości
+    float animSpeed = 14.0f;
     m_SettingsBtnScale += ((hoverSettings ? 1.08f : 1.0f) - m_SettingsBtnScale) * dt * animSpeed;
     m_PlayBtnScale += ((hoverPlay ? 1.05f : 1.0f) - m_PlayBtnScale) * dt * animSpeed;
     m_CreditsBtnScale += ((hoverCredits ? 1.05f : 1.0f) - m_CreditsBtnScale) * dt * animSpeed;
@@ -400,10 +403,16 @@ void MainMenuLayer::OnEvent(Event& e) {
         return OnWindowResize(ev);
         });
 
+    // Jeśli menu NIE JEST aktywne, pozwalamy eventom lecieć dalej do gry
     if (!m_IsActive) return;
 
-    if (e.GetEventType() == EventType::MouseButtonPressed) {
-        e.Handled = true;
+    // ZMIANA: BLOKADA KLIKNIĘĆ - Pożeramy wszystkie eventy myszki żeby nie przeklikiwać się pod menu
+    if (e.GetEventType() == EventType::MouseButtonPressed ||
+        e.GetEventType() == EventType::MouseButtonReleased ||
+        e.GetEventType() == EventType::MouseMoved ||
+        e.GetEventType() == EventType::MouseScrolled)
+    {
+        e.Handled = true; // Zatrzymuje event w tej warstwie!
     }
 }
 

@@ -7,13 +7,12 @@ struct GraphicsSettings {
     int WindowHeight = 720;
 
     // Preset rozdzielczosci
-    static constexpr int ResolutionCount = 5;
+    static constexpr int ResolutionCount = 4;
     static constexpr std::pair<int, int> Resolutions[ResolutionCount] = {
         {1280, 720},
         {1600, 900},
         {1920, 1080},
-        {2560, 1440},
-        {3840, 2160}
+        {2560, 1440}
     };
 
     static GraphicsSettings& Get() {
