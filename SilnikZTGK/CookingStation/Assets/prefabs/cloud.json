@@ -1,0 +1,8 @@
+[
+  {
+    "name": "Cloud",
+    "model_path": "CookingStation/Assets/models/wystroj/chmura.gltf",
+    "rotation": [ 0.0, 45.0, 0.0 ],
+    "scale": [ 1.0, 1.0, 1.0 ]
+  }
+]

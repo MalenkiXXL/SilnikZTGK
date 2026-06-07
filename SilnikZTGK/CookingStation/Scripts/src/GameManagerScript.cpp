@@ -1,5 +1,6 @@
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
+#include "CookingStation/Scripts/Managers/CloudManagerScript.h"
 #include <spdlog/spdlog.h>
 
 void GameManagerScript::OnCreate()
@@ -27,14 +28,14 @@ void GameManagerScript::OnCreate()
         }
     );
 
-    // NOWE: Rejestrowanie Historii Dań
+    // Rejestrowanie Historii Dań
     m_DishCreatedSubId = bus.Subscribe<DishCreatedEvent>(
         [this](const DishCreatedEvent& e) {
             m_DishMemory[e.FoodEntity.id] = e.History;
         }
     );
 
-    // NOWE: Weryfikacja zamówień przez system
+    // Weryfikacja zamówień przez system
     m_ValidateOrderSubId = bus.Subscribe<ValidateOrderRequestEvent>(
         [this](const ValidateOrderRequestEvent& e) {
             bool isCorrect = false;
@@ -60,6 +61,17 @@ void GameManagerScript::OnCreate()
         }
     );
 
+    auto& world = GetScene()->GetWorld();
+
+    Entity cloudManagerEntity = world.CreateEntity();
+    world.AddComponent<TagComponent>(cloudManagerEntity, TagComponent{ "CloudManager" });
+
+    NativeScriptComponent nsc;
+    nsc.AddScript<CloudManagerScript>("CloudManagerScript");
+    world.AddComponent<NativeScriptComponent>(cloudManagerEntity, nsc);
+
+    spdlog::info("GameManager: Utworzono encje Cloud Managera!");
+
     AddIngredients(IngredientType::Tomato, 5);
 }
 
@@ -70,8 +82,6 @@ void GameManagerScript::OnDestroy()
     bus.Unsubscribe<IngredientUsedEvent>(m_IngredientUsedSubId);
     bus.Unsubscribe<AddIngredientEvent>(m_AddIngredientSubId);
     bus.Unsubscribe<OrderFulfilledEvent>(m_OrderFulfilledSubId);
-
-    // Zwalnianie nowych eventów!
     bus.Unsubscribe<DishCreatedEvent>(m_DishCreatedSubId);
     bus.Unsubscribe<ValidateOrderRequestEvent>(m_ValidateOrderSubId);
 

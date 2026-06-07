@@ -24,6 +24,7 @@ void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("Conveyor", "shaders://vsShaders/shader.vert", "shaders://fragShaders/conveyor.frag");
     m_ShaderLibrary.Load("HighlightShader", "shaders://vsShaders/highlight.vert", "shaders://fragShaders/highlight.frag");
     m_ShaderLibrary.Load("ShadowMap", "shaders://vsShaders/shadow.vert", "shaders://fragShaders/shadow.frag");
+    m_ShaderLibrary.Load("CloudShader", "shaders://vsShaders/shader.vert", "shaders://fragShaders/cloud.frag");
 
     // --- ŁADOWANIE SHADERÓW POST-PROCESS ---
     m_ShaderLibrary.Load("BloomExtract", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_extract.frag");
