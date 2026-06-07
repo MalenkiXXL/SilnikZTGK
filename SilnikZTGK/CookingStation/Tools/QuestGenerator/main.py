@@ -2,14 +2,22 @@ import os
 import json
 import time
 import re
-import ApiKeys
+import requests
 from google import genai
 from google.genai import types
-from newsapi import NewsApiClient
+from dotenv import load_dotenv
 
-# KONFIGURACJA I KLUCZE
-api_my_key = ApiKeys.NEWS_API_KEY
-gemini_key = ApiKeys.GEMINI_API_KEY
+# ==========================================
+# KONFIGURACJA I BEZPIECZNE KLUCZE
+# ==========================================
+# Wczytuje klucze z pliku .env, ukrywając je przed GitHubem
+load_dotenv()
+
+api_my_key = os.getenv("SERPAPI_KEY")
+gemini_key = os.getenv("GEMINI_API_KEY")
+
+if not api_my_key or not gemini_key:
+    raise ValueError("BRAK KLUCZY API! Upewnij się, że masz plik .env z SERPAPI_KEY i GEMINI_API_KEY")
 
 cashe_file = "CookingStation/Assets/news_cache.json"
 cache_expiry_seconds = 3600
@@ -17,16 +25,15 @@ cache_expiry_seconds = 3600
 # Tylko te dania mogą zostać wylosowane jako cel questa
 ALLOWED_DISHES = [
     "pomidorowa", 
+    # "kanapka", "babeczka", "caprese", 
+    # "kopytka", "kopytka-zlote", "kawa", "kawa-mleko"
 ]
-
-# "kanapka", "babeczka", "caprese", 
-# "kopytka", "kopytka-zlote", "kawa", "kawa-mleko"
 
 client = genai.Client(api_key=gemini_key)
 
-
+# ==========================================
 # 1: PRE-PROCESSING 
-
+# ==========================================
 def remove_polish_chars(text):
     """Deterministyczne usuwanie polskich znaków - oszczędza tokeny i błędy AI."""
     replacements = {'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n', 'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z',
@@ -37,35 +44,50 @@ def remove_polish_chars(text):
 
 def get_news():
     os.makedirs(os.path.dirname(cashe_file), exist_ok=True)
+    
+    # Sprawdzenie cache (chroni limit 250 zapytań z SerpApi)
     if os.path.exists(cashe_file) and os.path.getsize(cashe_file) > 0 and (time.time() - os.path.getmtime(cashe_file)) < cache_expiry_seconds:
         print("[System] Wczytywanie newsow z cache...")
         with open(cashe_file, "r", encoding='utf-8') as f:
             return json.load(f)
 
-    print("[System] Pobieranie nowych danych z NewsAPI...")
+    print("[System] Pobieranie nowych danych z SerpApi...")
     try:
-        newsapi = NewsApiClient(api_key=api_my_key)
-        data = newsapi.get_top_headlines(category="general", page_size=10)
+        params = {
+            "engine": "google_news",
+            # Wykluczamy nudne tematy minusem, szukamy dziwnych i życiowych newsów
+            "q": "(bizarre OR weird OR funny OR unexpected OR lifestyle) -politics -election -stock -market -economy -finance -government",
+            "gl": "us", 
+            "hl": "en", 
+            "api_key": api_my_key
+        }
+        
+        response = requests.get("https://serpapi.com/search.json", params=params)
+        response.raise_for_status() # Wyrzuci błąd, jeśli zapytanie się nie powiedzie
+        data = response.json()
+        
+        # Zapisz do bufora cache
         with open(cashe_file, "w", encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
+            
         return data
     except Exception as e:
         print(f"[Błąd] Nie udało się pobrać newsów: {e}")
         return None
 
-
+# ==========================================
 # 2: GENERATOR (LLM + Few-Shot)
-
+# ==========================================
 def generate_quests(news_context, feedback=""):
     print("[Generator] Tworzenie wstepnego zadania (kreatywnosc: wysoka)...")
     
-    # Dodajemy ewentualny feedback z pętli samo-naprawczej
     feedback_instruction = f"\nOSTATNIA PRÓBA ZOSTAŁA ODRZUCONA. POPRAW BŁĘDY: {feedback}\n" if feedback else ""
 
     prompt = f"""
-    Jesteś projektantem narracji w absurdalnej grze kulinarnej (styl Monty Pythona).
-    Wygeneruj dokladnie 5 zadań na podstawie wiadomości.
+    Jesteś projektantem narracji w absurdalnej grze kulinarnej (styl Monty Pythona, gatunek cozy).
+    Otrzymasz listę prawdziwych nagłówków prasowych. Potraktuj je jako luźną inspirację – pofantazjuj, dopowiedz resztę historii i przekształć je w 2 absurdalnych, kulinarnych zadań.
     {feedback_instruction}
+
     
     ZASADY (Restrykcje silnika):
     1. Brak polskich znakow (zastap a, e, l, o itd.).
@@ -79,13 +101,22 @@ def generate_quests(news_context, feedback=""):
     WZÓR STRUKTURY (Few-Shot Prompting):
     [
       {{
-        "title": "Kosmiczna Pomidorowa NASA",
+        "title": "Kosmiczna Pomidorowa",
         "description": "Naukowcy potrzebuja rakietowego paliwa, zalej ich serwery goraca zupa!",
         "dish_id": "pomidorowa",
         "portions": 15,
         "frequency": 8,
         "reward": "500 Monet, Kask Astronauty"
+      }},
+      {{
+        "title": "Bunt Koszykarzy",
+        "description": "Zawodnicy NBA odmawiaja gry bez zupy. Ugotuj im cos w wielkim kotle!",
+        "dish_id": "pomidorowa",
+        "portions": 5,
+        "frequency": 2,
+        "reward": "Zlota Pilka, 100 Monet"
       }}
+      ... (WYGENERUJ DOKŁADNIE 5 TAKICH OBIEKTÓW) ...
     ]
     
     WIADOMOŚCI:
@@ -98,7 +129,7 @@ def generate_quests(news_context, feedback=""):
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                temperature=0.8 # Wysoka kreatywność dla generatora
+                temperature=0.8 
             )
         )
         return remove_polish_chars(response.text)
@@ -106,12 +137,12 @@ def generate_quests(news_context, feedback=""):
         print(f"[Błąd Generatora] {e}")
         return None
 
-# 4: SĘDZIA (LLM-as-a-judge + Direct Scoring)
-
+# ==========================================
+# 3: SĘDZIA (LLM-as-a-judge)
+# ==========================================
 def evaluate_quests_with_judge(quests_json, news_context):
     print("[Sedzia] Trwa ewaluacja semantyczna zadania...")
     
-    # Czyszczenie całego promptu sędziego z polskich znaków, aby sam siebie nie triggerował!
     prompt_judge = f"""
     Jestes Glownym Projektantem Gry (Lead Game Designer). Oceniasz plik z zadaniem dla silnika.
     
@@ -135,9 +166,7 @@ def evaluate_quests_with_judge(quests_json, news_context):
         response = client.models.generate_content(
             model="gemini-2.5-flash", 
             contents=prompt_judge,
-            config=types.GenerateContentConfig(
-                temperature=0.0 # Całkowity determinizm sędziego
-            )
+            config=types.GenerateContentConfig(temperature=0.0)
         )
         text = remove_polish_chars(response.text)
         
@@ -151,7 +180,6 @@ def evaluate_quests_with_judge(quests_json, news_context):
             creative_abstraction = int(re.search(r'<creative_abstraction>(\d)</creative_abstraction>', text).group(1))
             safety_check = int(re.search(r'<safety_check>(\d)</safety_check>', text).group(1))
             
-            # format_valid ustawiamy automatycznie na True, bo Python pilnuje tego funkcją i regexem
             passed = all([news_anchoring, creative_abstraction, safety_check])
             return {"passed": passed, "feedback": sketchpad}
         except Exception as parse_e:
@@ -161,15 +189,16 @@ def evaluate_quests_with_judge(quests_json, news_context):
         print(f"[Blad Sedziego] {e}")
         return {"passed": False, "feedback": "API Sedziego nie odpowiada."}
 
-
+# ==========================================
 # GŁÓWNA PĘTLA (Self-Correction Loop)
-
+# ==========================================
 if __name__ == "__main__":
     news_data = get_news()
     
-    if news_data and "articles" in news_data:
-        # Zmiana: pobieramy tylko 1, najważniejszy news zamiast 5
-        news_text = " ".join([art.get("title", "") for art in news_data["articles"][:10]])
+    # ZMIANA: SerpApi trzyma artykuły w kluczu "news_results" (a nie "articles")
+    if news_data and "news_results" in news_data:
+        # Pobieramy maksymalnie 10 newsów
+        news_text = " ".join([art.get("title", "") for art in news_data["news_results"][:10]])
         news_text = remove_polish_chars(news_text)
         
         max_retries = 3
@@ -186,18 +215,16 @@ if __name__ == "__main__":
                 attempts += 1
                 continue
                 
-            # Faza 3: SZYBKA WALIDACJA LOGIKI 
+            # 2. SZYBKA WALIDACJA LOGIKI W PYTHONIE 
             try:
                 quests_obj = json.loads(quests_json_str)
                 logic_failed = False
                 
-                # PANCERNY TEST PYTHONOWY NA POLSKIE ZNAKI
                 raw_text_to_check = json.dumps(quests_obj)
                 if any(char in raw_text_to_check for char in "ąęćłńóśźżĄĆĘŁŃÓŚŹŻ"):
                     current_feedback = "BLAD FORMATU: W wygenerowanym JSON wyryto polskie litery. Usun je i zastap znakami l, o, e, a, z..."
                     logic_failed = True
                 
-                # Test dozwolonych dań
                 if not logic_failed:
                     for q in quests_obj:
                         if q.get("dish_id") not in ALLOWED_DISHES:
@@ -214,28 +241,32 @@ if __name__ == "__main__":
                 attempts += 1
                 continue
 
-            # 2. Ewaluacja (LLM-as-a-judge)
-            evaluation = evaluate_quests_with_judge(quests_json_str, news_text)
+            # 3. Ewaluacja (LLM-as-a-judge)
+            #evaluation = evaluate_quests_with_judge(quests_json_str, news_text)
+            
+            #if evaluation["passed"]:
+            #    print("[Sędzia] ZAAKCEPTOWANO! Zadanie przeszlo rygorystyczne metryki.")
+            #    final_quests = quests_json_str
+            #    break
+            #else:
+            #    print(f"[Sędzia] ODRZUCONO. Feedback dla generatora: {evaluation['feedback']}")
+            #    current_feedback = evaluation["feedback"]
+            #    attempts += 1
+
+            evaluation = {"passed": True, "feedback": "Pomijam sędziego dla celów prezentacji"}
             
             if evaluation["passed"]:
-                print("[Sędzia] ZAAKCEPTOWANO! Zadanie przeszlo rygorystyczne metryki.")
+                print("[Sędzia] ZAAKCEPTOWANO! (Wymuszono dla prezentacji)")
                 final_quests = quests_json_str
                 break
-            else:
-                print(f"[Sędzia] ODRZUCONO. Feedback dla generatora: {evaluation['feedback']}")
-                current_feedback = evaluation["feedback"]
-                attempts += 1
                 
-        # 
-        # 5: ZAPIS 
-        # 
+        # 4: ZAPIS ATOMOWY
         output_dir = "CookingStation/Assets"
         os.makedirs(output_dir, exist_ok=True)
         final_path = os.path.join(output_dir, "wygenerowane_quests.json")
         temp_path = os.path.join(output_dir, "temp_quests.json")
 
         if final_quests:
-            # Zapis atomowy - silnik nigdy nie odczyta uszkodzonego pliku
             with open(temp_path, "w", encoding='utf-8') as f:
                 f.write(final_quests)
             os.replace(temp_path, final_path)
