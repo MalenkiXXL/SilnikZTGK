@@ -143,5 +143,6 @@
     <None Include="CookingStation\Assets\prefabs\plate.json" />
     <None Include="CookingStation\Shaders\vsShaders\highlight.vert" />
     <None Include="CookingStation\Shaders\fragShaders\highlight.frag" />
+    <None Include="CookingStation\Tools\QuestGenerator\.env" />
   </ItemGroup>
 </Project>

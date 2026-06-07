@@ -403,9 +403,10 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
 
     // --- PANEL GENERATORA QUESTÓW AI ---
     if (m_ShowQuestsPanel) {
-        glm::vec2 questPanelPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 400.0f, 180.0f, 85.0f, m_ViewportWidth, m_ViewportHeight);
+        // ZMIANA 1: Zwiększamy wysokość panelu z 85.0f na 115.0f, aby pomieścić nowy przycisk
+        glm::vec2 questPanelPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 400.0f, 180.0f, 115.0f, m_ViewportWidth, m_ViewportHeight);
 
-        Gui::Panel(questPanelPos, { 180.0f, 85.0f }, { 0.15f, 0.15f, 0.15f, 0.9f }, 15.0f);
+        Gui::Panel(questPanelPos, { 180.0f, 115.0f }, { 0.15f, 0.15f, 0.15f, 0.9f }, 15.0f);
         Gui::DrawGuiText("Generator Questow:", { questPanelPos.x + 5.f, questPanelPos.y + 10.f }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
 
         if (Gui::Button("Generuj (Stary Cache)", { questPanelPos.x + 5.f, questPanelPos.y + 30.f }, { 170.f, 20.f })) {
@@ -419,8 +420,35 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             system("python CookingStation/Tools/QuestGenerator/main.py");
             GameGuiLayer::s_NeedsQuestReload = true;
         }
-    }
 
+        // ZMIANA 2: Dodajemy przycisk "Resetuj (Domyslne)"
+        if (Gui::Button("Resetuj (Domyslne)", { questPanelPos.x + 5.f, questPanelPos.y + 80.f }, { 170.f, 20.f })) {
+            spdlog::info("Twardy reset questów do ustawień domyślnych (C++)...");
+
+            std::ofstream outFile("CookingStation/Assets/wygenerowane_quests.json");
+            if (outFile.is_open()) {
+                // Wpisujemy na sztywno "złoty" zestaw misji zapasowych.
+                outFile << "[\n"
+                    << "  {\n"
+                    << "    \"title\": \"Bunt Serwerow\",\n"
+                    << "    \"description\": \"Sztuczna inteligencja zglodniala! Podaj szybko ciepla zupe.\",\n"
+                    << "    \"dish_id\": \"pomidorowa\",\n"
+                    << "    \"portions\": 10,\n"
+                    << "    \"frequency\": 5,\n"
+                    << "    \"reward\": \"100 Monet\"\n"
+                    << "  }\n"
+                    << "]";
+                outFile.close();
+
+                // Zmuszamy silnik (GameGuiLayer) do przeładowania pliku z dysku
+                GameGuiLayer::s_NeedsQuestReload = true;
+                spdlog::info("Questy zresetowane natychmiastowo.");
+            }
+            else {
+                spdlog::error("Nie udalo sie otworzyc pliku wygenerowane_quests.json do twardego resetu!");
+            }
+        }
+    }
     // --- PANEL DIAGNOSTYCZNY (ANCHOR: BOTTOM RIGHT) ---
     if (m_ShowDiagnosticPanel) {
         m_StatsUpdateTimer += ts.GetSeconds();

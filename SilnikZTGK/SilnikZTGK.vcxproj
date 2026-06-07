@@ -376,6 +376,7 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <None Include="CookingStation\Shaders\vsShaders\highlight.vert" />
     <None Include="CookingStation\Shaders\vsShaders\lightCubeShader.vert" />
     <None Include="CookingStation\Shaders\fragShaders\shader.frag" />
+    <None Include="CookingStation\Tools\QuestGenerator\.env" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,10 +1,42 @@
 [
-    {
-        "title": "Bunt Serwerow",
-        "description": "Sztuczna inteligencja zglodniala! Podaj szybko ciepla zupe.",
-        "dish_id": "pomidorowa",
-        "portions": 10,
-        "frequency": 5,
-        "reward": "100 Monet"
-    }
+  {
+    "title": "Toksyczna Zupa",
+    "description": "Chmura wybuchla w fabryce. Zneutralizuj ja pomidorowa!",
+    "dish_id": "pomidorowa",
+    "portions": 100,
+    "frequency": 1,
+    "reward": "Maska gazowa, 50 Monet"
+  },
+  {
+    "title": "Pies na Randce",
+    "description": "Pies zaprosil suczke na obiad. Podaj im zupa w misce!",
+    "dish_id": "pomidorowa",
+    "portions": 2,
+    "frequency": 5,
+    "reward": "Psia obroza, 20 Monet"
+  },
+  {
+    "title": "Ucieczka przed Zupa",
+    "description": "Ludzie panikuja przez zapach. Uspokoj ich goraca zupa!",
+    "dish_id": "pomidorowa",
+    "portions": 50,
+    "frequency": 3,
+    "reward": "Buty do biegania, 30 Monet"
+  },
+  {
+    "title": "Milosc w Misce",
+    "description": "Dwa psy szukaja idealnego zwiazku. Zupa ich polaczy!",
+    "dish_id": "pomidorowa",
+    "portions": 4,
+    "frequency": 2,
+    "reward": "Serduszko, 40 Monet"
+  },
+  {
+    "title": "Eksplozja Smaku",
+    "description": "Fabryka wybuchla pomidorami. Zbieraj je do gara!",
+    "dish_id": "pomidorowa",
+    "portions": 20,
+    "frequency": 4,
+    "reward": "Fartuch ochronny, 60 Monet"
+  }
 ]
