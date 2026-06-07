@@ -61,36 +61,43 @@ void PauseMenuPanel::Draw(float baseScale) {
     // 1. Poszarzenie tła ekranu (lekki tint)
     Gui::Panel({ 0.0f, 0.0f }, { (float)windowSize.first, (float)windowSize.second }, { 0.05f, 0.05f, 0.05f, 0.75f }, 0.0f);
 
-    // Jeśli ustawienia są widoczne, rysuj TYLKO je i wyjdź
     if (m_SettingsPanel->IsVisible()) {
         m_SettingsPanel->Draw(baseScale);
         return;
     }
 
     // 2. Pobranie tekstur przez AssetManager
-    auto boardTex = AssetManager::GetTexture("assets://UI/cuttingBoardPrototypeVert.png");
-    auto playTex = AssetManager::GetTexture("assets://UI/playButton.png");
-    auto settingsTex = AssetManager::GetTexture("assets://UI/creditsButton.png");
-    auto exitTex = AssetManager::GetTexture("assets://UI/exitButton.png");
+    auto boardTex = AssetManager::GetTexture("assets://UI/cuttingBoard.png");
+    auto resumeTex = AssetManager::GetTexture("assets://UI/resumeButton.png");
+    auto settingsTex = AssetManager::GetTexture("assets://UI/settingsButtonCarrot.png");
+    auto menuTex = AssetManager::GetTexture("assets://UI/menuButton.png");
+    auto pausedTextTex = AssetManager::GetTexture("assets://UI/pausedText.png");
 
     glm::vec2 uv0 = { 0.0f, 1.0f };
     glm::vec2 uv1 = { 1.0f, 0.0f };
 
-    // NAPRAWA: Zamiast sztywnych wielkości, obliczamy idealne proporcje z tekstury (tak jak w MainMenu!)
     auto getAspectSize = [&](const std::shared_ptr<Texture>& tex, float targetHeight) -> glm::vec2 {
         if (tex && tex->GetRendererID() != 0) {
             float aspect = (float)tex->GetWidth() / (float)tex->GetHeight();
             return { targetHeight * aspect, targetHeight };
         }
-        return { targetHeight * 3.0f, targetHeight }; // Zabezpieczenie, gdyby brakło pliku
+        return { targetHeight * 3.0f, targetHeight };
         };
 
-    // 3. Rysowanie tła menu (Deska do krojenia) - dynamiczna szerokość chroniąca jakość
-    float boardHeight = 450.0f * baseScale;
+    // ===================================
+    // KONTROLA PRZESUNIĘCIA CAŁEGO MENU
+    // ===================================
+    // Ta zmienna obniża WSZYSTKO (deskę, napis i przyciski) proporcjonalnie w dół.
+    // Jeśli 60.0f to za mało, zmień na np. 80.0f lub 100.0f!
+    float visualOffsetY = 60.0f * baseScale;
+
+
+    // 3. Rysowanie tła menu (Deska do krojenia)
+    float boardHeight = 600.0f * baseScale; // Tutaj Twoja powiększona deska
     glm::vec2 boardSize = getAspectSize(boardTex, boardHeight);
 
     float boardX = (windowSize.first - boardSize.x) * 0.5f;
-    float boardY = (windowSize.second - boardSize.y) * 0.5f;
+    float boardY = (windowSize.second - boardSize.y) * 0.5f + visualOffsetY; // <-- OBNIŻAMY
 
     if (boardTex) {
         Renderer2D::DrawQuad({ boardX, boardY }, boardSize, boardTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 0.90f }, uv0, uv1);
@@ -99,17 +106,31 @@ void PauseMenuPanel::Draw(float baseScale) {
         Gui::Panel({ boardX, boardY }, boardSize, { 0.7f, 0.5f, 0.3f, 0.85f }, 20.0f);
     }
 
-    // 4. Parametry i pozycjonowanie przycisków 
-    float btnHeight = 85.0f * baseScale;
-    float btnGap = 20.0f * baseScale;
+    // 3.5 Rysowanie napisu "PAUSED"
+    if (pausedTextTex && pausedTextTex->GetRendererID() != 0) {
+        float textAspect = (float)pausedTextTex->GetWidth() / (float)pausedTextTex->GetHeight();
 
-    // Każdy przycisk wylicza swoją własną, idealną szerokość!
-    glm::vec2 playSize = getAspectSize(playTex, btnHeight);
+        float targetTextWidth = boardSize.x * 0.8f;
+        glm::vec2 textSize = { targetTextWidth, targetTextWidth / textAspect };
+
+        float textGap = 50.0f * baseScale;
+
+        float textX = (windowSize.first - textSize.x) * 0.5f;
+        float textY = boardY - textSize.y - textGap; // Ponieważ boardY zjechało w dół, napis automatycznie też!
+
+        Renderer2D::DrawQuad({ textX, textY }, textSize, pausedTextTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, uv0, uv1);
+    }
+
+    // 4. Parametry i pozycjonowanie przycisków 
+    float btnHeight = 115.0f * baseScale; // Twoje powiększone marchewki
+    float btnGap = 45.0f * baseScale;     // Twój większy odstęp
+
+    glm::vec2 playSize = getAspectSize(resumeTex, btnHeight);
     glm::vec2 settingsSize = getAspectSize(settingsTex, btnHeight);
-    glm::vec2 exitSize = getAspectSize(exitTex, btnHeight);
+    glm::vec2 exitSize = getAspectSize(menuTex, btnHeight);
 
     float totalH = (3.0f * btnHeight) + (2.0f * btnGap);
-    float startY = (windowSize.second - totalH) * 0.5f;
+    float startY = (windowSize.second - totalH) * 0.5f + visualOffsetY; // <-- OBNIŻAMY
 
     glm::vec2 mouse = Gui::GetMappedMousePos();
     auto isHov = [&](glm::vec2 p, glm::vec2 s) {
@@ -120,7 +141,9 @@ void PauseMenuPanel::Draw(float baseScale) {
     bool currentMouseState = Input::IsMouseButtonPressed(0);
     bool mouseClicked = currentMouseState && !s_LastMouseState;
 
-    // Funkcja lambdy rysująca grafikę bez niszczenia jej jakości
+    // ===================================
+    // NAPRAWIONA FUNKCJA PRZYCISKU (Z TINTEM)
+    // ===================================
     auto drawImageBtn = [&](auto tex, glm::vec2 basePos, glm::vec2 baseSize, float& scaleVar, bool hovered) {
         float targetScale = hovered ? 1.05f : 1.0f;
         scaleVar += (targetScale - scaleVar) * 15.0f * m_DeltaTime;
@@ -129,42 +152,47 @@ void PauseMenuPanel::Draw(float baseScale) {
         glm::vec2 offset = (baseSize - scaledSize) * 0.5f;
         glm::vec2 finalPos = basePos + offset;
 
+        // TINT - Lekko szary przy najechaniu, ciemniejszy przy kliknięciu
+        glm::vec4 tint = hovered ? glm::vec4(0.85f, 0.85f, 0.85f, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        if (hovered && currentMouseState) {
+            tint = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f);
+        }
+
         if (tex) {
-            Renderer2D::DrawQuad(finalPos, scaledSize, tex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, uv0, uv1);
+            // Zamiast podawać sztywne kolory, podajemy teraz nasz obliczony tint!
+            Renderer2D::DrawQuad(finalPos, scaledSize, tex->GetRendererID(), tint, uv0, uv1);
         }
         else {
-            Gui::Panel(finalPos, scaledSize, { 1.0f, 0.0f, 1.0f, 1.0f }, 10.0f);
+            Gui::Panel(finalPos, scaledSize, tint, 10.0f);
         }
 
         return hovered && mouseClicked;
         };
 
-    // ===================================
     // RYSOWANIE PRZYCISKÓW I OBSŁUGA LOGIKI
-    // ===================================
 
-    // RETURN (Centrujemy opierając się na dynamicznie obliczonej szerokości playSize.x)
+    // RETURN 
     float retX = (windowSize.first - playSize.x) * 0.5f;
     glm::vec2 retPos = { retX, startY };
     bool hoverRet = isHov(retPos, playSize);
-    if (drawImageBtn(playTex, retPos, playSize, m_ReturnBtnScale, hoverRet)) {
+    if (drawImageBtn(resumeTex, retPos, playSize, m_ResumeBtnScale, hoverRet)) {
         TogglePause();
     }
 
-    // SETTINGS (Centrujemy opierając się na dynamicznie obliczonej szerokości settingsSize.x)
+    // SETTINGS 
     float setX = (windowSize.first - settingsSize.x) * 0.5f;
     glm::vec2 setPos = { setX, startY + btnHeight + btnGap };
     bool hoverSet = isHov(setPos, settingsSize);
-    if (drawImageBtn(settingsTex, setPos, settingsSize, m_SettingsBtnScale, hoverSet)) {
+    if (drawImageBtn(settingsTex, setPos, settingsSize, m_SettingsBtnCarrotScale, hoverSet)) {
         m_SettingsPanel->SyncWithEngine();
         m_SettingsPanel->SetVisible(true);
     }
 
-    // EXIT (Centrujemy opierając się na dynamicznie obliczonej szerokości exitSize.x)
+    // EXIT 
     float exitX = (windowSize.first - exitSize.x) * 0.5f;
     glm::vec2 exitPos = { exitX, startY + 2.0f * (btnHeight + btnGap) };
     bool hoverExit = isHov(exitPos, exitSize);
-    if (drawImageBtn(exitTex, exitPos, exitSize, m_ExitBtnScale, hoverExit)) {
+    if (drawImageBtn(menuTex, exitPos, exitSize, m_MenuBtnScale, hoverExit)) {
         m_IsPaused = false;
         SceneManager::NewScene();
         Application::Get().GetEventBus().Publish(ShowMainMenuEvent{});

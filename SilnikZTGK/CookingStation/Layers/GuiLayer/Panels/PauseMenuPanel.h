@@ -19,9 +19,9 @@ private:
     bool m_IsPaused = false;
     float m_DeltaTime = 0.0f;
 
-    float m_ReturnBtnScale = 1.0f;
-    float m_SettingsBtnScale = 1.0f;
-    float m_ExitBtnScale = 1.0f;
+    float m_SettingsBtnCarrotScale = 1.0f;
+    float m_ResumeBtnScale = 1.0f;
+    float m_MenuBtnScale = 1.0f;
 
     // Panel ustawień jest "Dzieckiem" panelu pauzy
     std::unique_ptr<SettingsMenuPanel> m_SettingsPanel;

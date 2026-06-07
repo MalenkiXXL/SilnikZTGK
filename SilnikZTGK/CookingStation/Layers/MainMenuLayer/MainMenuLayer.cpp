@@ -27,6 +27,7 @@ void MainMenuLayer::OnAttach()
     m_SettingsBtnTex = std::make_shared<Texture>("assets://UI/settingsButton.png");
     m_CreditsBtnTex = std::make_shared<Texture>("assets://UI/creditsButton.png");
     m_ExitBtnTex = std::make_shared<Texture>("assets://UI/exitButton.png");
+    m_BoardTex = std::make_shared<Texture>("assets://UI/cuttingBoard.png");
 
     // Synchronizuj indeksy pending z aktualnie zastosowanymi ustawieniami
     auto& gs = GraphicsSettings::Get();
@@ -100,7 +101,6 @@ void MainMenuLayer::OnUpdate(Timestep ts) {
 
     float dt = ts.GetSeconds();
 
-    // ZMIANA: Lepsze skalowanie bazujące na obu wymiarach. Chroni przed wychodzeniem przycisków.
     float baseScale = std::min(m_ViewportWidth / 1920.0f, m_ViewportHeight / 1080.0f);
     baseScale = std::max(baseScale, 0.35f); // Bezpieczny limit dolny
 
@@ -135,37 +135,52 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
     float settingsPadding = 30.0f * baseScale;
     float settingsTargetHeight = 85.0f * baseScale;
 
-    // Obliczenie rozmiaru z zachowaniem proporcji
+    // Obliczanie rozmiaru
     auto getBtnSize = [&](const std::shared_ptr<Texture>& tex, float targetHeight) -> glm::vec2 {
-        if (tex && tex->GetRendererID() != 0) {
+        if (tex && tex->GetRendererID() != 0 && tex->GetHeight() > 0) {
             float aspect = (float)tex->GetWidth() / (float)tex->GetHeight();
             return { targetHeight * aspect, targetHeight };
         }
-        return { targetHeight * 4.0f, targetHeight }; // Fallback w razie braku tekstury
+        return { targetHeight * 4.0f, targetHeight }; // Fallback w razie braku pliku
         };
 
     glm::vec2 settingsSize = getBtnSize(m_SettingsBtnTex, settingsTargetHeight);
     glm::vec2 settingsPos = { settingsPadding, settingsPadding };
 
-    // Główne przyciski
-    float mainBtnHeight = 110.0f * baseScale;
+    // Wymiary przycisków głównego menu
+    float mainBtnHeight = 130.0f * baseScale;
     float btnGap = 45.0f * baseScale;
-    float blockLeft = m_ViewportWidth * 0.1125f;
-    float blockTop = m_ViewportHeight * 0.435f;
 
     glm::vec2 playSize = getBtnSize(m_PlayBtnTex, mainBtnHeight);
     glm::vec2 creditsSize = getBtnSize(m_CreditsBtnTex, mainBtnHeight);
     glm::vec2 exitSize = getBtnSize(m_ExitBtnTex, mainBtnHeight);
 
-    glm::vec2 playPos = { blockLeft, blockTop };
-    glm::vec2 creditsPos = { blockLeft, blockTop + (mainBtnHeight + btnGap) };
-    glm::vec2 exitPos = { blockLeft, blockTop + (mainBtnHeight + btnGap) * 2.0f };
+    float totalH = (3.0f * mainBtnHeight) + (2.0f * btnGap);
+
+    float boardHeight = 620.0f * baseScale;
+    glm::vec2 boardSize = getBtnSize(m_BoardTex, boardHeight);
+
+    float boardX = m_ViewportWidth * 0.07f;  
+    float boardY = m_ViewportHeight * 0.37f;  
+
+    if (m_BoardTex && m_BoardTex->GetRendererID() != 0) {
+        Renderer2D::DrawQuad({ boardX, boardY }, boardSize, m_BoardTex, { 1.0f, 1.0f, 1.0f, 1.00f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    }
+    else {
+        Gui::Panel({ boardX, boardY }, boardSize, { 0.10f, 0.10f, 0.12f, 0.85f }, 20.0f * baseScale);
+    }
+
+	// Pozycjonowanie przycisków na desce
+    float startY = boardY + (boardSize.y - totalH) * 0.5f;
+
+    glm::vec2 playPos = { boardX + (boardSize.x - playSize.x) * 0.5f, startY };
+    glm::vec2 creditsPos = { boardX + (boardSize.x - creditsSize.x) * 0.5f, startY + mainBtnHeight + btnGap };
+    glm::vec2 exitPos = { boardX + (boardSize.x - exitSize.x) * 0.5f, startY + 2.0f * (mainBtnHeight + btnGap) };
 
     // Hover i animacje
     glm::vec2 mouse = Gui::GetMappedMousePos();
     auto isHov = [&](glm::vec2 p, glm::vec2 s) {
-        return mouse.x >= p.x && mouse.x <= p.x + s.x &&
-            mouse.y >= p.y && mouse.y <= p.y + s.y;
+        return mouse.x >= p.x && mouse.x <= p.x + s.x && mouse.y >= p.y && mouse.y <= p.y + s.y;
         };
 
     bool hoverSettings = isHov(settingsPos, settingsSize);
@@ -179,12 +194,10 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
     m_CreditsBtnScale += ((hoverCredits ? 1.05f : 1.0f) - m_CreditsBtnScale) * dt * animSpeed;
     m_ExitBtnScale += ((hoverExit ? 1.05f : 1.0f) - m_ExitBtnScale) * dt * animSpeed;
 
-    // Zębatka na samej górze
     if (DrawImageButton(m_SettingsBtnTex, settingsPos, settingsSize, m_SettingsBtnScale, baseScale, hoverSettings)) {
         m_SettingsOpen = true;
     }
 
-    // Blok menu 
     if (DrawImageButton(m_PlayBtnTex, playPos, playSize, m_PlayBtnScale, baseScale, hoverPlay)) {
         PlayGame();
     }
@@ -194,7 +207,7 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
     }
 
     if (DrawImageButton(m_ExitBtnTex, exitPos, exitSize, m_ExitBtnScale, baseScale, hoverExit)) {
-        // Logika exit
+		// Logika wyjścia z gry
     }
 }
 

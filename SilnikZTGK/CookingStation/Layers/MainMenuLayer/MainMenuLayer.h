@@ -41,6 +41,7 @@ private:
 
     // --- Tekstury / wymiary ---
     std::shared_ptr<Texture> m_Background;
+    std::shared_ptr<Texture> m_BoardTex;
 
     std::shared_ptr<Texture> m_PlayBtnTex;
     std::shared_ptr<Texture> m_SettingsBtnTex;
