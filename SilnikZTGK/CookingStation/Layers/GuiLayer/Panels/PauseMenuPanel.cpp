@@ -84,11 +84,6 @@ void PauseMenuPanel::Draw(float baseScale) {
         return { targetHeight * 3.0f, targetHeight };
         };
 
-    // ===================================
-    // KONTROLA PRZESUNIĘCIA CAŁEGO MENU
-    // ===================================
-    // Ta zmienna obniża WSZYSTKO (deskę, napis i przyciski) proporcjonalnie w dół.
-    // Jeśli 60.0f to za mało, zmień na np. 80.0f lub 100.0f!
     float visualOffsetY = 60.0f * baseScale;
 
 
@@ -122,8 +117,8 @@ void PauseMenuPanel::Draw(float baseScale) {
     }
 
     // 4. Parametry i pozycjonowanie przycisków 
-    float btnHeight = 115.0f * baseScale; // Twoje powiększone marchewki
-    float btnGap = 45.0f * baseScale;     // Twój większy odstęp
+    float btnHeight = 115.0f * baseScale; 
+    float btnGap = 45.0f * baseScale;     
 
     glm::vec2 playSize = getAspectSize(resumeTex, btnHeight);
     glm::vec2 settingsSize = getAspectSize(settingsTex, btnHeight);
@@ -141,9 +136,7 @@ void PauseMenuPanel::Draw(float baseScale) {
     bool currentMouseState = Input::IsMouseButtonPressed(0);
     bool mouseClicked = currentMouseState && !s_LastMouseState;
 
-    // ===================================
-    // NAPRAWIONA FUNKCJA PRZYCISKU (Z TINTEM)
-    // ===================================
+
     auto drawImageBtn = [&](auto tex, glm::vec2 basePos, glm::vec2 baseSize, float& scaleVar, bool hovered) {
         float targetScale = hovered ? 1.05f : 1.0f;
         scaleVar += (targetScale - scaleVar) * 15.0f * m_DeltaTime;
@@ -152,14 +145,12 @@ void PauseMenuPanel::Draw(float baseScale) {
         glm::vec2 offset = (baseSize - scaledSize) * 0.5f;
         glm::vec2 finalPos = basePos + offset;
 
-        // TINT - Lekko szary przy najechaniu, ciemniejszy przy kliknięciu
         glm::vec4 tint = hovered ? glm::vec4(0.85f, 0.85f, 0.85f, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
         if (hovered && currentMouseState) {
             tint = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f);
         }
 
         if (tex) {
-            // Zamiast podawać sztywne kolory, podajemy teraz nasz obliczony tint!
             Renderer2D::DrawQuad(finalPos, scaledSize, tex->GetRendererID(), tint, uv0, uv1);
         }
         else {
