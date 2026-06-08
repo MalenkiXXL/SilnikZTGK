@@ -1,42 +1,92 @@
 [
   {
-    "title": "Toksyczna Zupa",
-    "description": "Chmura wybuchla w fabryce. Zneutralizuj ja pomidorowa!",
+    "title": "Beach Snack Panic",
+    "description": "Sand is crunchy, but this snack is crunchier. Add tomato.",
     "dish_id": "pomidorowa",
-    "portions": 100,
-    "frequency": 1,
-    "reward": "Maska gazowa, 50 Monet"
-  },
-  {
-    "title": "Pies na Randce",
-    "description": "Pies zaprosil suczke na obiad. Podaj im zupa w misce!",
-    "dish_id": "pomidorowa",
-    "portions": 2,
+    "portions": 3,
     "frequency": 5,
-    "reward": "Psia obroza, 20 Monet"
+    "reward_coins": 50,
+    "reward_flag": "US"
   },
   {
-    "title": "Ucieczka przed Zupa",
-    "description": "Ludzie panikuja przez zapach. Uspokoj ich goraca zupa!",
+    "title": "Ringo's Pizza Hut",
+    "description": "The drummer wants a sandwich. Make it crusty and bizarre.",
+    "dish_id": "kanapka",
+    "portions": 2,
+    "frequency": 1,
+    "reward_coins": 100,
+    "reward_flag": "GB"
+  },
+  {
+    "title": "Ninja Theory Soup",
+    "description": "The hero is hungry. Serve soup to unlock the next level.",
     "dish_id": "pomidorowa",
-    "portions": 50,
+    "portions": 8,
+    "frequency": 4,
+    "reward_coins": 200,
+    "reward_flag": "GB"
+  },
+  {
+    "title": "Padres Power Lunch",
+    "description": "The pitcher is weak. A heavy sandwich helps him hit homers.",
+    "dish_id": "kanapka",
+    "portions": 5,
     "frequency": 3,
-    "reward": "Buty do biegania, 30 Monet"
+    "reward_coins": 150,
+    "reward_flag": "US"
   },
   {
-    "title": "Milosc w Misce",
-    "description": "Dwa psy szukaja idealnego zwiazku. Zupa ich polaczy!",
-    "dish_id": "pomidorowa",
-    "portions": 4,
-    "frequency": 2,
-    "reward": "Serduszko, 40 Monet"
-  },
-  {
-    "title": "Eksplozja Smaku",
-    "description": "Fabryka wybuchla pomidorami. Zbieraj je do gara!",
+    "title": "Moms Demand Soup",
+    "description": "Service is busy! Soup keeps the mothers from rioting.",
     "dish_id": "pomidorowa",
     "portions": 20,
+    "frequency": 6,
+    "reward_coins": 300,
+    "reward_flag": "US"
+  },
+  {
+    "title": "Hockey Combine Grub",
+    "description": "Athletes answer weird questions better with a sandwich.",
+    "dish_id": "kanapka",
+    "portions": 4,
+    "frequency": 2,
+    "reward_coins": 120,
+    "reward_flag": "CA"
+  },
+  {
+    "title": "Audrey's Red Soup",
+    "description": "Lipstick stains on the bowl. Make it classy and red.",
+    "dish_id": "pomidorowa",
+    "portions": 1,
+    "frequency": 1,
+    "reward_coins": 500,
+    "reward_flag": "US"
+  },
+  {
+    "title": "Mystics Lineup Fix",
+    "description": "The team has a headache. A giant sandwich cures all ailments.",
+    "dish_id": "kanapka",
+    "portions": 10,
+    "frequency": 5,
+    "reward_coins": 250,
+    "reward_flag": "US"
+  },
+  {
+    "title": "Monaco Racer Fuel",
+    "description": "The car is slow. Pour soup in the tank for extra velocity.",
+    "dish_id": "pomidorowa",
+    "portions": 6,
     "frequency": 4,
-    "reward": "Fartuch ochronny, 60 Monet"
+    "reward_coins": 400,
+    "reward_flag": "MC"
+  },
+  {
+    "title": "The Divine Sandwich",
+    "description": "God works in mysterious ways, especially with ham and cheese.",
+    "dish_id": "kanapka",
+    "portions": 1,
+    "frequency": 1,
+    "reward_coins": 75,
+    "reward_flag": "US"
   }
 ]
