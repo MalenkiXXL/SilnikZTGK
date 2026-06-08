@@ -101,6 +101,50 @@ public:
         MachineScript::OnDestroy();
     }
 
+    void TryTransferToPlate() override
+    {
+        if (m_ChopCooldown > 0.0f) return;
+
+        Entity targetPlate = m_LastHighlightedPlate;
+
+        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
+            targetPlate = GetClosestAvailablePlate();
+
+        if (targetPlate.id != std::numeric_limits<std::size_t>::max())
+        {
+            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(targetPlate);
+            PlateScript* pScript = nullptr;
+            if (nsc) {
+                for (auto& s : nsc->Scripts) {
+                    if (s.Name == "PlateScript" && s.Instance) {
+                        pScript = static_cast<PlateScript*>(s.Instance);
+                        break;
+                    }
+                }
+            }
+
+            if (pScript)
+            {
+                IngredientType choppedType = GetChoppedType(m_Ingredients[0]);
+
+                if (pScript->AddIngredient(choppedType))
+                {
+                    spdlog::info("Sk³adnik z deski przeniesiony na talerz!");
+                    ClearHighlight();
+                    ResetMachineState();
+                }
+                else
+                {
+                    spdlog::warn("Talerz jest pe³ny lub nie mo¿e przyj¹æ sk³adnika!");
+                }
+            }
+        }
+        else
+        {
+            spdlog::warn("Brak podœwietlonego talerza - najedŸ na danie przed klikniêciem!");
+        }
+    }
+
     void OnUpdate(Timestep ts) override
     {
         MachineScript::OnUpdate(ts);
@@ -262,51 +306,6 @@ public:
     }
 
 protected:
-    void TryTransferToPlate() override
-    {
-        // ZABEZPIECZENIE: Upewniamy siê, ¿e minê³o chocia¿ u³amek sekundy od klikniêcia "Ciach!" nr 3.
-        // Gwarantuje to, ¿e deska w ogóle nie spróbuje wydaæ dania w momencie dokoñczenia krojenia.
-        if (m_ChopCooldown > 0.0f) return;
-
-        Entity targetPlate = m_LastHighlightedPlate;
-
-        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
-            targetPlate = GetClosestAvailablePlate();
-
-        if (targetPlate.id != std::numeric_limits<std::size_t>::max())
-        {
-            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(targetPlate);
-            PlateScript* pScript = nullptr;
-            if (nsc) {
-                for (auto& s : nsc->Scripts) {
-                    if (s.Name == "PlateScript" && s.Instance) {
-                        pScript = static_cast<PlateScript*>(s.Instance);
-                        break;
-                    }
-                }
-            }
-
-            if (pScript)
-            {
-                IngredientType choppedType = GetChoppedType(m_Ingredients[0]);
-
-                if (pScript->AddIngredient(choppedType))
-                {
-                    spdlog::info("Sk³adnik z deski przeniesiony na talerz!");
-                    ClearHighlight();
-                    ResetMachineState();
-                }
-                else
-                {
-                    spdlog::warn("Talerz jest pe³ny lub nie mo¿e przyj¹æ sk³adnika!");
-                }
-            }
-        }
-        else
-        {
-            spdlog::warn("Brak podœwietlonego talerza - najedŸ na danie przed klikniêciem!");
-        }
-    }
 
     void UpdateVisuals() override
     {

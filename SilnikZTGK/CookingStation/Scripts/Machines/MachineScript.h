@@ -31,6 +31,28 @@ protected:
     std::size_t m_HoverSubId = 0;
 
 public:
+
+    virtual void TryTransferToPlate()
+    {
+        spdlog::info("DEBUG Transfer: m_LastHighlightedPlate ID={}", m_LastHighlightedPlate.id);
+
+        Entity targetPlate = m_LastHighlightedPlate;
+
+        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
+            targetPlate = GetClosestAvailablePlate();
+
+        if (targetPlate.id != std::numeric_limits<std::size_t>::max())
+        {
+            ClearHighlight();
+            OnTransferToPlate(targetPlate);
+            ResetMachineState();
+        }
+        else
+        {
+            spdlog::warn("Brak podswietlonego talerza - najedz na danie przed kliknieciem!");
+        }
+    }
+
     std::vector<IngredientType> m_Ingredients;
     bool m_IsReady = false;
     bool m_IsAutomated = false;
@@ -283,27 +305,6 @@ protected:
             }
         }
         return closestPlate;
-    }
-
-    virtual void TryTransferToPlate()
-    {
-        spdlog::info("DEBUG Transfer: m_LastHighlightedPlate ID={}", m_LastHighlightedPlate.id);
-
-        Entity targetPlate = m_LastHighlightedPlate;
-
-        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
-            targetPlate = GetClosestAvailablePlate();
-
-        if (targetPlate.id != std::numeric_limits<std::size_t>::max())
-        {
-            ClearHighlight();
-            OnTransferToPlate(targetPlate);
-            ResetMachineState();
-        }
-        else
-        {
-            spdlog::warn("Brak podswietlonego talerza - najedz na danie przed kliknieciem!");
-        }
     }
 
     virtual void OnTransferToPlate(Entity plateEntity) {}
