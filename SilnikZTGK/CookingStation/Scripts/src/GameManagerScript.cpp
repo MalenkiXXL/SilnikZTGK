@@ -73,6 +73,12 @@ void GameManagerScript::OnCreate()
     spdlog::info("GameManager: Utworzono encje Cloud Managera!");
 
     AddIngredients(IngredientType::Tomato, 5);
+    AddIngredients(IngredientType::Cheese, 5);
+    AddIngredients(IngredientType::Ham, 5);
+    AddIngredients(IngredientType::Mozzarella, 5);
+    AddIngredients(IngredientType::Milk, 5);
+    AddIngredients(IngredientType::Flour, 5);
+    AddIngredients(IngredientType::Egg, 5);
 }
 
 void GameManagerScript::OnDestroy()

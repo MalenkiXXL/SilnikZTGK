@@ -295,6 +295,13 @@ private:
                 else if (name == "PotScript") {
                     return mScript->m_Ingredients.size() < 2 && (hoveredType == IngredientType::ChoppedTomato);
                 }
+                else if (name == "MixerScript") {
+                    bool hasType = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), hoveredType) != mScript->m_Ingredients.end();
+                    return mScript->m_Ingredients.size() < 2 && !hasType && (hoveredType == IngredientType::Flour || hoveredType == IngredientType::Milk);
+                }
+                else if (name == "OvenScript") {
+                    return mScript->m_Ingredients.empty() && (hoveredType == IngredientType::RawDough);
+                }
                 return false;
                 });
 
@@ -527,10 +534,26 @@ private:
             auto* plateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(currentHoveredPlate);
             if (!plateTf) return;
 
-            auto neighbor = FindClosestNeighbor(plateTf->GetPosition(), [](const std::string& name, ScriptableEntity* instance) {
-                if (name != "PotScript") return false;
-                MachineScript* mScript = static_cast<MachineScript*>(instance);
-                return mScript && !mScript->m_IsReady && mScript->m_Ingredients.size() < 2;
+            IngredientType topIngredient = hoveredPlateScript->m_Ingredients.back();
+
+            auto neighbor = FindClosestNeighbor(plateTf->GetPosition(), [topIngredient](const std::string& name, ScriptableEntity* instance) {
+                MachineScript* mScript = dynamic_cast<MachineScript*>(instance);
+                if (!mScript || mScript->m_IsReady) return false;
+
+                if (name == "PotScript") {
+                    return mScript->m_Ingredients.size() < 2 && topIngredient == IngredientType::ChoppedTomato;
+                }
+                else if (name == "CuttingBoardScript") {
+                    return mScript->m_Ingredients.empty() && (topIngredient == IngredientType::Tomato || topIngredient == IngredientType::Baguette || topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella);
+                }
+                else if (name == "MixerScript") {
+                    bool hasType = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), topIngredient) != mScript->m_Ingredients.end();
+                    return mScript->m_Ingredients.size() < 2 && !hasType && (topIngredient == IngredientType::Flour || topIngredient == IngredientType::Milk);
+                }
+                else if (name == "OvenScript") {
+                    return mScript->m_Ingredients.empty() && topIngredient == IngredientType::RawDough;
+                }
+                return false;
                 });
 
             if (neighbor.TargetEntity.id != HighlightedPotFromPlate.id) {
