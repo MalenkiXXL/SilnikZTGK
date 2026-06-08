@@ -12,6 +12,7 @@
 #include <limits>
 #include <string>
 #include <functional> 
+#include <algorithm>
 
 class DragAndDropScript : public ScriptableEntity
 {
@@ -262,7 +263,6 @@ private:
         }
     }
 
-
     // SEKCJA INTERAKCJI 
     void CheckBeltToMachineTransfer(glm::vec3 mousePos)
     {
@@ -379,6 +379,13 @@ private:
                                 else if (machineName == "PotScript" && hoveredMachineScript->m_Ingredients.size() < 2) {
                                     canAccept = (type == IngredientType::ChoppedTomato);
                                 }
+                                else if (machineName == "MixerScript" && hoveredMachineScript->m_Ingredients.size() < 2) {
+                                    bool hasType = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), type) != hoveredMachineScript->m_Ingredients.end();
+                                    canAccept = (!hasType && (type == IngredientType::Flour || type == IngredientType::Milk));
+                                }
+                                else if (machineName == "OvenScript" && hoveredMachineScript->m_Ingredients.empty()) {
+                                    canAccept = (type == IngredientType::RawDough);
+                                }
 
                                 if (canAccept) {
                                     float dist = glm::distance(machineTf->GetPosition(), itemTf->GetPosition());
@@ -492,6 +499,13 @@ private:
                     return topIngredient == IngredientType::Tomato || topIngredient == IngredientType::Baguette ||
                         topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella;
                 }
+                else if (machineName == "MixerScript" && hoveredMachineScript->m_Ingredients.size() < 2) {
+                    bool hasType = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), topIngredient) != hoveredMachineScript->m_Ingredients.end();
+                    return (!hasType && (topIngredient == IngredientType::Flour || topIngredient == IngredientType::Milk));
+                }
+                else if (machineName == "OvenScript" && hoveredMachineScript->m_Ingredients.empty()) {
+                    return topIngredient == IngredientType::RawDough;
+                }
                 return false;
                 });
 
@@ -567,7 +581,7 @@ private:
                 if (!Input::IsKeyPressed(340)) {
                     IngredientType topIngredient = hoveredPlateScript->m_Ingredients.back();
                     if (neighbor.MachineInstance && neighbor.MachineInstance->AddIngredient(topIngredient)) {
-                        spdlog::info("Składnik wrzucony z talerza z powrotem do garnka!");
+                        spdlog::info("Składnik wrzucony z talerza z powrotem do maszyny!");
                         hoveredPlateScript->m_Ingredients.pop_back();
                         Entity visualToRemove = hoveredPlateScript->m_VisualModels.back();
                         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
@@ -575,7 +589,7 @@ private:
                         ClearPotHighlight();
                     }
                     else {
-                        spdlog::warn("Garnek nie potrafi ugotować składnika, który chcesz w nim umieścić!");
+                        spdlog::warn("Maszyna nie potrafi przetworzyć składnika, który chcesz w niej umieścić!");
                     }
                 }
             }

@@ -54,6 +54,7 @@ public:
     }
 
     // Hybrydowe przenoszenie
+    // Hybrydowe przenoszenie
     void TryTransferToPlate() override
     {
         Entity targetPlate = m_LastHighlightedPlate;
@@ -61,12 +62,35 @@ public:
         if (targetPlate.id == std::numeric_limits<std::size_t>::max())
             targetPlate = GetClosestAvailablePlate();
 
-        if (targetPlate.id != std::numeric_limits<std::size_t>::max() || m_IsAutomated)
+        if (targetPlate.id != std::numeric_limits<std::size_t>::max())
         {
-            // Przeniesienie na talerz
-            MachineScript::TryTransferToPlate();
+            // Przeniesienie logiczne na talerz
+            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(targetPlate);
+            PlateScript* pScript = nullptr;
+            if (nsc) {
+                for (auto& s : nsc->Scripts) {
+                    if (s.Name == "PlateScript" && s.Instance) {
+                        pScript = static_cast<PlateScript*>(s.Instance);
+                        break;
+                    }
+                }
+            }
+
+            if (pScript)
+            {
+                if (pScript->AddIngredient(IngredientType::Baguette))
+                {
+                    spdlog::info("Piekarnik: Bagietka gotowa i przelozona na talerz!");
+                    ClearHighlight();
+                    if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
+                        GetScene()->DestroyEntity(m_SpawnedFood);
+                        m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+                    }
+                    ResetMachineState();
+                }
+            }
         }
-        else
+        else if (!m_IsAutomated)
         {
             // Zabranie upieczonej bagietki do reki
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
