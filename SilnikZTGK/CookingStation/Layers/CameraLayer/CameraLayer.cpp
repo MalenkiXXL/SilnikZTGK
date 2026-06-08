@@ -68,6 +68,8 @@ void CameraLayer::OnUpdate(Timestep ts) {
         m_Panning = false;
     }
 
+    glm::vec3 oldTarget = m_Camera.TargetPosition;
+
     if (m_Panning) {
         float dx = mouseX - m_LastMouseX;
         float dy = mouseY - m_LastMouseY;
@@ -101,6 +103,15 @@ void CameraLayer::OnUpdate(Timestep ts) {
         dir = glm::normalize(dir);
         m_Camera.TargetPosition += dir * PAN_SPEED * (float) ts;
     }
+
+#ifdef CS_DISTRIBUTION
+    m_Camera.ApplyBounds();
+#else
+    if (activeScene && activeScene->GetState() == SceneState::Play)
+    {
+        m_Camera.ApplyBounds();
+    }
+#endif
 }
 
 void CameraLayer::OnEvent(Event &event) {

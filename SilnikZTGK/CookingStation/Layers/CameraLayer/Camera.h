@@ -154,6 +154,21 @@ public:
     {
         return glm::normalize(glm::cross(WorldUp, Right));
     }
+
+    void ApplyBounds()
+    {
+        if (!UseBounds) return;
+
+        float panX  = glm::dot(TargetPosition, Right);
+        float panY  = glm::dot(TargetPosition, Up);
+        float depth = glm::dot(TargetPosition, Front);
+
+        panX = glm::clamp(panX, MinPanBounds.x, MaxPanBounds.x);
+        panY = glm::clamp(panY, MinPanBounds.y, MaxPanBounds.y);
+
+        TargetPosition = Right * panX + Up * panY + Front * depth;
+    }
+
 private:
     Frustum m_Frustum;
     void UpdateFrustum()
@@ -162,5 +177,11 @@ private:
         glm::mat4 viewProj = GetProjectionMatrix() * GetViewMatrix();
         m_Frustum = ExtractFrustum(viewProj);
     }
+
+    glm::vec2 MinPanBounds = glm::vec2(-50.0f, -50.0f); // Dostosuj te wartości
+    glm::vec2 MaxPanBounds = glm::vec2(50.0f, 50.0f);   // Dostosuj te wartości
+    bool UseBounds = true;
+
+
 };
 #endif
