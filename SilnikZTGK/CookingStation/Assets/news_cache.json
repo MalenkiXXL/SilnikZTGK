@@ -1,13 +1,13 @@
 {
     "search_metadata": {
-        "id": "6a240d40de1f33a7621b2d70",
+        "id": "6a25baccb6a867b0ca86575d",
         "status": "Success",
-        "json_endpoint": "https://serpapi.com/searches/PqmG2Uo4bKey-jZIln9z_Q/6a240d40de1f33a7621b2d70.json",
-        "created_at": "2026-06-06 12:06:24 UTC",
-        "processed_at": "2026-06-06 12:06:24 UTC",
+        "json_endpoint": "https://serpapi.com/searches/PqmG2Uo4bKey-jZIln9z_Q/6a25baccb6a867b0ca86575d.json",
+        "created_at": "2026-06-07 18:39:08 UTC",
+        "processed_at": "2026-06-07 18:39:08 UTC",
         "google_news_url": "https://news.google.com/search?q=%28bizarre+OR+weird+OR+funny+OR+unexpected+OR+lifestyle%29+-politics+-election+-stock+-market+-economy+-finance+-government&hl=en&gl=US",
-        "raw_html_file": "https://serpapi.com/searches/PqmG2Uo4bKey-jZIln9z_Q/6a240d40de1f33a7621b2d70.html",
-        "total_time_taken": 4.38
+        "raw_html_file": "https://serpapi.com/searches/PqmG2Uo4bKey-jZIln9z_Q/6a25baccb6a867b0ca86575d.html",
+        "total_time_taken": 9.51
     },
     "search_parameters": {
         "engine": "google_news",
@@ -15,38 +15,1490 @@
         "hl": "en",
         "q": "(bizarre OR weird OR funny OR unexpected OR lifestyle) -politics -election -stock -market -economy -finance -government"
     },
-  "news_results": [
-    {
-      "position": 37,
-      "title": "Massive explosion at local chemical plant creates toxic cloud, people panicked and running for lives!",
-      "source": {
-        "name": "Broken Frontier",
-        "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.brokenfrontier.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
-        "authors": [
-          "Lindsay Pereira"
-        ]
-      },
-      "link": "https://www.brokenfrontier.com/dogs-on-dates/",
-      "thumbnail": "https://www.brokenfrontier.com/wp-content/uploads/2026/06/dogs-on-dates-1.jpg",
-      "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXZZWGhxWmxKSmFuaEZORloyVFJDZUJSaktBeWdLTWdZWkE0S3NMUVk",
-      "date": "06/05/2026, 01:28 PM, +0000 UTC",
-      "iso_date": "2026-06-05T13:28:08Z"
-    },
-    {
-      "position": 38,
-      "title": "Dogs on Dates - Luke Healy’s Graphic Novel is a Charming, Funny Reminder About What Successful Relationships Are Built Upon",
-      "source": {
-        "name": "Broken Frontier",
-        "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.brokenfrontier.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
-        "authors": [
-          "Lindsay Pereira"
-        ]
-      },
-      "link": "https://www.brokenfrontier.com/dogs-on-dates/",
-      "thumbnail": "https://www.brokenfrontier.com/wp-content/uploads/2026/06/dogs-on-dates-1.jpg",
-      "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXZZWGhxWmxKSmFuaEZORloyVFJDZUJSaktBeWdLTWdZWkE0S3NMUVk",
-      "date": "06/05/2026, 01:28 PM, +0000 UTC",
-      "iso_date": "2026-06-05T13:28:08Z"
-    }
-  ]
+    "news_results": [
+        {
+            "position": 1,
+            "title": "This 'Weird' Beach Snack Has Been In My Family For Years—And It’s Always A Hit",
+            "source": {
+                "name": "Southern Living",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.southernliving.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Betsy Cribb"
+                ]
+            },
+            "link": "https://www.southernliving.com/tea-sandwiches-as-beach-snack-11977918",
+            "thumbnail": "https://www.southernliving.com/thmb/eOtdRaXCTz3HgUrjAKn_1Y48Z-A=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/pimiento-sandwiches_Tailgate_2882_preview_scale_100_ppi_150_quality_100-c741f95e01b441cbb4de18bf4c3daa56.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUJhSE41YzJoVmJHOUxTMFZNVFJERUF4aW1CU2dLTWdZVlFKRHFPUVk",
+            "date": "06/07/2026, 01:00 PM, +0000 UTC",
+            "iso_date": "2026-06-07T13:00:00Z"
+        },
+        {
+            "position": 2,
+            "title": "#TSRMorningInspiration: Made you look! Doesn’t God work in funny ways, #Roomies?!😭 ✍🏾:#TSRStaffJR",
+            "source": {
+                "name": "instagram.com",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.instagram.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.instagram.com/p/DZSfkTNOp29/",
+            "thumbnail": "https://lookaside.instagram.com/seo/google_widget/crawler/?media_id=3914329860104428989",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUdjUzEyWlRrd1lXdHpVRE5FVFJEcUJCandBeWdLTWdZQllwZ0ZKUWs",
+            "date": "06/07/2026, 04:44 PM, +0000 UTC",
+            "iso_date": "2026-06-07T16:44:11Z"
+        },
+        {
+            "position": 3,
+            "title": "The Bizarre '90s Ringo Starr Pizza Hut Commercial That Feels Like A Fever Dream",
+            "source": {
+                "name": "The Takeout",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.thetakeout.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Joe Hoeffner"
+                ]
+            },
+            "link": "https://www.thetakeout.com/2185202/bizarre-ringo-starr-pizza-hut-commercial-90s-fever-dream/",
+            "thumbnail": "https://www.thetakeout.com/img/gallery/the-bizarre-90s-ringo-starr-pizza-hut-commercial-that-feels-like-a-fever-dream/intro-1780338726.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNVNNbk5YUTNSU01DMXpRaTB4VFJDZkF4ampCU2dLTWdhZFZZek5KUWM",
+            "date": "06/07/2026, 03:00 PM, +0000 UTC",
+            "iso_date": "2026-06-07T15:00:00Z"
+        },
+        {
+            "position": 4,
+            "title": "Senua: Answering the Big Questions About Ninja Theory’s Unexpected New Action-Adventure",
+            "source": {
+                "name": "XBOX Wire",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://news.xbox.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Joe Skrebels"
+                ]
+            },
+            "link": "https://news.xbox.com/en-us/2026/06/07/senua-ninja-theory-details-interview-action-adventure-xbox-games-showcase-2026/",
+            "thumbnail": "https://xboxwire.thesourcemediaassets.com/sites/2/2026/06/Key-Art-f25498b526451edba564-1024x576.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNHRObUpSVG1WNVVreHFZbTlPVFJDZkF4ampCU2dLTWdrRk1vNUtJV1pVSlFN",
+            "date": "06/07/2026, 05:36 PM, +0000 UTC",
+            "iso_date": "2026-06-07T17:36:23Z"
+        },
+        {
+            "position": 5,
+            "title": "Padres back in win column on strength of HR from unexpected source",
+            "source": {
+                "name": "MLB.com",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.mlb.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Aj Cassavell"
+                ]
+            },
+            "link": "https://www.mlb.com/news/freddy-fermin-hits-first-2026-home-run-as-padres-beat-mets",
+            "thumbnail": "https://img.mlbstatic.com/mlb-images/image/upload/t_16x9/t_w1024/mlb/kmhemokdwrshhhnxqcwg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNTZhVU5XZEdaelNWUmpWSE5YVFJDZkF4ampCU2dLTWdhWk5Jd0xtZ2s",
+            "date": "06/07/2026, 06:01 AM, +0000 UTC",
+            "iso_date": "2026-06-07T06:01:21Z"
+        },
+        {
+            "position": 6,
+            "title": "A Busy Mother’s Day Service Brings a Restaurant Team Together in Unexpected Ways",
+            "source": {
+                "name": "TwistedSifter",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://twistedsifter.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://twistedsifter.com/2026/06/a-busy-mothers-day-service-brings-a-restaurant-team-together-in-unexpected-ways/",
+            "thumbnail": "https://twistedsifter.com/wp-content/uploads/2026/05/Twisted-Sifter-3286.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNVdRVzVIZDFaamFYSXlWbkpxVFJDZkF4ampCU2dLTWdZVkJZQXB0Z0E",
+            "date": "06/07/2026, 05:48 PM, +0000 UTC",
+            "iso_date": "2026-06-07T17:48:41Z"
+        },
+        {
+            "position": 7,
+            "title": "Bizarre questions at the NHL combine have become an absolute circus",
+            "source": {
+                "name": "Blue Line Station",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://bluelinestation.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://bluelinestation.com/bizarre-questions-at-the-nhl-combine-have-become-an-absolute-circus-01ktfhv4db1n",
+            "thumbnail": "https://images2.minutemediacdn.com/image/upload/c_crop,x_606,y_1798,w_3245,h_1825/c_fill,w_720,ar_16:9,f_auto,q_auto,g_auto/images/ImagnImages/mmsport/100/01ktfvy3x55ktv8eeahc.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNWlUVXhKZURWd1MyTlBXbEJ4VFJDVkF4alFCU2dLTWdB",
+            "date": "06/07/2026, 12:00 PM, +0000 UTC",
+            "iso_date": "2026-06-07T12:00:01Z"
+        },
+        {
+            "position": 8,
+            "title": "Audrey Hepburn Used This Exact Lipstick on the Set of Funny Face — Only $8 Today",
+            "source": {
+                "name": "SheKnows",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.sheknows.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.sheknows.com/living/articles/2934802/revlon-lipstick-fire-and-ice/",
+            "thumbnail": "https://www.sheknows.com/wp-content/uploads/2024/01/shop-018.jpg?w=1440",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNHhURzQ1WlVGdVprSkdXV3hUVFJEZ0F4aUFCU2dLTWdrUkE1eFFrYXFwNVFJ",
+            "date": "06/07/2026, 05:54 PM, +0000 UTC",
+            "iso_date": "2026-06-07T17:54:00Z"
+        },
+        {
+            "position": 9,
+            "title": "Georgia Amoore headache should force Mystics into unexpected lineup change",
+            "source": {
+                "name": "High Post Hoops",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://highposthoops.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Nathan Doyle"
+                ]
+            },
+            "link": "https://highposthoops.com/georgia-amoore-headache-should-force-mystics-into-unexpected-lineup-change",
+            "thumbnail": "https://images2.minutemediacdn.com/image/upload/c_crop,x_66,y_711,w_2074,h_1166/c_fill,w_720,ar_16:9,f_auto,q_auto,g_auto/images/ImagnImages/mmsport/403/01ktgp69jtaa7vwgrazn.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNHRUamhNVEVabWEwMWpaVlV3VFJDVkF4alFCU2dLTWdhdE5JS3VIUWs",
+            "date": "06/07/2026, 11:00 AM, +0000 UTC",
+            "iso_date": "2026-06-07T11:00:00Z"
+        },
+        {
+            "position": 10,
+            "title": "Winner Kimi Antonelli Only Constant in Bizarre Monaco Grand Prix",
+            "source": {
+                "name": "Frontstretch",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://frontstretch.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://frontstretch.com/2026/06/07/kimi-antonelli-wins-bizarre-monaco-grand-prix/",
+            "thumbnail": "https://frontstretch.com/wp-content/uploads/2026/05/m599722_f1_grand_prix_of_canada.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNTVPRWh4YW5wUlNtVnlaSFU0VFJDNEF4aTVCU2dLTWdB",
+            "date": "06/07/2026, 04:03 PM, +0000 UTC",
+            "iso_date": "2026-06-07T16:03:11Z"
+        },
+        {
+            "position": 11,
+            "title": "The Unexpected Gifts of Trusting the Process",
+            "source": {
+                "name": "The Times of Israel",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://blogs.timesofisrael.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://blogs.timesofisrael.com/the-unexpected-gifts-of-trusting-the-process/",
+            "thumbnail": "https://static-cdn.toi-media.com/blogs/uploads/2026/06/20260604_224104-400x250.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iJ0NnNDRha2hRVDNsWlduQnRSemhqVFJENkFSaVFBeWdLTWdNVklBSQ",
+            "date": "06/04/2026, 09:43 PM, +0000 UTC",
+            "iso_date": "2026-06-04T21:43:00Z"
+        },
+        {
+            "position": 12,
+            "title": "Hurricanes-Golden Knights double-OT thriller ends on bizarre Shea Theodore goal",
+            "source": {
+                "name": "USA Today",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.usatoday.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Jace Evans"
+                ]
+            },
+            "link": "https://www.usatoday.com/story/sports/nhl/2026/06/07/hurricanes-golden-knights-double-ot-shea-theodore-goal/90444776007/",
+            "thumbnail": "https://www.usatoday.com/gcdn/authoring/authoring-images/2026/06/07/USAT/90444811007-2280260976.jpg?crop=4498,2532,x0,y468&width=660&height=371&format=pjpg&auto=webp",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNVFRalEyV21jdFNscEJVbk01VFJDb0FSaXNBaWdCTWdhVm9JaUx0UVE",
+            "date": "06/07/2026, 04:51 AM, +0000 UTC",
+            "iso_date": "2026-06-07T04:51:00Z"
+        },
+        {
+            "position": 13,
+            "title": "Deontay Wilder Could Be One Step Away From An Unexpected Title Shot",
+            "source": {
+                "name": "Boxing News 24/7",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.boxing247.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.boxing247.com/boxing-news/deontay-wilder-could-be-one-step-away-from-an-unexpected-title-shot/306634",
+            "thumbnail": "https://www.boxing247.com/wp-content/uploads/2026/04/Chisora-vs-Wilder-_-Open-Workout-01-04-26-0U0A3102-Boxing-Photos.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNTNPREZxU1ZrMVJIVlhaVmQ1VFJERUF4aW1CU2dLTWdB",
+            "date": "06/07/2026, 03:22 PM, +0000 UTC",
+            "iso_date": "2026-06-07T15:22:18Z"
+        },
+        {
+            "position": 14,
+            "title": "VANDERGRIFF CAPTURES FIRST NO. 1 QUALIFIER AWARD, SECOND #2FAST2TASTY CHALLENGE VICTORY",
+            "source": {
+                "name": "John Force Racing",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://johnforceracing.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://johnforceracing.com/blog/vandergriff-captures-first-no-1-qualifier-award-second-2fast2tasty-challenge-victory/",
+            "thumbnail": "https://johnforceracing.com/wp-content/uploads/2026/06/2623-07266-scaled-e1780778794529.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNWtUR1JmTUVWRlVHdHJSRnBMVFJERUF4aW5CU2dLTWdZWlJaSkpuZ2s",
+            "date": "06/06/2026, 10:45 PM, +0000 UTC",
+            "iso_date": "2026-06-06T22:45:57Z"
+        },
+        {
+            "position": 15,
+            "title": "I Love Turning On Every Modifier In Mina The Hollower",
+            "source": {
+                "name": "Kotaku",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://kotaku.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Rebekah Valentine"
+                ]
+            },
+            "link": "https://kotaku.com/all-modifiers-mina-the-hollower-2000702480",
+            "thumbnail": "https://kotaku.com/app/uploads/2026/06/Minamods.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNWhlbkJrUmxscFVuazRVakJsVFJDZkF4ampCU2dLTWdrRkFvRElpYUhBbGdB",
+            "date": "06/04/2026, 04:31 PM, +0000 UTC",
+            "iso_date": "2026-06-04T16:31:31Z"
+        },
+        {
+            "position": 16,
+            "title": "College Football's No. 2 Safety Announces Unexpected Decision Ahead of Official Visits",
+            "source": {
+                "name": "Sports Illustrated",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.si.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Tucker Harlin"
+                ]
+            },
+            "link": "https://www.si.com/fannation/college/cfb-hq/recruiting/college-football-s-no-2-safety-announces-unexpected-decision-ahead-of-official-visits-jayquan-snell",
+            "thumbnail": "https://images2.minutemediacdn.com/image/upload/c_crop,x_0,y_657,w_7797,h_4385/c_fill,w_720,ar_16:9,f_auto,q_auto,g_auto/images/ImagnImages/mmsport/college_football_hq/01ktckcbhch0y3071wa2.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNUNXRGgxY25SMFRtTmZiVU5hVFJDVkF4alFCU2dLTWdB",
+            "date": "06/07/2026, 02:14 PM, +0000 UTC",
+            "iso_date": "2026-06-07T14:14:46Z"
+        },
+        {
+            "position": 17,
+            "title": "Summer break brings fun but no break from healthy lifestyle",
+            "source": {
+                "name": "ThePerryNews",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://theperrynews.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Natalie Del Vecchio"
+                ]
+            },
+            "link": "https://theperrynews.com/summer-break-brings-fun-but-no-break-from-healthy-lifestyle/",
+            "thumbnail": "https://theperrynews.com/wp-content/uploads/2026/06/13-healthy-summer-break-image.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNVJWM2xTVXpoU1EyRkxRamw0VFJDM0JCaWRCQ2dLTWdZQmNKYk5xUWM",
+            "date": "06/07/2026, 12:07 PM, +0000 UTC",
+            "iso_date": "2026-06-07T12:07:38Z"
+        },
+        {
+            "position": 18,
+            "title": "This New Version Of A Trader Joe's Fan-Favorite Just Might Be Better Than The Original",
+            "source": {
+                "name": "Southern Living",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.southernliving.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Jenna Sims"
+                ]
+            },
+            "link": "https://www.southernliving.com/trader-joes-unexpected-cheddar-cheese-snackers-review-11991727",
+            "thumbnail": "https://www.southernliving.com/thmb/yoa7cvrBLcKnlqBJBn2XGuN3ikE=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/GettyImages-2165724886-107383a513744074a0b57af966dd1e97.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNVhRV05xYkVwNlRraHpTRFJ1VFJERUF4aW1CU2dLTWdhQk5hQUZIZ28",
+            "date": "06/07/2026, 02:53 PM, +0000 UTC",
+            "iso_date": "2026-06-07T14:53:00Z"
+        },
+        {
+            "position": 19,
+            "title": "The Unexpected Perk Of Having A Smaller Home Decorating Budget",
+            "source": {
+                "name": "Southern Living",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.southernliving.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Betsy Cribb"
+                ]
+            },
+            "link": "https://www.southernliving.com/smaller-home-budget-perk-11992406",
+            "thumbnail": "https://www.southernliving.com/thmb/UBxAnnIkLlQnbefOb2CPgf6CgNM=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/27894_MackinThompson_516_59thStSBham_0195B_GH_preview-1ca501256b6f4900ad94029f13ff8460.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNU5RVXQ0WDBOUFdtUkVXRmhWVFJERUF4aW1CU2dLTWdZQmdJWnR1UVE",
+            "date": "06/06/2026, 06:10 PM, +0000 UTC",
+            "iso_date": "2026-06-06T18:10:00Z"
+        },
+        {
+            "position": 20,
+            "title": "Scientists Discovered an Unexpected Side Effect of Working the Night Shift",
+            "source": {
+                "name": "vice.com",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.vice.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Luis Prada"
+                ]
+            },
+            "link": "https://www.vice.com/en/article/scientists-discovered-an-unexpected-side-effect-of-working-the-night-shift/",
+            "thumbnail": "https://www.vice.com/wp-content/uploads/sites/2/2026/06/working-the-night-shift-is-doing-something-strange-to-your-brain.png?w=2000",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNWpRWEZLWDNkbFpsSXpSelJIVFJDZkF4ampCU2dLTWdZQmdaUkh0Z2M",
+            "date": "06/07/2026, 06:30 AM, +0000 UTC",
+            "iso_date": "2026-06-07T06:30:00Z"
+        },
+        {
+            "position": 21,
+            "title": "102 and enjoying his loner lifestyle",
+            "source": {
+                "name": "chronicleonline.com",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.chronicleonline.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.chronicleonline.com/news/102-and-enjoying-his-loner-lifestyle/article_333e24a7-9d56-556c-b388-e53b3444285c.html",
+            "thumbnail": "https://bloximages.newyork1.vip.townnews.com/chronicleonline.com/content/tncms/assets/v3/editorial/3/df/3df370bb-a7b4-5866-b68a-542801ff34ed/6a22d7a09575e.image.jpg?resize=200%2C150",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNVBORzF2T1d0MlF6aEhaM0F4VFJDV0FSaklBU2dLTWdtaFE1Q0xKV2hjNWdJ",
+            "date": "06/07/2026, 02:00 PM, +0000 UTC",
+            "iso_date": "2026-06-07T14:00:00Z"
+        },
+        {
+            "position": 22,
+            "title": "AEW Collision women’s main event has an unexpected winner to face Mercedes Moné",
+            "source": {
+                "name": "MSN",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.msn.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.msn.com/en-us/sports/other/aew-collision-women-s-main-event-has-an-unexpected-winner-to-face-mercedes-mon%C3%A9/ar-AA251hae",
+            "thumbnail": "https://img-s-msn-com.akamaized.net/tenant/amp/entityid/AA250l7q.img?w=768&h=402&m=6&x=67&y=129&s=601&d=145",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNWlSR1ZKVXpOZkxWZDBTRUZWVFJDUUF4ai1CU2dLTWdZSlVJWW5yZ1U",
+            "date": "06/07/2026, 09:31 AM, +0000 UTC",
+            "iso_date": "2026-06-07T09:31:08Z"
+        },
+        {
+            "position": 23,
+            "title": "New rankings might start unexpected Jalen Hurts-Makai Lemon Eagles hype train",
+            "source": {
+                "name": "Inside the Iggles",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://insidetheiggles.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Anthony Miller"
+                ]
+            },
+            "link": "https://insidetheiggles.com/new-rankings-might-start-unexpected-jalen-hurts-makai-lemon-philadelphia-eagles-hype-train",
+            "thumbnail": "https://images2.minutemediacdn.com/image/upload/c_crop,x_1005,y_234,w_4103,h_2307/c_fill,w_720,ar_16:9,f_auto,q_auto,g_auto/images/ImagnImages/mmsport/57/01ktgypep4q41m2f1bea.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNVBlRE14WWpCSVJucDFSa0ZXVFJDVkF4alFCU2dLTWdZQk5aVE1HUWs",
+            "date": "06/07/2026, 12:00 PM, +0000 UTC",
+            "iso_date": "2026-06-07T12:00:15Z"
+        },
+        {
+            "position": 24,
+            "title": "Wanda Sykes Says George Floyd Joke During Kevin Hart Roast Was 'Not Funny'",
+            "source": {
+                "name": "Complex",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.complex.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Trey Alston"
+                ]
+            },
+            "link": "https://www.complex.com/pop-culture/a/treyalston/wanda-sykes-george-floyd-kevin-hart-tony-hinchcliffe",
+            "thumbnail": "https://images.complex.com/complex/image/upload/c_crop,h_1081,w_1919,x_0,y_0/g_auto:aoi_768_433_384_216/sanity-new%2FGettyImages-2277858271_lbcfqt",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNUlXbXhLYWtsUWJVazFaakZhVFJDZkF4amlCU2dLTWdB",
+            "date": "06/07/2026, 04:41 PM, +0000 UTC",
+            "iso_date": "2026-06-07T16:41:23Z"
+        },
+        {
+            "position": 25,
+            "title": "LOOKING BACK: Wayne County in 1776: beautiful, but not quiet",
+            "source": {
+                "name": "Finger Lakes Times",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.fltimes.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Jillian Adams"
+                ]
+            },
+            "link": "https://www.fltimes.com/lifestyle/looking-back-wayne-county-in-1776-beautiful-but-not-quiet/article_ab6324ec-46b4-44de-8b89-1539ee3580a2.html",
+            "thumbnail": "https://bloximages.chicago2.vip.townnews.com/fltimes.com/content/tncms/assets/v3/editorial/e/d4/ed45a052-8dbc-4d86-9cdd-f5ff8021862c/6a21d19fc3148.image.jpg?resize=200%2C178",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUVaMnBYU1hGUlZVbHdOV1p2VFJDeUFSaklBU2dLTWdZcE5aNnVtUWs",
+            "date": "06/07/2026, 01:00 PM, +0000 UTC",
+            "iso_date": "2026-06-07T13:00:00Z"
+        },
+        {
+            "position": 26,
+            "title": "Landais on his bizarre WSOP elimination: ‘I have no issue with the dealer’",
+            "source": {
+                "name": "Poker.org",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.poker.org&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.poker.org/latest-news/landais-on-his-bizarre-wsop-elimination-i-have-no-issue-with-the-dealer-a5QNu3I0Ku9j",
+            "thumbnail": "https://media.poker.org/prod/images/article_large/580fdd7a1991-image4.webp",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNHdXbXRETFU0emREWnhhbXhLVFJERUF4aW1CU2dLTWdrcEFKYU5JV2dtNUFJ",
+            "date": "06/07/2026, 03:18 AM, +0000 UTC",
+            "iso_date": "2026-06-07T03:18:00Z"
+        },
+        {
+            "position": 27,
+            "title": "Johnson Wagner says what was really ‘weird’ about the crowds at Memorial on Saturday",
+            "source": {
+                "name": "hitc.com",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.hitc.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Jordan Harris"
+                ]
+            },
+            "link": "https://www.hitc.com/johnson-wagner-says-what-was-really-weird-about-the-crowds-at-memorial-on-saturday/",
+            "thumbnail": "https://cdn3.hitc.com/uploads/1/2026/06/GettyImages-2280222893-scaled.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUJUR0ZuWXpNNWQydFhRbEF4VFJERUF4aW1CU2dLTWdhSmlJcW1NZ1k",
+            "date": "06/07/2026, 09:00 AM, +0000 UTC",
+            "iso_date": "2026-06-07T09:00:00Z"
+        },
+        {
+            "position": 28,
+            "title": "Antonelli dominates bizarre red-flagged Monaco GP amid penalty frenzy",
+            "source": {
+                "name": "The Race",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.the-race.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Matt Beer"
+                ]
+            },
+            "link": "https://www.the-race.com/formula-1/antonelli-dominates-bizarre-red-flagged-monaco-gp-amid-penalty-frenzy/",
+            "thumbnail": "https://storage.ghost.io/c/dd/af/ddafbd99-2ccd-468c-b622-4b3cccf80b49/content/images/size/w1200/2026/06/XPB_1415139_HiRes.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNU9RWHBXUkdsUldUUmtjMngzVFJERUF4aW1CU2dLTWdB",
+            "date": "06/07/2026, 03:52 PM, +0000 UTC",
+            "iso_date": "2026-06-07T15:52:58Z"
+        },
+        {
+            "position": 29,
+            "title": "Keith Coogan on Landing Kenny in 'Don't Tell Mom the Babysitter's Dead' (Exclusive)",
+            "source": {
+                "name": "People.com",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://people.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Angela Andaloro"
+                ]
+            },
+            "link": "https://people.com/keith-coogan-dont-tell-mom-the-babysitters-dead-tie-to-jackie-coogan-exclusive-11990503",
+            "thumbnail": "https://people.com/thmb/gOm_KQBsWobwoH5jCptIIs0G0g0=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc():focal(749x0:751x2)/keith-coogan-Jackie-Coogan-060326-56f23583003b41dd964ee62549a945b8.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNTFjakpPYTNWUmRsTkZObUZVVFJERUF4aW1CU2dLTWdB",
+            "date": "06/07/2026, 03:58 PM, +0000 UTC",
+            "iso_date": "2026-06-07T15:58:00Z"
+        },
+        {
+            "position": 30,
+            "title": "‘Scary Movie’ (2026) Forgets to Be Funny",
+            "source": {
+                "name": "The Cosmic Circus",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://thecosmiccircus.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Maxance Vincent"
+                ]
+            },
+            "link": "https://thecosmiccircus.com/scary-movie-2026-review/",
+            "thumbnail": "https://thecosmiccircus.com/wp-content/uploads/2026/06/scary-movie-review6257346088355757854-1024x538.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNTFTUzFUUmpZdFIzYzRTa2d6VFJDUkF4ajhCU2dLTWdtUk1JenJ0YVkxaHdJ",
+            "date": "06/06/2026, 06:46 PM, +0000 UTC",
+            "iso_date": "2026-06-06T18:46:47Z"
+        },
+        {
+            "position": 31,
+            "title": "The Honest Cost Of RVing For A Year: What The YouTube Videos Don't Tell You",
+            "source": {
+                "name": "RV Lifestyle",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://rvlifestyle.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Mike Wendland"
+                ]
+            },
+            "link": "https://rvlifestyle.com/cost-of-rving-for-a-year-what-the-youtube-videos-dont-tell-you/",
+            "thumbnail": "https://rvlifestyle.com/wp-content/uploads/2026/06/youtubedoesnt26222.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNVlWVzVYUm1sbU5VOUlhVll6VFJDZkF4ampCU2dLTWdB",
+            "date": "06/07/2026, 12:02 AM, +0000 UTC",
+            "iso_date": "2026-06-07T00:02:00Z"
+        },
+        {
+            "position": 32,
+            "title": "Earl Sweatshirt on the Evolution of Music Streaming Services and Big Data’s Impact on the Industry: 'These Algorithms Are Weird and Undefeatable'",
+            "source": {
+                "name": "vice.com",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.vice.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.vice.com/en/article/earl-sweatshirt-on-the-evolution-of-music-streaming-services-and-big-datas-impact-on-the-industry-these-algorithms-are-weird-and-undefeatable/",
+            "thumbnail": "https://www.vice.com/wp-content/uploads/sites/2/2026/06/Earl-Sweatshirt-on-the-Evolution-of-Music-Streaming-Services-and-Big-Datas-Impact-on-the-Industry-These-Algorithms-Are-Weird-and-Undefeatable.jpg?w=1200",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNHRibUpSVWxoMWRXZFFWRkZoVFJDb0FSaXNBaWdCTWdZZEU0NHFrZ28",
+            "date": "06/07/2026, 05:34 PM, +0000 UTC",
+            "iso_date": "2026-06-07T17:34:09Z"
+        },
+        {
+            "position": 33,
+            "title": "That’s Gold, St. Charles, Comedy Gold! Seinfeld’s Steve Hytner at the Funny Bone",
+            "source": {
+                "name": "West Newsmagazine",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.westnewsmagazine.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.westnewsmagazine.com/multimedia/that-s-gold-st-charles-comedy-gold-seinfeld-s-steve-hytner-at-the-funny-bone/collection_fa1e5e82-a38a-4d2c-825e-1aba261ad7ea.html",
+            "thumbnail": "https://bloximages.newyork1.vip.townnews.com/westnewsmagazine.com/content/tncms/assets/v3/editorial/0/db/0db00e7a-6ab9-4edd-b5ef-87e59270d381/6a23ac1211cad.image.jpg?resize=200%2C160",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNTVjSEF3TnpNelNYSnVlSE4zVFJDZ0FSaklBU2dLTWdhQlU1WXluUWs",
+            "date": "06/06/2026, 06:26 AM, +0000 UTC",
+            "iso_date": "2026-06-06T06:26:51Z"
+        },
+        {
+            "position": 34,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WFIE | 14 News",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.14news.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Bryce West"
+                ]
+            },
+            "link": "https://www.14news.com/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wfie-prod.gtv-cdn.com/resizer/v2/QNK6FWC4DRFU5HHE56WJXQIOKM.png?auth=516a418d574299a5681acaf216ed37586af40499099139450ab67896369af2f1&width=1200&height=600&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNDFTVXAwWDNSWlFqTTRMVUp6VFJDSEF4aVBCaWdLTWdZcGhvN3RzUVk",
+            "date": "06/05/2026, 11:42 PM, +0000 UTC",
+            "iso_date": "2026-06-05T23:42:00Z"
+        },
+        {
+            "position": 35,
+            "title": "AI Is Evil, But Also Very, Very Funny—This Week On VICE: Members Only",
+            "source": {
+                "name": "vice.com",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.vice.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Emma Garland"
+                ]
+            },
+            "link": "https://www.vice.com/en/article/ai-is-evil-but-also-very-very-funny-this-week-on-vice-members-only/",
+            "date": "06/05/2026, 05:03 PM, +0000 UTC",
+            "iso_date": "2026-06-05T17:03:22Z"
+        },
+        {
+            "position": 36,
+            "title": "Kate Middleton Wears an Unexpected Designer to Honor a Meaningful Charity Milestone",
+            "source": {
+                "name": "Vogue",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.vogue.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.vogue.com/article/kate-middleton-rodarte-cancer-research-uk-king-charles",
+            "thumbnail": "https://assets.vogue.com/photos/6a1f4600c3a9eab0b998319f/master/w_2560%2Cc_limit/2278773189",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNVZkazlvVUV0VmFFUk9VbUpQVFJEY0F4aUZCU2dLTWdtUkVxQVRFV3VhNWdJ",
+            "date": "06/02/2026, 10:16 PM, +0000 UTC",
+            "iso_date": "2026-06-02T22:16:52Z"
+        },
+        {
+            "position": 37,
+            "title": "Bianca Censori draws Princess Leia comparisons with bizarre new hairstyle on date with Kanye West",
+            "source": {
+                "name": "Page Six",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://pagesix.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Vanessa Serna"
+                ]
+            },
+            "link": "https://pagesix.com/2026/06/07/style/bianca-censori-draws-princess-leia-comparisons-with-new-hairstyle-on-date-with-kanye-west/",
+            "thumbnail": "https://pagesix.com/wp-content/uploads/sites/3/2026/06/130099318.jpg?quality=75&strip=all&w=1024",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNTJYelpqVDNNMFIwcHJSRXRuVFJERUF4aW5CU2dLTWdB",
+            "date": "06/07/2026, 04:19 PM, +0000 UTC",
+            "iso_date": "2026-06-07T16:19:00Z"
+        },
+        {
+            "position": 38,
+            "title": "Pacific And West Coast Conference Mourn Unexpected Passing Of Baseball Head Coach Reed Peters",
+            "source": {
+                "name": "West Coast Conference",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://wccsports.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://wccsports.com/news/2026/6/5/pacific-mourns-unexpected-passing-of-baseball-head-coach-reed-peters.aspx",
+            "thumbnail": "https://wccsports.com/images/2026/6/5/Reed_Peters_Web_copy.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNHRVME54WkZSUmVrMXpUbFZ3VFJDb0FSaXNBaWdCTWdhcFZZTE9xUWM",
+            "date": "06/05/2026, 10:40 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:40:21Z"
+        },
+        {
+            "position": 39,
+            "title": "Navigate nutrition with confidence with Publix’s GLP-1 “Create a lifestyle that lasts” brochure",
+            "source": {
+                "name": "Publix",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://corporate.publix.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://corporate.publix.com/newsroom/news-stories/06022026---navigate-nutrition-with-confidence-with-publixs-glp-1",
+            "thumbnail": "https://images.publixcdn.com/cms/images/corporate/newsroom/media-asset-library/pharmacy/2026_glp1_brochure.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUpkakl6U1VOQk1HRkNhbU00VFJET0F4aVlCU2dLTWdhWllZelZxQVk",
+            "date": "06/02/2026, 05:16 PM, +0000 UTC",
+            "iso_date": "2026-06-02T17:16:19Z"
+        },
+        {
+            "position": 40,
+            "title": "Late Drama and Unexpected Moments: Paul Jouffreau Celebrates in the Victory Lane of NASCAR GP UK",
+            "source": {
+                "name": "Catchfence",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://catchfence.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://catchfence.com/index.php/other-racing-news/nascar-euro-series/640064-late-drama-and-unexpected-moments-paul-jouffreau-celebrates-in-the-victory-lane-of-nascar-gp-uk/",
+            "thumbnail": "https://catchfence.com/wp-content/uploads/2026/06/c2c312e3-75b5-5084-fb04-73531deda628.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iNkNnNW5NRjl3Y1VoWVIweGxZM3A0VFJERUF4aW1CU2dLTWc2QlVJZ0lxZVI2eUZyd1l6cDBFUQ",
+            "date": "06/07/2026, 04:41 PM, +0000 UTC",
+            "iso_date": "2026-06-07T16:41:41Z"
+        },
+        {
+            "position": 41,
+            "title": "Rays Announce Unexpected Major Role Change for Steven Matz",
+            "source": {
+                "name": "Sports Illustrated",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.si.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Kenneth Teape"
+                ]
+            },
+            "link": "https://www.si.com/mlb/rays/onsi/rays-announce-unexpected-major-role-change-for-steven-matz",
+            "thumbnail": "https://images2.minutemediacdn.com/image/upload/c_crop,x_0,y_282,w_3652,h_2054/c_fill,w_720,ar_16:9,f_auto,q_auto,g_auto/images/ImagnImages/mmsport/inside_the_rays/01ktf857jyzafx5zqb1d.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNTRWRVJRTWtSamJFZFBNR3RKVFJDVkF4alFCU2dLTWdhWkFab0xEZ3M",
+            "date": "06/06/2026, 11:00 PM, +0000 UTC",
+            "iso_date": "2026-06-06T23:00:00Z"
+        },
+        {
+            "position": 42,
+            "title": "7 Unexpected Foods Chefs Say You Should Be Grilling",
+            "source": {
+                "name": "Food & Wine",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.foodandwine.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Amelia Schwartz"
+                ]
+            },
+            "link": "https://www.foodandwine.com/unexpected-ingredients-to-grill-11992202",
+            "thumbnail": "https://www.foodandwine.com/thmb/PbF0iUxz17V99l4sDzM56RVjn2A=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/Unexpected-Ingredients-Grill-Chefs-FT-DGTL0626-hero-9986e02e501048fdb4420947392c50e9.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNHlhMVZGTlVJME5rTlNia2xuVFJERUF4aW1CU2dLTWdZQmdJYXJUUU0",
+            "date": "06/06/2026, 11:30 AM, +0000 UTC",
+            "iso_date": "2026-06-06T11:30:00Z"
+        },
+        {
+            "position": 43,
+            "title": "Bears’ Caleb Williams Gives Unexpected Take on Ex-Packers QB Aaron Rodgers",
+            "source": {
+                "name": "heavy.com",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://heavy.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Dj Siddiqi"
+                ]
+            },
+            "link": "https://heavy.com/sports/nfl/bears-caleb-williams-unexpected-take-aaron-rodgers/",
+            "thumbnail": "https://heavy.com/wp-content/uploads/2026/06/GettyImages-2226516977-e1780594699466.jpg?quality=65&strip=all&w=780",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXdUWEppT0U1MlJFeFBZVXBJVFJDZkF4amlCU2dLTWdhQk01Yk5vUWc",
+            "date": "06/07/2026, 08:30 AM, +0000 UTC",
+            "iso_date": "2026-06-07T08:30:29Z"
+        },
+        {
+            "position": 44,
+            "title": "The Advice She Shares Is as Funny as It Is Brilliant",
+            "source": {
+                "name": "GodTube.com",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.godtube.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.godtube.com/watch/?v=GG7GZPNX",
+            "thumbnail": "https://i.swncdn.com/media/960w/godtube/2026/06/05/662698--ef5ee19f-ecef-47a8-8fe5-1f78a1dec666-poster.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNUxYMVZTVVZkMlUwZGlVa293VFJDUkF4ajhCU2dLTWdB",
+            "date": "06/05/2026, 04:00 AM, +0000 UTC",
+            "iso_date": "2026-06-05T04:00:00Z"
+        },
+        {
+            "position": 45,
+            "title": "‘Being Weird with My Friends’: PW Talks with Maddie Frost",
+            "source": {
+                "name": "Publishers Weekly",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.publishersweekly.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.publishersweekly.com/pw/by-topic/childrens/childrens-authors/article/100575-q-a-with-maddie-frost.html",
+            "thumbnail": "https://www.publishersweekly.com/images/data/ARTICLE_PHOTO/photo/000/129/129567-1.JPG",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXZOMU13Y0cxR2RXTkRSVWhZVFJEcUFSallCQ2dLTWdhQllZck5xUVk",
+            "date": "06/04/2026, 08:46 PM, +0000 UTC",
+            "iso_date": "2026-06-04T20:46:48Z"
+        },
+        {
+            "position": 46,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WFIE | 14 News",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.14news.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.14news.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wfie-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-05-2026%2Ft_950b95dd448742ce98bab805f8372a41_name_file_1280x720_2000_v3_1_.jpg?auth=38976d288fbeb3b95cac31236c672be252f7dff06ae0f368b0f2880f1c406f04&width=1200&height=600&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNTFWVkE1T1V4UVRIaEJRWGxtVFJDSEF4aVBCaWdLTWdhcFZZVE5xUWM",
+            "date": "06/06/2026, 05:03 AM, +0000 UTC",
+            "iso_date": "2026-06-06T05:03:36Z"
+        },
+        {
+            "position": 47,
+            "title": "Los Angeles Times complains about 'whiny' Caitlin Clark in bizarre WNBA take about Indiana Fever superstar",
+            "source": {
+                "name": "sportingnews.com",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.sportingnews.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Billy Heyen"
+                ]
+            },
+            "link": "https://www.sportingnews.com/ca/wnba/indiana-fever/news/los-angeles-times-complains-whiny-caitlin-clark-bizarre-wnba-take-indiana-fever-superstar/cd858f32de95002132f726c3",
+            "thumbnail": "https://library.sportingnews.com/styles/crop_style_16_9_desktop_webp/s3/2026-06/USATSI_29143015.jpg.webp?itok=7yyUSOHH",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNDNkVlpzU1VsTVRsUjNPVWhDVFJDZkF4ampCU2dLTWdZdEJZak9qUW8",
+            "date": "06/07/2026, 06:07 PM, +0000 UTC",
+            "iso_date": "2026-06-07T18:07:03Z"
+        },
+        {
+            "position": 48,
+            "title": "Pacific Mourns Unexpected Passing of Head Baseball Coach Reed Peters",
+            "source": {
+                "name": "pacifictigers.com",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://pacifictigers.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://pacifictigers.com/news/2026/6/5/pacific-mourns-unexpected-passing-of-head-baseball-coach-reed-peters.aspx",
+            "thumbnail": "https://pacifictigers.com/images/2026/6/5/reed_web_1.png?width=1416&height=797&mode=crop&quality=80&format=jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUtaVWhuYTFwYVYzTlFNMmt5VFJDZkF4amlCU2dLTWdZSllwYjBKQWc",
+            "date": "06/06/2026, 01:40 AM, +0000 UTC",
+            "iso_date": "2026-06-06T01:40:44Z"
+        },
+        {
+            "position": 49,
+            "title": "Why Andrew Zimmern's Bizarre Foods Was Canceled",
+            "source": {
+                "name": "Tasting Table",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.tastingtable.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Deepak Narayanan"
+                ]
+            },
+            "link": "https://www.tastingtable.com/2182312/why-andrew-zimmern-bizarre-foods-canceled/",
+            "thumbnail": "https://www.tastingtable.com/img/gallery/why-andrew-zimmerns-bizarre-foods-was-canceled/intro-1779905187.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXZaMGQwY0hkQlpqaFZhbDg0VFJDZkF4ampCU2dLTWdZbEZvWU1GZ28",
+            "date": "06/04/2026, 11:30 AM, +0000 UTC",
+            "iso_date": "2026-06-04T11:30:00Z"
+        },
+        {
+            "position": 50,
+            "title": "It all depends on your definition of ‘funny’",
+            "source": {
+                "name": "Bluffton News-Banner",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://news-banner.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://news-banner.com/2026/06/it-all-depends-on-your-definition-of-funny/",
+            "thumbnail": "https://news-banner.com/wp-content/uploads/2019/02/Miller_Mark.png",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUhjbWhEUVZOMk1tOWFURlF6VFJDWEFSallBU2dLTWdhUmlJcW1OZ1k",
+            "date": "06/06/2026, 05:41 AM, +0000 UTC",
+            "iso_date": "2026-06-06T05:41:00Z"
+        },
+        {
+            "position": 51,
+            "title": "The Studio Behind Silent Hill 2 Remake Is Taking Star Trek Somewhere Unexpected",
+            "source": {
+                "name": "GameSpot",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.gamespot.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Darryn Bonthuys"
+                ]
+            },
+            "link": "https://www.gamespot.com/articles/the-studio-behind-silent-hill-2-remake-is-taking-star-trek-somewhere-unexpected/",
+            "thumbnail": "https://www.gamespot.com/wp-content/uploads/2026/06/Star-Trek-Shadow-Frontier.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNW9iMkpEWkRCb1pESmFkbFZPVFJDZkF4ampCU2dLTWdB",
+            "date": "06/07/2026, 04:17 PM, +0000 UTC",
+            "iso_date": "2026-06-07T16:17:45Z"
+        },
+        {
+            "position": 52,
+            "title": "Shania Twain makes unexpected change to her live shows",
+            "source": {
+                "name": "The News International",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.thenews.com.pk&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.thenews.com.pk/latest/1405102-shania-twain-makes-unexpected-change-to-her-live-shows",
+            "thumbnail": "https://www.thenews.com.pk/assets/uploads/2026-06-07/1405102_102221_updates.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNWlOMGxOZW0wMWVVOXZXVEpwVFJDcUFSaXBBaWdCTWdZUlVaNlBJUWs",
+            "date": "06/07/2026, 05:23 PM, +0000 UTC",
+            "iso_date": "2026-06-07T17:23:00Z"
+        },
+        {
+            "position": 53,
+            "title": "Queen Máxima turns heads in lace dress and unexpected accessories in Nijmegen",
+            "source": {
+                "name": "HOLA",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.hola.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Daniel Jeronimo Neira"
+                ]
+            },
+            "link": "https://www.hola.com/us/royals/20260605905777/queen-maxima-lace-dress-unexpected-accessories/",
+            "thumbnail": "https://www.hola.com/us/horizon/landscape/f03341ee7692-amsterdam-netherlands-queen-maxima-of-the-netherlands-arrives-at-theater-carre-d.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNVBSbE5QU1RJNVZVeDBlakpmVFJDZkF4ampCU2dLTWdZcFZvN3RxUWM",
+            "date": "06/05/2026, 04:00 PM, +0000 UTC",
+            "iso_date": "2026-06-05T16:00:02Z"
+        },
+        {
+            "position": 54,
+            "title": "#TSRCutTheFoolery: “Dionte?!”🤣 #Ari is tew funny roasting #ArrogantTae like this.😩 #Roomies, do you prefer no commercials?📸:@gettyimages ✍🏾:#TSRStaffJR",
+            "source": {
+                "name": "instagram.com",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.instagram.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.instagram.com/reel/DZOysacSOWA/",
+            "date": "06/07/2026, 05:02 AM, +0000 UTC",
+            "iso_date": "2026-06-07T05:02:57Z"
+        },
+        {
+            "position": 55,
+            "title": "Making a Very Weird Best Friend in the Public Restroom",
+            "source": {
+                "name": "GodTube.com",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.godtube.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.godtube.com/watch/?v=GG767WNX",
+            "thumbnail": "https://i.ytimg.com/vi/_zsZxhjJ8mk/mqdefault.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXlhbWhUVVRCeFNHNXZaM0JrVFJDMEFSakFBaWdLTWdhTlJZSU1uZ2c",
+            "date": "06/07/2026, 02:35 AM, +0000 UTC",
+            "iso_date": "2026-06-07T02:35:55Z"
+        },
+        {
+            "position": 56,
+            "title": "060526_39",
+            "source": {
+                "name": "CorvetteBlogger",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.corvetteblogger.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.corvetteblogger.com/2026/06/06/saturday-morning-corvette-comic-give-it-to-me-straight-doc-2/060526_39/",
+            "thumbnail": "https://www.corvetteblogger.com/images/content/uploads/2026/06/060526_39.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNDVkSFJ2Y1hOd1p6VllUM2RaVFJDSEJCalBCQ2dLTWdhQklwUkttUWs",
+            "date": "06/07/2026, 10:47 AM, +0000 UTC",
+            "iso_date": "2026-06-07T10:47:24Z"
+        },
+        {
+            "position": 57,
+            "title": "JoJo’s Bizarre Adventure: Eyes of Heaven R rated in Brazil",
+            "source": {
+                "name": "Gematsu",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.gematsu.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Sal Romano"
+                ]
+            },
+            "link": "https://www.gematsu.com/2026/06/jojos-bizarre-adventure-eyes-of-heaven-r-rated-in-brazil",
+            "thumbnail": "https://www.gematsu.com/wp-content/uploads/2026/06/JoJo-EoH-R-Rating_06-03-26.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXRkV2x3UWpGTk1rNUxiRlpqVFJDb0FSaXNBaWdCTWdZQk5JU05uUWM",
+            "date": "06/03/2026, 04:00 PM, +0000 UTC",
+            "iso_date": "2026-06-03T16:00:56Z"
+        },
+        {
+            "position": 58,
+            "title": "060626_1",
+            "source": {
+                "name": "CorvetteBlogger",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.corvetteblogger.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.corvetteblogger.com/2026/06/06/corvette-racing-at-le-mans-by-the-numbers-2/060626_1/",
+            "thumbnail": "https://www.corvetteblogger.com/images/content/uploads/2026/06/060626_1.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNWhRa3BVTm5wc2VUZGFTSFZIVFJERUF4aW1CU2dLTWdZQm9JckhSQVU",
+            "date": "06/07/2026, 10:47 AM, +0000 UTC",
+            "iso_date": "2026-06-07T10:47:24Z"
+        },
+        {
+            "position": 59,
+            "title": "The most bizarre NBA awards ballot ever (on record)",
+            "source": {
+                "name": "hoopshype.com",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.hoopshype.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Sam Yip"
+                ]
+            },
+            "link": "https://www.hoopshype.com/story/sports/nba/2026/06/05/the-most-bizarre-nba-awards-ballot-ever-on-record/90428437007/",
+            "thumbnail": "https://www.hoopshype.com/gcdn/authoring/authoring-images/2026/02/24/SHHP/88837883007-usatsi-10742173-168386701-lowres.jpg?crop=1136,640,x0,y60&width=660&height=371&format=pjpg&auto=webp",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXJVRGhxVUVwRVEwdGthMHd5VFJDb0FSaXNBaWdCTWdhVklvZ0pzZ00",
+            "date": "06/06/2026, 02:37 AM, +0000 UTC",
+            "iso_date": "2026-06-06T02:37:00Z"
+        },
+        {
+            "position": 60,
+            "title": "5 tips to start a healthy lifestyle with the healing power of 1%",
+            "source": {
+                "name": "KSL TV 5",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://ksltv.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://ksltv.com/ksl-noon-show/noon-lifestyle/5-tips-to-start-a-healthy-lifestyle-with-the-healing-power-of-1/915720/",
+            "thumbnail": "https://ksltv.com/wp-content/uploads/2026/06/Screenshot-2026-06-05-at-11.05.54%E2%80%AFAM.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNVBlVUp1ZG5ScFVuWmxXVFEyVFJDOUF4aXlCU2dLTWdZQklKSUhuZ2c",
+            "date": "06/05/2026, 05:08 PM, +0000 UTC",
+            "iso_date": "2026-06-05T17:08:15Z"
+        },
+        {
+            "position": 61,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WLOX",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.wlox.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.wlox.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wlox-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNDFYMTk0Y3pnMmJUUlFTVFZIVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:00 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:00:00Z"
+        },
+        {
+            "position": 62,
+            "title": "Flavio Cobolli’s Girlfriend Responds to His Funny Request Before French Open Final",
+            "source": {
+                "name": "heavy.com",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://heavy.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Sai Mohan"
+                ]
+            },
+            "link": "https://heavy.com/sports/tennis/flavio-cobolli-girlfriend/",
+            "thumbnail": "https://heavy.com/wp-content/uploads/2026/06/GettyImages-2280042508-e1780840600241.jpg?quality=65&strip=all&w=780",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUxiVlZTUjNKTlJWVnRhbUpGVFJDZkF4ampCU2dLTWdhcFJaTE5KUWM",
+            "date": "06/07/2026, 02:35 PM, +0000 UTC",
+            "iso_date": "2026-06-07T14:35:15Z"
+        },
+        {
+            "position": 63,
+            "title": "Let’s Get Weird Again—All World All Time Best Song Competition: Kentucky",
+            "source": {
+                "name": "Anchor Of Gold",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.anchorofgold.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.anchorofgold.com/news/31645/lets-get-weird-again-all-world-all-time-best-song-competition-kentucky",
+            "thumbnail": "https://i.ytimg.com/vi/HKtsdZs9LJo/mqdefault.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNWhUbFpUVTNsSWJuTmZSM0JwVFJDMEFSakFBaWdLTWdZZGRvSUx1Z00",
+            "date": "06/06/2026, 03:12 AM, +0000 UTC",
+            "iso_date": "2026-06-06T03:12:00Z"
+        },
+        {
+            "position": 64,
+            "title": "‘Giggly’ babies, NBA Finals and weird stuff in Ubers: Week in review",
+            "source": {
+                "name": "USA Today",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.usatoday.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Robert Abitbol"
+                ]
+            },
+            "link": "https://www.usatoday.com/story/news/2026/06/06/gerber-baby-nba-finals-kids-bedtimes-trans-troops-uber-correspondents-dinner-weekly-recap/90317895007/",
+            "thumbnail": "https://www.usatoday.com/gcdn/authoring/authoring-images/2026/06/02/USAT/90368409007-winning-photo-cameron-chung-gerber-baby-2026.jpg?crop=2140,1203,x1,y292&width=660&height=371&format=pjpg&auto=webp",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNTNPVU16U0VSU1VVZGFTbGxFVFJDb0FSaXNBaWdCTWdZdGRZU3V0UVE",
+            "date": "06/06/2026, 09:02 AM, +0000 UTC",
+            "iso_date": "2026-06-06T09:02:00Z"
+        },
+        {
+            "position": 65,
+            "title": "Duo Florida Georgia Line ends hiatus with unexpected CMA Fest performance",
+            "source": {
+                "name": "WSB-TV",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.wsbtv.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Natalie Dreier"
+                ]
+            },
+            "link": "https://www.wsbtv.com/news/trending/duo-florida-georgia-line-ends-hiatus-with-unexpected-cma-fest-performance/TWZZV3DLNVDVHDGWNRIH5RJT5Q/",
+            "thumbnail": "https://www.wsbtv.com/resizer/v2/WN7EW5J4R5B7DDF7VSKW5E52AA.jpg?auth=2954baf4c813c4b8cd4e6f6c6a11c46ff7249877aac369a44cc0865cf7454d5c",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNTRTMjFQU2swM2IyRlpVSE0xVFJDb0FSaXNBaWdCTWdZbEZwTHNrUW8",
+            "date": "06/05/2026, 05:57 PM, +0000 UTC",
+            "iso_date": "2026-06-05T17:57:23Z"
+        },
+        {
+            "position": 66,
+            "title": "Carmen Electra Reveals Prince’s Unexpected Beauty Request During Their Romance",
+            "source": {
+                "name": "Just Jared",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.justjared.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.justjared.com/2026/06/06/carmen-electra-reveals-princes-unexpected-beauty-request-during-their-romance/",
+            "thumbnail": "https://www.justjared.com/wp-content/uploads/2026/06/carmen-electra-prince-beauty-routine.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNW9NRTVLU1ZOV01VbDZSRXBLVFJDZkF4ampCU2dLTWdrTk1wajFwS2l4cFFJ",
+            "date": "06/07/2026, 12:23 AM, +0000 UTC",
+            "iso_date": "2026-06-07T00:23:39Z"
+        },
+        {
+            "position": 67,
+            "title": "‘Unexpected situation’: Tamarack’s mountain biking season on hold after windstorm",
+            "source": {
+                "name": "Valley Lookout",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://valleylookout.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Drew Dodson"
+                ]
+            },
+            "link": "https://valleylookout.com/2026/06/04/unexpected-situation-tamaracks-mountain-biking-season-on-hold-after-windstorm/",
+            "thumbnail": "https://valleylookout.com/wp-content/uploads/sites/2/2026/06/valleylookout.com-unexpected-situation-tamaracks-mountain-biking-season-on-hold-after-windstorm-708442677-1389728453187887-7910021434350414884-n-696x464.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNURUREZZTlZCUU5uUm5SV0p2VFJERUF4aW1CU2dLTWdZcE5wRHNGUWs",
+            "date": "06/04/2026, 07:31 PM, +0000 UTC",
+            "iso_date": "2026-06-04T19:31:18Z"
+        },
+        {
+            "position": 68,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "KPLC 7 News",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.kplctv.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.kplctv.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-kplc-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUlZMGRJUVcxUU9GcG1NbVIzVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:03 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:03:39Z"
+        },
+        {
+            "position": 69,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WLBT",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.wlbt.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.wlbt.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wlbt-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUlZMGRJUVcxUU9GcG1NbVIzVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:22 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:22:23Z"
+        },
+        {
+            "position": 70,
+            "title": "Steelers reportedly considering unexpected QB decision about Aaron Rodgers, Drew Allar, Will Howard and Mas...",
+            "source": {
+                "name": "bolavip.com",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://bolavip.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://bolavip.com/en/nfl/steelers-reportedly-considering-unexpected-qb-decision-about-aaron-rodgers-drew-allar-will-howard-and-mason-rudolph",
+            "thumbnail": "https://media.bolavip.com/wp-content/uploads/sites/10/2026/06/06182529/aaronrodgers-1-1200x740.webp",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNHRZVFJmTFRCTVNUZHNOWEozVFJDekF4akJCU2dLTWdZWlpvd0tNZ1k",
+            "date": "06/06/2026, 10:29 PM, +0000 UTC",
+            "iso_date": "2026-06-06T22:29:41Z"
+        },
+        {
+            "position": 71,
+            "title": "AEW Collision women’s main event has an unexpected winner to face Mercedes Moné",
+            "source": {
+                "name": "Cageside Seats",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.cagesideseats.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.cagesideseats.com/aew/449307/aew-collision-womens-owen-cup-main-event-unexpected-winner-mercedes-mone-persephone-hazuki-cmll-stardom",
+            "thumbnail": "https://platform.cagesideseats.com/wp-content/uploads/sites/54/2026/06/Captura-de-pantalla-2026-06-06-204813.png?quality=90&strip=all&crop=3.1012451171875,0,78.4375,100",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNVVSalozVlZsM01YUnlZa2hxVFJERkF4aWxCU2dLTWdtQllZckpLZVk4U0FJ",
+            "date": "06/07/2026, 03:12 AM, +0000 UTC",
+            "iso_date": "2026-06-07T03:12:00Z"
+        },
+        {
+            "position": 72,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WIS News 10",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.wistv.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.wistv.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wistv-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNDFYMTk0Y3pnMmJUUlFTVFZIVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:00 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:00:00Z"
+        },
+        {
+            "position": 73,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WSMV",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.wsmv.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.wsmv.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wsmv-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1200&height=600&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXBOazFsZEhKVGRtUjBjRmRaVFJDSEF4aVBCaWdLTWdhcFZZYk5KUWc",
+            "date": "06/05/2026, 10:00 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:00:00Z"
+        },
+        {
+            "position": 74,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "KFDA | NewsChannel 10",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.newschannel10.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.newschannel10.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-kfda-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNDFYMTk0Y3pnMmJUUlFTVFZIVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:00 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:00:00Z"
+        },
+        {
+            "position": 75,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WTOC",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.wtoc.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.wtoc.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wtoc-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUlZMGRJUVcxUU9GcG1NbVIzVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:03 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:03:47Z"
+        },
+        {
+            "position": 76,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WKYT",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.wkyt.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.wkyt.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wkyt-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUlZMGRJUVcxUU9GcG1NbVIzVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:00 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:00:00Z"
+        },
+        {
+            "position": 77,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "fox8live.com",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.fox8live.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.fox8live.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wvue-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNDFYMTk0Y3pnMmJUUlFTVFZIVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:11 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:11:52Z"
+        },
+        {
+            "position": 78,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WAVE News",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.wave3.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.wave3.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wave-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUlZMGRJUVcxUU9GcG1NbVIzVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:11 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:11:18Z"
+        },
+        {
+            "position": 79,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WVLT",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.wvlt.tv&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.wvlt.tv/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-wvlt-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUlZMGRJUVcxUU9GcG1NbVIzVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 09:57 PM, +0000 UTC",
+            "iso_date": "2026-06-05T21:57:15Z"
+        },
+        {
+            "position": 80,
+            "title": "Kyle Busch’s family thanks fans for their support following his unexpected death",
+            "source": {
+                "name": "heraldstaronline.com",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.heraldstaronline.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.heraldstaronline.com/sports/local-sports/2026/06/kyle-buschs-family-thanks-fans-for-their-support-following-his-unexpected-death/",
+            "thumbnail": "https://ogden_images.s3.amazonaws.com/www.heraldstaronline.com/images/2026/06/05221044/Busch-750x500.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNW1iRzVwTTJ0UFZWcGlWemR3VFJERUF4aW1CU2dLTWdZSlFJcktuUWs",
+            "date": "06/06/2026, 05:29 AM, +0000 UTC",
+            "iso_date": "2026-06-06T05:29:15Z"
+        },
+        {
+            "position": 81,
+            "title": "NASCAR: Kyle Busch's No. 8 Future Takes Unexpected Turn as Richard Childress Sets Direction for Austin Hill and Brexton Busch",
+            "source": {
+                "name": "heavy.com",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://heavy.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Dogli Wilberforce"
+                ]
+            },
+            "link": "https://heavy.com/sports/nascar/nascar-kyle-buschs-no-8-future-takes-unexpected-turn-as-richard-childress-sets-direction-for-austin-hill-and-brexton-busch/",
+            "thumbnail": "https://heavy.com/wp-content/uploads/2026/06/GettyImages-2261172421.jpg?quality=65&strip=all&w=780",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNVFWMTlUYzNSQk4wSlhORGRwVFJERUF4aW5CU2dLTWdrTlFwYjBKT21waHdJ",
+            "date": "06/06/2026, 10:33 PM, +0000 UTC",
+            "iso_date": "2026-06-06T22:33:06Z"
+        },
+        {
+            "position": 82,
+            "title": "Swapping Kyle Tucker for Alex Bregman Has Led to A Bizarre Cubs Lineup Paradox",
+            "source": {
+                "name": "North Side Baseball",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://northsidebaseball.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Yirsandy Rodríguez"
+                ]
+            },
+            "link": "https://northsidebaseball.com/news-rumors/chicago-cubs/swapping-kyle-tucker-for-alex-bregman-has-led-to-a-bizarre-cubs-lineup-paradox-r2920/",
+            "thumbnail": "https://northsidebaseball.s3.us-east-1.amazonaws.com/monthly_2026_06/bregman.jpg.d56adde435a8e16499c1245076ffcb0e.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXFVVWhZUWxOSVFUUk9RMkZHVFJERUF4aW1CU2dLTWdZaEVKQUxFZ28",
+            "date": "06/06/2026, 02:32 PM, +0000 UTC",
+            "iso_date": "2026-06-06T14:32:01Z"
+        },
+        {
+            "position": 83,
+            "title": "Mariners Drop Funny Dog Meme After Blowout Loss to Mets in Trending Photo",
+            "source": {
+                "name": "Bleacher Report",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://bleacherreport.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Adam Wells"
+                ]
+            },
+            "link": "https://bleacherreport.com/articles/25433819-mariners-drop-funny-dog-meme-after-blowout-loss-mets-trending-photo",
+            "thumbnail": "https://gsp-image-cdn.wmsports.io/cms/prod/bleacher-report/getty_images/2026-06/2279678931_large_cropped.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNUlRbU5JVVZkR2IzVlZZa05sVFJDZkF4amlCU2dLTWdtUkVZeldzR2FpSkFJ",
+            "date": "06/04/2026, 11:17 AM, +0000 UTC",
+            "iso_date": "2026-06-04T11:17:47Z"
+        },
+        {
+            "position": 84,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "First Alert 4",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.firstalert4.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.firstalert4.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-kmov-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNUlZMGRJUVcxUU9GcG1NbVIzVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:00 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:00:00Z"
+        },
+        {
+            "position": 85,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "WNDU",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.wndu.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.wndu.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://do0bihdskp9dy.cloudfront.net/06-06-2026/t_5d0a381892ac4cedb7a2499f048ca062_name_file_1280x720_2000_v3_1_.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNURjMmx4T1MwMVRXaEhha3hIVFJDZkF4ampCU2dLTWdrTk00SkpGdXBNS3dJ",
+            "date": "06/05/2026, 10:59 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:59:43Z"
+        },
+        {
+            "position": 86,
+            "title": "One of the most bizarre moments of Game 1 came with …",
+            "source": {
+                "name": "hoopshype.com",
+                "icon": "https://encrypted-tbn3.gstatic.com/faviconV2?url=https://www.hoopshype.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.hoopshype.com/story/sports/nba/rumors/2026/06/05/one-of-the-most-bizarre-moments-of-game-1-came-with/90428990007/",
+            "thumbnail": "https://www.hoopshype.com/gcdn/authoring/authoring-images/2026/06/01/USAT/90360181007-trnd-mamdani-repeals-bedtime.jpg?crop=1919,1079,x0,y0&width=660&height=371&format=pjpg&auto=webp",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iI0NnNVVXako2TUVKdmVIUjJRbFJxVFJEekFoaVVCU2dLTWdB",
+            "date": "06/05/2026, 11:19 PM, +0000 UTC",
+            "iso_date": "2026-06-05T23:19:00Z"
+        },
+        {
+            "position": 87,
+            "title": "‘Jinsei’ Review: The Century-Spanning Lives of a J-Pop Star Fill a Masterfully Bizarre Anime Epic",
+            "source": {
+                "name": "IndieWire",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.indiewire.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Christian Zilko"
+                ]
+            },
+            "link": "https://www.indiewire.com/criticism/movies/jinsei-movie-review-j-pop-anime-1235198280/",
+            "thumbnail": "https://www.indiewire.com/wp-content/uploads/2026/06/006-2020.jpg?w=600&h=337&crop=1",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iJ0NnNWtjMHBqVGw4M1dEQjFjMGg1VFJEUkFoallCQ2dLTWdPQkloZw",
+            "date": "06/05/2026, 07:30 PM, +0000 UTC",
+            "iso_date": "2026-06-05T19:30:00Z"
+        },
+        {
+            "position": 88,
+            "title": "Mongolia: Proof that less can be more",
+            "source": {
+                "name": "Lifestyle.INQ",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://lifestyle.inquirer.net&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://lifestyle.inquirer.net/573264/mongolia-proof-that-less-can-be-more/",
+            "thumbnail": "https://lifestyle.inquirer.net/files/2026/06/Candy-Dizon-in-Mongolia-1200x937.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXhaRXhLVTFKS1VFdGtRbUZDVFJEcEF4anpCQ2dLTWdZVjQ0cEt5UVE",
+            "date": "06/06/2026, 10:30 PM, +0000 UTC",
+            "iso_date": "2026-06-06T22:30:00Z"
+        },
+        {
+            "position": 89,
+            "title": "Bengals reportedly searching for help at an unexpected position",
+            "source": {
+                "name": "Bengals Wire",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://bengalswire.usatoday.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Chris Roling"
+                ]
+            },
+            "link": "https://bengalswire.usatoday.com/story/sports/nfl/bengals/2026/06/06/bengals-reportedly-searching-help-unexpected-position/90434728007/",
+            "thumbnail": "https://bengalswire.usatoday.com/gcdn/authoring/authoring-images/2025/07/29/SBEN/85427533007-usatsi-26719492.jpg?crop=8639,4861,x0,y449&width=660&height=371&format=pjpg&auto=webp",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNWtlV1JoU0dGQmFXTkVjamhKVFJEekFoaVVCU2dLTWdtQlVZN3lKQ2Z3aHdJ",
+            "date": "06/06/2026, 01:00 PM, +0000 UTC",
+            "iso_date": "2026-06-06T13:00:00Z"
+        },
+        {
+            "position": 90,
+            "title": "Pirates may have found an unexpected path back to the rotation for Carmen Mlodzinski",
+            "source": {
+                "name": "Rum Bunter",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://rumbunter.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Mark Powell"
+                ]
+            },
+            "link": "https://rumbunter.com/pirates-may-have-found-an-unexpected-path-back-to-the-rotation-for-carmen-mlodzinski-01kt72cvrn0s",
+            "thumbnail": "https://images2.minutemediacdn.com/image/upload/c_crop,x_0,y_0,w_3000,h_1687/c_fill,w_720,ar_16:9,f_auto,q_auto,g_auto/images/ImagnImages/mmsport/4/01kt72eq7j8wwtb94e01.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXhORU5RWVZobVozaERkVmRKVFJDVkF4alFCU2dLTWdhNVE0cFNuUWc",
+            "date": "06/04/2026, 10:47 PM, +0000 UTC",
+            "iso_date": "2026-06-04T22:47:00Z"
+        },
+        {
+            "position": 91,
+            "title": "Gnome more: Tricycle-riding suspect accused in bizarre Florida lawn ornament theft",
+            "source": {
+                "name": "WPEC",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://cbs12.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Skyler Shepard"
+                ]
+            },
+            "link": "https://cbs12.com/news/local/gnome-more-tricycle-riding-suspect-accused-in-bizarre-florida-lawn-ornament-theft-ring-camera-south-florida-news-lee-county-sheriffs-office-memorable-getaway-north-fort-myers-investigative-leads-detectives-taken-from-yard-campsite-homeless",
+            "thumbnail": "https://cbs12.com/resources/media2/16x9/1280/986/center/90/82964178-0584-4a96-9de5-fad509e7114a-25f10fc7a36f45ccb5ba81a5b9483140.png",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNVBZekI2VERCNmNFeHdUbkJ0VFJDZkF4amlCU2dLTWdrQlFvWm5IdVZFOGdB",
+            "date": "06/05/2026, 06:09 PM, +0000 UTC",
+            "iso_date": "2026-06-05T18:09:57Z"
+        },
+        {
+            "position": 92,
+            "title": "End of Abyss is a Weird Little Summer Game Fest Surprise | Watch the Release Date Trailer",
+            "source": {
+                "name": "Cinelinx",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.cinelinx.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.cinelinx.com/games/game-news/end-of-abyss-is-a-weird-little-summer-game-fest-surprise-watch-the-release-date-trailer/",
+            "thumbnail": "https://i.ytimg.com/vi/Tjthtm1SAuw/maxresdefault.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iJ0NnNXdkMGxQV0V0MllXTmxRbmxhVFJDb0FSaXNBaWdCTWdPTmdoSQ",
+            "date": "06/06/2026, 03:13 AM, +0000 UTC",
+            "iso_date": "2026-06-06T03:13:45Z"
+        },
+        {
+            "position": 93,
+            "title": "Zverev vs. Cobolli: Who will win the French Open title?",
+            "source": {
+                "name": "ESPN",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.espn.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Simon Cambers"
+                ]
+            },
+            "link": "https://www.espn.com/tennis/story/_/id/48976361/alexander-sasha-zverev-flavio-cobolli-french-open-title-men-final",
+            "thumbnail": "https://a2.espncdn.com/combiner/i?img=%2Fphoto%2F2026%2F0605%2Fr1668645_1296x729_16%2D9.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNXVPVmxNYURrdE0zWmxTRE5DVFJDZkF4ampCU2dLTWdrQlVJamtHbW9lcndF",
+            "date": "06/05/2026, 07:45 PM, +0000 UTC",
+            "iso_date": "2026-06-05T19:45:00Z"
+        },
+        {
+            "position": 94,
+            "title": "Chemists Capture a Bizarre Molecular Structure Never Seen Before",
+            "source": {
+                "name": "SciTechDaily",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://scitechdaily.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://scitechdaily.com/chemists-capture-a-bizarre-molecular-structure-never-seen-before/",
+            "thumbnail": "https://scitechdaily.com/images/Crystalline-Metallocene-Derivatives.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNXVMV2RrVm5sWk5ITkxVVlpKVFJDZkF4ampCU2dLTWdtcEFvNFBCYWlMaUFF",
+            "date": "06/05/2026, 11:51 AM, +0000 UTC",
+            "iso_date": "2026-06-05T11:51:16Z"
+        },
+        {
+            "position": 95,
+            "title": "Freddie Freeman, Michael Soroka share a funny moment",
+            "source": {
+                "name": "MLB.com",
+                "icon": "https://encrypted-tbn0.gstatic.com/faviconV2?url=https://www.mlb.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.mlb.com/dbacks/video/freddie-freeman-michael-soroka-share-a-funny-moment",
+            "thumbnail": "https://img.mlbstatic.com/mlb-images/image/upload/ar_16:9,g_auto,q_auto:good,w_1536,c_fill,f_jpg/mlb/sbpn3apgo95dknfsp7ye",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNXJhalF6YTE5b1RUVk1kVFJYVFJDZkF4ampCU2dLTWdZeFJZU3ZwUWM",
+            "date": "06/03/2026, 04:22 AM, +0000 UTC",
+            "iso_date": "2026-06-03T04:22:00Z"
+        },
+        {
+            "position": 96,
+            "title": "Duskfade Interview: Chatting inspiration, difficulty, runtime, AI, and more with Weird Beluga",
+            "source": {
+                "name": "Gamereactor UK",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.gamereactor.eu&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Ben Lyons"
+                ]
+            },
+            "link": "https://www.gamereactor.eu/duskfade-interview-chatting-inspiration-difficulty-runtime-ai-and-more-with-weird-beluga-1728513/",
+            "thumbnail": "https://www.gamereactor.eu/media/69/fireshinegamesannounces_4526933.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNVRTMFJMZDI1aFRIaHFZM296VFJEdUFoaUtCU2dLTWdhTk5KS3RIUWc",
+            "date": "06/06/2026, 09:03 PM, +0000 UTC",
+            "iso_date": "2026-06-06T21:03:29Z"
+        },
+        {
+            "position": 97,
+            "title": "Janel Parrish & Sasha Farber Make Red Carpet Debut at Race to Erase MS Gala 2026, Talk Unexpected Romance",
+            "source": {
+                "name": "Just Jared",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.justjared.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Aj Pitts"
+                ]
+            },
+            "link": "https://www.justjared.com/2026/06/06/janel-parrish-sasha-farber-make-red-carpet-debut-at-race-to-erase-ms-gala-2026-talk-unexpected-romance/",
+            "thumbnail": "https://www.justjared.com/wp-content/uploads/2026/06/janel-sasha.jpg",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNVVVMWN6V0RkTk0wSkNiRTFXVFJDSEF4aVBCaWdLTWdrVk01Q3NuU2lpalFF",
+            "date": "06/06/2026, 11:04 PM, +0000 UTC",
+            "iso_date": "2026-06-06T23:04:46Z"
+        },
+        {
+            "position": 98,
+            "title": "Newburgh parents speak after 5-year-old’s unexpected death",
+            "source": {
+                "name": "Cleveland 19 News",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.cleveland19.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.cleveland19.com/video/2026/06/05/newburgh-parents-speak-after-5-year-olds-unexpected-death/",
+            "thumbnail": "https://gray-woio-prod.gtv-cdn.com/resizer/v2/https%3A%2F%2Fdo0bihdskp9dy.cloudfront.net%2F06-06-2026%2Ft_4a1dee8a29734e859d5916359067d51a_name_file_1280x720_2000_v3_1_.jpg?auth=7a29ac148e36656cd63b4503abb686ebf06ddc4ab10317bb21e58c8f4ca36692&width=1920&height=1080&smart=true",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNDFYMTk0Y3pnMmJUUlFTVFZIVFJDZkF4ampCU2dLTWdhcFJZVE5vUWc",
+            "date": "06/05/2026, 10:14 PM, +0000 UTC",
+            "iso_date": "2026-06-05T22:14:35Z"
+        },
+        {
+            "position": 99,
+            "title": "40 Years Later, A Bizarre Sci-Fi Flop Features A Fantastic Performance From A Star Trek Legend",
+            "source": {
+                "name": "Inverse",
+                "icon": "https://encrypted-tbn1.gstatic.com/faviconV2?url=https://www.inverse.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL",
+                "authors": [
+                    "Ryan Britt"
+                ]
+            },
+            "link": "https://www.inverse.com/entertainment/invaders-from-mars-1986-40-year-anniversary",
+            "thumbnail": "https://imgix.bustle.com/uploads/shutterstock/2026/6/4/c31a91ff/shutterstock-1591730a.jpg?w=400&h=300&fit=crop&crop=faces&dpr=2",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iL0NnNXJOSGhoVFVaTmNVRmFiV0ZFVFJEZ0F4aUFCU2dLTWdrQkFJN0VLT1pxNWdJ",
+            "date": "06/06/2026, 12:30 PM, +0000 UTC",
+            "iso_date": "2026-06-06T12:30:24Z"
+        },
+        {
+            "position": 100,
+            "title": "Something completely unexpected just happened to the Vegas Golden Knights",
+            "source": {
+                "name": "MarkerZone.com",
+                "icon": "https://encrypted-tbn2.gstatic.com/faviconV2?url=https://www.markerzone.com&client=NEWS_360&size=96&type=FAVICON&fallback_opts=TYPE,SIZE,URL"
+            },
+            "link": "https://www.markerzone.com/news/index.php?no=590941",
+            "thumbnail": "https://i.marqueur.com/habsetlnh/medium/670116.webp",
+            "thumbnail_small": "https://news.google.com/api/attachments/CC8iK0NnNTFha0ZWVVVZeWEwRjJXSGRKVFJDc0FoakNBeWdLTWdaUndJWll6QU0",
+            "date": "06/07/2026, 03:56 AM, +0000 UTC",
+            "iso_date": "2026-06-07T03:56:21Z"
+        }
+    ],
+    "menu_links": [
+        {
+            "title": "U.S.",
+            "topic_token": "CAAqIggKIhxDQkFTRHdvSkwyMHZNRGxqTjNjd0VnSmxiaWdBUAE",
+            "serpapi_link": "https://serpapi.com/search.json?engine=google_news&gl=us&topic_token=CAAqIggKIhxDQkFTRHdvSkwyMHZNRGxqTjNjd0VnSmxiaWdBUAE"
+        },
+        {
+            "title": "World",
+            "topic_token": "CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx1YlY4U0FtVnVHZ0pWVXlnQVAB",
+            "serpapi_link": "https://serpapi.com/search.json?engine=google_news&gl=us&topic_token=CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx1YlY4U0FtVnVHZ0pWVXlnQVAB"
+        },
+        {
+            "title": "Your local news",
+            "topic_token": "CAAqHAgKIhZDQklTQ2pvSWJHOWpZV3hmZGpJb0FBUAE",
+            "serpapi_link": "https://serpapi.com/search.json?engine=google_news&gl=us&topic_token=CAAqHAgKIhZDQklTQ2pvSWJHOWpZV3hmZGpJb0FBUAE"
+        },
+        {
+            "title": "Business",
+            "topic_token": "CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB",
+            "serpapi_link": "https://serpapi.com/search.json?engine=google_news&gl=us&topic_token=CAAqJggKIiBDQkFTRWdvSUwyMHZNRGx6TVdZU0FtVnVHZ0pWVXlnQVAB"
+        },
+        {
+            "title": "Technology",
+            "topic_token": "CAAqJggKIiBDQkFTRWdvSUwyMHZNRGRqTVhZU0FtVnVHZ0pWVXlnQVAB",
+            "serpapi_link": "https://serpapi.com/search.json?engine=google_news&gl=us&topic_token=CAAqJggKIiBDQkFTRWdvSUwyMHZNRGRqTVhZU0FtVnVHZ0pWVXlnQVAB"
+        },
+        {
+            "title": "Entertainment",
+            "topic_token": "CAAqJggKIiBDQkFTRWdvSUwyMHZNREpxYW5RU0FtVnVHZ0pWVXlnQVAB",
+            "serpapi_link": "https://serpapi.com/search.json?engine=google_news&gl=us&topic_token=CAAqJggKIiBDQkFTRWdvSUwyMHZNREpxYW5RU0FtVnVHZ0pWVXlnQVAB"
+        },
+        {
+            "title": "Sports",
+            "topic_token": "CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp1ZEdvU0FtVnVHZ0pWVXlnQVAB",
+            "serpapi_link": "https://serpapi.com/search.json?engine=google_news&gl=us&topic_token=CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp1ZEdvU0FtVnVHZ0pWVXlnQVAB"
+        },
+        {
+            "title": "Science",
+            "topic_token": "CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp0Y1RjU0FtVnVHZ0pWVXlnQVAB",
+            "serpapi_link": "https://serpapi.com/search.json?engine=google_news&gl=us&topic_token=CAAqJggKIiBDQkFTRWdvSUwyMHZNRFp0Y1RjU0FtVnVHZ0pWVXlnQVAB"
+        },
+        {
+            "title": "Health",
+            "topic_token": "CAAqIQgKIhtDQkFTRGdvSUwyMHZNR3QwTlRFU0FtVnVLQUFQAQ",
+            "serpapi_link": "https://serpapi.com/search.json?engine=google_news&gl=us&topic_token=CAAqIQgKIhtDQkFTRGdvSUwyMHZNR3QwTlRFU0FtVnVLQUFQAQ"
+        }
+    ]
 }

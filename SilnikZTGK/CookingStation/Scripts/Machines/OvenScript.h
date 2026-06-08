@@ -1,16 +1,16 @@
 #pragma once
 #include "CookingStation/Scripts/Machines/MachineScript.h"
 #include "CookingStation/Scripts/DragAndDropScript.h"
+#include "CookingStation/Core/GameProgress.h"
+#include "CookingStation/Events/GameEvents.h"
 
 class OvenScript : public MachineScript
 {
-private:
-    Entity m_SpawnedBread = { std::numeric_limits<std::size_t>::max(), 0 };
-
 public:
     void OnCreate() override
     {
-        m_CookTime = 8.0f; // Pieczenie trwa trochê d³u¿ej
+        MachineScript::OnCreate();
+        m_CookTime = 8.0f; // Pieczenie trwa troche dluzej
     }
 
     void OnUpdate(Timestep ts) override
@@ -18,28 +18,7 @@ public:
         MachineScript::OnUpdate(ts);
         if (m_IsHeld) return;
 
-        if (m_IsReady && Input::IsMouseButtonJustPressed(0))
-        {
-            if (m_SpawnedBread.id != std::numeric_limits<std::size_t>::max())
-            {
-                auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedBread);
-                if (transform)
-                {
-                    glm::vec3 mousePos = GetMouseWorldPosition();
-                    glm::vec2 mousePos2D = { mousePos.x, mousePos.z };
-                    glm::vec2 foodPos2D = { transform->GetPosition().x, transform->GetPosition().z };
-
-                    if (glm::distance(mousePos2D, foodPos2D) < 3.0f)
-                    {
-                        // Gracz otrzymuje upieczon¹ bagietkê
-                        DragAndDropScript::StartDrag(IngredientType::Baguette, "assets://models/skladniki/bagietka/bagietka.gltf");
-                        ResetMachineState();
-                    }
-                }
-            }
-        }
-
-        // Logika Pieczenia
+        // Logika pieczenia
         if (!m_Ingredients.empty() && !m_IsReady)
         {
             m_CurrentTime += ts.GetSeconds();
@@ -48,6 +27,12 @@ public:
                 m_IsReady = true;
                 UpdateVisuals();
             }
+        }
+
+        // Automatyzacja
+        if (m_IsAutomated && m_IsReady)
+        {
+            TryTransferToPlate();
         }
     }
 
@@ -60,7 +45,7 @@ public:
             m_Ingredients.push_back(type);
             m_IsReady = false;
             m_CurrentTime = 0.0f;
-            spdlog::info("Piekarnik: Rozpoczêto pieczenie!");
+            spdlog::info("Piekarnik: Rozpoczeto pieczenie!");
             return true;
         }
 
@@ -68,37 +53,78 @@ public:
         return false;
     }
 
+    // Hybrydowe przenoszenie
+    void TryTransferToPlate() override
+    {
+        Entity targetPlate = m_LastHighlightedPlate;
+
+        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
+            targetPlate = GetClosestAvailablePlate();
+
+        if (targetPlate.id != std::numeric_limits<std::size_t>::max() || m_IsAutomated)
+        {
+            // Przeniesienie na talerz
+            MachineScript::TryTransferToPlate();
+        }
+        else
+        {
+            // Zabranie upieczonej bagietki do reki
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
+            {
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+
+                DragAndDropScript::StartDrag(IngredientType::Baguette, "assets://models/skladniki/bagietka/bagietka.gltf");
+                ResetMachineState();
+                ClearHighlight();
+            }
+        }
+    }
+
 protected:
     void UpdateVisuals() override
     {
         if (m_IsReady)
         {
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) return;
+
+            if (!GameProgress::IsRecipeUnlocked("Baguette"))
+            {
+                GameProgress::UnlockRecipe("Baguette");
+                spdlog::info("Piekarnik: Przepis na bagietke odblokowany!");
+            }
+
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            auto builder = GetScene()->GetWorld().BuildEntity();
-            builder.With<TagComponent>({ "BagietkaWPiekarniku" });
+            m_SpawnedFood = SpawnMachineFood(IngredientType::Baguette, "assets://models/skladniki/bagietka/bagietka.gltf", "BagietkaWPiekarniku");
 
-            TransformComponent tc;
-            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
-            IngredientMetadata meta = GetIngredientMetadata(IngredientType::RawDough);
-            tc.SetScale(meta.scale);
-            tc.SetRotation(meta.rotation);
-            builder.With<TransformComponent>(tc);
+            auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
+            if (foodTf)
+            {
+                foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
+            }
 
-            MeshComponent mesh;
-            mesh.ModelPtr = AssetManager::GetModel("assets://models/skladniki/bagietka/bagietka.gltf");
-            builder.With<MeshComponent>(mesh);
+            // Rejestracja pochodzenia
+            DishHistory history;
+            history.BaseIngredients = m_Ingredients;
+            history.OriginMachine = "Oven";
+            GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
 
-            m_SpawnedBread = builder.Build();
+            spdlog::info("Piekarnik: Bagietka gotowa!");
         }
         else
         {
-            if (m_SpawnedBread.id != std::numeric_limits<std::size_t>::max())
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
-                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_SpawnedBread });
-                m_SpawnedBread = { std::numeric_limits<std::size_t>::max(), 0 };
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
         }
+    }
+
+    void OnTransferToPlate(Entity plate) override
+    {
+        PlaceSpawnedFoodOnPlate(plate);
     }
 };

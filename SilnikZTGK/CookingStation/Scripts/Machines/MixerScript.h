@@ -2,38 +2,15 @@
 #include "CookingStation/Scripts/Machines/MachineScript.h"
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
+#include "CookingStation/Events/GameEvents.h"
 
 class MixerScript : public MachineScript
 {
-private:
-    Entity m_SpawnedDough = { std::numeric_limits<std::size_t>::max(), 0 };
-    std::size_t m_DoughClickSubId = 0;
-
 public:
     void OnCreate() override
     {
         MachineScript::OnCreate();
         m_CookTime = 4.0f;
-
-        m_DoughClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
-            [this](const EntityClickedEvent& e) {
-                if (e.TargetEntity.id != std::numeric_limits<std::size_t>::max() &&
-                    m_SpawnedDough.id != std::numeric_limits<std::size_t>::max() &&
-                    e.TargetEntity.id == m_SpawnedDough.id && m_IsReady)
-                {
-                    GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_SpawnedDough });
-                    m_SpawnedDough = { std::numeric_limits<std::size_t>::max(), 0 };
-                    DragAndDropScript::StartDrag(IngredientType::RawDough, "assets://models/skladniki/maka/maka.gltf");
-                    ResetMachineState();
-                }
-            }
-        );
-    }
-
-    void OnDestroy() override
-    {
-        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_DoughClickSubId);
-        MachineScript::OnDestroy();
     }
 
     void OnUpdate(Timestep ts) override
@@ -41,6 +18,7 @@ public:
         MachineScript::OnUpdate(ts);
         if (m_IsHeld) return;
 
+        // Logika mieszania
         if (!m_IsReady)
         {
             bool hasFlour = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Flour) != m_Ingredients.end();
@@ -56,21 +34,63 @@ public:
                 }
             }
         }
+
+        // Automatyzacja 
+        if (m_IsAutomated && m_IsReady)
+        {
+            TryTransferToPlate();
+        }
     }
 
     bool AddIngredient(IngredientType type) override
     {
-        if (m_IsReady || m_Ingredients.size() >= 3) return false;
+        if (m_IsReady || m_Ingredients.size() >= 2) return false;
 
-        if (type == IngredientType::Flour || type == IngredientType::Milk || type == IngredientType::Egg || type == IngredientType::Potato)
+        if (type == IngredientType::Flour || type == IngredientType::Milk)
         {
+            // Zabezpieczenie przed wrzuceniem dwa razy tego samego
+            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), type) != m_Ingredients.end())
+            {
+                spdlog::warn("Mikser: Ten skladnik juz tu jest!");
+                return false;
+            }
+
             m_Ingredients.push_back(type);
             m_IsReady = false;
             m_CurrentTime = 0.0f;
+            spdlog::info("Mikser: Przyjeto skladnik!");
             return true;
         }
 
         return false;
+    }
+
+    // Hybrydowe przenoszenie
+    void TryTransferToPlate() override
+    {
+        Entity targetPlate = m_LastHighlightedPlate;
+
+        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
+            targetPlate = GetClosestAvailablePlate();
+
+        if (targetPlate.id != std::numeric_limits<std::size_t>::max() || m_IsAutomated)
+        {
+            // Przeniesienie na talerz
+            MachineScript::TryTransferToPlate();
+        }
+        else
+        {
+            // Zabranie do reki (DragAndDrop)
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
+            {
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+
+                DragAndDropScript::StartDrag(IngredientType::RawDough, "assets://models/skladniki/maka/maka.gltf");
+                ResetMachineState();
+                ClearHighlight();
+            }
+        }
     }
 
 protected:
@@ -78,36 +98,39 @@ protected:
     {
         if (m_IsReady)
         {
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) return;
+
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            auto builder = GetScene()->GetWorld().BuildEntity();
-            builder.With<TagComponent>({ "WyrobioneCiasto" });
+            m_SpawnedFood = SpawnMachineFood(IngredientType::RawDough, "assets://models/skladniki/maka/maka.gltf", "WyrobioneCiasto");
 
-            TransformComponent tc;
-            tc.SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.2f, 0.0f));
-            IngredientMetadata meta = GetIngredientMetadata(IngredientType::RawDough);
-            tc.SetScale(meta.scale);
-            tc.SetRotation(meta.rotation);
-            builder.With<TransformComponent>(tc);
+            auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
+            if (foodTf)
+            {
+                foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.2f, 0.0f));
+            }
 
-            MeshComponent mesh;
-            mesh.ModelPtr = AssetManager::GetModel("assets://models/skladniki/maka/maka.gltf");
-            builder.With<MeshComponent>(mesh);
+            // Rejestracja pochodzenia
+            DishHistory history;
+            history.BaseIngredients = m_Ingredients;
+            history.OriginMachine = "Mixer";
+            GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
 
-            BoxColliderComponent collider;
-            collider.Size = glm::vec3(1.2f);
-            builder.With<BoxColliderComponent>(collider);
-
-            m_SpawnedDough = builder.Build();
+            spdlog::info("Mikser: Ciasto gotowe!");
         }
         else
         {
-            if (m_SpawnedDough.id != std::numeric_limits<std::size_t>::max())
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
-                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_SpawnedDough });
-                m_SpawnedDough = { std::numeric_limits<std::size_t>::max(), 0 };
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
         }
+    }
+
+    void OnTransferToPlate(Entity plate) override
+    {
+        PlaceSpawnedFoodOnPlate(plate);
     }
 };

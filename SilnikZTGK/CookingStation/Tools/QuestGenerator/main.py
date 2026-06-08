@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 # ==========================================
 # KONFIGURACJA I BEZPIECZNE KLUCZE
 # ==========================================
-# Wczytuje klucze z pliku .env, ukrywając je przed GitHubem
 load_dotenv()
 
 api_my_key = os.getenv("SERPAPI_KEY")
@@ -22,10 +21,11 @@ if not api_my_key or not gemini_key:
 cashe_file = "CookingStation/Assets/news_cache.json"
 cache_expiry_seconds = 3600
 
-# Tylko te dania mogą zostać wylosowane jako cel questa
+# WAŻNE: Zostawiam "pomidorowa" po polsku, by pasowało do Waszego kodu w C++, 
+# ale opisy i tytuły będą już po angielsku.
 ALLOWED_DISHES = [
-    "pomidorowa", 
-    # "kanapka", "babeczka", "caprese", 
+    "pomidorowa", "kanapka", 
+    # "babeczka", "caprese", 
     # "kopytka", "kopytka-zlote", "kawa", "kawa-mleko"
 ]
 
@@ -35,7 +35,7 @@ client = genai.Client(api_key=gemini_key)
 # 1: PRE-PROCESSING 
 # ==========================================
 def remove_polish_chars(text):
-    """Deterministyczne usuwanie polskich znaków - oszczędza tokeny i błędy AI."""
+    """Zostawiamy jako zabezpieczenie (fallback) przed niechcianymi znakami w JSON."""
     replacements = {'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n', 'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z',
                     'Ą': 'A', 'Ć': 'C', 'Ę': 'E', 'Ł': 'L', 'Ń': 'N', 'Ó': 'O', 'Ś': 'S', 'Ź': 'Z', 'Ż': 'Z'}
     for pl, lat in replacements.items():
@@ -45,7 +45,6 @@ def remove_polish_chars(text):
 def get_news():
     os.makedirs(os.path.dirname(cashe_file), exist_ok=True)
     
-    # Sprawdzenie cache (chroni limit 250 zapytań z SerpApi)
     if os.path.exists(cashe_file) and os.path.getsize(cashe_file) > 0 and (time.time() - os.path.getmtime(cashe_file)) < cache_expiry_seconds:
         print("[System] Wczytywanie newsow z cache...")
         with open(cashe_file, "r", encoding='utf-8') as f:
@@ -55,7 +54,6 @@ def get_news():
     try:
         params = {
             "engine": "google_news",
-            # Wykluczamy nudne tematy minusem, szukamy dziwnych i życiowych newsów
             "q": "(bizarre OR weird OR funny OR unexpected OR lifestyle) -politics -election -stock -market -economy -finance -government",
             "gl": "us", 
             "hl": "en", 
@@ -63,10 +61,9 @@ def get_news():
         }
         
         response = requests.get("https://serpapi.com/search.json", params=params)
-        response.raise_for_status() # Wyrzuci błąd, jeśli zapytanie się nie powiedzie
+        response.raise_for_status() 
         data = response.json()
         
-        # Zapisz do bufora cache
         with open(cashe_file, "w", encoding='utf-8') as f:
             json.dump(data, f, ensure_ascii=False, indent=4)
             
@@ -81,45 +78,51 @@ def get_news():
 def generate_quests(news_context, feedback=""):
     print("[Generator] Tworzenie wstepnego zadania (kreatywnosc: wysoka)...")
     
-    feedback_instruction = f"\nOSTATNIA PRÓBA ZOSTAŁA ODRZUCONA. POPRAW BŁĘDY: {feedback}\n" if feedback else ""
+    feedback_instruction = f"\nLAST ATTEMPT REJECTED. FIX THESE ERRORS: {feedback}\n" if feedback else ""
 
     prompt = f"""
-    Jesteś projektantem narracji w absurdalnej grze kulinarnej (styl Monty Pythona, gatunek cozy).
-    Otrzymasz listę prawdziwych nagłówków prasowych. Potraktuj je jako luźną inspirację – pofantazjuj, dopowiedz resztę historii i przekształć je w 2 absurdalnych, kulinarnych zadań.
+    You are a brilliant comedy writer for an absurd, cozy cooking game (Monty Python style).
+    You will receive a list of real news headlines. Use them as inspiration to generate exactly 10 culinary quests in English.
+    
+    TONE GUIDELINES:
+    - The humor must make logical sense within its own absurd premise (e.g., if a whale is stuck in sauce, the solution is eating the sauce to free it).
+    - Do not just write random words. Tell a tiny, cohesive joke.
     {feedback_instruction}
-
     
-    ZASADY (Restrykcje silnika):
-    1. Brak polskich znakow (zastap a, e, l, o itd.).
-    2. Pola "dish_id" MUSZA pochodzic z tej dokladnej listy: {ALLOWED_DISHES}.
-    3. Musisz zwrocic poprawny format JSON (array z 1 obiektem).
+    ENGINE RESTRICTIONS:
+    1. Language: English only.
+    2. "dish_id" MUST be exactly from this list: {ALLOWED_DISHES}.
+    3. Determine the country of origin of the news event and provide its 2-letter ISO code in "reward_flag" (e.g., "US", "GB", "JP"). If it's space-related or unknown, use "UN".
+    4. "reward_coins" must be an integer.
+    5. Output valid JSON (an array of objects).
 
-    LIMIT CHARAKTEROW:
-    - "title": Maksymalnie 22 znaki (krótki, mocny tytuł).
-    - "description": Maksymalnie 65 znaków (dokładnie jedno-dwa, bardzo krótkie zdania).
+    CHARACTER LIMITS:
+    - "title": Max 22 characters (short, punchy).
+    - "description": Max 65 characters (exactly one or two short sentences).
     
-    WZÓR STRUKTURY (Few-Shot Prompting):
+    FEW-SHOT STRUCTURE EXAMPLE:
     [
       {{
-        "title": "Kosmiczna Pomidorowa",
-        "description": "Naukowcy potrzebuja rakietowego paliwa, zalej ich serwery goraca zupa!",
+        "title": "NASA's Soup Thrusters",
+        "description": "The rocket is out of fuel! Pour hot soup into the engines.",
         "dish_id": "pomidorowa",
         "portions": 15,
         "frequency": 8,
-        "reward": "500 Monet, Kask Astronauty"
+        "reward_coins": 500,
+        "reward_flag": "US"
       }},
       {{
-        "title": "Bunt Koszykarzy",
-        "description": "Zawodnicy NBA odmawiaja gry bez zupy. Ugotuj im cos w wielkim kotle!",
+        "title": "NBA Halftime Feast",
+        "description": "Players refuse to play without soup. Feed the giants quickly!",
         "dish_id": "pomidorowa",
         "portions": 5,
         "frequency": 2,
-        "reward": "Zlota Pilka, 100 Monet"
+        "reward_coins": 100,
+        "reward_flag": "US"
       }}
-      ... (WYGENERUJ DOKŁADNIE 5 TAKICH OBIEKTÓW) ...
     ]
     
-    WIADOMOŚCI:
+    NEWS HEADLINES:
     {news_context}
     """
     
@@ -129,7 +132,7 @@ def generate_quests(news_context, feedback=""):
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                temperature=0.8 
+                temperature=0.85 # Slightly higher for more creative connections
             )
         )
         return remove_polish_chars(response.text)
@@ -144,22 +147,22 @@ def evaluate_quests_with_judge(quests_json, news_context):
     print("[Sedzia] Trwa ewaluacja semantyczna zadania...")
     
     prompt_judge = f"""
-    Jestes Glownym Projektantem Gry (Lead Game Designer). Oceniasz plik z zadaniem dla silnika.
+    You are the Lead Game Designer. You evaluate a generated quest JSON for our game engine.
     
-    Zadanie wygenerowane: {quests_json}
-    Zrodlo newsa: {news_context}
+    Generated Quest: {quests_json}
+    News Source: {news_context}
     
-    PRZEPROWADZ ANALIZE W ZNACZNIKACH <sketchpad>. 
-    Sprawdz krok po kroku:
-    1. Czy "dish_id" jest logicznie i sensownie dopasowane do opisu wydarzenia?
-    2. Czy zadanie w zabawny i absurdalny sposob laczy wiadomosc ze swiata z motywem kulinarnym?
-    3. Czy tekst jest bezpieczny (brak polityki, nsfw, drastycznych scen)?
+    PERFORM YOUR ANALYSIS INSIDE <sketchpad> TAGS. 
+    Check step-by-step:
+    1. Is "dish_id" logically fit for the event description?
+    2. Does the quest creatively and absurdly connect the news to cooking?
+    3. BRAND SAFETY (CRITICAL): The text must be absolutely cozy and safe. Reject ANY quest that trivializes real-world disasters, accidents, toxic leaks, wars, or injuries. Even if masked in humor, tragedy is strictly forbidden.
     
-    Po analizie, wystaw oceny (1 = Zaliczone/Dobrze, 0 = Odrzucone/Zle) w formacie XML:
-    <sketchpad>Twoj proces myslowy i uzasadnienie...</sketchpad>
-    <news_anchoring>1 lub 0</news_anchoring>
-    <creative_abstraction>1 lub 0</creative_abstraction>
-    <safety_check>1 lub 0</safety_check>
+    After analysis, output your scores (1 = Pass/Good, 0 = Reject/Fail) in XML format:
+    <sketchpad>Your reasoning here...</sketchpad>
+    <news_anchoring>1 or 0</news_anchoring>
+    <creative_abstraction>1 or 0</creative_abstraction>
+    <safety_check>1 or 0</safety_check>
     """
     
     try:
@@ -168,7 +171,7 @@ def evaluate_quests_with_judge(quests_json, news_context):
             contents=prompt_judge,
             config=types.GenerateContentConfig(temperature=0.0)
         )
-        text = remove_polish_chars(response.text)
+        text = response.text
         
         print("\n================== LOG SEDZIEGO ================================")
         print(text)
@@ -183,11 +186,11 @@ def evaluate_quests_with_judge(quests_json, news_context):
             passed = all([news_anchoring, creative_abstraction, safety_check])
             return {"passed": passed, "feedback": sketchpad}
         except Exception as parse_e:
-            return {"passed": False, "feedback": "Sedzia zwrocil niepoprawny format oceny XML."}
+            return {"passed": False, "feedback": "Judge returned invalid XML format."}
             
     except Exception as e:
         print(f"[Blad Sedziego] {e}")
-        return {"passed": False, "feedback": "API Sedziego nie odpowiada."}
+        return {"passed": False, "feedback": "Judge API is not responding."}
 
 # ==========================================
 # GŁÓWNA PĘTLA (Self-Correction Loop)
@@ -195,9 +198,7 @@ def evaluate_quests_with_judge(quests_json, news_context):
 if __name__ == "__main__":
     news_data = get_news()
     
-    # ZMIANA: SerpApi trzyma artykuły w kluczu "news_results" (a nie "articles")
     if news_data and "news_results" in news_data:
-        # Pobieramy maksymalnie 10 newsów
         news_text = " ".join([art.get("title", "") for art in news_data["news_results"][:10]])
         news_text = remove_polish_chars(news_text)
         
@@ -209,58 +210,49 @@ if __name__ == "__main__":
         while attempts < max_retries:
             print(f"\n--- PRÓBA {attempts + 1}/{max_retries} ---")
             
-            # 1. Generacja
             quests_json_str = generate_quests(news_text, current_feedback)
             if not quests_json_str:
                 attempts += 1
                 continue
                 
-            # 2. SZYBKA WALIDACJA LOGIKI W PYTHONIE 
+            # SZYBKA WALIDACJA LOGIKI W PYTHONIE 
             try:
                 quests_obj = json.loads(quests_json_str)
                 logic_failed = False
                 
-                raw_text_to_check = json.dumps(quests_obj)
-                if any(char in raw_text_to_check for char in "ąęćłńóśźżĄĆĘŁŃÓŚŹŻ"):
-                    current_feedback = "BLAD FORMATU: W wygenerowanym JSON wyryto polskie litery. Usun je i zastap znakami l, o, e, a, z..."
-                    logic_failed = True
-                
-                if not logic_failed:
-                    for q in quests_obj:
-                        if q.get("dish_id") not in ALLOWED_DISHES:
-                            current_feedback = f"BLAD KRYTYCZNY SILNIKA: '{q.get('dish_id')}' nie istnieje w grze! Uzyj tylko listy dozwolonych dan."
-                            logic_failed = True
-                            break
-                            
+                # Upewniamy się, że nowe pola istnieją
+                for q in quests_obj:
+                    if q.get("dish_id") not in ALLOWED_DISHES:
+                        current_feedback = f"CRITICAL ERROR: '{q.get('dish_id')}' does not exist in the game engine registry!"
+                        logic_failed = True
+                        break
+                    if "reward_coins" not in q or "reward_flag" not in q:
+                        current_feedback = "FORMAT ERROR: Missing 'reward_coins' or 'reward_flag' fields."
+                        logic_failed = True
+                        break
+                        
                 if logic_failed:
                     print(f"[Walidator Python] Odrzucono lokalnie: {current_feedback}")
                     attempts += 1
                     continue
             except json.JSONDecodeError:
-                current_feedback = "BLAD: Zwrocony tekst to nie jest poprawny JSON."
+                current_feedback = "FORMAT ERROR: Invalid JSON returned."
                 attempts += 1
                 continue
 
-            # 3. Ewaluacja (LLM-as-a-judge)
-            #evaluation = evaluate_quests_with_judge(quests_json_str, news_text)
-            
-            #if evaluation["passed"]:
-            #    print("[Sędzia] ZAAKCEPTOWANO! Zadanie przeszlo rygorystyczne metryki.")
-            #    final_quests = quests_json_str
-            #    break
-            #else:
-            #    print(f"[Sędzia] ODRZUCONO. Feedback dla generatora: {evaluation['feedback']}")
-            #    current_feedback = evaluation["feedback"]
-            #    attempts += 1
-
-            evaluation = {"passed": True, "feedback": "Pomijam sędziego dla celów prezentacji"}
+            # Ewaluacja (LLM-as-a-judge)
+            evaluation = evaluate_quests_with_judge(quests_json_str, news_text)
             
             if evaluation["passed"]:
-                print("[Sędzia] ZAAKCEPTOWANO! (Wymuszono dla prezentacji)")
+                print("[Sędzia] ZAAKCEPTOWANO! Zadanie przeszlo rygorystyczne metryki.")
                 final_quests = quests_json_str
                 break
-                
-        # 4: ZAPIS ATOMOWY
+            else:
+                print(f"[Sędzia] ODRZUCONO. Feedback dla generatora: {evaluation['feedback']}")
+                current_feedback = evaluation["feedback"]
+                attempts += 1
+
+        # ZAPIS ATOMOWY
         output_dir = "CookingStation/Assets"
         os.makedirs(output_dir, exist_ok=True)
         final_path = os.path.join(output_dir, "wygenerowane_quests.json")
@@ -274,12 +266,13 @@ if __name__ == "__main__":
         else:
             print("\n[!] Awaria potoku. Inicjowanie awaryjnego zestawu misji (Fallback).")
             fallback_quests = json.dumps([{
-                "title": "Bunt Serwerow",
-                "description": "Sztuczna inteligencja zglodniala! Podaj szybko ciepla zupe.",
+                "title": "Server Rebellion",
+                "description": "The AI is hungry! Serve hot soup quickly.",
                 "dish_id": "pomidorowa",
                 "portions": 10,
                 "frequency": 5,
-                "reward": "100 Monet"
+                "reward_coins": 100,
+                "reward_flag": "UN"
             }], indent=4)
             
             with open(temp_path, "w", encoding='utf-8') as f:
