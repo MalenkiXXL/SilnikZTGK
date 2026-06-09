@@ -3,6 +3,7 @@
 
 // Forward declaration
 struct ma_engine;
+struct ma_sound;
 
 class AudioEngine
 {
@@ -10,10 +11,14 @@ public:
     static void Init();
     static void Shutdown();
 
-    // ZMIENIONO NAZWÊ, ¿eby unikn¹æ konfliktu z makrem Windowsa:
     static void Play(const std::string& filepath);
 
+    static void PlayMusic(const std::string& filepath, bool loop = true);
+    static void StopMusic();
+
 private:
-    // Upewnij siê, ¿e ta linijka tu jest!
     static ma_engine* s_Engine;
+
+    static ma_sound* s_BackgroundMusic;
+    static bool s_IsMusicPlaying;
 };

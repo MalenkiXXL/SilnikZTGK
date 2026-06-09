@@ -15,6 +15,8 @@
 
 void GameLayer::OnAttach()
 {
+    AudioEngine::PlayMusic("CookingStation/Assets/sounds/massobeats_gingersweet.mp3", true);
+
     m_ActiveScene = SceneManager::GetActiveScene();
 
     if (!m_ActiveScene)

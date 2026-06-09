@@ -79,6 +79,7 @@ Application::Application()
 	SceneManager::NewScene();
 	Renderer::Init();
 	Renderer2D::Init();
+    AudioEngine::Init();
 
 #ifdef CS_DISTRIBUTION
 	{
@@ -121,8 +122,6 @@ Application::Application()
 	auto mainMenuLayer = new MainMenuLayer();
 	PushLayer(mainMenuLayer);
 #endif
-
-	AudioEngine::Init();
 }
 
 Application::~Application()

@@ -5,30 +5,32 @@
 #include <string>
 #include <algorithm>
 
-// Zwyk³y include. miniaudio_impl.cpp przejmuje definicjê!
+// Zwykï¿½y include. miniaudio_impl.cpp przejmuje definicjï¿½!
 #include "CookingStation/miniaudio.h"
 
 // FIZYCZNA DEFINICJA ZMIENNEJ STATYCZNEJ
 ma_engine* AudioEngine::s_Engine = nullptr;
+ma_sound* AudioEngine::s_BackgroundMusic = nullptr;
+bool AudioEngine::s_IsMusicPlaying = false;
 
 // ====================================================================
-// W£ASNY SYSTEM WEJŒCIA/WYJŒCIA DLA MINIAUDIO (INTEGRACJA Z VFS)
+// Wï¿½ASNY SYSTEM WEJï¿½CIA/WYJï¿½CIA DLA MINIAUDIO (INTEGRACJA Z VFS)
 // ====================================================================
 
-// Struktura, która udaje plik dla miniaudio (trzyma ci¹g bajtów w RAM)
+// Struktura, ktï¿½ra udaje plik dla miniaudio (trzyma ciï¿½g bajtï¿½w w RAM)
 struct VfsAudioFile {
     std::vector<uint8_t> data;
     size_t cursor = 0;
 };
 
-// Funkcja otwieraj¹ca plik - zasilana przez Twój VFS
+// Funkcja otwierajï¿½ca plik - zasilana przez Twï¿½j VFS
 static ma_result vfs_open(ma_vfs* pVFS, const char* pFilePath, ma_uint32 openMode, ma_vfs_file* pFile) {
-    if (openMode & MA_OPEN_MODE_WRITE) return MA_ERROR; // Obs³ugujemy tylko odczyt
+    if (openMode & MA_OPEN_MODE_WRITE) return MA_ERROR; // Obsï¿½ugujemy tylko odczyt
 
     std::string path = pFilePath;
     std::replace(path.begin(), path.end(), '\\', '/');
 
-    // Sanitizer œcie¿ek (gdyby jakaœ encja wci¹¿ mia³a star¹ fizyczn¹ œcie¿kê)
+    // Sanitizer ï¿½cieï¿½ek (gdyby jakaï¿½ encja wciï¿½ï¿½ miaï¿½a starï¿½ fizycznï¿½ ï¿½cieï¿½kï¿½)
     const std::string prefix = "CookingStation/Assets/";
     if (path.find(prefix) == 0) {
         path = "assets://" + path.substr(prefix.length());
@@ -39,7 +41,7 @@ static ma_result vfs_open(ma_vfs* pVFS, const char* pFilePath, ma_uint32 openMod
         return MA_DOES_NOT_EXIST;
     }
 
-    // Tworzymy uchwyt do "pliku" w pamiêci RAM
+    // Tworzymy uchwyt do "pliku" w pamiï¿½ci RAM
     VfsAudioFile* handle = new VfsAudioFile();
     handle->data = std::move(data);
     handle->cursor = 0;
@@ -48,14 +50,14 @@ static ma_result vfs_open(ma_vfs* pVFS, const char* pFilePath, ma_uint32 openMod
     return MA_SUCCESS;
 }
 
-// Funkcja zamykaj¹ca plik i zwalniaj¹ca pamiêæ RAM
+// Funkcja zamykajï¿½ca plik i zwalniajï¿½ca pamiï¿½ï¿½ RAM
 static ma_result vfs_close(ma_vfs* pVFS, ma_vfs_file file) {
     VfsAudioFile* handle = (VfsAudioFile*)file;
     delete handle;
     return MA_SUCCESS;
 }
 
-// Funkcja czytaj¹ca paczki bajtów
+// Funkcja czytajï¿½ca paczki bajtï¿½w
 static ma_result vfs_read(ma_vfs* pVFS, ma_vfs_file file, void* pDst, size_t sizeInBytes, size_t* pBytesRead) {
     VfsAudioFile* handle = (VfsAudioFile*)file;
     size_t bytesToRead = sizeInBytes;
@@ -73,7 +75,7 @@ static ma_result vfs_read(ma_vfs* pVFS, ma_vfs_file file, void* pDst, size_t siz
     return MA_SUCCESS;
 }
 
-// Przewijanie dŸwiêku
+// Przewijanie dï¿½wiï¿½ku
 static ma_result vfs_seek(ma_vfs* pVFS, ma_vfs_file file, ma_int64 offset, ma_seek_origin origin) {
     VfsAudioFile* handle = (VfsAudioFile*)file;
     ma_int64 newCursor = handle->cursor;
@@ -113,12 +115,12 @@ static ma_result vfs_info(ma_vfs* pVFS, ma_vfs_file file, ma_file_info* pInfo) {
 // INICJALIZACJA SILNIKA
 // ====================================================================
 
-// W£ASNA STRUKTURA VFS DLA MINIAUDIO (Rozwi¹zuje b³¹d ma_vfs aka void)
+// Wï¿½ASNA STRUKTURA VFS DLA MINIAUDIO (Rozwiï¿½zuje bï¿½ï¿½d ma_vfs aka void)
 struct MyCustomVFS {
-    ma_vfs_callbacks cb; // Musi byæ na pierwszym miejscu!
+    ma_vfs_callbacks cb; // Musi byï¿½ na pierwszym miejscu!
 };
 
-// Trzymamy instancje globalnie w tym pliku, z dala od nag³ówka
+// Trzymamy instancje globalnie w tym pliku, z dala od nagï¿½ï¿½wka
 static MyCustomVFS g_CustomVFS;
 static ma_resource_manager g_ResourceManager;
 
@@ -126,7 +128,7 @@ void AudioEngine::Init()
 {
     s_Engine = new ma_engine();
 
-    // 1. Zapiêcie naszych funkcji pod strukturê miniaudio
+    // 1. Zapiï¿½cie naszych funkcji pod strukturï¿½ miniaudio
     static ma_vfs_callbacks vfsCallbacks = {
         vfs_open,
         NULL, // onOpenW (Unicode, pomijamy)
@@ -139,9 +141,9 @@ void AudioEngine::Init()
     };
     g_CustomVFS.cb = vfsCallbacks;
 
-    // 2. Inicjalizacja profesjonalnego Menad¿era Zasobów z naszym VFS
+    // 2. Inicjalizacja profesjonalnego Menadï¿½era Zasobï¿½w z naszym VFS
     ma_resource_manager_config rmConfig = ma_resource_manager_config_init();
-    rmConfig.pVFS = (ma_vfs*)&g_CustomVFS; // Rzutujemy nasz¹ strukturê na uchwyt miniaudio
+    rmConfig.pVFS = (ma_vfs*)&g_CustomVFS; // Rzutujemy naszï¿½ strukturï¿½ na uchwyt miniaudio
 
     ma_result rmResult = ma_resource_manager_init(&rmConfig, &g_ResourceManager);
     if (rmResult != MA_SUCCESS) {
@@ -149,7 +151,7 @@ void AudioEngine::Init()
         return;
     }
 
-    // 3. Inicjalizacja samego silnika z podpiêtym menad¿erem
+    // 3. Inicjalizacja samego silnika z podpiï¿½tym menadï¿½erem
     ma_engine_config engineConfig = ma_engine_config_init();
     engineConfig.pResourceManager = &g_ResourceManager;
 
@@ -166,10 +168,19 @@ void AudioEngine::Init()
 
 void AudioEngine::Shutdown()
 {
+    if (s_BackgroundMusic)
+    {
+        ma_sound_stop(s_BackgroundMusic);
+        ma_sound_uninit(s_BackgroundMusic);
+        delete s_BackgroundMusic;
+        s_BackgroundMusic = nullptr;
+    }
+    s_IsMusicPlaying = false;
+
     if (s_Engine)
     {
         ma_engine_uninit(s_Engine);
-        ma_resource_manager_uninit(&g_ResourceManager); // Wy³¹czamy te¿ menad¿era zasobów
+        ma_resource_manager_uninit(&g_ResourceManager);
         delete s_Engine;
         s_Engine = nullptr;
         std::cout << "[AudioEngine] Zamknieto." << std::endl;
@@ -180,7 +191,7 @@ void AudioEngine::Play(const std::string& filepath)
 {
     if (!s_Engine) return;
 
-    // --- SANITIZER ŒCIE¯EK ---
+    // --- SANITIZER ï¿½CIEï¿½EK ---
     std::string vfsPath = filepath;
     std::replace(vfsPath.begin(), vfsPath.end(), '\\', '/');
 
@@ -189,7 +200,63 @@ void AudioEngine::Play(const std::string& filepath)
         vfsPath = "assets://" + vfsPath.substr(prefix.length());
     }
 
-    // Wyrzucamy dŸwiêk! Miniaudio nie dotyka ju¿ dysku. 
-    // Poprosi nasz "g_CustomVFS" o za³adowanie pliku `assets://...` do strumienia z RAM-u.
+    // Wyrzucamy dï¿½wiï¿½k! Miniaudio nie dotyka juï¿½ dysku. 
+    // Poprosi nasz "g_CustomVFS" o zaï¿½adowanie pliku `assets://...` do strumienia z RAM-u.
     ma_engine_play_sound(s_Engine, vfsPath.c_str(), NULL);
+}
+
+void AudioEngine::PlayMusic(const std::string& filepath, bool loop)
+{
+    if (!s_Engine) return;
+
+    // JeÅ›li jakaÅ› muzyka juÅ¼ gra, zatrzymaj jÄ… najpierw
+    if (s_IsMusicPlaying)
+    {
+        StopMusic();
+    }
+
+    if (!s_BackgroundMusic) {
+        s_BackgroundMusic = new ma_sound();
+    }
+
+    // --- SANITIZER ÅšCIEÅ»EK ---
+    std::string vfsPath = filepath;
+    std::replace(vfsPath.begin(), vfsPath.end(), '\\', '/');
+
+    const std::string prefix = "CookingStation/Assets/";
+    if (vfsPath.find(prefix) == 0) {
+        vfsPath = "assets://" + vfsPath.substr(prefix.length());
+    }
+
+    // Inicjalizacja dÅºwiÄ™ku jako stream
+    ma_result result = ma_sound_init_from_file(s_Engine, vfsPath.c_str(), MA_SOUND_FLAG_STREAM, NULL, NULL, s_BackgroundMusic);
+    if (result != MA_SUCCESS)
+    {
+        std::cerr << "[AudioEngine] Blad ladowania muzyki tla: " << vfsPath << " Kod: " << result << std::endl;
+        return;
+    }
+
+    // Ustawienie zapÄ™tlenia i start odtwarzania
+    ma_sound_set_looping(s_BackgroundMusic, loop ? MA_TRUE : MA_FALSE);
+    ma_result startResult = ma_sound_start(s_BackgroundMusic);
+
+    if (startResult == MA_SUCCESS)
+    {
+        s_IsMusicPlaying = true;
+        std::cout << "[AudioEngine] Muzyka tla wystartowala: " << vfsPath << std::endl;
+    }
+}
+
+void AudioEngine::StopMusic()
+{
+    if (!s_Engine || !s_IsMusicPlaying || !s_BackgroundMusic) return;
+
+    ma_sound_stop(s_BackgroundMusic);
+    ma_sound_uninit(s_BackgroundMusic);
+
+    delete s_BackgroundMusic;
+    s_BackgroundMusic = nullptr;
+
+    s_IsMusicPlaying = false;
+    std::cout << "[AudioEngine] Muzyka tla zatrzymana." << std::endl;
 }
