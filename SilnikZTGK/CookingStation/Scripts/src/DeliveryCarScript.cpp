@@ -26,8 +26,8 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
     float hiddenY = -0.5f;   // Jak nisko grzyb jest w bagażniku (żeby go nie było widać)
     float poppedY = 1.0f;    // Jak wysoko wyskakuje, żeby było go widać
-    float zOffset = -2.5f;   // Przesunięcie do tyłu (do bagażnika) vana
-    float xOffset = 0.0f;    // Przesunięcie lewo/prawo (środek)
+    float zOffset = 0.0f;   // Przesunięcie do tyłu (do bagażnika) vana
+    float xOffset = 2.5f;    // Przesunięcie lewo/prawo (środek)
 
     switch (m_State)
     {
@@ -40,10 +40,10 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             {
                 transform->SetPosition(m_DropPos);
 
-                if (animator && animator->AnimatorInstance) {
-                    animator->IsPlaying = true;
-                    animator->AnimatorInstance->PlayAnimation("Open", true);
-                }
+//                if (animator && animator->AnimatorInstance) {
+//                    animator->Isaing = true;
+//                    animator->AnimatorInstance->PlayAnimation("Open", true);
+//                }
 
                 m_State = DeliveryState::ANIMATING_OPEN;
                 m_AnimationTimer = 1.5f;
@@ -86,7 +86,7 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             if (m_AnimationTimer <= 0.0f)
             {
                 m_State = DeliveryState::DROPPING;
-                if (animator) animator->IsPlaying = false;
+                //if (animator) animator->IsPlaying = false;
                 spdlog::info("[DeliveryCar] Klapa w pełni otwarta. Grzyb na pozycji.");
             }
             break;
@@ -97,10 +97,10 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             if (m_ArePackagesCollected)
             {
 
-                if (animator && animator->AnimatorInstance) {
-                    animator->IsPlaying = true;
-                    animator->AnimatorInstance->PlayAnimation("Close", true);
-                }
+//                if (animator && animator->AnimatorInstance) {
+//                    animator->IsPlaying = true;
+//                    animator->AnimatorInstance->PlayAnimation("Close", true);
+//                }
 
                 m_State = DeliveryState::ANIMATING_CLOSE;
                 m_AnimationTimer = 1.5f;
@@ -134,7 +134,7 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
                 }
 
                 m_State = DeliveryState::DRIVING_OUT;
-                if (animator) animator->IsPlaying = false;
+                //if (animator) animator->IsPlaying = false;
                 spdlog::info("[DeliveryCar] Klapa zamknieta, grzyb usunięty. Odjeżdzam!");
             }
             break;

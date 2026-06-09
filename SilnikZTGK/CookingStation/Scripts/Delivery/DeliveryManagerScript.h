@@ -1,6 +1,7 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scripts/Managers/IngredientType.h"
+#include "CookingStation/Scripts/Delivery/DeliveryCarScript.h"
 #include "DeliveryLogic.h"
 #include <map>
 #include <string>
@@ -20,7 +21,7 @@ private:
     std::vector<OrderRecord> m_ActiveOrdersQueue;
 
     // Pozycja, z której startuje auto
-    glm::vec3 m_CarStartPos = { -17.0f, 5.0f, 30.0f };
+    glm::vec3 m_CarStartPos = DeliveryCarScript::m_StartPos;
 
     // Przesunięcia dla paczek względem auta
     glm::vec3 m_PackageOffsets[2] = {
