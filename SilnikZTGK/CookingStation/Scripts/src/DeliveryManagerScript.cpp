@@ -52,14 +52,21 @@ void DeliveryManagerScript::OnCreate()
             [this](const PackageSpawnedEvent& e) {
                 IngredientType typeForThisPackage = IngredientType::None;
 
-                // Jeśli z jakiegoś powodu zrespi się więcej paczek, nie wyjdziemy poza tablicę
+                // Dobieramy typ dla obecnej paczki
                 if (m_SpawnedPackagesCount < m_CurrentOrderTypes.size()) {
                     typeForThisPackage = m_CurrentOrderTypes[m_SpawnedPackagesCount];
                 } else if (!m_CurrentOrderTypes.empty()) {
-                    typeForThisPackage = m_CurrentOrderTypes[0]; // Bezpieczny fallback
+                    typeForThisPackage = m_CurrentOrderTypes[0];
                 }
 
-                m_SpawnedPackagesCount++; // Zwiększamy licznik dla kolejnej paczki
+                // Numer paczki do logów
+                int packageNumberForLog = m_SpawnedPackagesCount + 1;
+
+                spdlog::info("[DeliveryManager] Konfiguruję paczkę nr {} - Zawartość: {}",
+                             packageNumberForLog,
+                             IngredientTypeToString(typeForThisPackage));
+
+                m_SpawnedPackagesCount++;
 
                 // Odpowiadamy konkretnej paczce jej własnym, unikalnym typem
                 GetScene()->GetWorld().GetEventBus().Publish(ConfigurePackageEvent{ e.TargetEntity, typeForThisPackage, 5 });

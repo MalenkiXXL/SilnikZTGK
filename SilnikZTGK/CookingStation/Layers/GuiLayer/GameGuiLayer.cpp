@@ -18,6 +18,7 @@
 #include "CookingStation/Events/KeyEvent.h"
 #include "CookingStation/Events/GameEvents.h" 
 #include "CookingStation/json.hpp"
+#include "CookingStation/Scripts/Delivery/PackageScript.h"
 #include <spdlog/spdlog.h>
 #include <algorithm> 
 
@@ -534,6 +535,8 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);
     DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);
 
+    DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+
     if (m_CoinIcon) {
         if (m_LastMoney == -1 && GameManagerScript::s_Instance) {
             int money = GameManagerScript::s_Instance->GetMoney();
@@ -726,6 +729,94 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
             if (iconToDraw) {
                 glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, 70.0f * baseScale);
                 glm::vec2 iconPos = { screenX - iconSize.x * 0.5f, screenY - iconSize.y };
+                Renderer2D::DrawQuad(iconPos, iconSize, iconToDraw, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+            }
+        }
+    }
+}
+
+void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt)
+{
+    if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
+
+    auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
+    auto* transforms = m_ActiveScene->GetWorld().GetComponentVector<TransformComponent>();
+    auto* scripts = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
+
+    if (!tags || !transforms || !scripts) return;
+
+    auto* camera = m_ActiveScene->GetCamera();
+    glm::mat4 view = camera->GetViewMatrix();
+    float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+    float orthoSize = camera->OrthoSize;
+    glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+    glm::mat4 viewProj = proj3D * view;
+
+    glm::vec2 mousePos = Gui::GetMappedMousePos();
+    float hoverRadiusSq = (45.0f * baseScale) * (45.0f * baseScale);
+
+    for (size_t i = 0; i < tags->dense.size(); ++i) {
+
+        // 1. filtr po Tagu
+        if (tags->dense[i].Tag.find("Package") != std::string::npos) {
+
+            Entity packageEnt = tags->reverse[i];
+            auto* tf = transforms->Get(packageEnt);
+            if (!tf) continue;
+
+            // 2. MATEMATYKA: Liczymy pozycję na ekranie
+            glm::vec3 packagePos = tf->GetPosition() + glm::vec3(0.0f, 0.8f, 0.0f);
+            glm::vec4 clipSpace = viewProj * glm::vec4(packagePos, 1.0f);
+            if (clipSpace.w == 0.0f) continue;
+
+            glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
+            float screenX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
+            float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
+
+            // 3. HOVER: Sprawdzamy czy kursor w ogóle jest w pobliżu
+            float dx = mousePos.x - screenX;
+            float dy = mousePos.y - (screenY + 40.0f * baseScale);
+
+            if ((dx * dx + dy * dy) > hoverRadiusSq) continue;
+
+            auto* nsc = scripts->Get(packageEnt);
+            if (!nsc) continue;
+
+            PackageScript* packScript = nullptr;
+            for (auto& s : nsc->Scripts) {
+                if (s.Name == "PackageScript") {
+                    packScript = (PackageScript*)s.Instance;
+                    break;
+                }
+            }
+
+            if (!packScript) continue;
+
+            MachineScript::GlobalIsHoveringUI = true;
+
+            // Mapowanie ikony
+            std::shared_ptr<Texture> iconToDraw = nullptr;
+            switch (packScript->getType()) {
+                case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
+                case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
+                case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
+                case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
+                case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
+                default: iconToDraw = m_QuestionMarkIcon; break;
+            }
+
+            // Rysowanie UI
+            if (iconToDraw) {
+                glm::vec2 cloudSize = { 120.0f * baseScale, 120.0f * baseScale };
+                glm::vec2 cloudPos = { screenX - cloudSize.x * 0.5f, screenY - cloudSize.y };
+
+                if (m_BookCloudIcon) {
+                    Renderer2D::DrawQuad(cloudPos, cloudSize, m_BookCloudIcon, {1.0f, 1.0f, 1.0f, 0.95f}, {0.0f, 1.0f}, {1.0f, 0.0f});
+                }
+
+                glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, 55.0f * baseScale);
+                glm::vec2 iconPos = { cloudPos.x + (cloudSize.x - iconSize.x) * 0.5f, cloudPos.y + (cloudSize.y - iconSize.y) * 0.5f };
+
                 Renderer2D::DrawQuad(iconPos, iconSize, iconToDraw, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
             }
         }

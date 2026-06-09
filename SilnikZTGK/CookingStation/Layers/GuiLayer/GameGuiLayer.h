@@ -120,4 +120,5 @@ private:
     void DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
     void DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale);
     void DrawOrderTickets(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale);
+    void DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
 };
