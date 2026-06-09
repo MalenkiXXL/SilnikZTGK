@@ -2,128 +2,149 @@
 #include "../SilnikZTGK/CookingStation/Scripts/Delivery/DeliveryLogic.h"
 
 /**
- * Zestaw testów jednostkowych dla modułu DeliveryLogic.
- * Testy weryfikują poprawność działania algorytmu decyzyjnego magazynu,
- * w tym priorytetyzację zamówień, symulację zużycia (wirtualny magazyn)
- * oraz obsługę progów minimalnych.
+ * @file DeliveryLogicTests.cpp
+ * @brief Zestaw testów jednostkowych dla modułu DeliveryLogic.
+ * * Testy weryfikują poprawność działania algorytmu decyzyjnego magazynu.
+ * Główny nacisk położono na weryfikację systemu "dwupakietowego" (algorytm
+ * zwraca do dwóch unikalnych składników), priorytetyzację zamówień klientów,
+ * symulację zużycia (wirtualny magazyn) oraz zachowanie względem progów minimalnych.
  */
 
 // ---------------------------------------------------------
 // TEST 1: Weryfikacja stanu spoczynku (Brak akcji)
 // ---------------------------------------------------------
 TEST(DeliveryLogicTest, NoOrdersAndPantryFull_ReturnsNone) {
-    // Arrange (Przygotowanie danych)
+    // Arrange: Konfiguracja stabilnego stanu systemu
     std::vector<OrderRecord> queue = {};
     std::map<IngredientType, int> inventory = { { IngredientType::Tomato, 5 } };
     std::map<IngredientType, int> thresholds = { { IngredientType::Tomato, 3 } };
 
-    // Act (Wykonanie logiki biznesowej)
-    IngredientType result = DeliveryLogic::CalculateWhatToOrder(queue, inventory, thresholds);
+    // Act: Wywołanie logiki decyzyjnej
+    auto result = DeliveryLogic::CalculateWhatToOrder(queue, inventory, thresholds);
 
-    // Assert (Weryfikacja wyniku)
-    // Stan zapasów jest stabilny, a kolejka pusta. System nie powinien generować zamówień.
-    EXPECT_EQ(result, IngredientType::None);
+    // Assert: System nie powinien generować zbędnych zamówień.
+    // Oczekujemy jednoelementowego wektora ze statusem "None".
+    ASSERT_EQ(result.size(), 1);
+    EXPECT_EQ(result[0], IngredientType::None);
 }
 
 // ---------------------------------------------------------
-// TEST 2: Priorytetyzacja najstarszego zamówienia w kolejce
+// TEST 2: Priorytetyzacja najstarszego zamówienia oraz dobór dopełnienia
 // ---------------------------------------------------------
-TEST(DeliveryLogicTest, PrioritizesCorrectCustomerInQueue) {
-    // Arrange
+TEST(DeliveryLogicTest, PrioritizesCorrectCustomerInQueue_AndAddsFiller) {
+    // Arrange: Przygotowanie kolejki z klientami o różnym priorytecie
     std::vector<OrderRecord> queue = {
-            { 101, IngredientType::Ham },     // Klient 1 (Najwyższy priorytet)
+            { 101, IngredientType::Ham },     // Klient 1 (Najwyższy priorytet czasowy)
             { 102, IngredientType::Cheese }   // Klient 2
     };
 
     std::map<IngredientType, int> inventory = {
             { IngredientType::Ham, 1 },       // Stan wystarczający dla Klienta 1
-            { IngredientType::Cheese, 0 }     // Brak asortymentu dla Klienta 2
+            { IngredientType::Cheese, 0 }     // Krytyczny brak dla Klienta 2
     };
-    std::map<IngredientType, int> thresholds = {};
+
+    // Dodajemy próg, aby algorytm miał z czego dobrać drugą, unikalną paczkę
+    std::map<IngredientType, int> thresholds = {
+            { IngredientType::Milk, 2 }
+    };
 
     // Act
-    IngredientType result = DeliveryLogic::CalculateWhatToOrder(queue, inventory, thresholds);
+    auto result = DeliveryLogic::CalculateWhatToOrder(queue, inventory, thresholds);
 
-    // Assert
-    // Algorytm powinien zidentyfikować, że wymogi Klienta 1 są spełnione,
-    // i zgłosić zapotrzebowanie na składnik dla Klienta 2.
-    EXPECT_EQ(result, IngredientType::Cheese);
+    // Assert: Weryfikacja systemu dwupakietowego.
+    // Algorytm powinien priorytetowo zamówić Ser (dla Klienta 2), a jako drugą
+    // opcję dobrać Mleko z progów minimalnych.
+    ASSERT_EQ(result.size(), 2);
+    EXPECT_EQ(result[0], IngredientType::Cheese);
+    EXPECT_EQ(result[1], IngredientType::Milk);
 }
 
 // ---------------------------------------------------------
-// TEST 3: Weryfikacja mechanizmu wirtualnego zużycia zapasów
+// TEST 3: Weryfikacja mechanizmu wirtualnej konsumpcji zasobów
 // ---------------------------------------------------------
-TEST(DeliveryLogicTest, MultipleCustomersSameIngredient_DetectsShortage) {
-    // Arrange
+TEST(DeliveryLogicTest, MultipleCustomersSameIngredient_DetectsVirtualShortage) {
+    // Arrange: Sytuacja, w której popyt przewyższa bieżącą podaż na ten sam składnik
     std::vector<OrderRecord> queue = {
             { 101, IngredientType::Tomato },
             { 102, IngredientType::Tomato }
     };
     std::map<IngredientType, int> inventory = {
-            { IngredientType::Tomato, 1 } // Dostępna tylko 1 sztuka
+            { IngredientType::Tomato, 1 } // Dostępna fizycznie tylko 1 sztuka
     };
-    std::map<IngredientType, int> thresholds = {};
+    std::map<IngredientType, int> thresholds = {
+            { IngredientType::Flour, 3 }  // Próg pomocniczy dla drugiej paczki
+    };
 
     // Act
-    IngredientType result = DeliveryLogic::CalculateWhatToOrder(queue, inventory, thresholds);
+    auto result = DeliveryLogic::CalculateWhatToOrder(queue, inventory, thresholds);
 
-    // Assert
-    // Pierwszy klient wirtualnie konsumuje jedynego pomidora.
-    // Dla drugiego klienta algorytm musi wykryć brak i wygenerować zamówienie.
-    EXPECT_EQ(result, IngredientType::Tomato);
+    // Assert: Weryfikacja spójności stanu "brudnego" (dirty state).
+    // Pierwszy klient wirtualnie konsumuje jedynego pomidora w pamięci algorytmu.
+    // Algorytm musi wykryć brak dla drugiego klienta i wygenerować na niego zamówienie.
+    ASSERT_EQ(result.size(), 2);
+    EXPECT_EQ(result[0], IngredientType::Tomato);
+    EXPECT_EQ(result[1], IngredientType::Flour);
 }
 
 // ---------------------------------------------------------
-// TEST 4: Uzupełnianie braków strukturalnych (Poniżej progu)
+// TEST 4: Generowanie paczek z samych braków strukturalnych
 // ---------------------------------------------------------
-TEST(DeliveryLogicTest, RefillsEmptyPantryWhenOrdersAreCovered) {
-    // Arrange
+TEST(DeliveryLogicTest, RefillsEmptyPantryWithTwoDistinctPackages) {
+    // Arrange: Kolejka obsłużona, testujemy wyłącznie moduł kontroli zapasów
     std::vector<OrderRecord> queue = {
             { 101, IngredientType::Tomato }
     };
 
     std::map<IngredientType, int> inventory = {
             { IngredientType::Tomato, 1 }, // Zabezpiecza bieżące zamówienie
-            { IngredientType::Milk, 1 }    // Poniżej progu minimalnego!
+            { IngredientType::Milk, 1 },   // Poniżej progu!
+            { IngredientType::Egg, 0 }     // Poniżej progu!
     };
     std::map<IngredientType, int> thresholds = {
-            { IngredientType::Milk, 3 }    // Wymagane minimum to 3 sztuki
+            { IngredientType::Milk, 3 },
+            { IngredientType::Egg, 2 }
     };
 
     // Act
-    IngredientType result = DeliveryLogic::CalculateWhatToOrder(queue, inventory, thresholds);
+    auto result = DeliveryLogic::CalculateWhatToOrder(queue, inventory, thresholds);
 
-    // Assert
-    // Skoro zamówienia klientów są zabezpieczone wirtualnym magazynem,
-    // algorytm przechodzi do uzupełniania braków ogólnych w spiżarni.
-    EXPECT_EQ(result, IngredientType::Milk);
+    // Assert: Zamówienia klientów są zabezpieczone, więc algorytm powinien
+    // wygenerować 2 unikalne paczki na podstawie uszczuplonych zapasów strukturalnych.
+    ASSERT_EQ(result.size(), 2);
+    EXPECT_TRUE(std::find(result.begin(), result.end(), IngredientType::Milk) != result.end());
+    EXPECT_TRUE(std::find(result.begin(), result.end(), IngredientType::Egg) != result.end());
+    // Dodatkowy test na unikalność zalecony przy przeglądzie kodu (Code Review)
+    EXPECT_NE(result[0], result[1]);
 }
 
 // ---------------------------------------------------------
-// TEST 5: Zmiana stanu po obsłużeniu klienta (Przesunięcie priorytetów)
+// TEST 5: Zmiana stanu domeny i wymuszenie unikalności elementów
 // ---------------------------------------------------------
-TEST(DeliveryLogicTest, CustomerServed_UpdatesPriorities) {
-    // Arrange
-    // Symulacja stanu po wydaniu posiłku: Klient 101 zniknął z kolejki,
-    // a gracz właśnie zużył ostatnią szynkę na jego zamówienie.
-    std::vector<OrderRecord> queueAfterServing = {
-            { 102, IngredientType::Cheese } // Oczekuje tylko Klient 102
+TEST(DeliveryLogicTest, EnsuresPackageUniquenessRegardlessOfDemand) {
+    // Arrange: Symulacja ekstremalnego braku jednego składnika
+    // dla wielu klientów ORAZ w progach minimalnych.
+    std::vector<OrderRecord> queue = {
+            { 102, IngredientType::Cheese },
+            { 103, IngredientType::Cheese }
     };
 
-    std::map<IngredientType, int> inventoryAfterServing = {
-            { IngredientType::Ham, 0 },    // Stan po wydaniu posiłku
-            { IngredientType::Cheese, 0 }  // Stały brak
+    std::map<IngredientType, int> inventory = {
+            { IngredientType::Cheese, 0 },
+            { IngredientType::Ham, 1 }
     };
 
     std::map<IngredientType, int> thresholds = {
-            { IngredientType::Ham, 3 }     // Szynka drastycznie poniżej progu
+            { IngredientType::Cheese, 5 }, // Ser jest wymagany podwójnie
+            { IngredientType::Ham, 3 }     // Szynka służy jako fallback
     };
 
     // Act
-    IngredientType result = DeliveryLogic::CalculateWhatToOrder(queueAfterServing, inventoryAfterServing, thresholds);
+    auto result = DeliveryLogic::CalculateWhatToOrder(queue, inventory, thresholds);
 
-    // Assert
-    // Pomimo krytycznego braku szynki (0 względem 3 wymaganych),
-    // priorytetem pozostaje aktywna kolejka zamówień. Algorytm musi zamówić ser.
-    EXPECT_EQ(result, IngredientType::Cheese);
+    // Assert: Zabezpieczenie przed dublowaniem zawartości paczek.
+    // Nawet jeśli Ser jest potrzebny zarówno do kolejki zamówień, jak i do progów,
+    // algorytm wciąż musi wygenerować szynkę jako drugą, RÓŻNĄ paczkę.
+    ASSERT_EQ(result.size(), 2);
+    EXPECT_EQ(result[0], IngredientType::Cheese);
+    EXPECT_EQ(result[1], IngredientType::Ham);
 }

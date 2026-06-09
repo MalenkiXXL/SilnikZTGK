@@ -11,28 +11,50 @@ struct OrderRecord {
 class DeliveryLogic {
 public:
 
-    static IngredientType CalculateWhatToOrder(
+    static std::vector<IngredientType> CalculateWhatToOrder(
             const std::vector<OrderRecord>& activeOrders,
             std::map<IngredientType, int> currentInventory,
             const std::map<IngredientType, int>& minThresholds)
     {
-        // 1. Sprawdzamy braki pod konkretne zamówienia klientów
+        std::vector<IngredientType> selectedIngredients;
+
+        // --- WĘZEŁ 1: Priorytet - Zamówienia klientów ---
         for (const auto& order : activeOrders) {
             IngredientType neededType = order.WantedDish;
             if (currentInventory[neededType] > 0) {
                 currentInventory[neededType]--;
             } else {
-                return neededType;
+                // Sprawdzamy, czy tego składnika jeszcze nie zamówiliśmy
+                if (std::find(selectedIngredients.begin(), selectedIngredients.end(), neededType) == selectedIngredients.end()) {
+                    selectedIngredients.push_back(neededType);
+                    if (selectedIngredients.size() == 2) return selectedIngredients;
+                }
             }
         }
 
-        // 2. Sprawdzamy braki w spiżarni
+        // --- WĘZEŁ 2: Uzupełnianie zapasów wg progów minimalnych ---
         for (const auto& [type, threshold] : minThresholds) {
             if (currentInventory[type] < threshold) {
-                return type;
+                if (std::find(selectedIngredients.begin(), selectedIngredients.end(), type) == selectedIngredients.end()) {
+                    selectedIngredients.push_back(type);
+                    if (selectedIngredients.size() == 2) return selectedIngredients;
+                }
             }
         }
 
-        return IngredientType::None;
+        // Jeśli nikt nic nie zamawia i niczego nie brakuje
+        if (selectedIngredients.empty()) {
+            return { IngredientType::None };
+        }
+
+        // --- WĘZEŁ 3: Wypełniacz (zawsze dajemy graczowi 2 opcje) ---
+        for (const auto& [type, threshold] : minThresholds) {
+            if (std::find(selectedIngredients.begin(), selectedIngredients.end(), type) == selectedIngredients.end()) {
+                selectedIngredients.push_back(type);
+                if (selectedIngredients.size() == 2) return selectedIngredients;
+            }
+        }
+
+        return selectedIngredients;
     }
 };

@@ -16,7 +16,7 @@ public:
 
 private:
     void RunDeliveryDecisionTree();
-    void CallForDelivery(IngredientType type);
+    void CallForDelivery(vector<IngredientType> types);
 
     std::vector<OrderRecord> m_ActiveOrdersQueue;
 
@@ -43,5 +43,7 @@ private:
     std::size_t m_CustomerSeatedSubId = 0;
     std::size_t m_ValidationResponseSubId = 0;
 
-    IngredientType m_CurrentOrderType = IngredientType::Tomato;
+    std::vector<IngredientType> m_CurrentOrderTypes;
+    int m_SpawnedPackagesCount = 0;
+
 };
