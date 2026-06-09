@@ -14,13 +14,21 @@ PauseMenuPanel::PauseMenuPanel() {
 
 void PauseMenuPanel::TogglePause() {
     if (m_SettingsPanel->IsVisible()) {
-        m_SettingsPanel->SetVisible(false); // Zamknij tylko ustawienia
+        m_SettingsPanel->SetVisible(false);
     }
     else {
         m_IsPaused = !m_IsPaused;
         auto activeScene = SceneManager::GetActiveScene();
         if (activeScene) {
             activeScene->SetState(m_IsPaused ? SceneState::Pause : SceneState::Play);
+        }
+
+        // --- NOWE: Wysłanie eventu w świat ---
+        if (m_IsPaused) {
+            Application::Get().GetEventBus().Publish(GamePausedEvent{});
+        }
+        else {
+            Application::Get().GetEventBus().Publish(GameResumedEvent{});
         }
     }
 }

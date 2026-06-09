@@ -6,6 +6,7 @@
 #include "CookingStation/Events/MouseEvent.h"
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Events/KeyEvent.h"
+#include "CookingStation/Events/GameEvents.h" 
 
 class CameraLayer : public Layer
 {
@@ -25,4 +26,9 @@ private:
     bool m_Panning = false;
     float m_LastMouseX = 0.0f;
     float m_LastMouseY = 0.0f;
+
+    // --- NOWE: Flaga i Subskrypcje Pauzy ---
+    bool m_IsGamePaused = false;
+    std::size_t m_GamePausedSubId = 0;
+    std::size_t m_GameResumedSubId = 0;
 };

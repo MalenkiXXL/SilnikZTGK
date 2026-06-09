@@ -34,6 +34,9 @@ public:
 
         m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
             [this](const EntityClickedEvent& e) {
+                // --- SYSTEM BLOKOWANIA --- Jeśli UI pochłonęło kursor, ignorujemy event
+                if (Input::IsUICapturingMouse()) return;
+
                 if (e.TargetEntity.id == this->m_Entity.id) {
                     this->HandleClick();
                 }
@@ -131,6 +134,9 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
+        // --- SYSTEM BLOKOWANIA --- Ignorujemy pada, gdy menu jest otwarte
+        if (Input::IsUICapturingMouse()) return;
+
         if (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0))
         {
             auto* tf = GetComponent<TransformComponent>();

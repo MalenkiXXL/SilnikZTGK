@@ -251,8 +251,7 @@ public:
         bool isGamepadTransfer = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0); // Przycisk ID 2 - Transfer
         bool isGamepadChop = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(3, 0); // Przycisk ID 3 - Ciach!
 
-        if ((isMouseClick || isGamepadTransfer || isGamepadChop) && isHovering && !GlobalIsHoveringUI)
-        {
+        if ((isMouseClick || isGamepadTransfer || isGamepadChop) && isHovering && !Input::IsUICapturingMouse()) {
             if (Input::IsKeyPressed(340))
             {
                 if (!m_IsHeld && !GlobalIsMachineHeld)

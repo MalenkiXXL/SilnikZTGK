@@ -31,10 +31,25 @@ static constexpr float PAN_SPEED = 10.0f;
 static constexpr float LERP_SPEED = 4.0f;
 
 CameraLayer::CameraLayer() : Layer("CameraLayer"),
-                             m_Camera(glm::vec3(10.0f, 10.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), ISO_YAW, ISO_PITCH) {
-};
+m_Camera(glm::vec3(10.0f, 10.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), ISO_YAW, ISO_PITCH)
+{
+    auto& appBus = Application::Get().GetEventBus();
 
-CameraLayer::~CameraLayer() {};
+    m_GamePausedSubId = appBus.Subscribe<GamePausedEvent>([this](const GamePausedEvent&) {
+        m_IsGamePaused = true;
+        });
+
+    m_GameResumedSubId = appBus.Subscribe<GameResumedEvent>([this](const GameResumedEvent&) {
+        m_IsGamePaused = false;
+        });
+}
+
+CameraLayer::~CameraLayer()
+{
+    auto& appBus = Application::Get().GetEventBus();
+    if (m_GamePausedSubId != 0) appBus.Unsubscribe<GamePausedEvent>(m_GamePausedSubId);
+    if (m_GameResumedSubId != 0) appBus.Unsubscribe<GameResumedEvent>(m_GameResumedSubId);
+}
 
 void CameraLayer::OnUpdate(Timestep ts) {
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
@@ -43,6 +58,8 @@ void CameraLayer::OnUpdate(Timestep ts) {
     }
 
     m_Camera.UpdateLerp((float) ts, LERP_SPEED);
+
+    if (m_IsGamePaused) return;
 
     if (Gui::AnyItemActive()) return;
 
@@ -126,6 +143,7 @@ void CameraLayer::OnEvent(Event &event) {
 }
 
 bool CameraLayer::OnMouseScrolled(MouseScrolledEvent &e) {
+    if (m_IsGamePaused) return false;
     if (Gui::AnyItemActive()) return false;
 
     // ProcessMouseScroll teraz zmienia OrthoSize zamiast FOV

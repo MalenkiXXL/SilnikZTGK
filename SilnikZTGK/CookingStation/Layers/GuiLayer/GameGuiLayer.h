@@ -8,13 +8,28 @@
 #include "Panels/PauseMenuPanel.h"
 #include "CookingStation/Renderer/Framebuffer.h"
 #include "CarouselUI.h"
+#include "CookingStation/Scripts/Managers/IngredientType.h"
 #include <unordered_map>
-#include <vector>
 #include <string>
 #include <glm/glm.hpp>
 #include <memory>
+#include <vector>
 
 class Scene;
+
+// Stan animacji "bubbly" dla pojedynczego elementu UI
+struct BubblyState {
+    float scale = 1.0f;
+    glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+};
+
+// Struktura danych questa
+struct QuestData {
+    std::string Title;
+    std::string Description;
+    int Portions = 0;
+    std::string Reward;
+};
 
 class GameGuiLayer : public Layer {
 public:
@@ -35,89 +50,169 @@ public:
     static bool s_NeedsQuestReload;
 
 private:
+    // ── Metody pomocnicze ──────────────────────────────────────────────
+    bool OnWindowResize(WindowResizeEvent& e);
+    bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+
+    std::shared_ptr<Texture> GetIconForIngredient(IngredientType type);
+    std::string GetModelPathForIngredient(IngredientType type);
+    std::string GetIngredientName(IngredientType type);
+    void LoadQuestsFromFile(const std::string& filepath);
+    void CheckQuestProgress();
+
+    // ── Metody rysowania ───────────────────────────────────────────────
+    bool DrawBubblyImage(const std::string& id, const std::shared_ptr<Texture>& icon,
+        glm::vec2 basePos, glm::vec2 baseSize, float dt,
+        float hoverScale = 1.15f, bool darkenOnHover = false,
+        float hitRadiusMultiplier = 0.5f,
+        glm::vec4 tintColor = { 1.0f, 1.0f, 1.0f, 1.0f },
+        bool* outIsHovered = nullptr);
+
+    bool DrawIngredientIcon(const std::string& id, const std::shared_ptr<Texture>& icon,
+        glm::vec2 basePos, glm::vec2 baseSize,
+        float dt, float baseScale, int count, bool showCount);
+
+    void DrawIngredientCountText(int count, glm::vec2 basePos, glm::vec2 baseSize, float baseScale);
+
+    void DrawRecipeIcon(const std::string& recipeId, const std::shared_ptr<Texture>& texture,
+        glm::vec2 relativePct, float targetHeight,
+        glm::vec2 bookPos, glm::vec2 bookSize, float dt);
+
+    void DrawIconWithText(const std::string& text, const std::shared_ptr<Texture>& iconTex,
+        const glm::vec2& textPos, float textScale, float baseScale, float dt);
+
+    void DrawQuestPanel(float gameX, float gameY, float gameWidth, float gameHeight,
+        float baseScale, bool isPlayMode);
+
+    void DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight,
+        float baseScale, float dt);
+
+    void DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight,
+        float baseScale, float dt);
+
+    void DrawOrderTickets(float gameX, float gameY, float gameWidth, float gameHeight,
+        float baseScale);
+
+    void DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight,
+        float baseScale);
+
+private:
+    // ── Stan ogólny ────────────────────────────────────────────────────
     bool m_IsVisible = false;
     bool m_IsActive = false;
-    bool m_ShowFPS = false;
-
-    // --- Panele ---
-    std::unique_ptr<PauseMenuPanel> m_PausePanel;
-
-    // --- EventBus ---
-    std::size_t m_InventorySubId = 0;
-    std::size_t m_MoneySubId = 0;
-    std::size_t m_GameStartedSubId = 0;
-    std::size_t m_OrderTakenSubId = 0;
-
-    std::shared_ptr<Scene> m_ActiveScene;
+    std::shared_ptr<Scene>       m_ActiveScene;
     std::shared_ptr<Framebuffer> m_ViewportFBO;
-
     float m_ViewportWidth = 1920.0f;
     float m_ViewportHeight = 1080.0f;
 
-    int         m_LastMoney = -1;
-    std::string m_MoneyStr = "";
-    int         m_CurrentMoney = 0;
+    // ── Panel pauzy ────────────────────────────────────────────────────
+    std::unique_ptr<PauseMenuPanel> m_PausePanel;
 
-    int m_CurrentTomatoes = 0;
-    std::unordered_map<std::string, int> m_IngredientCounts;
-
-    struct QuestData {
-        std::string title;
-        std::string desc;
-        int         portions;
-        std::string reward;
-    };
-    std::vector<QuestData> m_CurrentQuests;
-    int m_CurrentQuestIndex = 0;
-
+    // ── Karuzele ───────────────────────────────────────────────────────
     CarouselUI m_IngredientsCarousel;
     CarouselUI m_MachinesCarousel;
 
-    // --- Tekstury ---
+    // ── Tekstury i ikony ───────────────────────────────────────────────
+    std::shared_ptr<Texture> m_HeartIcon;
+    std::shared_ptr<Texture> m_StarIcon;
+    std::shared_ptr<Texture> m_CoinIcon;
+    std::shared_ptr<Texture> m_ClockIcon;
+    std::shared_ptr<Texture> m_QuestionMarkIcon;
+    std::shared_ptr<Texture> m_ExclamationIcon;
+    std::shared_ptr<Texture> m_RecipeBookIcon;
+    std::shared_ptr<Texture> m_RecipeBookOpenBg;
+    std::shared_ptr<Texture> m_EventsIcon;
+    std::shared_ptr<Texture> m_PauseIcon;
+
+    // Narożniki i tło
     std::shared_ptr<Texture> m_CornerIcon;
+
+    // Składniki
     std::shared_ptr<Texture> m_TomatoIcon;
     std::shared_ptr<Texture> m_CheeseIcon;
     std::shared_ptr<Texture> m_HamIcon;
+    std::shared_ptr<Texture> m_MilkIcon;
+    std::shared_ptr<Texture> m_FlourIcon;
+    std::shared_ptr<Texture> m_PotIcon;
+    std::shared_ptr<Texture> m_OvenIcon;
+    std::shared_ptr<Texture> m_MixerIcon;
+
+    // Książka przepisów
     std::shared_ptr<Texture> m_BookCloudIcon;
     std::shared_ptr<Texture> m_BookIcon;
     std::shared_ptr<Texture> m_BookStarsIcon;
     std::shared_ptr<Texture> m_BookInsideIcon;
     std::shared_ptr<Texture> m_BookXIcon;
-    std::shared_ptr<Texture> m_TomatoSoupIcon;
-    std::shared_ptr<Texture> m_CoinIcon;
-    std::shared_ptr<Texture> m_PotIcon;
-    std::shared_ptr<Texture> m_FlourIcon;
-    std::shared_ptr<Texture> m_MilkIcon;
-    std::shared_ptr<Texture> m_OvenIcon;
-    std::shared_ptr<Texture> m_MixerIcon;
-    std::shared_ptr<Texture> m_SandwichIcon;
-    std::shared_ptr<Texture> m_CroissantIcon;
-    std::shared_ptr<Texture> m_CupcakeIcon;
-    std::shared_ptr<Texture> m_QuestionMarkIcon;
-    std::shared_ptr<Texture> m_HelperOrderTex;
-    std::shared_ptr<Texture> m_CustomerOrderTex;
 
+    // Przepisy / dania
+    std::shared_ptr<Texture> m_TomatoSoupIcon;
+    std::shared_ptr<Texture> m_SandwichIcon;
+    std::shared_ptr<Texture> m_CupcakeIcon;
+    std::shared_ptr<Texture> m_CroissantIcon;
+
+    // Karteczki zamówień
+    std::shared_ptr<Texture> m_CustomerOrderTex;
+    std::shared_ptr<Texture> m_HelperOrderTex;
+
+    // ── Subskrypcje zdarzeń ────────────────────────────────────────────
+    std::size_t m_SubMoney = 0;
+    std::size_t m_SubInventory = 0;
+    std::size_t m_SubDrag = 0;
+
+    std::size_t m_GameStartedSubId = 0;
+    std::size_t m_InventorySubId = 0;
+    std::size_t m_MoneySubId = 0;
+    std::size_t m_OrderTakenSubId = 0;
+
+    // ── Ekwipunek i Drag & Drop ────────────────────────────────────────
+    std::unordered_map<IngredientType, int>   m_Inventory;
+    std::unordered_map<IngredientType, float> m_ItemScales;
+    glm::vec4 m_InventoryRect = { 0.0f, 0.0f, 0.0f, 0.0f };
+
+    bool m_IsDragging = false;
+    IngredientType m_DraggedType;
+    std::shared_ptr<Texture> m_DraggedIcon;
+    std::string m_DraggedModelPath;
+
+    // ── Stan składników ────────────────────────────────────────────────
+    int m_CurrentTomatoes = 0;
+    std::unordered_map<std::string, int> m_IngredientCounts;
+
+    // ── Pieniądze ──────────────────────────────────────────────────────
+    int         m_CurrentMoney = 0;
+    int         m_LastMoney = -1;
+    float       m_MoneyScale = 1.0f;
+    std::string m_MoneyStr = "0";
+
+    // ── Aktywne zamówienia (karteczki) ─────────────────────────────────
     std::vector<Entity> m_ActiveOrderTickets;
 
-    struct BubblyState {
-        float    scale = 1.0f;
-        glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-    };
-    std::unordered_map<std::string, BubblyState> m_BubblyStates;
+    // ── Flagi i stany paneli UI ────────────────────────────────────────
     bool m_IsRecipeBookOpen = false;
+    int  m_CurrentRecipePage = 0;
+    bool m_IsEventsPanelOpen = false;
 
-    bool OnWindowResize(WindowResizeEvent& e);
-    bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
+    // ── Questy ────────────────────────────────────────────────────────
+    std::vector<QuestData> m_CurrentQuests;
+    int m_CurrentQuestIndex = 0;
 
-    bool DrawBubblyImage(const std::string& id, const std::shared_ptr<Texture>& icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier = 0.5f, glm::vec4 tintColor = glm::vec4(1.0f), bool* outIsHovered = nullptr);
-    void DrawIngredientCountText(int count, glm::vec2 basePos, glm::vec2 baseSize, float baseScale);
-    bool DrawIngredientIcon(const std::string& id, const std::shared_ptr<Texture>& icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float baseScale, int count, bool showCount);
-    void DrawIconWithText(const std::string& text, const std::shared_ptr<Texture>& iconTex, const glm::vec2& textPos, float textScale, float baseScale, float dt);
+    // ── FPS debug ─────────────────────────────────────────────────────
+    bool m_ShowFPS = false;
 
-    void DrawRecipeIcon(const std::string& recipeId, const std::shared_ptr<Texture>& texture, glm::vec2 relativePos, float targetHeight, glm::vec2 bookPos, glm::vec2 bookSize, float dt);
-    void DrawQuestPanel(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, bool isPlayMode);
-    void DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
-    void DrawRecipeBook(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
-    void DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale);
-    void DrawOrderTickets(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale);
+    // ── Animacje (skale przycisków) ────────────────────────────────────
+    float m_RecipeBtnScale = 1.0f;
+    float m_EventsBtnScale = 1.0f;
+    float m_PauseBtnScale = 1.0f;
+    float m_LeftArrowScale = 1.0f;
+    float m_RightArrowScale = 1.0f;
+    float m_CloseBtnScale = 1.0f;
+    float m_EvCloseBtnScale = 1.0f;
+
+    // ── Stany animacji "bubbly" ────────────────────────────────────────
+    std::unordered_map<std::string, BubblyState> m_BubblyStates;
+
+
+    std::size_t m_GamePausedSubId = 0;
+    std::size_t m_GameResumedSubId = 0;
+    bool m_IsGamePaused = false;
 };

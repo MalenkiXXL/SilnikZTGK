@@ -312,7 +312,7 @@ private:
             }
 
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
-            if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
+            if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !Input::IsUICapturingMouse()) {
                 if (!Input::IsKeyPressed(340) && neighbor.MachineInstance && neighbor.MachineInstance->AddIngredient(hoveredType)) {
                     spdlog::info("Składnik z taśmy wskoczył prosto na maszynę!");
                     GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ hoveredBeltItem });
@@ -410,7 +410,7 @@ private:
             }
 
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
-            if (isActionPressed && closestBeltItem.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
+            if (isActionPressed && closestBeltItem.id != std::numeric_limits<std::size_t>::max() && !Input::IsUICapturingMouse()) {
                 if (!Input::IsKeyPressed(340)) {
                     if (hoveredMachineScript->AddIngredient(foundType)) {
                         spdlog::info("Maszyna zassała składnik z taśmy obok!");
@@ -448,7 +448,7 @@ private:
             }
 
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
-            if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
+            if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !Input::IsUICapturingMouse()) {
                 if (!Input::IsKeyPressed(340) && neighbor.MachineInstance) {
                     neighbor.MachineInstance->TryTransferToPlate();
                     ClearMachineForPlateHighlight();
@@ -518,7 +518,7 @@ private:
             }
 
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
-            if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
+            if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !Input::IsUICapturingMouse()) {
                 if (!Input::IsKeyPressed(340) && neighbor.PlateInstance) {
                     IngredientType topIngredient = neighbor.PlateInstance->m_Ingredients.back();
                     if (hoveredMachineScript->AddIngredient(topIngredient)) {
@@ -577,7 +577,7 @@ private:
             }
 
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
-            if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !MachineScript::GlobalIsHoveringUI) {
+            if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !Input::IsUICapturingMouse()) {
                 if (!Input::IsKeyPressed(340)) {
                     IngredientType topIngredient = hoveredPlateScript->m_Ingredients.back();
                     if (neighbor.MachineInstance && neighbor.MachineInstance->AddIngredient(topIngredient)) {

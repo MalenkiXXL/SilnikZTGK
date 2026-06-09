@@ -20,12 +20,17 @@ public:
     static bool IsGamepadButtonJustReleased(int button, int gamepadId = 0);
     static float GetGamepadAxis(int axis, int gamepadId = 0);
 
+    static bool IsUICapturingMouse() { return s_UICapturesMouse; }
+    static void SetUICaptureMouse(bool state) { s_UICapturesMouse = state; }
+
     // Tê funkcjê bêdziesz musia³ wywo³ywaæ raz na klatkê!
     static void Update();
 
 private:
     static bool s_CurrentMouseStates[8];
     static bool s_PreviousMouseStates[8];
+
+    static bool s_UICapturesMouse;
 
     // Gamepady standardowo maj¹ oko³o 15-20 przycisków
     static bool s_CurrentGamepadStates[32];

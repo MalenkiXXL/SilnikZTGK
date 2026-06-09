@@ -59,7 +59,6 @@ public:
 
     static inline Entity PendingPickup = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline bool GlobalIsMachineHeld = false;
-    static inline bool GlobalIsHoveringUI = false;
 
     virtual void OnCreate() override
     {
@@ -155,8 +154,7 @@ public:
 
             if (Input::IsMouseButtonJustPressed(0) && m_PickupDelay <= 0.0f)
             {
-                if (!GlobalIsHoveringUI && !IsCellOccupied(transform->GetPosition()))
-                {
+                if (!Input::IsUICapturingMouse() && !IsCellOccupied(transform->GetPosition())) {
                     m_IsHeld = false;
                     m_IsNewlySpawned = false;
                     GlobalIsMachineHeld = false;

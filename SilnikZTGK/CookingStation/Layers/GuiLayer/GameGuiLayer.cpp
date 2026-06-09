@@ -66,7 +66,7 @@ void GameGuiLayer::OnAttach()
     m_QuestionMarkIcon = AssetManager::GetTexture("assets://UI/QuestionMark.png");
     m_CustomerOrderTex = AssetManager::GetTexture("assets://UI/customerOrder.png");
     m_HelperOrderTex = AssetManager::GetTexture("assets://UI/helperOrder.png");
- 
+
 
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
@@ -135,6 +135,16 @@ void GameGuiLayer::OnAttach()
             SetVisible(true);
         }
     );
+
+    auto& appBus = Application::Get().GetEventBus();
+
+    appBus.Subscribe<GamePausedEvent>([this](const GamePausedEvent&) {
+        m_IsGamePaused = true;
+        });
+
+    appBus.Subscribe<GameResumedEvent>([this](const GameResumedEvent&) {
+        m_IsGamePaused = false;
+        });
 }
 
 void GameGuiLayer::OnDetach()
@@ -152,6 +162,19 @@ void GameGuiLayer::OnDetach()
         Application::Get().GetEventBus().Unsubscribe<GameStartedEvent>(m_GameStartedSubId);
         m_GameStartedSubId = 0;
     }
+
+    auto& appBus = Application::Get().GetEventBus();
+
+    if (m_GamePausedSubId != 0) {
+        appBus.Unsubscribe<GamePausedEvent>(m_GamePausedSubId);
+        m_GamePausedSubId = 0;
+    }
+
+    if (m_GameResumedSubId != 0) {
+        appBus.Unsubscribe<GameResumedEvent>(m_GameResumedSubId);
+        m_GameResumedSubId = 0;
+    }
+
 }
 
 bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<Texture>& icon, glm::vec2 basePos, glm::vec2 baseSize, float dt, float hoverScale, bool darkenOnHover, float hitRadiusMultiplier, glm::vec4 tintColor, bool* outIsHovered)
@@ -159,6 +182,14 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<
     if (!icon) return false;
     auto& state = m_BubblyStates[id];
     glm::vec2 mousePos = Gui::GetMappedMousePos();
+
+    // --- SYSTEM BLOKOWANIA PRZEBIJANIA KLIKNIĘĆ (MASKOWANIE TŁA) ---
+    // Jeśli książka jest otwarta, a przycisk NIE JEST częścią książki, to myszka udaje, że jej tam nie ma
+    if (m_IsGamePaused || (m_IsRecipeBookOpen && id.find("Book") == std::string::npos && id.find("Recipe") == std::string::npos)) {
+        mousePos = glm::vec2(-10000.0f, -10000.0f);
+    }
+    // --------------------------------------------------------------
+
     float animSpeed = 15.0f;
     glm::vec2 center = { basePos.x + baseSize.x * 0.5f, basePos.y + baseSize.y * 0.5f };
     float hitRadius = std::min(baseSize.x, baseSize.y) * hitRadiusMultiplier;
@@ -167,7 +198,7 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<
     bool isHovered = (distX * distX + distY * distY) <= (hitRadius * hitRadius);
 
     if (outIsHovered != nullptr) *outIsHovered = isHovered;
-    if (isHovered) MachineScript::GlobalIsHoveringUI = true;
+    if (isHovered) Input::SetUICaptureMouse(true);;
 
     float targetScale = isHovered ? hoverScale : 1.0f;
     glm::vec4 targetColor = (isHovered && darkenOnHover) ? tintColor * glm::vec4(0.8f, 0.8f, 0.8f, 1.0f) : tintColor;
@@ -217,6 +248,9 @@ void GameGuiLayer::DrawRecipeIcon(const std::string& recipeId, const std::shared
 }
 
 void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, bool isPlayMode) {
+    // --- SYSTEM BLOKOWANIA --- Jeśli książka jest otwarta, chowamy popup questów pod spodem!
+    if (m_IsRecipeBookOpen || m_IsGamePaused) return;
+
     if (!DeliveryBoothScript::s_Instance || !DeliveryBoothScript::s_Instance->HasActiveQuest()) return;
     const auto* activeQuest = DeliveryBoothScript::s_Instance->GetActiveQuest();
     if (!activeQuest) return;
@@ -250,7 +284,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     float dy = mousePos.y - (boothScreenY + 60.0f * baseScale);
     if ((dx * dx + dy * dy) > (hoverRadius * hoverRadius)) return;
 
-    MachineScript::GlobalIsHoveringUI = true;
+    Input::SetUICaptureMouse(true);
 
     glm::vec2 cloudSize = { 340.0f * baseScale, 225.0f * baseScale };
     glm::vec2 cloudPos = { boothScreenX - cloudSize.x * 0.5f, boothScreenY - cloudSize.y };
@@ -281,8 +315,12 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
     if (!m_CornerIcon) return;
 
-    m_IngredientsCarousel.OnUpdate(dt);
-    m_MachinesCarousel.OnUpdate(dt);
+    // --- SYSTEM BLOKOWANIA --- Aktualizujemy karuzele tylko jak książka jest wyłączona
+    if (!m_IsRecipeBookOpen) {
+        m_IngredientsCarousel.OnUpdate(dt);
+        m_MachinesCarousel.OnUpdate(dt);
+    }
+    // -------------------------
 
     glm::vec2 baseIconSize = GuiUtils::CalculateAspectSize(m_CornerIcon, gameHeight * 0.30f);
     glm::vec2 leftPosBase = { gameX, gameY + gameHeight - baseIconSize.y };
@@ -420,7 +458,12 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
 #ifdef CS_DISTRIBUTION
     if (!m_IsVisible) return;
 #endif
-    MachineScript::GlobalIsHoveringUI = false;
+
+    Input::SetUICaptureMouse(false);
+
+    if (m_IsRecipeBookOpen || m_IsGamePaused) {
+        Input::SetUICaptureMouse(true);
+    }
 
     Gui::BeginFrame();
     Gui::UpdateDeltaTime(ts.GetSeconds());
@@ -544,14 +587,10 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         float textScale = 2.0f * baseScale;
         float textWidth = Gui::MeasureTextWidth(m_MoneyStr, textScale);
 
-        // 1. Obliczamy całkowitą szerokość grupy (Ikonka monety + odstęp + tekst)
         float coinH = 80.0f * baseScale;
         float totalWidth = coinH + (8.0f * baseScale) + textWidth;
 
-        // 2. Wyznaczamy pozycję startową tak, aby CAŁA grupa była na idealnym środku ekranu
         float startX = gameX + (gameWidth - totalWidth) * 0.5f;
-
-        // 3. Ustawiamy pozycję samego tekstu (ikonka narysuje się automatycznie z jego lewej strony)
         glm::vec2 textPos = { startX + coinH + (8.0f * baseScale), gameY + 40.0f * baseScale };
 
         DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
@@ -608,6 +647,18 @@ void GameGuiLayer::OnEvent(Event& e) {
 #ifdef CS_DISTRIBUTION
     if (!m_IsVisible) return;
 #endif
+
+    // --- SYSTEM BLOKOWANIA PRZEBIJANIA KLIKNIĘĆ W ŚWIAT 3D ---
+    if (m_IsRecipeBookOpen) {
+        if (e.GetEventType() == EventType::MouseButtonPressed ||
+            e.GetEventType() == EventType::MouseButtonReleased ||
+            e.GetEventType() == EventType::MouseMoved ||
+            e.GetEventType() == EventType::MouseScrolled)
+        {
+            e.Handled = true; // Zatrzymuje kliknięcie w przestrzeni 3D i dla okien poniżej!
+        }
+    }
+    // ---------------------------------------------------------
 
     if (m_PausePanel) {
         m_PausePanel->OnEvent(e);

@@ -157,3 +157,6 @@ struct CustomerServedEvent {
     Entity Customer;
     Entity ServedFood;
 };
+
+struct GamePausedEvent {};
+struct GameResumedEvent {};

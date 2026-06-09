@@ -13,6 +13,8 @@ bool Input::s_PreviousGamepadStates[32] = { false };
 float Input::s_CurrentGamepadAxes[6] = { 0.0f };
 float Input::s_PreviousGamepadAxes[6] = { 0.0f };
 
+bool Input::s_UICapturesMouse = false;
+
 
 bool Input::IsKeyPressed(int keycode)
 {

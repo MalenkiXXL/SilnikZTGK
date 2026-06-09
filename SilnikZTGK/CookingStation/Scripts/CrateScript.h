@@ -82,8 +82,7 @@ public:
         bool isGamepadSquare = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0);
 
         // 2. Wykonujemy zaawansowan¹ logikê TYLKO w momencie klikniêcia (du¿a optymalizacja)
-        if ((isMouseClick || isGamepadSquare) && m_SpawnCooldown <= 0.0f && !MachineScript::GlobalIsHoveringUI && !MachineScript::GlobalIsMachineHeld)
-        {
+        if ((isMouseClick || isGamepadSquare) && m_SpawnCooldown <= 0.0f && !Input::IsUICapturingMouse() && !MachineScript::GlobalIsMachineHeld) {
             glm::vec3 cursorWorldPos = GetMouseWorldPosition(); // Teraz to samo wie, czy zwracaæ pada czy mysz!
 
             glm::vec2 cursor2D = { cursorWorldPos.x, cursorWorldPos.z };
