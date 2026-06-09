@@ -178,8 +178,8 @@ private:
         m_Frustum = ExtractFrustum(viewProj);
     }
 
-    glm::vec2 MinPanBounds = glm::vec2(-50.0f, -50.0f); // Dostosuj te wartości
-    glm::vec2 MaxPanBounds = glm::vec2(50.0f, 50.0f);   // Dostosuj te wartości
+    glm::vec2 MinPanBounds = glm::vec2(-50.0f, -50.0f);
+    glm::vec2 MaxPanBounds = glm::vec2(50.0f, 50.0f);
     bool UseBounds = true;
 
 
