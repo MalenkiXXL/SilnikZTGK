@@ -38,7 +38,7 @@ void GameGuiLayer::OnAttach()
     m_PausePanel = std::make_unique<PauseMenuPanel>();
 
 #ifdef CS_DISTRIBUTION
-    Gui::Init("assets://fonts/ARIAL.TTF", 32);
+    Gui::Init("assets://fonts/FrankfurterMediumRegular.ttf", 32);
 #endif
 
     auto windowSize = Input::GetWindowSize();

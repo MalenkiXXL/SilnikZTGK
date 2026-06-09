@@ -11,6 +11,7 @@
       0.3
     ]
   },
+  "name": "Package",
   "model_path": "CookingStation/Assets/models/dostawa/paczka.gltf",
   "rotation": [
     0.0,
