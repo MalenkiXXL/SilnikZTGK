@@ -7,8 +7,7 @@ class PackageScript : public ScriptableEntity{
 public:
     inline static std::vector<Entity> s_ActivePackages;
 
-    IngredientType m_Type = IngredientType::Tomato;
-    int m_IngredientAmount = 5;
+
 
     float m_TimeAlive = 0.0f;
     glm::vec3 m_BaseScale = glm::vec3(0.0f);
@@ -83,12 +82,17 @@ public:
         }
     }
 
+    IngredientType getType() const;
+
 private:
     std::size_t m_ClickSubId = 0;
     bool m_IsCollected = false;
 
     std::size_t m_ConfigSubId = 0;
     bool m_IsConfigured = false;
+
+    IngredientType m_Type = IngredientType::Tomato;
+    int m_IngredientAmount = 5;
 };
 
 

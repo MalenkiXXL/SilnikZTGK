@@ -105,12 +105,14 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
 
     if (activeScene->GetState() == SceneState::Edit) {
         if (Gui::Button("PLAY", playButtonPos, playButtonSize)) {
+            Gui::Init("assets://fonts/FrankfurterMediumRegular.ttf", 32);
             ScenePlayEvent e;
             Application::Get().OnEvent(e);
         }
     }
     else {
         if (Gui::Button("STOP", playButtonPos, playButtonSize)) {
+            Gui::Init("assets://fonts/ARIAL.TTF", 32);
             SceneStopEvent e;
             Application::Get().OnEvent(e);
         }

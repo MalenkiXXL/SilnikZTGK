@@ -6,11 +6,12 @@
       0.0
     ],
     "size": [
-      1.0,
-      1.0,
-      1.0
+      0.55,
+      0.54,
+      0.3
     ]
   },
+  "name": "Package",
   "model_path": "CookingStation/Assets/models/dostawa/paczka.gltf",
   "rotation": [
     0.0,

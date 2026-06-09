@@ -23,3 +23,6 @@ void PackageScript::HandleClick()
 
 }
 
+IngredientType PackageScript::getType() const {
+    return m_Type;
+}

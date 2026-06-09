@@ -211,8 +211,9 @@ private:
     // ── Stany animacji "bubbly" ────────────────────────────────────────
     std::unordered_map<std::string, BubblyState> m_BubblyStates;
 
-
     std::size_t m_GamePausedSubId = 0;
     std::size_t m_GameResumedSubId = 0;
     bool m_IsGamePaused = false;
+
+    void DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
 };

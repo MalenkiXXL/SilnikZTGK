@@ -50,8 +50,26 @@ void DeliveryManagerScript::OnCreate()
 
     m_PackageSpawnedSubId = GetScene()->GetWorld().GetEventBus().Subscribe<PackageSpawnedEvent>(
             [this](const PackageSpawnedEvent& e) {
-                // Odpowiadamy konkretnej paczce
-                GetScene()->GetWorld().GetEventBus().Publish(ConfigurePackageEvent{ e.TargetEntity, m_CurrentOrderType, 5 });
+                IngredientType typeForThisPackage = IngredientType::None;
+
+                // Dobieramy typ dla obecnej paczki
+                if (m_SpawnedPackagesCount < m_CurrentOrderTypes.size()) {
+                    typeForThisPackage = m_CurrentOrderTypes[m_SpawnedPackagesCount];
+                } else if (!m_CurrentOrderTypes.empty()) {
+                    typeForThisPackage = m_CurrentOrderTypes[0];
+                }
+
+                // Numer paczki do logów
+                int packageNumberForLog = m_SpawnedPackagesCount + 1;
+
+                spdlog::info("[DeliveryManager] Konfiguruję paczkę nr {} - Zawartość: {}",
+                             packageNumberForLog,
+                             IngredientTypeToString(typeForThisPackage));
+
+                m_SpawnedPackagesCount++;
+
+                // Odpowiadamy konkretnej paczce jej własnym, unikalnym typem
+                GetScene()->GetWorld().GetEventBus().Publish(ConfigurePackageEvent{ e.TargetEntity, typeForThisPackage, 5 });
             }
     );
 
@@ -101,21 +119,25 @@ void DeliveryManagerScript::RunDeliveryDecisionTree()
         realInventory[type] = gm->GetIngredientCount(type);
     }
 
-    IngredientType typeToDeliver = DeliveryLogic::CalculateWhatToOrder(
+    std::vector<IngredientType> typesToDeliver = DeliveryLogic::CalculateWhatToOrder(
             m_ActiveOrdersQueue,
             realInventory,
             m_MinThreshold
     );
 
-    if (typeToDeliver != IngredientType::None) {
-        spdlog::info("[DeliveryAI] Mózg zdecydował zamówić: {}", IngredientTypeToString(typeToDeliver));
-        CallForDelivery(typeToDeliver);
+    if (!typesToDeliver.empty() && typesToDeliver[0] != IngredientType::None) {
+        spdlog::info("[DeliveryAI] DeliveryManager zdecydował zamówić paczki. Opcja 1: {}", IngredientTypeToString(typesToDeliver[0]));
+        if(typesToDeliver.size() > 1) {
+            spdlog::info("[DeliveryAI] Opcja 2: {}", IngredientTypeToString(typesToDeliver[1]));
+        }
+        CallForDelivery(typesToDeliver);
     }
 }
 
-void DeliveryManagerScript::CallForDelivery(IngredientType type)
+void DeliveryManagerScript::CallForDelivery(std::vector<IngredientType> types)
 {
-    m_CurrentOrderType = type;
+    m_CurrentOrderTypes = types;
+    m_SpawnedPackagesCount = 0; // Zaczynamy nową dostawę
 
     Entity car = PrefabSerializer::Deserialize(GetScene(), m_VanPrefabPath, m_CarStartPos);
 
@@ -123,9 +145,10 @@ void DeliveryManagerScript::CallForDelivery(IngredientType type)
     {
         m_DeliveryCarEntityId = car.id;
         m_IsDeliveryOnTheWay = true;
-        spdlog::info("[DeliveryAI] Dostawczak wyruszyl z: {}.", IngredientTypeToString(type));
+        spdlog::info("[DeliveryAI] Dostawczak wyruszyl z 2 roznymi paczkami.");
     }
 }
+
 void DeliveryManagerScript::OnDestroy()
 {
     GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityDestroyedEvent>(m_DeliveryDestroySubId);
