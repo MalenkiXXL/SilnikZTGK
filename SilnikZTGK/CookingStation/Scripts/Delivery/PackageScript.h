@@ -83,6 +83,7 @@ public:
     }
 
     IngredientType getType() const;
+    int getIngredientAmount() const { return m_IngredientAmount; }
 
 private:
     std::size_t m_ClickSubId = 0;

@@ -96,6 +96,9 @@ private:
     void DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight,
         float baseScale);
 
+    void DrawHoverCloudUI(const glm::vec2& screenPos, const std::shared_ptr<Texture>& icon, int amount, float baseScale);
+    void DrawCrateHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
+
 private:
     // ── Stan ogólny ────────────────────────────────────────────────────
     bool m_IsVisible = false;

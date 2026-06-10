@@ -609,6 +609,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);
 
     DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+    DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
     if (m_CoinIcon) {
         if (m_LastMoney == -1 && GameManagerScript::s_Instance) {
@@ -816,6 +817,35 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
     }
 }
 
+void GameGuiLayer::DrawHoverCloudUI(const glm::vec2& screenPos, const std::shared_ptr<Texture>& icon, int amount, float baseScale)
+{
+    if (!icon) return;
+
+    glm::vec2 cloudSize = { 150.0f * baseScale, 150.0f * baseScale };
+    glm::vec2 cloudPos = { screenPos.x - cloudSize.x * 0.5f, screenPos.y - cloudSize.y };
+
+    if (m_BookCloudIcon) {
+        Renderer2D::DrawQuad(cloudPos, cloudSize, m_BookCloudIcon, {1.0f, 1.0f, 1.0f, 0.95f}, {0.0f, 1.0f}, {1.0f, 0.0f});
+    }
+
+    glm::vec2 iconSize = GuiUtils::CalculateAspectSize(icon, 55.0f * baseScale);
+    glm::vec2 iconPos = { cloudPos.x + (cloudSize.x - iconSize.x) * 0.5f, cloudPos.y + (cloudSize.y - iconSize.y) * 0.5f - (10.0f * baseScale) };
+
+    Renderer2D::DrawQuad(iconPos, iconSize, icon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+    std::string amountStr = "x" + std::to_string(amount);
+    float textScale = 1.3f * baseScale;
+    float textWidth = Gui::MeasureTextWidth(amountStr, textScale);
+
+    glm::vec2 textPos = { cloudPos.x + (cloudSize.x - textWidth) * 0.5f, iconPos.y + iconSize.y - (6.0f * baseScale) };
+
+    // kolor w zależności od ilości
+    glm::vec4 textColor = (amount > 0) ? glm::vec4(0.118f, 0.737f, 0.451f, 1.0f) : glm::vec4(1.0f, 0.3f, 0.3f, 1.0f);
+
+    Gui::DrawGuiText(amountStr, {textPos.x + 2.0f, textPos.y + 2.0f}, textScale, {0.1f, 0.1f, 0.1f, 0.6f}); // Cień
+    Gui::DrawGuiText(amountStr, textPos, textScale, textColor); // Tekst główny
+}
+
 void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt)
 {
     if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
@@ -873,8 +903,6 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
 
             if (!packScript) continue;
 
-            Input::SetUICaptureMouse(true);
-
             // Mapowanie ikony
             std::shared_ptr<Texture> iconToDraw = nullptr;
             switch (packScript->getType()) {
@@ -886,20 +914,74 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
                 default: iconToDraw = m_QuestionMarkIcon; break;
             }
 
-            // Rysowanie UI
-            if (iconToDraw) {
-                glm::vec2 cloudSize = { 120.0f * baseScale, 120.0f * baseScale };
-                glm::vec2 cloudPos = { screenX - cloudSize.x * 0.5f, screenY - cloudSize.y };
+            DrawHoverCloudUI({screenX, screenY}, iconToDraw, packScript->getIngredientAmount(), baseScale);
+        }
+    }
+}
 
-                if (m_BookCloudIcon) {
-                    Renderer2D::DrawQuad(cloudPos, cloudSize, m_BookCloudIcon, {1.0f, 1.0f, 1.0f, 0.95f}, {0.0f, 1.0f}, {1.0f, 0.0f});
-                }
+void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt)
+{
+    if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
 
-                glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, 55.0f * baseScale);
-                glm::vec2 iconPos = { cloudPos.x + (cloudSize.x - iconSize.x) * 0.5f, cloudPos.y + (cloudSize.y - iconSize.y) * 0.5f };
+    auto* transforms = m_ActiveScene->GetWorld().GetComponentVector<TransformComponent>();
+    auto* scripts = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
 
-                Renderer2D::DrawQuad(iconPos, iconSize, iconToDraw, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    if (!transforms || !scripts) return;
+
+    auto* camera = m_ActiveScene->GetCamera();
+    glm::mat4 view = camera->GetViewMatrix();
+    float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+    float orthoSize = camera->OrthoSize;
+    glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+    glm::mat4 viewProj = proj3D * view;
+
+    glm::vec2 mousePos = Gui::GetMappedMousePos();
+    // Nieco większy promień łapania dla skrzynek
+    float hoverRadiusSq = (55.0f * baseScale) * (55.0f * baseScale);
+
+    for (size_t i = 0; i < scripts->dense.size(); ++i) {
+        auto& nsc = scripts->dense[i];
+
+        CrateScript* crateScript = nullptr;
+        for (auto& s : nsc.Scripts) {
+            if (s.Name == "CrateScript") {
+                crateScript = (CrateScript*)s.Instance;
+                break;
             }
         }
+
+        // Jeśli to nie jest skrzynka lub nie ma typu, pomijamy
+        if (!crateScript || crateScript->m_CrateIngredient == IngredientType::None) continue;
+
+        Entity crateEnt = scripts->reverse[i];
+        auto* tf = transforms->Get(crateEnt);
+        if (!tf) continue;
+
+        // Środek skrzynki podniesiony w górę
+        glm::vec3 cratePos = tf->GetPosition() + glm::vec3(0.0f, 1.2f, 0.0f);
+        glm::vec4 clipSpace = viewProj * glm::vec4(cratePos, 1.0f);
+        if (clipSpace.w == 0.0f) continue;
+
+        glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
+        float screenX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
+        float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
+
+        float dx = mousePos.x - screenX;
+        float dy = mousePos.y - (screenY + 40.0f * baseScale);
+
+        if ((dx * dx + dy * dy) > hoverRadiusSq) continue;
+
+        std::shared_ptr<Texture> iconToDraw = nullptr;
+        switch (crateScript->m_CrateIngredient) {
+            case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
+            case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
+            case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
+            case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
+            case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
+            default: iconToDraw = m_QuestionMarkIcon; break;
+        }
+
+        int amount = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(crateScript->m_CrateIngredient) : 0;
+        DrawHoverCloudUI({screenX, screenY}, iconToDraw, amount, baseScale);
     }
 }
