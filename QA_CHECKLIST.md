@@ -1,0 +1,35 @@
+# Scenariusz Testów Funkcjonalnych (QA Checklist)
+**Projekt:** SilnikZTGK - Cooking Station
+**Typ testu:** Manualny test ścieżki krytycznej + Przypadki brzegowe (Edge Cases)
+
+| ID | Akcja gracza (Krok testowy)                                                                                 | Oczekiwany Rezultat systemu                                                               | Status |
+| :--- |:------------------------------------------------------------------------------------------------------------|:------------------------------------------------------------------------------------------| :---: |
+| **01** | W menu głównym kliknij przycisk "Play".                                                                     | Ładuje się scena kuchni.                                                                  | [ ] |
+| **02** | Kliknij na pomidora w strefie składników.                                                                   | Pomidor zostaje położony na taśmę.                                                        | [ ] |
+| **03** | Kliknij na deskę do krojenia.                                                                               | Pomidor zostaje upuszczony na deskę.                                                      | [ ] |
+| **04** | Kliknij 3 razy na deskę z pomidorem.                                                                        | Słychać dźwięk krojenia, a model zmienia się na "pokrojony pomidor".                      | [ ] |
+| **05** | *[Edge Case]* Spróbuj pokroić deskę po raz 4. (gdy pomidor jest już gotowy).                                | Gra ignoruje kliknięcia, nie psuje modelu ani nie crashuje.                               | [ ] |
+| **06** | Kliknij na deskę, gdy talerz jest podświetlony na żółto, aby przełożyć pomidora na taśmę.                   | Pokrojony pomidor ląduje na taśmie.                                                       | [ ] |
+| **07** | Kliknij na talerz, gdy garnek jest zaświecony na żółto.                                                     | Pomidor trafia do garnka, zaczyna się gotowanie.                                          | [ ] |
+| **08** | Poczekaj na ugotowanie zupy.                                                                                | Po upływie czasu gotowania model zmienia się na "zupę", słychać dźwięk gotowego dania.    | [ ] |
+| **09** | Kliknij na garnek, aby przełożyć zupę na talerz.                                                            | Model zupy pojawia się na talerzu. Garnek jest znowu pusty.                               | [ ] |
+| **10** | Kliknij zwrotnicę, aby wydać talerz z zupą.                                                                 | Talerz odjeżdża, kelner podaje danie, gracz otrzymuje zapłatę za zrealizowane zamówienie. | [ ] |
+| **11** | Kliknij zwrotnicę, aby nie wydać pustego talerza.                                                           | Talerze wracają na standardowy tor.                                                       | [ ] |
+| **12** | Kliknij paczkę dostawy.                                                                                     | Z paczki generują się nowe składniki, uzupełniając stan magazynu.                         | [ ] |
+| **13** | Kliknij mleko, a następnie kliknij Mikser, gdy zaświeci się na żółto.                                       | Mleko ląduje w mikserze.                                                                  | [ ] |
+| **14** | Kliknij mąkę.                                                                                               | Mąka ląduje na taśmie.                                                                    | [ ] |
+| **15** | *[Edge Case]* Kliknij deskę kiedy mąka jest w pobliżu.                                                      | Mąka nie przeskakuje na deskę.                                                            | [ ] |
+| **16** | Kliknij Mikser, gdy mąka jest w pobliżu.                                                                    | Mąka dołącza do mleka. Mikser rozpoczyna wyrabianie ciasta.                               | [ ] |
+| **17** | Po wyrobieniu kliknij Mikser, aby pobrać surowe ciasto.                                                     | Ciasto pojawia się na taśmie.                                                             | [ ] |
+| **18** | Kliknij Piekarnik, aby włożyć ciasto.                                                                       | Ciasto zaczyna się piec (odliczanie czasu).                                               | [ ] |
+| **19** | Po upieczeniu kliknij Piekarnik i przełóż bagietkę na talerz.                                               | Upieczona bagietka pojawia się na talerzu.                                                | [ ] |
+| **20** | Przełóż bagietkę z talerza na deskę do krojenia i kliknij 3 razy.                                           | Bagietka zostaje pokrojona na połówki.                                                    | [ ] |
+| **21** | Przełóż pokrojoną bagietkę z powrotem na talerz.                                                            | Pokrojona bagietka stanowi teraz bazę do kanapki.                                         | [ ] |
+| **22** | Podnieś ser, połóż na deskę i pokrój (3 kliknięcia).                                                        | Ser zostaje pokrojony na plastry.                                                         | [ ] |
+| **23** | Przełóż pokrojony ser na talerz z bagietką.                                                                 | Ser wizualnie łączy się z bagietką na talerzu.                                            | [ ] |
+| **24** | Podnieś pomidora, połóż na deskę i pokrój (3 kliknięcia).                                                   | Pomidor zostaje pokrojony na plastry.                                                     | [ ] |
+| **25** | Przełóż pokrojonego pomidora na talerz z bagietką i serem.                                                  | Pomidor dołącza do kompozycji na talerzu.                                                 | [ ] |
+| **26** | Podnieś szynkę, połóż na deskę i pokrój (3 kliknięcia).                                                     | Mięso zostaje pokrojone.                                                                  | [ ] |
+| **27** | Przełóż pokrojone mięso na talerz z resztą składników.                                                      | Kanapka (bagietka + ser + pomidor + mięso) jest wizualnie kompletna.                      | [ ] |
+| **28** | Kliknij zwrotnicę, aby wydać gotową, złożoną kanapkę.                                                       | Złożone danie zostaje wydane, gracz otrzymuje monety za zamówienie.                       | [ ] |
+| **29** | *[Edge Case]* Kliknij na dowolny składnik o 1 więcej razy niż jego liczba w UI (w strefie składników).      | Składnik się nie pojawia (silnik prawidłowo blokuje nadmiarowe akcje).                    | [ ] |
