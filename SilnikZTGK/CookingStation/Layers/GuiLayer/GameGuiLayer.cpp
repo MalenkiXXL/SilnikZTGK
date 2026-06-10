@@ -56,6 +56,7 @@ void GameGuiLayer::OnAttach()
     m_BookXIcon = AssetManager::GetTexture("assets://UI/bookX.png");
     m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
     m_CoinIcon = AssetManager::GetTexture("assets://UI/coin.png");
+    m_CoinCloudIcon = AssetManager::GetTexture("assets://UI/coinCloud.png");
     m_PotIcon = AssetManager::GetTexture("assets://UI/pot.png");
     m_MilkIcon = AssetManager::GetTexture("assets://UI/pot.png");
     m_FlourIcon = AssetManager::GetTexture("assets://UI/Flour.png");
@@ -193,7 +194,7 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<
 
     float animSpeed = 15.0f;
     glm::vec2 center = { basePos.x + baseSize.x * 0.5f, basePos.y + baseSize.y * 0.5f };
-    float hitRadius = std::min(baseSize.x, baseSize.y) * hitRadiusMultiplier;
+    float hitRadius = std::min(baseSize.x, baseSize.y) * hitRadiusMultiplier * state.scale;
     float distX = mousePos.x - center.x;
     float distY = mousePos.y - center.y;
     bool isHovered = (distX * distX + distY * distY) <= (hitRadius * hitRadius);
@@ -376,16 +377,45 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
     if (!iconTex) return;
     float coinH = 80.0f * baseScale;
     glm::vec2 coinSize = { coinH, coinH };
+
+    // Mierzymy tekst
+    float textWidth = Gui::MeasureTextWidth(text, textScale);
     float textHeight = Gui::MeasureTextHeight(text, textScale);
     float baselineOffset = 32.0f * 0.8f * textScale;
+
+    // Wyliczamy pozycje Y
     float textCenterY = textPos.y + baselineOffset - (textHeight * 0.5f);
-    glm::vec2 coinPos = { textPos.x - coinSize.x - 8.0f * baseScale, textCenterY - (coinSize.y * 0.5f) };
+    float spacing = 8.0f * baseScale;
+    glm::vec2 coinPos = { textPos.x - coinSize.x - spacing, textCenterY - (coinSize.y * 0.5f) };
 
+    // Definiujemy marginesy wokół zawartości
+    float paddingX = 45.0f * baseScale;
+    float paddingY = 30.0f * baseScale;
+
+    // Szerokość to: szerokość monety + odstęp + szerokość tekstu
+    float totalContentWidth = coinSize.x + spacing + textWidth;
+    float totalContentHeight = std::max(coinSize.y, textHeight);
+
+    // Rozmiar i pozycja chmury
+    glm::vec2 cloudSize = { totalContentWidth + (paddingX * 2.0f), totalContentHeight + (paddingY * 2.0f) };
+    glm::vec2 cloudPos = {
+            coinPos.x - paddingX,
+            textCenterY - (cloudSize.y * 0.5f)
+    };
+
+    // Rysujemy chmurę
+    DrawBubblyImage("CloudIcon", m_CoinCloudIcon, cloudPos, cloudSize, dt, 1.05f, false);
+
+    // Rysujemy monetę
     DrawBubblyImage("CoinIcon", iconTex, coinPos, coinSize, dt, 1.05f, false);
-    glm::vec2 shadowPos = { std::floor(textPos.x + 2.0f), std::floor(textPos.y + 2.0f) };
-    glm::vec2 finalPos = { std::floor(textPos.x), std::floor(textPos.y) };
 
-    Gui::DrawGuiText(text, shadowPos, textScale, { 0.0f, 0.0f, 0.0f, 0.85f });
+    float coinCenterY = coinPos.y + (coinSize.y * 0.5f);
+    float textDrawY = coinCenterY - baselineOffset + (textHeight * 0.25f);
+
+    glm::vec2 shadowPos = { std::floor(textPos.x + 3.0f), std::floor(textDrawY + 3.0f) };
+    glm::vec2 finalPos  = { std::floor(textPos.x),         std::floor(textDrawY) };
+
+    Gui::DrawGuiText(text, shadowPos, textScale, { 0.0f, 0.0f, 0.0f, 0.6f });
     Gui::DrawGuiText(text, finalPos, textScale, { 1.0f, 0.95f, 0.3f, 1.0f });
 }
 
@@ -594,7 +624,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         float totalWidth = coinH + (8.0f * baseScale) + textWidth;
 
         float startX = gameX + (gameWidth - totalWidth) * 0.5f;
-        glm::vec2 textPos = { startX + coinH + (8.0f * baseScale), gameY + 40.0f * baseScale };
+        glm::vec2 textPos = { startX + coinH + (8.0f * baseScale), gameY + 55.0f * baseScale };
 
         DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
     }

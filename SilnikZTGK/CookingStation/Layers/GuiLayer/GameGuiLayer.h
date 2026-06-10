@@ -116,6 +116,7 @@ private:
     std::shared_ptr<Texture> m_HeartIcon;
     std::shared_ptr<Texture> m_StarIcon;
     std::shared_ptr<Texture> m_CoinIcon;
+    std::shared_ptr<Texture> m_CoinCloudIcon;
     std::shared_ptr<Texture> m_ClockIcon;
     std::shared_ptr<Texture> m_QuestionMarkIcon;
     std::shared_ptr<Texture> m_ExclamationIcon;
