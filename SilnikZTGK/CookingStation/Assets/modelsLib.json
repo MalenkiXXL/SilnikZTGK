@@ -329,16 +329,117 @@
       "path": "CookingStation/Assets/models/przybory_kuchenne/szafka/szafka.gltf"
     },
     {
-        "name": "Krzeslo",
-        "path": "CookingStation/Assets/models/wystroj/krzeslo.gltf"
+      "name": "Krzeslo",
+      "path": "CookingStation/Assets/models/wystroj/krzeslo.gltf"
     },
     {
-        "name": "Skrzynka",
-        "path": "CookingStation/Assets/models/wystroj/skrzynka/skrzynka.gltf"
+      "name": "Skrzynka",
+      "path": "CookingStation/Assets/models/wystroj/skrzynka/skrzynka.gltf"
     },
     {
-        "name": "Wydawka",
-        "path": "CookingStation/Assets/models/wystroj/wydawka/wydawka.gltf"
+      "name": "Wydawka",
+      "path": "CookingStation/Assets/models/wystroj/wydawka/wydawka.gltf"
+    },
+    {
+      "name": "Wydawka-dekor",
+      "path": "CookingStation/Assets/models/wystroj/wydawka/wydawka-dekor.gltf"
+    },
+    {
+      "name": "Wydawka2",
+      "path": "CookingStation/Assets/models/wystroj/wydawka/wydawka2.gltf"
+    },
+    {
+      "name": "palnik",
+      "path": "CookingStation/Assets/models/wystroj/palnik/palnik.gltf"
+    },
+    {
+      "name": "stoliki-nowe",
+      "path": "CookingStation/Assets/models/wystroj/stoliki-nowe/stolik.gltf"
+    },
+    {
+      "name": "event",
+      "path": "CookingStation/Assets/models/wystroj/event/event.gltf"
+    },
+    {
+      "name": "event-detal",
+      "path": "CookingStation/Assets/models/wystroj/event/event-detal.gltf"
+    },
+    {
+      "name": "jajo-sadzone",
+      "path": "CookingStation/Assets/models/skladniki/jajko-dania/jajo.gltf"
+    },
+    {
+      "name": "jajo-bekon",
+      "path": "CookingStation/Assets/models/skladniki/jajko-dania/jajo-bekon.gltf"
+    },
+    {
+      "name": "szakszuka",
+      "path": "CookingStation/Assets/models/skladniki/jajko-dania/szakszuka.gltf"
+    },
+    {
+      "name": "kubek-shake",
+      "path": "CookingStation/Assets/models/skladniki/shake/kubek-shake.gltf"
+    },
+    {
+      "name": "shake-jablko",
+      "path": "CookingStation/Assets/models/skladniki/shake/shake-jablko.gltf"
+    },
+    {
+      "name": "shake-kawa",
+      "path": "CookingStation/Assets/models/skladniki/shake/shake-kawa.gltf"
+    },
+    {
+      "name": "shake-malina",
+      "path": "CookingStation/Assets/models/skladniki/shake/shake-malina.gltf"
+    },
+    {
+      "name": "shake-truskawka",
+      "path": "CookingStation/Assets/models/skladniki/shake/shake-truskawka.gltf"
+    },
+    {
+      "name": "frytki",
+      "path": "CookingStation/Assets/models/skladniki/frytki/frytki.gltf"
+    },
+    {
+      "name": "notatnik",
+      "path": "CookingStation/Assets/models/animacje/notatnik/notatnik.gltf"
+    },
+    {
+      "name": "notatnik-animacja",
+      "path": "CookingStation/Assets/models/animacje/notatnik/notatnik-animacja.gltf"
+    },
+    {
+      "name": "notatnik",
+      "path": "CookingStation/Assets/models/animacje/notatnik/notatnik-test.gltf"
+    },
+    {
+      "name": "notatnik-anima",
+      "path": "CookingStation/Assets/models/animacje/notatnik/notatnik-anima.gltf"
+    },
+    {
+      "name": "proteza",
+      "path": "CookingStation/Assets/models/animacje/proteza/proteza-p.gltf"
+    },
+    {
+      "name": "proteza-kroi",
+      "path": "CookingStation/Assets/models/animacje/proteza/proteza-p-kroi.gltf"
+    },
+    {
+      "name": "marchewka-noz",
+      "path": "CookingStation/Assets/models/animacje/klienci/marchewka-kroi/marchewka-noz.gltf"
+    },
+    {
+      "name": "pomidor-noz",
+      "path": "CookingStation/Assets/models/animacje/klienci/pomidor-kroi/pomidor-noz.gltf"
+    },
+    {
+      "name": "rzodkiewka-noz",
+      "path": "CookingStation/Assets/models/animacje/klienci/rzodkiewka-kroi/rzodkiewka-noz.gltf"
+    },
+    {
+      "name": "babcia",
+      "path": "CookingStation/Assets/models/animacje/babcia/babcia-chodzi.gltf"
     }
+
   ]
 }
