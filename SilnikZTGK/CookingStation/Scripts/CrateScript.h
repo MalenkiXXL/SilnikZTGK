@@ -15,7 +15,7 @@
 class CrateScript : public ScriptableEntity
 {
 public:
-    // ZMIANA: Teraz domyœlnym stanem jest None! 
+    // ZMIANA: Teraz domyï¿½lnym stanem jest None! 
     IngredientType m_CrateIngredient = IngredientType::None;
 
     Entity m_VisualFood = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -38,33 +38,64 @@ public:
                 m_CrateIngredient = IngredientType::Baguette;
             else if (name.find("Milk") != std::string::npos || name.find("Mleko") != std::string::npos)
                 m_CrateIngredient = IngredientType::Milk;
-            else if (name.find("Flour") != std::string::npos || name.find("Maka") != std::string::npos || name.find("M¹ka") != std::string::npos)
+            else if (name.find("Flour") != std::string::npos || name.find("Maka") != std::string::npos || name.find("Mï¿½ka") != std::string::npos)
                 m_CrateIngredient = IngredientType::Flour;
         }
 
         if (m_CrateIngredient == IngredientType::None) {
             spdlog::error("Skrzynka o ID {} ma nierozpoznany tag! Jest pusta i nie bedzie dzialac.", m_Entity.id);
         }
+
+        m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
+            [this](const EntityClickedEvent& e) {
+                if (e.TargetEntity.id == m_Entity.id) {
+                    this->HandleClick();
+                }
+            }
+        );
     }
 
     void OnDestroy() override
     {
-        if (m_VisualFood.id != std::numeric_limits<std::size_t>::max())
-            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_VisualFood });
+        auto* scene = GetScene();
+        if (scene) {
+            if (m_ClickSubId != 0) {
+                scene->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
+            }
+            if (m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                scene->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_VisualFood });
+            }
+        }
+    }
+
+    void HandleClick()
+    {
+        if (m_CrateIngredient == IngredientType::None) return;
+        if (m_SpawnCooldown > 0.0f || MachineScript::GlobalIsHoveringUI || MachineScript::GlobalIsMachineHeld) return;
+
+        if (m_HasStock)
+        {
+            m_SpawnCooldown = 0.2f;
+            SpawnIngredientOnConveyor();
+            GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ m_CrateIngredient, 1 });
+        }
+        else
+        {
+            spdlog::warn("Skrzynka: Brak zapasow tego skladnika w magazynie (0 sztuk)!");
+        }
     }
 
     void OnUpdate(Timestep ts) override
     {
-        // Jeœli skrzynka jest uszkodzona/nie ma przypisanego typu, nie robimy nic
+        // 1. Zabezpieczenie przed pustï¿½ konfiguracjï¿½
         if (m_CrateIngredient == IngredientType::None) return;
 
+        // 2. Obsï¿½uga cooldownu (ï¿½eby gracz nie wypluï¿½ 100 pomidorï¿½w w sekundï¿½)
         if (m_SpawnCooldown > 0.0f) {
             m_SpawnCooldown -= ts.GetSeconds();
         }
 
-        // =========================================================
-        // SPRAWDZANIE INWENTARZA
-        // =========================================================
+        // 3. Weryfikacja stanu magazynu i aktualizacja wizualna modelu
         int currentStock = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(m_CrateIngredient) : 0;
         bool shouldHaveStock = (currentStock > 0);
 
@@ -77,21 +108,21 @@ public:
         auto* tf = GetComponent<TransformComponent>();
         if (!tf) return;
 
-        // 1. Sprawdzamy, czy nast¹pi³a jakakolwiek akcja interakcji (Mysz: LPM, Pad: Kwadrat/X [ID 2])
+        // 1. Sprawdzamy, czy nastï¿½piï¿½a jakakolwiek akcja interakcji (Mysz: LPM, Pad: Kwadrat/X [ID 2])
         bool isMouseClick = Input::IsMouseButtonJustPressed(0);
         bool isGamepadSquare = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0);
 
-        // 2. Wykonujemy zaawansowan¹ logikê TYLKO w momencie klikniêcia (du¿a optymalizacja)
+        // 2. Wykonujemy zaawansowanï¿½ logikï¿½ TYLKO w momencie klikniï¿½cia (duï¿½a optymalizacja)
         if ((isMouseClick || isGamepadSquare) && m_SpawnCooldown <= 0.0f && !Input::IsUICapturingMouse() && !MachineScript::GlobalIsMachineHeld) {
-            glm::vec3 cursorWorldPos = GetMouseWorldPosition(); // Teraz to samo wie, czy zwracaæ pada czy mysz!
+            glm::vec3 cursorWorldPos = GetMouseWorldPosition(); // Teraz to samo wie, czy zwracaï¿½ pada czy mysz!
 
             glm::vec2 cursor2D = { cursorWorldPos.x, cursorWorldPos.z };
             glm::vec2 crate2D = { tf->GetPosition().x, tf->GetPosition().z };
 
-            // Powiêkszony, wygodny dystans klikania
+            // Powiï¿½kszony, wygodny dystans klikania
             if (glm::distance(cursor2D, crate2D) < 1.2f)
             {
-                // Przekazujemy odpowiedni kursor (mysz albo ten wirtualny z pada) do weryfikacji s¹siadów
+                // Przekazujemy odpowiedni kursor (mysz albo ten wirtualny z pada) do weryfikacji sï¿½siadï¿½w
                 if (IsClosestCrate(cursor2D))
                 {
                     if (m_HasStock)
@@ -111,7 +142,9 @@ public:
 
 private:
 
-    // Funkcja weryfikuj¹ca, czy myszka nie jest przypadkiem bli¿ej innej skrzynki
+    std::size_t m_ClickSubId = 0;
+
+    // Funkcja weryfikujï¿½ca, czy myszka nie jest przypadkiem bliï¿½ej innej skrzynki
     bool IsClosestCrate(glm::vec2 mousePos2D)
     {
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
@@ -130,7 +163,7 @@ private:
                     auto* tf = transforms->Get(otherEntity);
                     if (tf) {
                         float otherDist = glm::distance(mousePos2D, glm::vec2(tf->GetPosition().x, tf->GetPosition().z));
-                        // Jeœli inna skrzynka jest bli¿ej kursora ni¿ my, zwracamy fa³sz
+                        // Jeï¿½li inna skrzynka jest bliï¿½ej kursora niï¿½ my, zwracamy faï¿½sz
                         if (otherDist < myDist) {
                             return false;
                         }
@@ -146,12 +179,12 @@ private:
         auto* crateMesh = GetComponent<MeshComponent>();
         if (crateMesh) {
             if (m_HasStock) {
-                // Odkomentuj sposób, w jaki przywracacie normalny kolor modelu w Waszym silniku
+                // Odkomentuj sposï¿½b, w jaki przywracacie normalny kolor modelu w Waszym silniku
                 // crateMesh->Color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); 
                 // crateMesh->ShaderName = "ModelShader";
             }
             else {
-                // Odkomentuj sposób, w jaki "szarzycie" model w Waszym silniku
+                // Odkomentuj sposï¿½b, w jaki "szarzycie" model w Waszym silniku
                 // crateMesh->Color = glm::vec4(0.4f, 0.4f, 0.4f, 1.0f); 
                 // crateMesh->ShaderName = "GrayShader"; 
             }
@@ -228,7 +261,7 @@ private:
                                 closestConveyor = conveyorEntity;
                                 spawnPos = conveyorTf->GetPosition();
 
-                                // ZMIANA: Sk³adnik podniesiony wy¿ej na taœmie, ¿eby nie by³ zatopiony w modelu
+                                // ZMIANA: Skï¿½adnik podniesiony wyï¿½ej na taï¿½mie, ï¿½eby nie byï¿½ zatopiony w modelu
                                 spawnPos.y += 1.3f;
                             }
                         }
@@ -243,7 +276,7 @@ private:
 
             auto builder = GetScene()->GetWorld().BuildEntity();
 
-            // ZMIANA: Przypinamy typ sk³adnika jako String w Tagnam, aby system wiedzia³, co naje¿d¿a z taœmy
+            // ZMIANA: Przypinamy typ skï¿½adnika jako String w Tagnam, aby system wiedziaï¿½, co najeï¿½dï¿½a z taï¿½my
             builder.With<TagComponent>({ "BeltItem_" + std::to_string((int)m_CrateIngredient) });
 
             TransformComponent tc;
@@ -258,7 +291,7 @@ private:
             builder.With<MeshComponent>(mesh);
 
             BoxColliderComponent collider;
-            collider.Size = glm::vec3(0.5f);
+            collider.Size = glm::vec3(0.5f) / meta.scale;
             builder.With<BoxColliderComponent>(collider);
 
             NativeScriptComponent nsc;

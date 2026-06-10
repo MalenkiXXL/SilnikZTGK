@@ -524,9 +524,11 @@ private:
                     if (hoveredMachineScript->AddIngredient(topIngredient)) {
                         spdlog::info("Maszyna zassała składnik ze stojącego obok talerza!");
                         neighbor.PlateInstance->m_Ingredients.pop_back();
-                        Entity visualToRemove = neighbor.PlateInstance->m_VisualModels.back();
-                        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
-                        neighbor.PlateInstance->m_VisualModels.pop_back();
+                        if (!neighbor.PlateInstance->m_VisualModels.empty()) {
+                            Entity visualToRemove = neighbor.PlateInstance->m_VisualModels.back();
+                            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
+                            neighbor.PlateInstance->m_VisualModels.pop_back();
+                        }
                         ClearPlateForMachineHighlight();
                     }
                 }
@@ -583,9 +585,14 @@ private:
                     if (neighbor.MachineInstance && neighbor.MachineInstance->AddIngredient(topIngredient)) {
                         spdlog::info("Składnik wrzucony z talerza z powrotem do maszyny!");
                         hoveredPlateScript->m_Ingredients.pop_back();
-                        Entity visualToRemove = hoveredPlateScript->m_VisualModels.back();
-                        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
-                        hoveredPlateScript->m_VisualModels.pop_back();
+
+                        // ZABEZPIECZENIE: Sprawdzamy czy wektor ma elementy zanim spróbujemy wziąć .back()
+                        if (!hoveredPlateScript->m_VisualModels.empty()) {
+                            Entity visualToRemove = hoveredPlateScript->m_VisualModels.back();
+                            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
+                            hoveredPlateScript->m_VisualModels.pop_back();
+                        }
+
                         ClearPotHighlight();
                     }
                     else {

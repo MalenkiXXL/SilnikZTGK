@@ -15,6 +15,7 @@ class ItemScript : public ScriptableEntity
     ConveyorScript* m_TargetConveyor = nullptr;
 
     std::size_t m_GrabbedSubId = 0;
+    std::size_t m_ClickSubId = 0;
 
 public:
     void OnCreate() override
@@ -26,6 +27,14 @@ public:
                 this->ReleaseConveyors(); // Sami schodzimy z taśmy
             }
             });
+
+        m_ClickSubId = bus.Subscribe<EntityClickedEvent>([this](const EntityClickedEvent& e) {
+            if (e.TargetEntity.id == m_Entity.id) {
+                if (this->m_CurrentConveyor) {
+                    this->m_CurrentConveyor->HandleClick();
+                }
+            }
+            });
     }
 
     void OnDestroy() override
@@ -34,6 +43,7 @@ public:
         if (scene) {
             auto& bus = scene->GetWorld().GetEventBus();
             if (m_GrabbedSubId != 0) bus.Unsubscribe<PlateGrabbedEvent>(m_GrabbedSubId);
+            if (m_ClickSubId != 0) bus.Unsubscribe<EntityClickedEvent>(m_ClickSubId); 
         }
 
         if (m_CurrentConveyor)

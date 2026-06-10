@@ -100,7 +100,7 @@ public:
             (aMin.z <= bMax.z && aMax.z >= bMin.z);
     }
 
-    static Entity GetHoveredEntity(const Ray& ray, std::shared_ptr<Scene> activeScene, bool requireCollider, bool useSSA)
+    static Entity GetHoveredEntity(const Ray& ray, std::shared_ptr<Scene> activeScene, bool requireCollider, bool useSSA, bool ignoreStatic = false)
     {
         auto& world = activeScene->GetWorld();
         auto* colliderStorage = world.GetComponentVector<BoxColliderComponent>();
@@ -115,6 +115,22 @@ public:
         auto checkEntity = [&](Entity entity) {
             TransformComponent* transform = transformStorage->Get(entity);
             if (!transform) return;
+
+            if (ignoreStatic) {
+                auto* tagComp = world.GetComponent<TagComponent>(entity);
+                if (tagComp) {
+                    const std::string& t = tagComp->Tag;
+                    if (t.find("Wydawka") != std::string::npos ||
+                        t.find("Table") != std::string::npos ||
+                        t.find("Chair") != std::string::npos ||
+                        t.find("krzeslo") != std::string::npos ||
+                        t.find("budka") != std::string::npos ||
+                        t.find("event") != std::string::npos ||
+                        t.find("Podloga") != std::string::npos) {
+                        return; 
+                    }
+                }
+            }
 
             BoxColliderComponent* collider = colliderStorage ? colliderStorage->Get(entity) : nullptr;
             if (requireCollider && !collider) return;
