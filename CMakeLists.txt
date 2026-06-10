@@ -83,6 +83,7 @@ add_executable(SilnikZTGK_Tests
         tests/test_delivery_ai.cpp
         tests/test_event_bus.cpp
         tests/test_ecs.cpp
+        tests/test_machines.cpp
         ${ENGINE_SOURCES}
 )
 
