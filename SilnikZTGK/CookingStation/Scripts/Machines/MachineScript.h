@@ -7,6 +7,7 @@
 #include "CookingStation/Scripts/Managers/IngredientType.h"
 #include "CookingStation/Events/GameEvents.h"
 #include "CookingStation/Scripts/PlateScript.h"
+#include "CookingStation/Core/AudioEngine.h"
 #include <vector>
 #include <glm/glm.hpp>
 
@@ -198,12 +199,17 @@ public:
 
     virtual bool AddIngredient(IngredientType type)
     {
-        if (m_IsReady || m_Ingredients.size() >= 2) return false;
-        m_Ingredients.push_back(type);
-        m_IsReady = false;
-        m_CurrentTime = 0.0f;
-        UpdateVisuals();
-        return true;
+        if (m_IsReady || m_Ingredients.size() >= 2){
+            AudioEngine::Play("CookingStation/Assets/sounds/put_in_pot.mp3");
+            return false;
+        } else {
+            m_Ingredients.push_back(type);
+            m_IsReady = false;
+            m_CurrentTime = 0.0f;
+            UpdateVisuals();
+            AudioEngine::Play("CookingStation/Assets/sounds/cooking.mp3");
+            return true;
+        }
     }
 
     virtual void HandleClick()
@@ -239,7 +245,7 @@ protected:
         mesh.ModelPtr = AssetManager::GetModel(modelPath);
         builder.With<MeshComponent>(mesh);
 
-        // Dodaje od razu collider ¿eby system wiedzia³ w co myszka mo¿e klikaæ
+        // Dodaje od razu collider ï¿½eby system wiedziaï¿½ w co myszka moï¿½e klikaï¿½
         BoxColliderComponent collider;
         collider.Size = glm::vec3(1.2f);
         builder.With<BoxColliderComponent>(collider);
@@ -360,6 +366,8 @@ protected:
                 foodTag->Tag = "UgotowaneDanie";
 
             spdlog::info("Gotowe jedzenie podane na talerz - czeka na kelnera!");
+            AudioEngine::Play("CookingStation/Assets/sounds/plate_down.wav");
+
         }
 
         m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };

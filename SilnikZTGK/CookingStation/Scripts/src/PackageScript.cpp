@@ -1,6 +1,7 @@
 #include "CookingStation/Scripts/Delivery/PackageScript.h"
 #include "CookingStation/Events/GameEvents.h" 
 #include <spdlog/spdlog.h>
+#include "CookingStation/Core/AudioEngine.h"
 
 void PackageScript::HandleClick()
 {
@@ -12,6 +13,7 @@ void PackageScript::HandleClick()
     GetScene()->GetWorld().GetEventBus().Publish(DeliveryCollectedEvent{});
 
     spdlog::info("Gracz zebrał paczkę (Wysłano zdarzenie AddIngredientEvent)");
+    AudioEngine::Play("CookingStation/Assets/sounds/handleSmallLeather.mp3 ");
 
     std::vector<Entity> allPackages = s_ActivePackages;
     s_ActivePackages.clear();

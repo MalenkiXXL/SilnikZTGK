@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
+#include "CookingStation/Core/AudioEngine.h"
 
 class CuttingBoardScript : public MachineScript
 {
@@ -52,6 +53,7 @@ private:
         m_ChopCount++;
         m_ChopCooldown = 0.2f;
         spdlog::info("Ciach! ({}/{})", m_ChopCount, m_ChopsRequired);
+        AudioEngine::Play("CookingStation/Assets/sounds/chop.wav");
 
         m_VisualJumpY = 0.3f;
 
@@ -76,11 +78,11 @@ private:
 public:
     void OnCreate() override
     {
-        // Pozwalamy klasie bazowej podpi¹æ swoje eventy fizyczne...
+        // Pozwalamy klasie bazowej podpiï¿½ï¿½ swoje eventy fizyczne...
         MachineScript::OnCreate();
 
-        // ... a nastêpnie od razu je usuwamy dla tego konkretnego obiektu! 
-        // Deska u¿ywa w³asnego "radaru" matematycznego, wiêc nie chcemy, aby wielkie kolidery sera i szynki same wywo³ywa³y transfer.
+        // ... a nastï¿½pnie od razu je usuwamy dla tego konkretnego obiektu! 
+        // Deska uï¿½ywa wï¿½asnego "radaru" matematycznego, wiï¿½c nie chcemy, aby wielkie kolidery sera i szynki same wywoï¿½ywaï¿½y transfer.
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_FoodClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId);
@@ -93,7 +95,7 @@ public:
             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_CursorKnife });
         }
 
-        // Zerujemy ID eventów, ¿eby klasa bazowa (MachineScript) nie wyrzuci³a b³êdu próbuj¹c usun¹æ coœ, co zrobiliœmy w OnCreate
+        // Zerujemy ID eventï¿½w, ï¿½eby klasa bazowa (MachineScript) nie wyrzuciï¿½a bï¿½ï¿½du prï¿½bujï¿½c usunï¿½ï¿½ coï¿½, co zrobiliï¿½my w OnCreate
         m_ClickSubId = 0;
         m_FoodClickSubId = 0;
         m_HoverSubId = 0;
@@ -129,19 +131,19 @@ public:
 
                 if (pScript->AddIngredient(choppedType))
                 {
-                    spdlog::info("Sk³adnik z deski przeniesiony na talerz!");
+                    spdlog::info("Skï¿½adnik z deski przeniesiony na talerz!");
                     ClearHighlight();
                     ResetMachineState();
                 }
                 else
                 {
-                    spdlog::warn("Talerz jest pe³ny lub nie mo¿e przyj¹æ sk³adnika!");
+                    spdlog::warn("Talerz jest peï¿½ny lub nie moï¿½e przyjï¿½ï¿½ skï¿½adnika!");
                 }
             }
         }
         else
         {
-            spdlog::warn("Brak podœwietlonego talerza - najedŸ na danie przed klikniêciem!");
+            spdlog::warn("Brak podï¿½wietlonego talerza - najedï¿½ na danie przed klikniï¿½ciem!");
         }
     }
 
@@ -296,11 +298,11 @@ public:
             m_ChopCooldown = 0.2f;
             m_AutoChopTimer = 0.0f;
             UpdateVisuals();
-            spdlog::info("Po³o¿ono sk³adnik na desce do krojenia.");
+            spdlog::info("Poï¿½oï¿½ono skï¿½adnik na desce do krojenia.");
             return true;
         }
 
-        spdlog::warn("Deska: Tego sk³adnika tu nie pokroisz!");
+        spdlog::warn("Deska: Tego skï¿½adnika tu nie pokroisz!");
         return false;
     }
 
@@ -346,14 +348,14 @@ protected:
             }
         }
 
-        // NOWE: Publikujemy event dopiero wtedy, gdy gracz skoñczy kroiæ
+        // NOWE: Publikujemy event dopiero wtedy, gdy gracz skoï¿½czy kroiï¿½
         if (m_IsReady)
         {
             DishHistory history;
             history.BaseIngredients = m_Ingredients;
             history.OriginMachine = "CuttingBoard";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
-            spdlog::info("Sk³adnik pokrojony i wpisany do rejestru historii.");
+            spdlog::info("Skï¿½adnik pokrojony i wpisany do rejestru historii.");
         }
     }
 };

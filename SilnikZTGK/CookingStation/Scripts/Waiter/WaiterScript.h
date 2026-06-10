@@ -203,6 +203,7 @@ public:
 
             if (FlatDistanceTo(m_TargetCustomer) <= m_InteractRange) {
                 m_CurrentState = State::TAKING_ORDER;
+                AudioEngine::Play("CookingStation/Assets/sounds/writing.mp3");
                 m_TakeOrderTimer = 3.0f;
             }
             else {

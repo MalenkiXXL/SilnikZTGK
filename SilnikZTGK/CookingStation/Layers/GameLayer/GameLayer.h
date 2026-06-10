@@ -27,4 +27,7 @@ private:
     bool m_UsingGamepad = false;
     float m_GamepadCursorSpeed = 15.0f;
     Entity m_GamepadCursor = { std::numeric_limits<std::size_t>::max(), 0 };
+
+    std::shared_ptr<Scene> m_LastSubscribedScene = nullptr;
+    void SubscribeToGameplayEvents(std::shared_ptr<Scene> scene);
 };

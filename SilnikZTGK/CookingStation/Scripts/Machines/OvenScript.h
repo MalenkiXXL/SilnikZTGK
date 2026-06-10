@@ -25,6 +25,7 @@ public:
             if (m_CurrentTime >= m_CookTime)
             {
                 m_IsReady = true;
+                AudioEngine::Play("CookingStation/Assets/sounds/dish_ready.mp3");
                 UpdateVisuals();
             }
         }

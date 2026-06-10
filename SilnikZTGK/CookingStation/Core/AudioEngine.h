@@ -13,7 +13,7 @@ public:
 
     static void Play(const std::string& filepath);
 
-    static void PlayMusic(const std::string& filepath, bool loop = true);
+    static void PlayMusic(const std::string& filepath, bool loop = true, float volume = 1.0f);
     static void StopMusic();
 
 private:

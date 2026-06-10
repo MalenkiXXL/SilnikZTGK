@@ -51,6 +51,7 @@ public:
             if (m_CurrentTime >= m_CookTime)
             {
                 m_IsReady = true;
+                AudioEngine::Play("CookingStation/Assets/sounds/dish_ready.mp3");
                 UpdateVisuals();
             }
             if (m_CookTime - m_CurrentTime <= 0.8f)
@@ -109,7 +110,7 @@ protected:
 
             m_SpawnedFood = SpawnMachineFood(IngredientType::None, "CookingStation/Assets/models/skladniki/pomidor/pomidorowa.gltf", "W_Garnku");
 
-            // Zupa zawsze wyl¹duje dok³adnie o 1.0 wy¿ej od garnka
+            // Zupa zawsze wylï¿½duje dokï¿½adnie o 1.0 wyï¿½ej od garnka
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)
             {

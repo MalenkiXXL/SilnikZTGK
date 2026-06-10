@@ -3,6 +3,7 @@
 #include "CookingStation/Events/GameEvents.h" // To naprawia błąd "niezadeklarowany identyfikator"
 #include <glm/glm.hpp>
 #include "CookingStation/Core/Input.h"
+#include "CookingStation/Core/AudioEngine.h"
 
 struct AngleDirection {
     float angle;
@@ -129,6 +130,7 @@ public:
 
             SetPushDirection();
             spdlog::info("Zwrotnica: Nowy kierunek: {}", newRot.y);
+            AudioEngine::Play("CookingStation/Assets/sounds/ui_click.mp3");
         }
     }
 

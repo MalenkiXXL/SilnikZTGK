@@ -202,10 +202,15 @@ void AudioEngine::Play(const std::string& filepath)
 
     // Wyrzucamy d�wi�k! Miniaudio nie dotyka ju� dysku. 
     // Poprosi nasz "g_CustomVFS" o za�adowanie pliku `assets://...` do strumienia z RAM-u.
-    ma_engine_play_sound(s_Engine, vfsPath.c_str(), NULL);
+    ma_result result = ma_engine_play_sound(s_Engine, vfsPath.c_str(), NULL);
+    if (result != MA_SUCCESS)
+    {
+        std::cerr << "[AudioEngine] Blad (Play): Nie mozna odtworzyc " << vfsPath
+                  << " | Kod bledu miniaudio: " << result << std::endl;
+    }
 }
 
-void AudioEngine::PlayMusic(const std::string& filepath, bool loop)
+void AudioEngine::PlayMusic(const std::string& filepath, bool loop, float volume)
 {
     if (!s_Engine) return;
 
@@ -235,6 +240,8 @@ void AudioEngine::PlayMusic(const std::string& filepath, bool loop)
         std::cerr << "[AudioEngine] Blad ladowania muzyki tla: " << vfsPath << " Kod: " << result << std::endl;
         return;
     }
+
+    ma_sound_set_volume(s_BackgroundMusic, volume);
 
     // Ustawienie zapętlenia i start odtwarzania
     ma_sound_set_looping(s_BackgroundMusic, loop ? MA_TRUE : MA_FALSE);

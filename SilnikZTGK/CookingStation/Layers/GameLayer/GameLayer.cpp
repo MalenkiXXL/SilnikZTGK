@@ -15,8 +15,6 @@
 
 void GameLayer::OnAttach()
 {
-    AudioEngine::PlayMusic("CookingStation/Assets/sounds/massobeats_gingersweet.mp3", true);
-
     m_ActiveScene = SceneManager::GetActiveScene();
 
     if (!m_ActiveScene)
@@ -24,6 +22,9 @@ void GameLayer::OnAttach()
         spdlog::error("GameLayer: Brak aktywnej sceny w SceneManager!");
         return;
     }
+
+    AudioEngine::PlayMusic("CookingStation/Assets/sounds/aktasok-ambient-background-loop.mp3", true, 0.01f);
+
 }
 
 void GameLayer::OnDetach()
@@ -37,6 +38,13 @@ void GameLayer::OnUpdate(Timestep ts)
 {
     m_ActiveScene = SceneManager::GetActiveScene();
     if (!m_ActiveScene) return;
+
+    if (m_ActiveScene != m_LastSubscribedScene)
+    {
+        SubscribeToGameplayEvents(m_ActiveScene);
+        m_LastSubscribedScene = m_ActiveScene;
+    }
+
     if (m_ActiveScene->GetState() != SceneState::Play) return;
 
     m_ActiveScene->OnUpdateRuntime(ts);
@@ -229,7 +237,8 @@ void GameLayer::OnEvent(Event& e)
 
     dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& event) {
         return OnKeyPressed(event);
-        });
+    });
+
 }
 
 bool GameLayer::OnKeyPressed(KeyPressedEvent& e)
@@ -248,4 +257,98 @@ bool GameLayer::OnKeyPressed(KeyPressedEvent& e)
     }
 
     return false;
+}
+
+void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
+{
+    if (!scene) return;
+    auto& eventBus = scene->GetWorld().GetEventBus();
+
+    spdlog::info("AudioEngine: Podpinam pelna liste eventow audio!");
+
+    // ====================================================================
+    // 1. SYSTEM I INTERFEJS
+    // ====================================================================
+//    eventBus.Subscribe<EntityClickedEvent>([](const EntityClickedEvent& e) {
+//        AudioEngine::Play("CookingStation/Assets/sounds/ui_click.mp3");
+//    });
+
+    eventBus.Subscribe<GamePausedEvent>([](const GamePausedEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/pause.mp3");
+    });
+
+    eventBus.Subscribe<GameResumedEvent>([](const GameResumedEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/unpause.mp3");
+    });
+
+    // ====================================================================
+    // 2. KUCHNIA I PRZEDMIOTY
+    // ====================================================================
+    eventBus.Subscribe<MachinePickedUpEvent>([](const MachinePickedUpEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/pickup.wav");
+    });
+
+    eventBus.Subscribe<StartDragRequestEvent>([](const StartDragRequestEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/drag_start.mp3"); // Lekki szelest
+    });
+
+//    eventBus.Subscribe<DishCreatedEvent>([](const DishCreatedEvent& e) {
+//        AudioEngine::Play("CookingStation/Assets/sounds/dish_ready.mp3"); // Magiczne 'poof' / dzwonek
+//    });
+
+//    eventBus.Subscribe<PlateReadyEvent>([](const PlateReadyEvent& e) {
+//        AudioEngine::Play("CookingStation/Assets/sounds/ding.mp3"); // Dźwięk gotowej potrawy
+//    });
+
+    eventBus.Subscribe<PlateGrabbedEvent>([](const PlateGrabbedEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/plate_pickup.waw"); // Dźwięk porcelany
+    });
+
+    eventBus.Subscribe<IngredientUsedEvent>([](const IngredientUsedEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/put_ingredient.mp3"); // Lub inny dźwięk obróbki
+    });
+
+    // ====================================================================
+    // 3. KLIENCI I ZAMÓWIENIA
+    // ====================================================================
+    eventBus.Subscribe<CustomerSeatedEvent>([](const CustomerSeatedEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/footstep09.mp3"); // Klient siada
+    });
+
+//    eventBus.Subscribe<OrderTakenEvent>([](const OrderTakenEvent& e) {
+//        AudioEngine::Play("CookingStation/Assets/sounds/writing.mp3"); // Notowanie zamówienia
+//    });
+
+    eventBus.Subscribe<CustomerServedEvent>([](const CustomerServedEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/plate_down.wav"); // Postawienie talerza na stole
+    });
+
+    // Odpowiedź na zamówienie (bardzo fajny event, możemy zagrać różną reakcję!)
+    eventBus.Subscribe<ValidateOrderResponseEvent>([](const ValidateOrderResponseEvent& e) {
+        if (e.IsCorrect) {
+            AudioEngine::Play("CookingStation/Assets/sounds/happy_customer.mp3");
+        } else {
+            AudioEngine::Play("CookingStation/Assets/sounds/angry_customer.mp3");
+        }
+    });
+
+    // ====================================================================
+    // 4. EKONOMIA I DOSTAWA
+    // ====================================================================
+    eventBus.Subscribe<MoneyChangedEvent>([](const MoneyChangedEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/coin.mp3");
+    });
+
+    eventBus.Subscribe<OrderFulfilledEvent>([](const OrderFulfilledEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/success.mp3"); // Duża kasa / fanfary
+    });
+
+    eventBus.Subscribe<CarArrivedEvent>([](const CarArrivedEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/truck_horn.mp3"); // Klakson
+    });
+
+    eventBus.Subscribe<PackageSpawnedEvent>([](const PackageSpawnedEvent& e) {
+        AudioEngine::Play("CookingStation/Assets/sounds/box_drop.mp3"); // Rzucenie paczki
+    });
+
 }

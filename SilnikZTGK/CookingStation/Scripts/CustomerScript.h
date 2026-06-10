@@ -1,7 +1,8 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scene/ecs.h" 
-#include "CookingStation/Events/GameEvents.h" 
+#include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Core/AudioEngine.h"
 #include <string>
 #include <vector>
 #include <spdlog/spdlog.h>

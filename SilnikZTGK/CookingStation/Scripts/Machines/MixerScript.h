@@ -30,6 +30,7 @@ public:
                 if (m_CurrentTime >= m_CookTime)
                 {
                     m_IsReady = true;
+                    AudioEngine::Play("CookingStation/Assets/sounds/dish_ready.mp3");
                     UpdateVisuals();
                 }
             }
@@ -103,7 +104,7 @@ public:
                 }
             }
         }
-        else if (!m_IsAutomated) // Jeœli nie mamy talerza i nie jesteœmy auto-taœm¹
+        else if (!m_IsAutomated) // Jeï¿½li nie mamy talerza i nie jesteï¿½my auto-taï¿½mï¿½
         {
             // Zabranie do reki (DragAndDrop)
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
