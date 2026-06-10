@@ -13,7 +13,7 @@ Entity World::Allocator::Allocate() {
 
     std::size_t id = this->free.back();
     this->free.pop_back();
-    this->generations[id] += 1;
+
     return Entity{
     id,
     this->generations[id],

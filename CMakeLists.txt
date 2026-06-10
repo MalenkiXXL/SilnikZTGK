@@ -75,9 +75,15 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 # Pobieramy i udostępniamy GTest dla naszego projektu
 FetchContent_MakeAvailable(googletest)
 
+set(ENGINE_SOURCES ${SOURCES})
+list(FILTER ENGINE_SOURCES EXCLUDE REGEX "main\\.cpp")
+
 # Tworzymy osobną aplikację (.exe), która będzie odpalać tylko testy
 add_executable(SilnikZTGK_Tests
         tests/test_delivery_ai.cpp
+        tests/test_event_bus.cpp
+        tests/test_ecs.cpp
+        ${ENGINE_SOURCES}
 )
 
 # Informacja gdzie leżą pliki nagłówkowe silnika
@@ -92,4 +98,9 @@ target_link_libraries(SilnikZTGK_Tests PRIVATE
         gtest_main
         glm::glm
         spdlog::spdlog
+        nlohmann_json::nlohmann_json
+        OpenGL::GL
+        glfw
+        glad::glad
+        assimp::assimp
 )
