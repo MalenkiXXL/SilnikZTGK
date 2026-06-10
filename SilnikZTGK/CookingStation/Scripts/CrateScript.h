@@ -71,7 +71,7 @@ public:
     void HandleClick()
     {
         if (m_CrateIngredient == IngredientType::None) return;
-        if (m_SpawnCooldown > 0.0f || MachineScript::GlobalIsHoveringUI || MachineScript::GlobalIsMachineHeld) return;
+        if (m_SpawnCooldown > 0.0f || Input::IsUICapturingMouse() || MachineScript::GlobalIsMachineHeld) return;
 
         if (m_HasStock)
         {
