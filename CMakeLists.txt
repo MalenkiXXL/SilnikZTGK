@@ -85,6 +85,7 @@ add_executable(SilnikZTGK_Tests
         tests/test_ecs.cpp
         tests/test_machines.cpp
         ${ENGINE_SOURCES}
+        tests/test_integration.cpp
 )
 
 # Informacja gdzie leżą pliki nagłówkowe silnika
