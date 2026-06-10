@@ -45,26 +45,57 @@ public:
         if (m_CrateIngredient == IngredientType::None) {
             spdlog::error("Skrzynka o ID {} ma nierozpoznany tag! Jest pusta i nie bedzie dzialac.", m_Entity.id);
         }
+
+        m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
+            [this](const EntityClickedEvent& e) {
+                if (e.TargetEntity.id == m_Entity.id) {
+                    this->HandleClick();
+                }
+            }
+        );
     }
 
     void OnDestroy() override
     {
-        if (m_VisualFood.id != std::numeric_limits<std::size_t>::max())
-            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_VisualFood });
+        auto* scene = GetScene();
+        if (scene) {
+            if (m_ClickSubId != 0) {
+                scene->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
+            }
+            if (m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                scene->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_VisualFood });
+            }
+        }
+    }
+
+    void HandleClick()
+    {
+        if (m_CrateIngredient == IngredientType::None) return;
+        if (m_SpawnCooldown > 0.0f || MachineScript::GlobalIsHoveringUI || MachineScript::GlobalIsMachineHeld) return;
+
+        if (m_HasStock)
+        {
+            m_SpawnCooldown = 0.2f;
+            SpawnIngredientOnConveyor();
+            GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ m_CrateIngredient, 1 });
+        }
+        else
+        {
+            spdlog::warn("Skrzynka: Brak zapasow tego skladnika w magazynie (0 sztuk)!");
+        }
     }
 
     void OnUpdate(Timestep ts) override
     {
-        // Jeœli skrzynka jest uszkodzona/nie ma przypisanego typu, nie robimy nic
+        // 1. Zabezpieczenie przed pust¹ konfiguracj¹
         if (m_CrateIngredient == IngredientType::None) return;
 
+        // 2. Obs³uga cooldownu (¿eby gracz nie wyplu³ 100 pomidorów w sekundê)
         if (m_SpawnCooldown > 0.0f) {
             m_SpawnCooldown -= ts.GetSeconds();
         }
 
-        // =========================================================
-        // SPRAWDZANIE INWENTARZA
-        // =========================================================
+        // 3. Weryfikacja stanu magazynu i aktualizacja wizualna modelu
         int currentStock = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(m_CrateIngredient) : 0;
         bool shouldHaveStock = (currentStock > 0);
 
@@ -73,44 +104,11 @@ public:
             m_IsInitialized = true;
             UpdateVisuals();
         }
-
-        auto* tf = GetComponent<TransformComponent>();
-        if (!tf) return;
-
-        // 1. Sprawdzamy, czy nast¹pi³a jakakolwiek akcja interakcji (Mysz: LPM, Pad: Kwadrat/X [ID 2])
-        bool isMouseClick = Input::IsMouseButtonJustPressed(0);
-        bool isGamepadSquare = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0);
-
-        // 2. Wykonujemy zaawansowan¹ logikê TYLKO w momencie klikniêcia (du¿a optymalizacja)
-        if ((isMouseClick || isGamepadSquare) && m_SpawnCooldown <= 0.0f && !MachineScript::GlobalIsHoveringUI && !MachineScript::GlobalIsMachineHeld)
-        {
-            glm::vec3 cursorWorldPos = GetMouseWorldPosition(); // Teraz to samo wie, czy zwracaæ pada czy mysz!
-
-            glm::vec2 cursor2D = { cursorWorldPos.x, cursorWorldPos.z };
-            glm::vec2 crate2D = { tf->GetPosition().x, tf->GetPosition().z };
-
-            // Powiêkszony, wygodny dystans klikania
-            if (glm::distance(cursor2D, crate2D) < 1.2f)
-            {
-                // Przekazujemy odpowiedni kursor (mysz albo ten wirtualny z pada) do weryfikacji s¹siadów
-                if (IsClosestCrate(cursor2D))
-                {
-                    if (m_HasStock)
-                    {
-                        m_SpawnCooldown = 0.2f;
-                        SpawnIngredientOnConveyor();
-                        GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ m_CrateIngredient, 1 });
-                    }
-                    else
-                    {
-                        spdlog::warn("Skrzynka: Brak zapasow tego skladnika w magazynie (0 sztuk)!");
-                    }
-                }
-            }
-        }
     }
 
 private:
+
+    std::size_t m_ClickSubId = 0;
 
     // Funkcja weryfikuj¹ca, czy myszka nie jest przypadkiem bli¿ej innej skrzynki
     bool IsClosestCrate(glm::vec2 mousePos2D)
@@ -259,7 +257,7 @@ private:
             builder.With<MeshComponent>(mesh);
 
             BoxColliderComponent collider;
-            collider.Size = glm::vec3(0.5f);
+            collider.Size = glm::vec3(0.5f) / meta.scale;
             builder.With<BoxColliderComponent>(collider);
 
             NativeScriptComponent nsc;

@@ -52,6 +52,10 @@ private:
         case IngredientType::ChoppedCheese: return "assets://models/skladniki/ser/ser-pokrojony.gltf";
         case IngredientType::ChoppedHam:    return "assets://models/skladniki/szynka/szynka-pokrojona.gltf";
         case IngredientType::CutBaguette:   return "assets://models/skladniki/bagietka/bagietka-przekrojona.gltf";
+        case IngredientType::RawDough:      return "assets://models/skladniki/maka/maka.gltf";
+        case IngredientType::Baguette:      return "assets://models/skladniki/bagietka/bagietka.gltf";
+        case IngredientType::Flour:         return "assets://models/skladniki/maka/maka.gltf";
+        case IngredientType::Milk:          return "assets://models/skladniki/mleko/milk.gltf";
         default: return "";
         }
     }
@@ -67,6 +71,10 @@ private:
         case IngredientType::ChoppedHam:    return "Ham";
         case IngredientType::Sandwich:      return "Sandwich";
         case IngredientType::CutBaguette:   return "CutBaguette";
+        case IngredientType::RawDough:      return "RawDough";
+        case IngredientType::Baguette:      return "Baguette";
+        case IngredientType::Flour:         return "Flour";
+        case IngredientType::Milk:          return "Milk";
         default: return "Unknown";
         }
     }

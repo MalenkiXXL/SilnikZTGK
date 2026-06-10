@@ -243,7 +243,7 @@ protected:
 
         // Dodaje od razu collider ¿eby system wiedzia³ w co myszka mo¿e klikaæ
         BoxColliderComponent collider;
-        collider.Size = glm::vec3(1.2f);
+        collider.Size = glm::vec3(1.2f) / meta.scale;
         builder.With<BoxColliderComponent>(collider);
 
         return builder.Build();

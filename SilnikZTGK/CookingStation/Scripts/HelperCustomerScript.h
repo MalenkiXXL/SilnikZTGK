@@ -34,6 +34,10 @@ public:
             [this](const EntityClickedEvent& e) {
                 if (e.TargetEntity.id == m_Entity.id)
                 {
+                    // LOGOWANIE QoL - Bêdziesz wiedzia³ dlaczego ew. klikniêcie zosta³o odrzucone
+                    spdlog::info("Kliknieto pomocnika! Carried:{}, AnyDragged:{}, Waiting:{}, Working:{}, Cooldown:{}",
+                        m_IsCarried, IsAnyHelperDragged, m_IsWaitingToHelp, m_IsWorking, m_Cooldown);
+
                     // Blokujemy podnoszenie, jesli cooldown jeszcze trwa
                     if (!m_IsCarried && !IsAnyHelperDragged && (m_IsWaitingToHelp || m_IsWorking) && m_Cooldown <= 0.0f)
                     {
@@ -54,11 +58,21 @@ public:
     {
         IsServed = true;
 
+        // ---- KLUCZOWA ZMIANA: Niszczymy jedzenie (zupê), aby zwolniæ fizyczne miejsce! ----
+        if (m_ReceivedFood.id != std::numeric_limits<std::size_t>::max()) {
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ReceivedFood });
+            m_ReceivedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+        }
+        // -----------------------------------------------------------------------------------
+
         if (isCorrectOrder)
         {
             m_IsWaitingToHelp = true;
             auto* tag = GetComponent<TagComponent>();
             if (tag) tag->Tag = "NajedzonyPomocnik";
+
+            // WYWO£ANIE NOWEJ FUNKCJI
+            TeleportToWaitingArea();
         }
         else
         {
@@ -110,6 +124,52 @@ public:
     }
 
 private:
+
+    void TeleportToWaitingArea()
+    {
+        auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+
+        if (!scripts || !transforms) return;
+
+        // Domyœlna pozycja na wypadek, gdyby na mapie nie by³o skrzynek (np. scena testowa)
+        glm::vec3 targetPos = { -5.0f, m_YOffset + 0.5f, 11.0f };
+
+        for (size_t i = 0; i < scripts->dense.size(); ++i) {
+            auto& nsc = scripts->dense[i];
+            bool foundCrate = false;
+
+            for (auto& s : nsc.Scripts) {
+                if (s.Name == "CrateScript") {
+                    Entity crateEntity = scripts->reverse[i];
+                    auto* crateTf = transforms->Get(crateEntity);
+
+                    if (crateTf) {
+                        glm::vec3 cratePos = crateTf->GetPosition();
+
+                        // Wykorzystujemy ID encji do stworzenia ma³ego "rozrzutu", ¿eby pomocnicy nie nak³adali siê na siebie
+                        float offsetX = (m_Entity.id % 3) * 1.5f - 1.5f; // Da nam -1.5, 0.0 lub 1.5
+                        float offsetZ = (m_Entity.id % 2) * 1.0f + 2.5f; // Odsunie ich o 2.5 lub 3.5 od skrzynki
+
+                        targetPos = glm::vec3(cratePos.x + offsetX, m_YOffset + 0.5f, cratePos.z + offsetZ);
+                        foundCrate = true;
+                        break;
+                    }
+                }
+            }
+            if (foundCrate) break; // Przerywamy po znalezieniu pierwszej lepszej skrzynki, to wystarczy do ustalenia strefy
+        }
+
+        auto* myTransform = GetComponent<TransformComponent>();
+        if (myTransform) {
+            myTransform->SetPosition(targetPos);
+            // Ustawiamy rotacjê, by pomocnik patrzy³ mniej wiêcej w stronê gracza/taœmy (obrót na zewn¹trz skrzynek)
+            myTransform->SetRotation({ 0.0f, 180.0f, 0.0f });
+        }
+
+        spdlog::info("Pomocnik {} (ID: {}) przeniesiony do strefy skrzynek.", GetComponent<TagComponent>()->Tag, m_Entity.id);
+    }
+
     void PickUpHelper(TransformComponent* transform)
     {
         m_IsCarried = true;

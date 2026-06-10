@@ -138,7 +138,7 @@ void GameLayer::OnUpdate(Timestep ts)
         }
 
         // 4. Publikacja eventów wykorzystująca Twój istniejący system
-        Entity hoveredEntity = Physics::GetHoveredEntity(interactionRay, m_ActiveScene, true, true);
+        Entity hoveredEntity = Physics::GetHoveredEntity(interactionRay, m_ActiveScene, true, true, true);
         world.GetEventBus().Publish(EntityHoveredEvent{ hoveredEntity });
 
         if (isClickAction)
