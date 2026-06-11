@@ -178,11 +178,22 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 spdlog::info("[BuildTool] Znaleziono: {} w {}", slnFilename, rootDir.string());
 
                 std::string vcvarsScript = "";
+
+                // ROZSZERZONA LISTA ŚCIEŻEK - VS 2026 ORAZ VS 2022
                 std::vector<std::string> suspectedVCVarsPaths = {
+                    // Visual Studio 2026 (dla Ciebie)
+                    "\"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
+                    "\"C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
+                    "\"C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
+                    "\"C:\\Program Files\\Microsoft Visual Studio\\18\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
+
+                    // Visual Studio 2022 (dla znajomych)
                     "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
                     "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
-                    "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat\""
+                    "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
+                    "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\""
                 };
+
                 for (const auto& rawPath : suspectedVCVarsPaths) {
                     std::string cleanPath = rawPath;
                     cleanPath.erase(std::remove(cleanPath.begin(), cleanPath.end(), '\"'), cleanPath.end());
@@ -192,7 +203,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 std::string fullCommand;
                 if (!vcvarsScript.empty()) {
                     fullCommand = "call " + vcvarsScript + " && msbuild " + slnFilename + " /p:Configuration=Distribution /p:Platform=x64 /t:Rebuild > msbuild_log.txt 2>&1";
-                    spdlog::info("[BuildTool] Inicjalizuję środowisko MSVC...");
+                    spdlog::info("[BuildTool] Inicjalizuję środowisko MSVC za pomocą: {}", vcvarsScript);
                 }
                 else {
                     fullCommand = "msbuild " + slnFilename + " /p:Configuration=Distribution /p:Platform=x64 /t:Rebuild > msbuild_log.txt 2>&1";
@@ -215,7 +226,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                         fs::remove_all(absExportDir);
                         fs::create_directories(absExportDir);
 
-                     
                         std::string foundExePath = "";
                         for (const auto& entry : fs::recursive_directory_iterator(rootDir, ec)) {
                             if (ec) break;
@@ -274,7 +284,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                                 uint32_t numFiles = static_cast<uint32_t>(filesToPack.size());
                                 pakFile.write(reinterpret_cast<const char*>(&numFiles), sizeof(uint32_t));
 
-                                uint64_t currentDataOffset = sizeof(uint32_t); 
+                                uint64_t currentDataOffset = sizeof(uint32_t);
                                 for (const auto& f : filesToPack) {
                                     currentDataOffset += sizeof(uint32_t) + f.relativePath.size() + sizeof(uint64_t) + sizeof(uint64_t);
                                 }
