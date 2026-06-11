@@ -18,16 +18,24 @@ public:
     {
         std::vector<IngredientType> selectedIngredients;
 
+        spdlog::info("--- AI DOSTAW: Rozpoczynam analize potrzeb ---");
+
         // --- WĘZEŁ 1: Priorytet - Zamówienia klientów ---
         for (const auto& order : activeOrders) {
             IngredientType neededType = order.WantedDish;
             if (currentInventory[neededType] > 0) {
                 currentInventory[neededType]--;
+                spdlog::debug("[WEZEL 1] Klient {} chce danie ({}). Mamy na stanie, rezerwuje sztuke.",
+                              order.CustomerId, IngredientTypeToString(neededType));
             } else {
-                // Sprawdzamy, czy tego składnika jeszcze nie zamówiliśmy
                 if (std::find(selectedIngredients.begin(), selectedIngredients.end(), neededType) == selectedIngredients.end()) {
                     selectedIngredients.push_back(neededType);
-                    if (selectedIngredients.size() == 2) return selectedIngredients;
+                    spdlog::info("[WEZEL 1] Klient {} chce danie ({}). BRAKI W MAGAZYNIE! Dodaje do listy zakupow.",
+                                 order.CustomerId, IngredientTypeToString(neededType));
+                    if (selectedIngredients.size() == 2) {
+                        spdlog::info("AI DOSTAW: Koszyk pelny (2/2). Koncze analize.");
+                        return selectedIngredients;
+                    }
                 }
             }
         }
@@ -37,13 +45,19 @@ public:
             if (currentInventory[type] < threshold) {
                 if (std::find(selectedIngredients.begin(), selectedIngredients.end(), type) == selectedIngredients.end()) {
                     selectedIngredients.push_back(type);
-                    if (selectedIngredients.size() == 2) return selectedIngredients;
+                    spdlog::info("[WEZEL 2] Zapasy skladnika ({}) spadly ponizej progu ({}). Dodaje do listy.",
+                                 IngredientTypeToString(type), threshold);
+                    if (selectedIngredients.size() == 2) {
+                        spdlog::info("AI DOSTAW: Koszyk pelny (2/2). Koncze analize.");
+                        return selectedIngredients;
+                    }
                 }
             }
         }
 
         // Jeśli nikt nic nie zamawia i niczego nie brakuje
         if (selectedIngredients.empty()) {
+            spdlog::info("[WEZEL 3] Brak brakow. Nie zamawiam nic (None).");
             return { IngredientType::None };
         }
 
@@ -51,7 +65,12 @@ public:
         for (const auto& [type, threshold] : minThresholds) {
             if (std::find(selectedIngredients.begin(), selectedIngredients.end(), type) == selectedIngredients.end()) {
                 selectedIngredients.push_back(type);
-                if (selectedIngredients.size() == 2) return selectedIngredients;
+                spdlog::info("[WEZEL 3] Uzupelniam wolne miejsce w dostawie losowym skladnikiem ({}).",
+                             IngredientTypeToString(type));
+                if (selectedIngredients.size() == 2) {
+                    spdlog::info("AI DOSTAW: Koszyk dopelniony (2/2). Koncze analize.");
+                    return selectedIngredients;
+                }
             }
         }
 
