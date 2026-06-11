@@ -180,7 +180,10 @@ void Scene::OnUpdateRuntime(Timestep ts)
         }
     }
 
-    for (Entity e : m_EntitiesToDestroy)
+    std::vector<Entity> queueToDestroy = m_EntitiesToDestroy;
+    m_EntitiesToDestroy.clear();
+
+    for (Entity e : queueToDestroy)
     {
         auto* scriptComp = m_ECSWorld.GetComponent<NativeScriptComponent>(e);
         if (scriptComp) {
@@ -200,16 +203,15 @@ void Scene::OnUpdateRuntime(Timestep ts)
             auto& cellEntities = pair.second;
 
             cellEntities.erase(
-                std::remove_if(cellEntities.begin(), cellEntities.end(),
-                    [&](const Entity& gridEntity) { return gridEntity.id == e.id; }),
-                cellEntities.end()
+                    std::remove_if(cellEntities.begin(), cellEntities.end(),
+                                   [&](const Entity& gridEntity) { return gridEntity.id == e.id; }),
+                    cellEntities.end()
             );
         }
 
         m_ECSWorld.DestroyEntity(e);
         GetWorld().GetEventBus().Publish(EntityDestroyedEvent{ e });
     }
-    m_EntitiesToDestroy.clear();
 }
 
 void Scene::OnRuntimeStop()
