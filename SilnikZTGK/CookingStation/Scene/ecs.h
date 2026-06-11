@@ -25,7 +25,6 @@ public:
 template <typename T>
 class SparseSet : public ISparseSet {
 private:
-    // Will act as the value representing a missing element in a dense array
     static constexpr std::size_t None = std::numeric_limits<std::size_t>::max();
 public:
     std::vector<T> dense;
@@ -81,17 +80,13 @@ public:
         std::size_t indexToRemove = this->sparse[entity.id];
         std::size_t lastIndex = this->dense.size() - 1;
 
-        // Pobieramy ostatni¹ encjê w wektorze
         Entity lastEntity = this->reverse[lastIndex];
 
-        // Przenosimy ostatni element na miejsce usuwanego (Swap & Pop)
         this->dense[indexToRemove] = std::move(this->dense[lastIndex]);
         this->reverse[indexToRemove] = lastEntity;
 
-        //Teraz ostatnia encja wskazuje na swój nowy indeks
         this->sparse[lastEntity.id] = indexToRemove;
 
-        // Sprz¹tamy koñcówkê
         this->dense.pop_back();
         this->reverse.pop_back();
         this->sparse[entity.id] = None;
@@ -107,9 +102,7 @@ private:
         std::vector<std::size_t> generations;
 
         void Free(Entity entity) {
-            // Zwiêkszamy generacjê, by uniewa¿niæ stare "referencje" do tego ID
             generations[entity.id]++;
-            // Dodajemy ID do listy wolnych, by CreateEntity mog³o je odzyskaæ
             free.push_back(entity.id);
         }
 
@@ -121,7 +114,7 @@ private:
     std::unordered_map<std::type_index, std::unique_ptr<ISparseSet>> components;
     EventBus eventBus;
 public:
-    Entity CreateEntity(); // Maybe remove, confusing
+    Entity CreateEntity(); 
     EntityBuilder BuildEntity();
     EventBus& GetEventBus() { return eventBus; }
 
@@ -158,8 +151,6 @@ public:
     void RemoveComponent(Entity entity) {
         SparseSet<T>* storage = this->GetComponentVector<T>();
         if (storage != nullptr) {
-            // SparseSet ma ju¿ zaimplementowan¹ doskona³¹ metodê Remove,
-            // która czyœci pamiêæ i zachowuje spójnoœæ wektorów (Swap & Pop)
             storage->Remove(entity);
         }
     }
@@ -188,9 +179,8 @@ public:
     }
 
     void DestroyEntity(Entity entity) {
-        // Zamiast [type, storage], u¿ywamy pary (iteratora)
         for (auto& it : components) {
-            it.second->Remove(entity); // it.second to nasz unique_ptr do ISparseSet
+            it.second->Remove(entity); 
         }
 
         allocator.Free(entity);
@@ -213,10 +203,8 @@ public:
 
     Entity Build();
 };
-// Deklaracja wyprzedzaj¹ca
 class ScriptableEntity;
 
-// Struktura pojedynczego skryptu na liœcie
 struct NativeScriptElement
 {
     ScriptableEntity* Instance = nullptr;
@@ -236,7 +224,6 @@ struct NativeScriptElement
     }
 };
 
-// Zaktualizowany Komponent przechowuj¹cy WIELE skryptów
 struct NativeScriptComponent
 {
     std::vector<NativeScriptElement> Scripts;

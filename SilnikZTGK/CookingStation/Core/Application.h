@@ -27,8 +27,8 @@ public:
 	inline Window& GetWindow() { return *m_Window; }
 	inline EventBus& GetEventBus() { return m_EventBus; }
 
-	void Run(); //Glowna petla while
-	void OnEvent(Event& e); //Odbiornik Eventow
+	void Run(); 
+	void OnEvent(Event& e);
 
 	void PushLayer(Layer* layer);
 	std::vector<Layer*> m_LayerStack;
@@ -50,9 +50,9 @@ private:
 	bool OnWindowResize(WindowResizeEvent& e);
 	bool OnKeyPressed(KeyPressedEvent& e);
 
-	Window* m_Window; //wskaznik na okno
+	Window* m_Window; 
 	bool m_Running = true;
-	bool m_IgnoreNextResize = true; // Flaga do ignorowania pierwszego eventu resize po zmianie rozdzielczości
+	bool m_IgnoreNextResize = true; 
 
 	float m_LastFrameTime = 0.0f;
 	std::shared_ptr<Framebuffer> m_ViewportFBO;

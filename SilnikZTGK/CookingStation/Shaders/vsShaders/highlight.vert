@@ -11,23 +11,18 @@ layout (std140, binding = 0) uniform SceneData {
     float _pad2;
 };
 
-// 2. STANDARDOWE ATRYBUTY
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
 layout (location = 3) in vec2 aTexCoords2;
 
-// 3. NOWE ATRYBUTY ASSIMP
 layout (location = 4) in vec3 aTangent;
 layout (location = 5) in vec3 aBitangent;
 
-// 4. ANIMACJA SZKIELETOWA
 layout (location = 6) in ivec4 aBoneIDs;
 layout (location = 7) in vec4 aWeights;
 
-// 5. INSTANCJONOWANIE 
 layout (location = 8) in mat4 aInstanceMatrix;
-// zajmuje 8, 9, 10, 11
 layout (location = 12) in float a_uvOffset;
 layout (location = 13) in vec4 a_InstanceHighlightColor;
 
@@ -38,7 +33,6 @@ out vec3 Normal;
 out vec3 FragPos;
 out vec4 v_HighlightColor;
 
-// POZOSTA�E UNIFORMY
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 finalBonesMatrices[MAX_BONES];

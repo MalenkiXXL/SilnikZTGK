@@ -8,14 +8,13 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include <cstddef> // DODANE: Wymagane dla makra offsetof
+#include <cstddef> 
 #include "CookingStation/Math/Geometry.h"
 #include <limits>
 #include <cmath>
-
 #include "CookingStation/Renderer/VertexArray.h"
 #include "CookingStation/Renderer/Buffer.h"
-#include "CookingStation/Renderer/Renderer.h" // Tutaj znajduje się definicja naszej struktury InstanceData
+#include "CookingStation/Renderer/Renderer.h" 
 #include "CookingStation/Renderer/RenderCommand.h"
 #include "CookingStation/Renderer/Texture2D.h"
 
@@ -23,19 +22,17 @@ using namespace std;
 
 #define MAX_BONE_INFLUENCE 4
 
-// Struktura opisujaca pojedynczy wierzcholek 3D
 struct Vertex {
-    glm::vec3 Position;  // Pozycja w przestrzeni
-    glm::vec3 Normal;    // Wektor normalny (kierunek, w ktorym "patrzy" wierzcholek)
-    glm::vec2 TexCoords; // Wspolrzedne tekstury (U, V)
-    glm::vec2 TexCoords2; // Wspolrzedne tekstury (U, V)
+    glm::vec3 Position;  
+    glm::vec3 Normal;   
+    glm::vec2 TexCoords;
+    glm::vec2 TexCoords2;
     glm::vec3 Tangent;
     glm::vec3 Bitangent;
     int m_BoneIDs[MAX_BONE_INFLUENCE];
     float m_Weights[MAX_BONE_INFLUENCE];
 };
 
-// Struktura przechowujaca ID zaladowanej tekstury i jej typ (diffuse/specular)
 struct MeshTexture {
     std::shared_ptr<Texture2D> Texture2DPtr;
     string type;
@@ -46,19 +43,14 @@ struct MeshTexture {
     }
 };
 
-// Klasa Mesh to pojedyncza "siatka". Model moze skladac sie z wielu takich siatek (np. ludzik: osobna siatka na cialo, osobna na bron)
 class Mesh {
 public:
     AABB localAABB;
 
     AABB GetWorldAABB(const glm::mat4& transform) const {
-        // --- POPRAWKA OPTYMALIZACYJNA FPS #2: Transformacja 8 rożków zamiast całej siatki ---
-
-        // 1. Odtwarzamy granice Min/Max w Local Space za pomocą środka (center) i wielkości (extents)
         glm::vec3 minLocal = localAABB.center - localAABB.extents;
         glm::vec3 maxLocal = localAABB.center + localAABB.extents;
 
-        // 2. Definiujemy 8 narożników lokalnego pudełka
         glm::vec3 corners[8] = {
             glm::vec3(minLocal.x, minLocal.y, minLocal.z),
             glm::vec3(maxLocal.x, minLocal.y, minLocal.z),
@@ -70,7 +62,6 @@ public:
             glm::vec3(maxLocal.x, maxLocal.y, maxLocal.z)
         };
 
-        // 3. Transformujemy te punkty do przestrzeni świata i wyciągamy nowe skrajne współrzędne
         glm::vec3 worldMin(std::numeric_limits<float>::max());
         glm::vec3 worldMax(std::numeric_limits<float>::lowest());
 
@@ -87,7 +78,6 @@ public:
         return resultAABB;
     }
 
-    // Dane siatki
     vector<Vertex>       vertices;
     vector<unsigned int> indices;
     vector<MeshTexture> textures;
@@ -100,7 +90,6 @@ public:
         this->indices = indices;
         this->textures = textures;
 
-        // --- ZABEZPIECZONE WYLICZANIE LOKALNEGO AABB (WYKONUJE SIĘ TYLKO RAZ PRZY LOADINGU) ---
         if (vertices.empty()) {
             localAABB.center = glm::vec3(0.0f);
             localAABB.extents = glm::vec3(0.0f);
@@ -117,15 +106,12 @@ public:
             localAABB.center = (minP + maxP) * 0.5f;
             localAABB.extents = (maxP - minP) * 0.5f;
         }
-        // -----------------------------------------------------------------------------------
 
-        // Po otrzymaniu danych konfigurujemy bufory OpenGL
         setupMesh();
     }
 
     void Draw(Shader& shader)
     {
-        // 1. Zawsze aktywujemy shader przed ustawieniem jakichkolwiek uniformów
         shader.use();
 
         unsigned int diffuseNr = 1;
@@ -133,8 +119,6 @@ public:
         unsigned int normalNr = 1;
         unsigned int heightNr = 1;
 
-        // 2. Liczymy tekstury typu "texture_diffuse". 
-        // Jeśli w Model.h wczytałeś map_Kd i map_Ks jako "texture_diffuse", tutaj będzie 2.
         int diffuseCount = 0;
         for (const auto& t : textures)
         {
@@ -142,19 +126,15 @@ public:
                 diffuseCount++;
         }
 
-        // 3. Informujemy shader, czy ma użyć drugiej tekstury w obliczeniach
         shader.SetBool("useTexture2", diffuseCount > 1);
 
-        // 4. Przelatujemy przez wszystkie tekstury przypięte do tej siatki
         for (unsigned int i = 0; i < textures.size(); i++)
         {
-            // Aktywujemy odpowiednie gniazdo tekstury (GL_TEXTURE0 + i)
             glActiveTexture(GL_TEXTURE0 + i);
 
             string number;
             string name = textures[i].type;
 
-            // Logika nadawania nazw: texture_diffuse1, texture_diffuse2 itd.
             if (name == "texture_diffuse")
                 number = std::to_string(diffuseNr++);
             else if (name == "texture_specular")
@@ -164,14 +144,11 @@ public:
             else if (name == "texture_height")
                 number = std::to_string(heightNr++);
 
-            // Przekazujemy numer slotu (i) do shadera pod wygenerowaną nazwę
             glUniform1i(glGetUniformLocation(shader.ID, (name + number).c_str()), i);
 
-            // Bindujemy teksturę korzystając z Twojej klasy Texture2D
             textures[i].Texture2DPtr->Bind(i);
         }
 
-        // 5. Rysowanie siatki przy użyciu VAO i Twojego Renderera
         m_VertexArray->Bind();
         RenderCommand::DrawIndexed(m_VertexArray);
         m_VertexArray->Unbind();
@@ -179,55 +156,42 @@ public:
         for (unsigned int i = 0; i < textures.size(); i++)
         {
             glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, 0); // "0" oznacza brak tekstury
+            glBindTexture(GL_TEXTURE_2D, 0); 
         }
-        // ------------------------------------------
 
-        // 6. Resetujemy aktywną jednostkę teksturującą do domyślnej
         glActiveTexture(GL_TEXTURE0);
-    } // koniec funkcji Draw
+    } 
 
 private:
-    // Tworzenie VAO, VBO, EBO
     void setupMesh()
     {
-        // tworzymy vao
         m_VertexArray = std::make_shared<VertexArray>();
 
-        // tworzymy vbo 
         std::shared_ptr<VertexBuffer> vertexBuffer;
-        // c++ musi potraktowac nasz wektor jako plaska tablice floatow
         vertexBuffer = std::make_shared<VertexBuffer>((float*)&vertices[0], vertices.size() * sizeof(Vertex));
 
         vertexBuffer->SetLayout(
             {
-                {ShaderDataType::Float3, "aPos"},         // loc 0
-                {ShaderDataType::Float3, "aNormal"},      // loc 1
-                {ShaderDataType::Float2, "aTexCoords"},   // loc 2
-                {ShaderDataType::Float2, "aTexCoords2"},  // loc 3
-                // te 4 rzeczy zostawiamy dla Assimpa
-                {ShaderDataType::Float3, "aTangent"},     // loc 4
-                {ShaderDataType::Float3, "aBitangent"},   // loc 5
-                {ShaderDataType::Int4, "aBoneIDs"},       // loc 6
-                {ShaderDataType::Float4, "aWeights"},     // loc 7
+                {ShaderDataType::Float3, "aPos"},         
+                {ShaderDataType::Float3, "aNormal"},      
+                {ShaderDataType::Float2, "aTexCoords"},   
+                {ShaderDataType::Float2, "aTexCoords2"}, 
+                {ShaderDataType::Float3, "aTangent"},     
+                {ShaderDataType::Float3, "aBitangent"},   
+                {ShaderDataType::Int4, "aBoneIDs"},     
+                {ShaderDataType::Float4, "aWeights"},    
             }
             );
 
-        // vao przejmuje vbo
         m_VertexArray->AddVertexBuffer(vertexBuffer);
 
-        // tworzymy ebo
         std::shared_ptr<IndexBuffer> indexBuffer;
         indexBuffer = std::make_shared<IndexBuffer>(&indices[0], indices.size());
         m_VertexArray->SetIndexBuffer(indexBuffer);
 
-        // ==========================================
-        //  LOGIKA BUFORA INSTANCJI (InstanceVBO)
-        // ==========================================
         glGenBuffers(1, &m_InstanceVBO);
         glBindBuffer(GL_ARRAY_BUFFER, m_InstanceVBO);
 
-        // Alokujemy pamięć na max 20 000 instancji na strukturę InstanceData!
         constexpr std::size_t maxInstances = 20000;
         glBufferData(GL_ARRAY_BUFFER, maxInstances * sizeof(InstanceData), nullptr, GL_DYNAMIC_DRAW);
 
@@ -235,7 +199,6 @@ private:
 
         std::size_t vec4Size = sizeof(glm::vec4);
 
-        // 1. Ustawienie wskaźników dla MACIERZY TRANSFORMACJI (Lokacje 8, 9, 10, 11)
         for (int i = 0; i < 4; i++)
         {
             glEnableVertexAttribArray(8 + i);
@@ -243,12 +206,10 @@ private:
             glVertexAttribDivisor(8 + i, 1);
         }
 
-        // 2. Ustawienie wskaźnika dla UV OFFSET (Lokacja 12)
         glEnableVertexAttribArray(12);
         glVertexAttribPointer(12, 1, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, UVOffset));
         glVertexAttribDivisor(12, 1);
 
-        // 3. Ustawienie wskaźnika dla HIGHLIGHT COLOR (Lokacja 13)
         glEnableVertexAttribArray(13);
         glVertexAttribPointer(13, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (void*)offsetof(InstanceData, HighlightColor));
         glVertexAttribDivisor(13, 1);

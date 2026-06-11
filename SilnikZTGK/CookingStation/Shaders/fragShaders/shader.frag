@@ -1,17 +1,16 @@
 #version 420 core
 out vec4 FragColor;
 
-// Dane wejściowe z Vertex Shadera
 in float v_uvOffset;
 in vec2 TexCoords;
 in vec2 TexCoords2; 
 in vec3 Normal;
 in vec3 FragPos;
-in vec4 FragPosLightSpace; // DODANE
+in vec4 FragPosLightSpace;
 
 layout (std140, binding = 0) uniform SceneData {
     mat4 u_ViewProjection;
-    mat4 u_LightSpaceMatrix; // DODANE
+    mat4 u_LightSpaceMatrix; 
     vec3 u_SunDir;
     float _pad0;
     vec3 u_LightColor;
@@ -20,14 +19,12 @@ layout (std140, binding = 0) uniform SceneData {
     float _pad2;
 };
 
-// Tekstury i flagi
 uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_diffuse2;
 uniform bool useTexture2; 
 
-uniform sampler2D shadowMap; // DODANE
+uniform sampler2D shadowMap; 
 
-// DODANE: Funkcja sprawdzająca cień
 float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir)
 {
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
@@ -59,12 +56,10 @@ void main()
     if(useTexture2) {
         vec4 tex2Sample = texture(texture_diffuse2, TexCoords2);
         float lum = max(tex2Sample.r, max(tex2Sample.g, tex2Sample.b));
-        // Odtwórz prawdziwy kolor plamy
         vec3 trueColor = tex2Sample.rgb / max(lum, 0.001);
         baseColor = mix(baseColor, trueColor, lum * tex2Sample.a);
     }
     
-    // Szachownica na podłodze 
     if (FragPos.y < 0.0) 
     {
         float gridSize = 2.0;
@@ -78,7 +73,6 @@ void main()
         }
     }
 
-    // Oświetlenie kierunkowe
     float ambientStrength = 0.55; 
     vec3 ambient = ambientStrength * vec3(1.0); 
 
@@ -94,13 +88,10 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     vec3 specular = specularStrength * spec * u_LightColor;  
 
-    // Obliczenie Cienia
     float shadow = ShadowCalculation(FragPosLightSpace, norm, lightDir);
 
-    // ZMODYFIKOWANE Złożenie oświetlenia (uwzględnienie cienia)
     vec3 result = (ambient + (1.0 - shadow) * diffuse) * baseColor + (1.0 - shadow) * specular;
     
-    // Korekcja gamma
     float gammaParam = 1.4; 
     result = pow(result, vec3(1.0 / gammaParam)); 
 

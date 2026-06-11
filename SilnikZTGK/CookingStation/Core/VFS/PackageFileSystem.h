@@ -3,8 +3,7 @@
 #include <fstream>
 #include <unordered_map>
 #include <spdlog/spdlog.h>
-#include <algorithm> // Wymagane dla std::replace
-
+#include <algorithm> 
 struct PakEntry {
     uint64_t Offset;
     uint64_t Size;
@@ -15,17 +14,14 @@ private:
     std::string m_PakFilePath;
     std::unordered_map<std::string, PakEntry> m_FileEntries;
 
-    // Pomocnicza funkcja do normalizacji œcie¿ek
     std::string CleanPath(const std::string& filepath) const {
         std::string cleanPath = filepath;
 
-        // 1. Usuwamy ewentualny prefiks (np. assets:// lub shaders://), jeœli VFS go nam przekaza³
         size_t pos = cleanPath.find("://");
         if (pos != std::string::npos) {
             cleanPath = cleanPath.substr(pos + 3);
         }
 
-        // 2. Zamieniamy wszystkie ukoœniki wsteczne (Windows) na zwyk³e, bo w .pak u¿yliœmy generic_string()
         std::replace(cleanPath.begin(), cleanPath.end(), '\\', '/');
 
         return cleanPath;
@@ -41,7 +37,7 @@ public:
 
         if (m_FileEntries.find(cleanPath) == m_FileEntries.end()) {
             spdlog::error("[PackageFS] Nie znaleziono pliku w archiwum: {}", cleanPath);
-            return {}; // Plik nie istnieje w archiwum
+            return {}; 
         }
 
         const auto& entry = m_FileEntries[cleanPath];
@@ -51,7 +47,6 @@ public:
             return {};
         }
 
-        // Przesuñ wskaŸnik czytania w odpowiednie miejsce pliku .pak
         file.seekg(entry.Offset, std::ios::beg);
 
         std::vector<uint8_t> buffer(entry.Size);
@@ -75,14 +70,12 @@ private:
             return;
         }
 
-        // 1. Odczyt iloœci plików z samego pocz¹tku archiwum
         uint32_t numFiles = 0;
         if (!file.read(reinterpret_cast<char*>(&numFiles), sizeof(uint32_t))) {
             spdlog::error("[PackageFS] Plik archiwum jest pusty lub uszkodzony: {}", m_PakFilePath);
             return;
         }
 
-        // 2. Czytamy w pêtli poszczególne wpisy w Spisie Treœci
         for (uint32_t i = 0; i < numFiles; ++i) {
             uint32_t pathLen = 0;
             file.read(reinterpret_cast<char*>(&pathLen), sizeof(uint32_t));
@@ -95,10 +88,8 @@ private:
             file.read(reinterpret_cast<char*>(&offset), sizeof(uint64_t));
             file.read(reinterpret_cast<char*>(&size), sizeof(uint64_t));
 
-            // Na wszelki wypadek normalizujemy te¿ klucz zapamiêtywany w mapie
             std::replace(path.begin(), path.end(), '\\', '/');
 
-            // Zapisujemy w RAM gdzie i ile bajtów musimy przeczytaæ 
             m_FileEntries[path] = { offset, size };
         }
 

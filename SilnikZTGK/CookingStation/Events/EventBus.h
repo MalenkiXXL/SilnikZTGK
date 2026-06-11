@@ -5,19 +5,16 @@
 #include <memory>
 #include <vector>
 
-// Bazowa klasa do zacierania typów (type erasure)
 class IEventSignal {
 public:
     virtual ~IEventSignal() = default;
 };
 
-// Konkretny kontener dla danego typu eventu T
 template <typename T>
 class EventSignal : public IEventSignal {
 public:
     using Callback = std::function<void(const T&)>;
 
-    // U¿ywamy unordered_map, by ³atwo móc siê wypisaæ za pomoc¹ ID
     std::unordered_map<std::size_t, Callback> listeners;
     std::size_t nextId = 0;
 
@@ -51,19 +48,16 @@ private:
     }
 
 public:
-    // Rejestruje funkcjê nas³uchuj¹c¹ i zwraca ID subskrypcji
     template <typename T>
     std::size_t Subscribe(std::function<void(const T&)> callback) {
         return GetSignal<T>()->Subscribe(callback);
     }
 
-    // Wyrejestrowuje funkcjê po ID
     template <typename T>
     void Unsubscribe(std::size_t id) {
         GetSignal<T>()->Unsubscribe(id);
     }
 
-    // Wysy³a event do wszystkich nas³uchuj¹cych
     template <typename T>
     void Publish(const T& event) {
         GetSignal<T>()->Publish(event);

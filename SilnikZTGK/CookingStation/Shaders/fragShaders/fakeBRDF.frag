@@ -25,26 +25,22 @@ void main()
     vec3 V = normalize(u_ViewPos - FragPos);
     vec3 H = normalize(L + V);
 
-    // 1. Wrapped Diffuse (Fake Subsurface Scattering)
     float NdotL = dot(N, L);
     float wrap = 0.5;
     float diffuseFactor = max((NdotL + wrap) / (1.0 + wrap), 0.0);
     diffuseFactor = pow(diffuseFactor, 2.0);
     vec3 diffuse = diffuseFactor * u_LightColor;
 
-    // 2. Specular (Stylizowany Blinn-Phong)
     float NdotH = max(dot(N, H), 0.0);
     float specMask = smoothstep(0.0, 0.2, NdotL);
     float specularFactor = pow(NdotH, 32.0) * specMask;
     vec3 specular = specularFactor * u_LightColor * 0.5;
 
-    // 3. Rim Lighting
     float NdotV = max(dot(N, V), 0.0);
     float rimFactor = 1.0 - NdotV;
     rimFactor = smoothstep(0.6, 1.0, rimFactor) * max(NdotL, 0.0);
     vec3 rimLight = rimFactor * u_LightColor * vec3(1.0, 1.0, 1.0);
 
-    // Ambient
     vec3 ambient = 0.15 * u_LightColor;
 
     vec3 result = baseColor * (ambient + diffuse) + specular + rimLight;

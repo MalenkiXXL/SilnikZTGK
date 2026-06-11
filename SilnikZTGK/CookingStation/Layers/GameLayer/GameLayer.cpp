@@ -23,7 +23,7 @@ void GameLayer::OnAttach()
         return;
     }
 
-    AudioEngine::PlayMusic("CookingStation/Assets/sounds/aktasok-ambient-background-loop.mp3", true, 0.01f);
+    AudioEngine::PlayMusic("assets://sounds/aktasok-ambient-background-loop.mp3", true, 0.01f);
 
 }
 
@@ -76,13 +76,11 @@ void GameLayer::OnUpdate(Timestep ts)
         Ray interactionRay;
         bool isClickAction = false;
 
-        // 1. Sprawdzamy wejście z pada
         if (Input::IsGamepadPresent(0))
         {
             float leftAxisX = Input::GetGamepadAxis(GLFW_GAMEPAD_AXIS_LEFT_X, 0);
             float leftAxisY = Input::GetGamepadAxis(GLFW_GAMEPAD_AXIS_LEFT_Y, 0);
 
-            // Deadzone, żeby gałka nie "pływała" sama
             if (std::abs(leftAxisX) > 0.15f || std::abs(leftAxisY) > 0.15f)
             {
                 m_UsingGamepad = true;
@@ -90,19 +88,15 @@ void GameLayer::OnUpdate(Timestep ts)
                 glm::vec3 flatForward = camera->GetFlatForward();
                 glm::vec3 right = camera->Right;
 
-                // Odwracamy Y, bo wychylenie w górę daje wartość ujemną w GLFW
                 glm::vec3 moveDir = right * leftAxisX - flatForward * leftAxisY;
 
                 if (glm::length(moveDir) > 0.1f)
                 {
                     moveDir = glm::normalize(moveDir);
-                    // Mnożymy przez czas klatki dla płynności
                     m_VirtualCursorPos += moveDir * m_GamepadCursorSpeed * (float)ts;
 
-                    // Zabezpieczenie: upewnijmy się, że kursor płasko trzyma się poziomu podłogi
                     m_VirtualCursorPos.y = 0.0f;
 
-                    // Logujemy pozycję wyliczoną przed snapowaniem do kratki
                     spdlog::info("Wirtualny kursor 3D porusza sie. Pozycja: X:{:.2f}, Z:{:.2f}", m_VirtualCursorPos.x, m_VirtualCursorPos.z);
                 }
             }
@@ -113,7 +107,6 @@ void GameLayer::OnUpdate(Timestep ts)
             }
         }
 
-        // 2. Automatyczny powrót na mysz po jej poruszeniu lub kliknięciu
         static std::pair<float, float> s_LastMousePos = mousePos;
         if (std::abs(mouseX - s_LastMousePos.first) > 1.0f || std::abs(mouseY - s_LastMousePos.second) > 1.0f || Input::IsMouseButtonJustPressed(0))
         {
@@ -121,24 +114,18 @@ void GameLayer::OnUpdate(Timestep ts)
             s_LastMousePos = { mouseX, mouseY };
         }
 
-        // 3. Budujemy finalny wektor interakcji (Ray) w zależności od kontrolera
         if (m_UsingGamepad)
         {
-            // Rzutujemy kursor idealnie do srodka najbliższego kafelka (Grid)
             glm::vec3 snappedCursor = GridSystem::SnapToGrid(m_VirtualCursorPos);
 
-            // Strzelamy laserem z góry w dół idealnie na wybrany kafelek, aby oszukać PhysicsSystem
             interactionRay.Origin = snappedCursor + glm::vec3(0.0f, 20.0f, 0.0f);
             interactionRay.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
         }
         else
         {
-            // Standardowa myszka
             interactionRay = Physics::CastRayFromMouse(mouseX, mouseY, viewWidth, viewHeight, proj3D, view3D);
             isClickAction = Input::IsMouseButtonJustPressed(0);
 
-            // Aktualizujemy pozycję wirtualnego kursora do miejsca myszy, 
-            // żeby po złapaniu za pada kursor nie odskoczył w inne miejsce
             if (std::abs(interactionRay.Direction.y) > 1e-6f) {
                 float t = -interactionRay.Origin.y / interactionRay.Direction.y;
                 if (t > 0.0f) {
@@ -147,7 +134,6 @@ void GameLayer::OnUpdate(Timestep ts)
             }
         }
 
-        // 4. Publikacja eventów wykorzystująca Twój istniejący system
         Entity hoveredEntity = Physics::GetHoveredEntity(interactionRay, m_ActiveScene, true, true, true);
         world.GetEventBus().Publish(EntityHoveredEvent{ hoveredEntity });
 
@@ -157,74 +143,50 @@ void GameLayer::OnUpdate(Timestep ts)
                 world.GetEventBus().Publish(EntityClickedEvent{ hoveredEntity, 0 });
         }
 
-        //Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, viewWidth, viewHeight, proj3D, view3D);
-
-        //// HOVER — co klatkę
-        //Entity hoveredEntity = Physics::GetHoveredEntity(ray, m_ActiveScene, true, true);
-        //world.GetEventBus().Publish(EntityHoveredEvent{ hoveredEntity });
-
-        // KLIK — tylko przy naciśnięciu
-        /*if (Input::IsMouseButtonJustPressed(0))
-        {
-            if (hoveredEntity.id != std::numeric_limits<std::size_t>::max())
-                world.GetEventBus().Publish(EntityClickedEvent{ hoveredEntity, 0 });
-        }*/
-
-        // --- RYSOWANIE WIRTUALNEGO KURSORA DLA PADA ---
+        
         if (m_UsingGamepad)
         {
-            // 1. Jeśli encja kursora jeszcze nie istnieje w ECS (lub została usunięta), tworzymy ją
             if (m_GamepadCursor.id == std::numeric_limits<std::size_t>::max() || !world.GetComponent<TagComponent>(m_GamepadCursor))
             {
                 m_GamepadCursor = world.CreateEntity();
                 world.AddComponent<TagComponent>(m_GamepadCursor, TagComponent{ "VirtualCursor" });
 
                 TransformComponent tc;
-                // Spłaszczamy go na osi Y i rozszerzamy, by przypominał duży dysk podświetlający kafelek
                 tc.SetScale(glm::vec3(0.07f, 0.01f, 0.07f));
                 world.AddComponent<TransformComponent>(m_GamepadCursor, tc);
 
                 MeshComponent mc;
-                // Używamy talerza jako tymczasowego modelu celownika
-                mc.ModelPtr = AssetManager::GetModel("CookingStation/Assets/models/wystroj/podlogakursormoje.gltf");
+                mc.ModelPtr = AssetManager::GetModel("assets://models/wystroj/podlogakursormoje.gltf");
                 world.AddComponent<MeshComponent>(m_GamepadCursor, mc);
 
                 spdlog::info("Wirtualny Kursor: Utworzono encję z modelem talerza!");
             }
 
-            // 2. Przenosimy kursor fizycznie na środek aktualnego kafelka
             auto* tc = world.GetComponent<TransformComponent>(m_GamepadCursor);
             if (tc)
             {
                 glm::vec3 snappedCursor = GridSystem::SnapToGrid(m_VirtualCursorPos);
-                snappedCursor.y += 0.1f; // Unosimy minimalnie nad podłogę
+                snappedCursor.y += 0.1f; 
                 tc->SetPosition(snappedCursor);
             }
 
-            // --- 3. ŚLEDZENIE KAMERY (NOWE) ---
-            // 1. Znajdujemy dokładny punkt na podłodze (Y=0), na który patrzy środek kamery
             glm::vec3 screenCenterOnFloor = camera->TargetPosition;
-            if (std::abs(camera->Front.y) > 0.001f) // Zabezpieczenie przed kamerą patrzącą idealnie prosto
+            if (std::abs(camera->Front.y) > 0.001f) 
             {
-                // Równanie promienia: P = Origin + t * Direction. Szukamy t dla P.y = 0
                 float t = -camera->TargetPosition.y / camera->Front.y;
                 screenCenterOnFloor = camera->TargetPosition + t * camera->Front;
             }
 
-            // 2. Obliczamy różnicę pozycji między wirtualnym kursorem a rzeczywistym środkiem ekranu
             glm::vec3 diff = m_VirtualCursorPos - screenCenterOnFloor;
-            diff.y = 0.0f; // Poruszamy się tylko po płaskiej podłodze
+            diff.y = 0.0f; 
 
             float distance = glm::length(diff);
 
-            // Strefa, w której kursor porusza się swobodnie bez ruszania kamery
-            // (Jeśli 8.0f to dla Ciebie za dużo i kamera reaguje za późno, zmniejsz np. na 5.0f)
             float deadzone = 8.0f;
 
             if (distance > deadzone)
             {
                 glm::vec3 moveDir = glm::normalize(diff);
-                // Przesuwamy docelową pozycję kamery 
                 camera->TargetPosition += moveDir * (distance - deadzone);
             }
         }
@@ -250,12 +212,6 @@ bool GameLayer::OnKeyPressed(KeyPressedEvent& e)
         return false;
     }
 
-    if (e.GetKeyCode() == 32 && e.GetRepeatCode() == 0) // Spacja
-    {
-        AudioEngine::Play("CookingStation/Assets/sounds/onion_chopping.mp3");
-        return false;
-    }
-
     return false;
 }
 
@@ -266,89 +222,73 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
 
     spdlog::info("AudioEngine: Podpinam pelna liste eventow audio!");
 
-    // ====================================================================
-    // 1. SYSTEM I INTERFEJS
-    // ====================================================================
-//    eventBus.Subscribe<EntityClickedEvent>([](const EntityClickedEvent& e) {
-//        AudioEngine::Play("CookingStation/Assets/sounds/ui_click.mp3");
-//    });
 
     eventBus.Subscribe<GamePausedEvent>([](const GamePausedEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/pause.mp3");
+        AudioEngine::Play("assets://sounds/pause.mp3");
     });
 
     eventBus.Subscribe<GameResumedEvent>([](const GameResumedEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/unpause.mp3");
+        AudioEngine::Play("assets://sounds/unpause.mp3");
     });
 
-    // ====================================================================
-    // 2. KUCHNIA I PRZEDMIOTY
-    // ====================================================================
     eventBus.Subscribe<MachinePickedUpEvent>([](const MachinePickedUpEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/pickup.wav");
+        AudioEngine::Play("assets://sounds/pickup.wav");
     });
 
     eventBus.Subscribe<StartDragRequestEvent>([](const StartDragRequestEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/drag_start.mp3"); // Lekki szelest
+        AudioEngine::Play("assets://sounds/drag_start.mp3");
     });
 
 //    eventBus.Subscribe<DishCreatedEvent>([](const DishCreatedEvent& e) {
-//        AudioEngine::Play("CookingStation/Assets/sounds/dish_ready.mp3"); // Magiczne 'poof' / dzwonek
+//        AudioEngine::Play("assets://sounds/dish_ready.mp3"); 
 //    });
 
 //    eventBus.Subscribe<PlateReadyEvent>([](const PlateReadyEvent& e) {
-//        AudioEngine::Play("CookingStation/Assets/sounds/ding.mp3"); // Dźwięk gotowej potrawy
+//        AudioEngine::Play("assets://sounds/ding.mp3"); 
 //    });
 
     eventBus.Subscribe<PlateGrabbedEvent>([](const PlateGrabbedEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/plate_pickup.wav"); // Dźwięk porcelany
+        AudioEngine::Play("assets://sounds/plate_pickup.wav"); 
     });
 
     eventBus.Subscribe<IngredientUsedEvent>([](const IngredientUsedEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/put_ingredient.mp3"); // Lub inny dźwięk obróbki
+        AudioEngine::Play("assets://sounds/put_ingredient.mp3"); 
     });
 
-    // ====================================================================
-    // 3. KLIENCI I ZAMÓWIENIA
-    // ====================================================================
     eventBus.Subscribe<CustomerSeatedEvent>([](const CustomerSeatedEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/footstep09.mp3"); // Klient siada
+        AudioEngine::Play("assets://sounds/footstep09.mp3"); 
     });
 
 //    eventBus.Subscribe<OrderTakenEvent>([](const OrderTakenEvent& e) {
-//        AudioEngine::Play("CookingStation/Assets/sounds/writing.mp3"); // Notowanie zamówienia
+//        AudioEngine::Play("assets://sounds/writing.mp3"); 
 //    });
 
     eventBus.Subscribe<CustomerServedEvent>([](const CustomerServedEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/plate_down.wav"); // Postawienie talerza na stole
+        AudioEngine::Play("assets://sounds/plate_down.wav"); 
     });
 
-    // Odpowiedź na zamówienie (bardzo fajny event, możemy zagrać różną reakcję!)
     eventBus.Subscribe<ValidateOrderResponseEvent>([](const ValidateOrderResponseEvent& e) {
         if (e.IsCorrect) {
-            AudioEngine::Play("CookingStation/Assets/sounds/happy_customer.mp3");
+            AudioEngine::Play("assets://sounds/happy_customer.mp3");
         } else {
-            AudioEngine::Play("CookingStation/Assets/sounds/angry_customer.mp3");
+            AudioEngine::Play("assets://sounds/angry_customer.mp3");
         }
     });
 
-    // ====================================================================
-    // 4. EKONOMIA I DOSTAWA
-    // ====================================================================
     eventBus.Subscribe<MoneyChangedEvent>([](const MoneyChangedEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/coin.mp3");
+        AudioEngine::Play("assets://sounds/coin.mp3");
     });
 
     eventBus.Subscribe<OrderFulfilledEvent>([](const OrderFulfilledEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/success.mp3"); // Duża kasa / fanfary
+        AudioEngine::Play("assets://sounds/success.mp3"); 
     });
 
     eventBus.Subscribe<CarArrivedEvent>([](const CarArrivedEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/truck_horn.mp3"); // Klakson
+        AudioEngine::Play("assets://sounds/truck_horn.mp3"); 
     });
 
     eventBus.Subscribe<PackageSpawnedEvent>([](const PackageSpawnedEvent& e) {
-        AudioEngine::Play("CookingStation/Assets/sounds/box_drop.mp3"); // Rzucenie paczki
+        AudioEngine::Play("assets://sounds/box_drop.mp3"); 
     });
 
 }

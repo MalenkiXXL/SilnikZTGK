@@ -7,9 +7,7 @@ class CommandHistory {
 public:
 	CommandHistory () : m_CurrentCommandIndex(-1) {}
 
-	// wykonuje komende i dodaje j¹ do historii
 	void ExecuteCommand(std::unique_ptr<Command> command) {
-		// dodanie usuwanie poprzedniej akcji po tym jak zrobilismy undo i cos nowego
 		if (m_CurrentCommandIndex < (int)m_Commands.size() - 1) {
 			m_Commands.erase(m_Commands.begin() + m_CurrentCommandIndex + 1, m_Commands.end());
 		}

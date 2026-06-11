@@ -14,11 +14,9 @@ public:
     std::vector<uint8_t> ReadFile(const std::string& filepath) override {
         std::filesystem::path fullPath = std::filesystem::path(m_RootDirectory) / filepath;
 
-        // U¿ywamy .string(), dla starszych implementacji std::ifstream
         std::ifstream file(fullPath.string(), std::ios::binary | std::ios::ate);
 
         if (!file.is_open()) {
-            // Tego loga potrzebujemy, jeœli cokolwiek jeszcze nie zadzia³a:
             spdlog::error("[PhysicalFS] System operacyjny odrzucil probe otwarcia pliku. Szukano pod adresem: {}", fullPath.string());
             return {};
         }

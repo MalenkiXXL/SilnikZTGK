@@ -10,7 +10,6 @@ std::vector<ModelLibraryEntry> AssetManager::s_Library;
 ShaderLibrary AssetManager::s_Shaders;
 
 void AssetManager::LoadModelLibrary(const std::string& path) {
-	// ZMIANA VFS
 	std::vector<uint8_t> fileData = VFS::ReadFile(path);
 	if (fileData.empty()) {
 		spdlog::error("[AssetManager] Nie znaleziono pliku biblioteki modeli VFS: {}", path);
@@ -78,7 +77,7 @@ std::unordered_map<std::string, std::shared_ptr<Animation>> AssetManager::s_Anim
 
 std::shared_ptr<Animation> AssetManager::LoadAnimation(const std::string& name, const std::string& path, Model* model) {
 	if (s_Animations.find(name) != s_Animations.end()) {
-		return s_Animations[name]; // Zwr�� z pami�ci podr�cznej
+		return s_Animations[name]; 
 	}
 
 	auto animation = std::make_shared<Animation>(path, model);
@@ -95,13 +94,11 @@ std::shared_ptr<Animation> AssetManager::GetAnimation(const std::string& name) {
 std::unordered_map<std::string, std::shared_ptr<Texture2D>> AssetManager::m_Textures2D;
 
 std::shared_ptr<Texture2D> AssetManager::GetTexture2D(const std::string& path) {
-    // 1. Sprawdzamy, czy tekstura jest ju� w pami�ci RAM/VRAM
     auto it = m_Textures2D.find(path);
     if (it != m_Textures2D.end()) {
-        return it->second; // Zwracamy gotowy wska�nik - zero wczytywania!
+        return it->second; 
     }
 
-    // 2. Je�li jej nie ma, wczytujemy z VFS i zapisujemy do pami�ci na przysz�o��
     auto tex = std::make_shared<Texture2D>(path);
     m_Textures2D[path] = tex;
     return tex;

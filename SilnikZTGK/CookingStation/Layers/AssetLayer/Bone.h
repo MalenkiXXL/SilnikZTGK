@@ -6,7 +6,6 @@
 #include <glm/gtx/quaternion.hpp>
 #include <string>
 
-// Pomocnicze struktury dla klatek kluczowych
 struct KeyPosition { glm::vec3 position; float timeStamp; };
 struct KeyRotation { glm::quat orientation; float timeStamp; };
 struct KeyScale { glm::vec3 scale; float timeStamp; };
@@ -17,7 +16,6 @@ public:
     Bone(const std::string& name, int ID, const aiNodeAnim* channel)
         : m_Name(name), m_ID(ID), m_LocalTransform(1.0f)
     {
-        // Kopiowanie pozycji (Translation)
         m_NumPositions = channel->mNumPositionKeys;
         for (int positionIndex = 0; positionIndex < m_NumPositions; ++positionIndex) {
             aiVector3D aiPosition = channel->mPositionKeys[positionIndex].mValue;
@@ -25,7 +23,6 @@ public:
             m_Positions.push_back({ glm::vec3(aiPosition.x, aiPosition.y, aiPosition.z), timeStamp });
         }
 
-        // Kopiowanie rotacji (Rotation - kwaterniony!)
         m_NumRotations = channel->mNumRotationKeys;
         for (int rotationIndex = 0; rotationIndex < m_NumRotations; ++rotationIndex) {
             aiQuaternion aiOrientation = channel->mRotationKeys[rotationIndex].mValue;
@@ -33,7 +30,6 @@ public:
             m_Rotations.push_back({ glm::quat(aiOrientation.w, aiOrientation.x, aiOrientation.y, aiOrientation.z), timeStamp });
         }
 
-        // Kopiowanie skali (Scale)
         m_NumScales = channel->mNumScalingKeys;
         for (int keyIndex = 0; keyIndex < m_NumScales; ++keyIndex) {
             aiVector3D scale = channel->mScalingKeys[keyIndex].mValue;
@@ -48,7 +44,6 @@ public:
         glm::mat4 rotation = InterpolateRotation(animationTime);
         glm::mat4 scale = InterpolateScaling(animationTime);
 
-        // Zbudowanie lokalnej transformacji dla danej klatki
         m_LocalTransform = translation * rotation * scale;
     }
 
@@ -68,7 +63,6 @@ private:
     std::string m_Name;
     int m_ID;
 
-    // Pobiera indeks klatki kluczowej bezposrednio przed aktualnym czasem
     int GetPositionIndex(float animationTime) {
         for (int index = 0; index < m_NumPositions - 1; ++index)
             if (animationTime < m_Positions[index + 1].timeStamp) return index;
@@ -87,7 +81,6 @@ private:
         return 0;
     }
 
-    // Funkcje interpoluj¹ce
     glm::mat4 InterpolatePosition(float animationTime) {
         if (1 == m_NumPositions) return glm::translate(glm::mat4(1.0f), m_Positions[0].position);
         int p0Index = GetPositionIndex(animationTime);
@@ -116,7 +109,6 @@ private:
         return glm::scale(glm::mat4(1.0f), finalScale);
     }
 
-    // Liczy wspó³czynnik interpolacji (0.0 do 1.0) miêdzy dwiema klatkami
     float GetScaleFactor(float lastTimeStamp, float nextTimeStamp, float animationTime) {
         float scaleFactor = 0.0f;
         float midWayLength = animationTime - lastTimeStamp;

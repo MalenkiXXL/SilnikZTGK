@@ -17,14 +17,14 @@ namespace UBOBindings {
 }
 
 struct SceneUBO {
-    glm::mat4 ViewProjection;   // 64 bajty (offset 0)
-    glm::mat4 LightSpaceMatrix; // 64 bajty (offset 64) — wymagane dla map cieni
-    glm::vec3 SunDir;           // 12 bajtów (offset 128)
-    float      _pad0 = 0.0f;   // 4 bajty paddingu (offset 140)
-    glm::vec3 LightColor;       // 12 bajtów (offset 144)
-    float      _pad1 = 0.0f;   // 4 bajty paddingu (offset 156)
-    glm::vec3 ViewPos;          // 12 bajtów (offset 160)
-    float      _pad2 = 0.0f;   // 4 bajty paddingu (offset 172)
+    glm::mat4 ViewProjection;   
+    glm::mat4 LightSpaceMatrix; 
+    glm::vec3 SunDir;           
+    float      _pad0 = 0.0f;  
+    glm::vec3 LightColor;       
+    float      _pad1 = 0.0f;   
+    glm::vec3 ViewPos;         
+    float      _pad2 = 0.0f;  
 };
 
 struct InstanceData {
@@ -69,7 +69,6 @@ public:
     static void ResetStats() { s_Stats.Reset(); }
     static RendererStatistics& GetStats() { return s_Stats; }
 
-    // Rozpoczyna klatkę — aktualizuje dane w UBO (wersja z cieniami)
     static void BeginScene(const glm::mat4& viewProjectionMatrix, const glm::mat4& lightSpaceMatrix, const glm::vec3& viewPos = glm::vec3(0.0f));
     static void EndScene();
 

@@ -32,7 +32,6 @@ private:
     float m_ViewportHeight = 600.0f;
     float m_StatsUpdateTimer = 1.0f;
 
-    // Zbuforowane teksty dla interfejsu
     std::string m_FpsText = "FPS: 0";
     std::string m_FrameTimeText = "Frame Time: 0.00 ms";
     std::string m_CpuText = "CPU Logika: 0.00 ms";

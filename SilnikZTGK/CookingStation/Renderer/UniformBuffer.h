@@ -16,7 +16,6 @@ public:
         glDeleteBuffers(1, &m_RendererID);
     }
 
-    // Wysy³a dane pod wskazany offset w buforze
     void SetData(const void* data, uint32_t size, uint32_t offset = 0) {
         glBindBuffer(GL_UNIFORM_BUFFER, m_RendererID);
         glBufferSubData(GL_UNIFORM_BUFFER, offset, size, data);

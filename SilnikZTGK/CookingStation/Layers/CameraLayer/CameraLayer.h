@@ -22,12 +22,10 @@ private:
     bool OnKeyPressed(KeyPressedEvent& e);
     Camera m_Camera;
 
-    // --- RMB Pan ---
     bool m_Panning = false;
     float m_LastMouseX = 0.0f;
     float m_LastMouseY = 0.0f;
 
-    // --- NOWE: Flaga i Subskrypcje Pauzy ---
     bool m_IsGamePaused = false;
     std::size_t m_GamePausedSubId = 0;
     std::size_t m_GameResumedSubId = 0;

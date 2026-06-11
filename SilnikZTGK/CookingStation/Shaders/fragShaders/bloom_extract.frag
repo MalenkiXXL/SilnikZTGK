@@ -3,12 +3,11 @@ out vec4 FragColor;
 in vec2 TexCoords;
 
 uniform sampler2D sceneColor;
-uniform float threshold; // np. 1.0 (wyciąga tylko najjaśniejsze miejsca, odbicia i piece)
+uniform float threshold;
 
 void main()
 {
     vec3 color = texture(sceneColor, TexCoords).rgb;
-    // Obliczamy jasność (Luminancję) piksla
     float brightness = dot(color, vec3(0.2126, 0.7152, 0.0722));
     
     if(brightness > threshold)

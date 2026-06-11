@@ -9,7 +9,6 @@
 
 #include "CookingStation/Math/Geometry.h"
 
-//"laser" z myszki
 struct Ray
 {
     glm::vec3 Origin;
@@ -38,13 +37,11 @@ public:
 
         Ray ray;
         ray.Origin = glm::vec3(worldCoords);
-        // Twój idealny wektor dla kamery ortograficznej - NIE RUSZAĆ
         ray.Direction = glm::normalize(glm::vec3(-viewMatrix[0][2], -viewMatrix[1][2], -viewMatrix[2][2]));
 
         return ray;
     }
 
-    // Nowa, kuloodporna metoda AABB odporna na wartości NaN i dzielenie przez ZERO
     static bool Intersects(const Ray& ray, const AABB& box, float& outDist)
     {
         float tmin = -std::numeric_limits<float>::infinity();
@@ -57,7 +54,6 @@ public:
         {
             if (std::abs(ray.Direction[i]) < 1e-8f)
             {
-                // Promień równoległy do płaszczyzny
                 if (ray.Origin[i] < min[i] || ray.Origin[i] > max[i])
                     return false;
             }
@@ -111,7 +107,6 @@ public:
 
         if (!transformStorage) return closestEntity;
 
-        // Lambda testująca konkretną encję
         auto checkEntity = [&](Entity entity) {
             TransformComponent* transform = transformStorage->Get(entity);
             if (!transform) return;
@@ -146,7 +141,6 @@ public:
             glm::vec3 globalPos = { transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2] };
             glm::vec3 center = globalPos + boundsOffset;
 
-            // Zachowujemy Twoje oryginalne skalowanie - ufać edytorowi!
             glm::vec3 extents = transform->GetScale() * boundsSize;
 
             glm::vec3 rot = transform->GetRotation();
@@ -168,13 +162,10 @@ public:
             float tHit;
             if (Physics::Intersects(localRay, localAABB, tHit))
             {
-                // Obliczamy punkt uderzenia w lokalnej przestrzeni modelu
                 glm::vec3 localHitPoint = localRay.Origin + localRay.Direction * tHit;
 
-                // Konwertujemy dokładnie ten punkt zderzenia na współrzędne świata
                 glm::vec3 worldHitPoint = glm::vec3(obbTransform * glm::vec4(localHitPoint, 1.0f));
 
-                // Mierzymy odległość nie do środka uciekającego modelu, a prosto w fizyczną ściankę
                 float dist = glm::distance(ray.Origin, worldHitPoint);
 
                 if (dist < closestDist)
@@ -207,7 +198,6 @@ public:
                     glm::ivec2 cellTop = GridSystem::WorldToCell(hitTop);
                     glm::ivec2 cellBottom = GridSystem::WorldToCell(hitBottom);
 
-                    // Potężny margines dla długich pasów transmisyjnych i zwrotnic
                     int margin = 4;
                     int minX = std::min(cellTop.x, cellBottom.x) - margin;
                     int maxX = std::max(cellTop.x, cellBottom.x) + margin;
@@ -234,8 +224,6 @@ public:
             }
         }
 
-        // ZABEZPIECZENIE OSTATECZNE: Jeżeli SSA zawiodło (obiekt wyjechał z marginesu, był gigantyczny itp.)
-        // odpalamy cicho pętlę awaryjną na wszystkie obiekty, aby upewnić się, że nie stracisz kliknięcia
         if (closestEntity.id == std::numeric_limits<std::size_t>::max())
         {
             for (size_t it = 0; it < transformStorage->dense.size(); it++)

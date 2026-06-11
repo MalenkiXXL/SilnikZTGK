@@ -32,20 +32,20 @@ Application::Application()
 
 	glEnable(GL_MULTISAMPLE);
 
-	// 1. ZWYKLY FBO (GUI) — resolve target i źródło dla Bloom composite
+	// 1. zwykly FBO
 	FramebufferSpecification fbSpec;
 	fbSpec.Width = m_Window->GetWidth();
 	fbSpec.Height = m_Window->GetHeight();
 	fbSpec.Samples = 1;
-	fbSpec.HDR = true; // FIX: GL_RGBA16F — wymagane żeby Bloom mógł działać na pełnym zakresie
+	fbSpec.HDR = true; 
 	m_ViewportFBO = std::make_shared<Framebuffer>(fbSpec);
 
-	// 2. FBO z MSAA (3D) — główny render target
+	// 2. FBO z MSAA
 	FramebufferSpecification msaaSpec;
 	msaaSpec.Width = m_Window->GetWidth();
 	msaaSpec.Height = m_Window->GetHeight();
 	msaaSpec.Samples = 4;
-	msaaSpec.HDR = true; // FIX: GL_RGBA16F — musi być spójny z ViewportFBO przy ResolveTo
+	msaaSpec.HDR = true;
 	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
 
 
@@ -56,7 +56,6 @@ Application::Application()
 //	VFS::Mount("assets", std::make_shared<PackageFileSystem>((exePath / "data.pak").string()));
 //	VFS::Mount("shaders", std::make_shared<PackageFileSystem>((exePath / "shaders.pak").string()));
 //#else
-//	// W trybie edytora gra musi widziec luzne pliki na dysku, zebys mogl je na zywo edytowac!
 //	VFS::Mount("assets", std::make_shared<PhysicalFileSystem>("CookingStation/Assets"));
 //	VFS::Mount("shaders", std::make_shared<PhysicalFileSystem>("CookingStation/Shaders"));
 //#endif
@@ -166,9 +165,6 @@ void Application::ApplyGraphicsSettings()
 
 void Application::Run()
 {
-	// ==========================================
-	// 6. GLOWNA PETLA GRY
-	// ==========================================
 	while (m_Running)
 	{
 		// 1. OBLICZANIE CZASU
@@ -176,8 +172,6 @@ void Application::Run()
 		Timestep timestep = time - m_LastFrameTime;
 		m_LastFrameTime = time;
 
-		// Limitujemy maksymalny czas klatki.
-		// Jesli gra zatnie sie na chwile fizyka nie "eksploduje" wielkim skokiem.
 		if (timestep > 0.1f)
 			timestep = 0.1f;
 
@@ -185,30 +179,23 @@ void Application::Run()
 		RenderCommand::SetClearColor(glm::vec4(0.05f, 0.05f, 0.05f, 1.0f));
 		RenderCommand::Clear();
 
-		// Czyscimy liczniki przed rozpoczeciem klatki!
 		Renderer::ResetStats();
 
 		// 3. UPDATE LOGIKI I ECS
 		{
-			// timer startuje w tym momencie (konstruktor)
+			// timer startuje w tym momencie
 			ProfileTimer timer(Renderer::GetStats().CPULogicTime);
 
 			for (Layer* layer : m_LayerStack)
 			{
 				layer->OnUpdate(timestep);
 			}
-
-			// gdy wychodzimy z klamerek { }, timer jest niszczony (destruktor).
-			// oblicza miniony czas i wpisuje go do zmiennej CPULogicTime
 		}
 
-		// FIX: usunięto m_MsaaFBO->ResolveTo(m_ViewportFBO) — RendererLayer::OnUpdate
-		// robi ten resolve sam przed Bloomem, więc tutaj było dwa razy.
-
 		// 4. AKTUALIZACJA OKNA I WEJSCIA
-		m_Window->OnUpdate(); // To wywola m.in. glfwSwapBuffers i glfwPollEvents
+		m_Window->OnUpdate();
 
-		Input::Update(); // Czyszczenie stanow wejscia 
+		Input::Update(); 
 	}
 }
 
@@ -218,7 +205,7 @@ void Application::OnEvent(Event& e)
 
 	dispatcher.Dispatch<GamepadButtonPressedEvent>([](GamepadButtonPressedEvent& event) {
 		spdlog::info("TEST: Pad dziala! Wcisnieto przycisk o ID: {}", event.GetButton());
-		return false; // Zwracamy false, zeby event polecial dalej do warstw
+		return false; 
 		});
 
 	dispatcher.Dispatch<GamepadAxisMovedEvent>([](GamepadAxisMovedEvent& event) {
@@ -264,7 +251,6 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 		return false;
 	}
 
-	// Ta linijka wykonuje sie ZAWSZE - to ona dba o brak czarnych krawędzi!
 	glViewport(0, 0, width, height);
 
 #ifdef CS_DISTRIBUTION

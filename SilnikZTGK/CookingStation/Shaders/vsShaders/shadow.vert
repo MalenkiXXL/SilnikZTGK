@@ -1,9 +1,8 @@
 #version 420 core
 
-// Tutaj odczytujemy tylko macierz światła z Twojego Uniform Buffer Object
 layout (std140, binding = 0) uniform SceneData {
     mat4 u_ViewProjection;
-    mat4 u_LightSpaceMatrix; // DODANA MACIERZ (Musi być w UBO!)
+    mat4 u_LightSpaceMatrix; 
     vec3 u_SunDir;
     float _pad0;
     vec3 u_LightColor;
@@ -14,7 +13,6 @@ layout (std140, binding = 0) uniform SceneData {
 
 layout (location = 0) in vec3 aPos;
 
-// Dla animacji
 layout (location = 6) in ivec4 aBoneIDs;
 layout (location = 7) in vec4 aWeights;
 const int MAX_BONES = 100;
@@ -22,7 +20,6 @@ const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 finalBonesMatrices[MAX_BONES];
 uniform bool u_Animated;
 
-// Instancjonowanie
 layout (location = 8) in mat4 aInstanceMatrix;
 
 void main()
@@ -46,6 +43,5 @@ void main()
         totalPosition = vec4(aPos, 1.0);
     }
 
-    // Trik: Rysujemy z perspektywy Słońca, nie Kamery!
     gl_Position = u_LightSpaceMatrix * aInstanceMatrix * totalPosition;
 }

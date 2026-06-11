@@ -22,7 +22,6 @@
 float GridSystem::CELL_SIZE = 2.0f;
 static bool s_UseSSA = true;
 
-// Helper: quad lezacy plasko na podlodze (plaszczyzna XZ), srodek w 'center'.
 static glm::mat4 FlatQuadTransform(const glm::vec3& center, float sizeX, float sizeZ)
 {
     return glm::translate(glm::mat4(1.0f), center)
@@ -109,7 +108,6 @@ void EditorLayer::OnUpdate(Timestep ts)
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     if (!activeScene) return;
 
-    // W trybie Play EditorLayer nie robi nic - GameLayer przejmuje kontrole
     if (m_SceneState == SceneState::Play)
     {
         if (m_TargetFBO)
@@ -120,9 +118,7 @@ void EditorLayer::OnUpdate(Timestep ts)
         return;
     }
 
-    // =====================
-    // TRYB EDIT
-    // =====================
+  
     activeScene->CalculateTransforms();
     activeScene->UpdateSpatialGrid();
 
@@ -426,7 +422,6 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
         }
     }
 
-    // F9: Przełączanie algorytmu SSA
     if (e.GetKeyCode() == GLFW_KEY_F9) {
         s_UseSSA = !s_UseSSA;
         spdlog::info("System SSA: {} ", s_UseSSA ? "WLACZONY (Szybki)" : "WYLACZONY (Brute-Force)");
@@ -488,10 +483,8 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
                 glm::vec3 startRot = transform->GetRotation();
                 glm::vec3 endRot = startRot;
 
-                // Obracamy wokół osi Y
                 endRot.y += 90.0f;
 
-                // Utrzymujemy kąt w ryzach (0-360 stopni)
                 if (endRot.y >= 360.0f) {
                     endRot.y -= 360.0f;
                 }

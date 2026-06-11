@@ -55,13 +55,12 @@ void SettingsMenuPanel::Draw(float baseScale) {
     float rightColX = panelPos.x + 350.0f * baseScale;
     glm::vec2 arrowSize = { 50.0f * baseScale, 50.0f * baseScale };
 
-    // --- ROZDZIELCZOŚĆ ---
     Gui::DrawGuiText("Rozdzielczosc:", { leftColX, startY }, 0.7f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f });
 
     glm::vec2 resLeftPos = { rightColX, startY - 35.0f * baseScale };
     bool hovResL = isHov(resLeftPos, arrowSize);
     if (GuiUtils::DrawScaledButton("<", resLeftPos, arrowSize, m_ResLeftBtnScale, hovResL ? 1.15f : 1.0f, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovResL, m_DeltaTime)) {
-        // ZMIANA: Zapętlanie w lewo dla rozdzielczości
+
         m_PendingResIndex = (m_PendingResIndex - 1 + GraphicsSettings::ResolutionCount) % GraphicsSettings::ResolutionCount;
     }
 
@@ -71,18 +70,15 @@ void SettingsMenuPanel::Draw(float baseScale) {
     glm::vec2 resRightPos = { rightColX + 260.0f * baseScale, startY - 35.0f * baseScale };
     bool hovResR = isHov(resRightPos, arrowSize);
     if (GuiUtils::DrawScaledButton(">", resRightPos, arrowSize, m_ResRightBtnScale, hovResR ? 1.15f : 1.0f, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovResR, m_DeltaTime)) {
-        // ZMIANA: Zapętlanie w prawo dla rozdzielczości
         m_PendingResIndex = (m_PendingResIndex + 1) % GraphicsSettings::ResolutionCount;
     }
 
-    // --- MSAA --- (Analogicznie jak wyżej)
     float startY2 = startY + 100.0f * baseScale;
     Gui::DrawGuiText("Antialiasing:", { leftColX, startY2 }, 0.7f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f });
 
     glm::vec2 msaaLeftPos = { rightColX, startY2 - 35.0f * baseScale };
     bool hovMsaaL = isHov(msaaLeftPos, arrowSize);
     if (GuiUtils::DrawScaledButton("<", msaaLeftPos, arrowSize, m_MsaaLeftBtnScale, hovMsaaL ? 1.15f : 1.0f, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovMsaaL, m_DeltaTime)) {
-        // ZMIANA: Zapętlanie w lewo dla MSAA
         m_PendingMsaaIndex = (m_PendingMsaaIndex - 1 + m_MsaaOptions.size()) % m_MsaaOptions.size();
     }
 
@@ -92,17 +88,15 @@ void SettingsMenuPanel::Draw(float baseScale) {
     glm::vec2 msaaRightPos = { rightColX + 260.0f * baseScale, startY2 - 35.0f * baseScale };
     bool hovMsaaR = isHov(msaaRightPos, arrowSize);
     if (GuiUtils::DrawScaledButton(">", msaaRightPos, arrowSize, m_MsaaRightBtnScale, hovMsaaR ? 1.15f : 1.0f, baseScale, { 0.3f, 0.3f, 0.3f, 1.0f }, { 0.5f, 0.5f, 0.5f, 1.0f }, hovMsaaR, m_DeltaTime)) {
-        // ZMIANA: Zapętlanie w prawo dla MSAA
         m_PendingMsaaIndex = (m_PendingMsaaIndex + 1) % m_MsaaOptions.size();
     }
 
-    // --- PRZYCISKI DOLNE ---
     glm::vec2 btnSize = { 200.0f * baseScale, 70.0f * baseScale };
 
     glm::vec2 backPos = { panelPos.x + 80.0f * baseScale, panelPos.y + panelSize.y - 110.0f * baseScale };
     bool hovBack = isHov(backPos, btnSize);
     if (GuiUtils::DrawScaledButton("BACK", backPos, btnSize, m_BackBtnScale, hovBack ? 1.05f : 1.0f, baseScale, { 0.5f, 0.2f, 0.2f, 1.0f }, { 0.7f, 0.3f, 0.3f, 1.0f }, hovBack, m_DeltaTime)) {
-        SetVisible(false); // Zamyka sam siebie!
+        SetVisible(false); 
     }
 
     glm::vec2 applyPos = { panelPos.x + panelSize.x - 280.0f * baseScale, panelPos.y + panelSize.y - 110.0f * baseScale };

@@ -14,8 +14,5 @@ void RenderCommand::Clear()
 void RenderCommand::DrawIndexed(const std::shared_ptr<VertexArray>& vertexArray)
 {
 	glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffers()->GetCount(), GL_UNSIGNED_INT, nullptr);
-	// 1 - rysuj trójk¹ty
-	// 2 - pobierz iloœæ indeksów do narysowania z podpiêtego VAO
-	// 3 - typ indeksów 
-	// 4 - offset 
+
 }

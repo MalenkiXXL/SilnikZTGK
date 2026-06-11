@@ -7,9 +7,6 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-# ==========================================
-# KONFIGURACJA I BEZPIECZNE KLUCZE
-# ==========================================
 load_dotenv()
 
 api_my_key = os.getenv("SERPAPI_KEY")
@@ -21,8 +18,6 @@ if not api_my_key or not gemini_key:
 cashe_file = "CookingStation/Assets/news_cache.json"
 cache_expiry_seconds = 3600
 
-# WAŻNE: Zostawiam "pomidorowa" po polsku, by pasowało do Waszego kodu w C++, 
-# ale opisy i tytuły będą już po angielsku.
 ALLOWED_DISHES = [
     "pomidorowa", "kanapka", 
     # "babeczka", "caprese", 
@@ -31,9 +26,6 @@ ALLOWED_DISHES = [
 
 client = genai.Client(api_key=gemini_key)
 
-# ==========================================
-# 1: PRE-PROCESSING 
-# ==========================================
 def remove_polish_chars(text):
     """Zostawiamy jako zabezpieczenie (fallback) przed niechcianymi znakami w JSON."""
     replacements = {'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n', 'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z',
@@ -72,9 +64,7 @@ def get_news():
         print(f"[Błąd] Nie udało się pobrać newsów: {e}")
         return None
 
-# ==========================================
-# 2: GENERATOR (LLM + Few-Shot)
-# ==========================================
+
 def generate_quests(news_context, feedback=""):
     print("[Generator] Tworzenie wstepnego zadania (kreatywnosc: wysoka)...")
     
@@ -132,7 +122,7 @@ def generate_quests(news_context, feedback=""):
             contents=prompt,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json",
-                temperature=0.85 # Slightly higher for more creative connections
+                temperature=0.85 
             )
         )
         return remove_polish_chars(response.text)
@@ -140,9 +130,7 @@ def generate_quests(news_context, feedback=""):
         print(f"[Błąd Generatora] {e}")
         return None
 
-# ==========================================
-# 3: SĘDZIA (LLM-as-a-judge)
-# ==========================================
+
 def evaluate_quests_with_judge(quests_json, news_context):
     print("[Sedzia] Trwa ewaluacja semantyczna zadania...")
     
@@ -192,9 +180,7 @@ def evaluate_quests_with_judge(quests_json, news_context):
         print(f"[Blad Sedziego] {e}")
         return {"passed": False, "feedback": "Judge API is not responding."}
 
-# ==========================================
-# GŁÓWNA PĘTLA (Self-Correction Loop)
-# ==========================================
+
 if __name__ == "__main__":
     news_data = get_news()
     
@@ -215,12 +201,10 @@ if __name__ == "__main__":
                 attempts += 1
                 continue
                 
-            # SZYBKA WALIDACJA LOGIKI W PYTHONIE 
             try:
                 quests_obj = json.loads(quests_json_str)
                 logic_failed = False
                 
-                # Upewniamy się, że nowe pola istnieją
                 for q in quests_obj:
                     if q.get("dish_id") not in ALLOWED_DISHES:
                         current_feedback = f"CRITICAL ERROR: '{q.get('dish_id')}' does not exist in the game engine registry!"
@@ -240,7 +224,6 @@ if __name__ == "__main__":
                 attempts += 1
                 continue
 
-            # Ewaluacja (LLM-as-a-judge)
             evaluation = evaluate_quests_with_judge(quests_json_str, news_text)
             
             if evaluation["passed"]:
@@ -252,7 +235,6 @@ if __name__ == "__main__":
                 current_feedback = evaluation["feedback"]
                 attempts += 1
 
-        # ZAPIS ATOMOWY
         output_dir = "CookingStation/Assets"
         os.makedirs(output_dir, exist_ok=True)
         final_path = os.path.join(output_dir, "wygenerowane_quests.json")

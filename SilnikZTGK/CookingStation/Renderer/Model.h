@@ -7,13 +7,13 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <assimp/IOSystem.hpp> // <-- DODANE
-#include <assimp/IOStream.hpp> // <-- DODANE
+#include <assimp/IOSystem.hpp> 
+#include <assimp/IOStream.hpp> 
 #include <spdlog/spdlog.h> 
 #include "Mesh.h"
 #include "Shader.h"
 #include "CookingStation/Renderer/Texture2D.h"
-#include "CookingStation/Core/VFS/VFS.h" // <-- DODANE
+#include "CookingStation/Core/VFS/VFS.h" 
 
 #include <string>
 #include <fstream>
@@ -25,9 +25,6 @@
 
 using namespace std;
 
-// ====================================================================
-// WŁASNY SYSTEM WEJŚCIA/WYJŚCIA DLA ASSIMP (PEŁNA INTEGRACJA Z VFS)
-// ====================================================================
 class VfsIOStream : public Assimp::IOStream {
 private:
     std::vector<uint8_t> m_Data;
@@ -48,7 +45,7 @@ public:
         return bytesToRead / pSize;
     }
 
-    size_t Write(const void* pvBuffer, size_t pSize, size_t pCount) override { return 0; } // Tylko do odczytu
+    size_t Write(const void* pvBuffer, size_t pSize, size_t pCount) override { return 0; } 
 
     aiReturn Seek(size_t pOffset, aiOrigin pOrigin) override {
         if (pOrigin == aiOrigin_SET) m_Position = pOffset;
@@ -69,11 +66,9 @@ public:
         std::string path = pFile;
         std::replace(path.begin(), path.end(), '\\', '/');
 
-        // 1. Niezawodne sprawdzenie fizyczne (często używane przez pliki .bin podpinane w glTF)
         std::ifstream f(path);
         if (f.good()) return true;
 
-        // 2. Jeśli nie ma fizycznie, zakładamy, że to plik wirtualny
         return path.find("assets://") == 0;
     }
 
@@ -85,16 +80,13 @@ public:
 
         std::vector<uint8_t> data;
 
-        // 1. Jeśli to poprawny zasób wirtualny, prosimy VFS
         if (path.find("assets://") == 0) {
             data = VFS::ReadFile(path);
         }
-        // 2. Jeśli to "goła" ścieżka (np. CookingStation/Assets/...), odpalamy Fallback
         else {
-            data = VFS::ReadFile(path); // Sprawdzamy, czy VFS może to ogarnie
+            data = VFS::ReadFile(path); 
 
             if (data.empty()) {
-                // Bezpośrednie czytanie bajtów przez standardowe biblioteki C++
                 std::ifstream file(path, std::ios::binary | std::ios::ate);
                 if (file.is_open()) {
                     std::streamsize size = file.tellg();
@@ -105,7 +97,6 @@ public:
             }
         }
 
-        // KRYTYCZNE: Jeśli pliku nie ma nigdzie, musimy zwrócić nullptr!
         if (data.empty()) {
             return nullptr;
         }
@@ -118,13 +109,10 @@ public:
     }
 };
 
-// ==========================================
-// NOWE STRUKTURY DLA ANIMACJI SZKIELETOWEJ
-// ==========================================
 struct BoneInfo
 {
-    int id;           // Unikalne ID wysyłane do Vertex Shadera
-    glm::mat4 offset; // Offset Matrix (przekształca z przestrzeni modelu do przestrzeni kości)
+    int id;           
+    glm::mat4 offset; 
 };
 
 static inline glm::mat4 AssimpMatToGLM(const aiMatrix4x4& from)
@@ -167,22 +155,18 @@ public:
 private:
     const aiScene* m_ScenePtr = nullptr;
 
-    void loadModel(string path) // <-- ZMIANA: Usunięto const&, aby móc edytować ścieżkę
+    void loadModel(string path)
     {
-        // --- SANITIZER ŚCIEŻEK (Naprawia czarne modele) ---
-        // Jeśli w level01.json (lub gdzie indziej) wciąż jest twarda ścieżka,
-        // w locie zamieniamy ją na prawowitą ścieżkę VFS.
+
         const std::string prefix = "CookingStation/Assets/";
         if (path.find(prefix) == 0) {
             path = "assets://" + path.substr(prefix.length());
         }
-        // --------------------------------------------------
 
         spdlog::info("Wczytywanie modelu z VFS: {}", path);
 
         Assimp::Importer importer;
 
-        // Zastrzyk naszego VFS! Assimp teraz myśli, że VFS to jego dysk twardy.
         importer.SetIOHandler(new VfsIOSystem());
 
         const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
@@ -195,7 +179,6 @@ private:
 
         m_ScenePtr = scene;
 
-        // Teraz 'directory' bezpiecznie przechowa format "assets://models/..."
         directory = path.substr(0, path.find_last_of('/'));
 
         processNode(scene->mRootNode, scene);
@@ -351,24 +334,18 @@ private:
                 }
                 else
                 {
-                    // Budowanie pełnej ścieżki na podstawie folderu VFS (bez psującego std::filesystem)
                     std::string texPath = str.C_Str();
                     std::replace(texPath.begin(), texPath.end(), '\\', '/');
 
                     std::string finalPath = this->directory + "/" + texPath;
 
-                    // --- NORMALIZACJA ŚCIEŻEK (POPRAWKA VFS) ---
                     std::string prefix = "assets://";
                     if (finalPath.find(prefix) == 0) {
-                        // Odcinamy "assets://"
                         std::string subPath = finalPath.substr(prefix.length());
-                        // Normalizujemy sam środek (np. models/warzywka/../../textures/palette.png)
                         subPath = std::filesystem::path(subPath).lexically_normal().generic_string();
-                        // Doklejamy nienaruszony przedrostek
                         finalPath = prefix + subPath;
                     }
                     else {
-                        // Dla zwykłych ścieżek normalizujemy całość
                         finalPath = std::filesystem::path(finalPath).lexically_normal().generic_string();
                     }
 

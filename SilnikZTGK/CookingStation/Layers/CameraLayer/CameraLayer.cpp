@@ -8,25 +8,9 @@
 #include "CookingStation/Scene/SceneManager.h"
 #include "CookingStation/Core/Application.h"
 
-
-// Izometryczny kat kamery 
-//
-//  Yaw = -135
-//  Pitch = -30
-//
-//  Pozycja startowa: odsuni�ta od poczatku swiata w kierunku odwrotnym do Front,
-//  �eby scena byla od razu widoczna.
-//
-//  Sterowanie:
-//    WASD  - przesuwa kamere wzdluz wektorow Right/Up kamery (pan po ekranie)
-//    Scroll - zoom in/out (zmienia OrthoSize)
-// 
-
-// K�ty izometryczne
 static constexpr float ISO_YAW = -135.0f;
 static constexpr float ISO_PITCH = -35.0f;
 
-// Predkosc przesuniecia (WASD)
 static constexpr float PAN_SPEED = 10.0f;
 static constexpr float LERP_SPEED = 4.0f;
 
@@ -63,14 +47,11 @@ void CameraLayer::OnUpdate(Timestep ts) {
 
     if (Gui::AnyItemActive()) return;
 
-    // --- RMB Pan ---
     auto [mouseX, mouseY] = Input::GetMousePosition();
 
-    // 1. OBLICZAMY FAKTYCZNY ROZMIAR EKRANU GRY (na podstawie GUI)
     float viewportW = (float) activeScene->GetViewportWidth();
     float viewportH = (float) activeScene->GetViewportHeight();
 
-    // Zabezpieczenie przed minimalizacją
     if (viewportW <= 0.0f || viewportH <= 0.0f) return;
 
     if (Input::IsMouseButtonJustPressed(GLFW_MOUSE_BUTTON_RIGHT)) {
@@ -93,13 +74,11 @@ void CameraLayer::OnUpdate(Timestep ts) {
         m_LastMouseX = mouseX;
         m_LastMouseY = mouseY;
 
-        // 2. LICZYMY PROPORCJE WZGLĘDEM VIEWPORTU GRY, A NIE CAŁEGO OKNA
         float currentAspect = viewportW / viewportH;
 
         float worldH = m_Camera.OrthoSize * 2.0f;
         float worldW = worldH * currentAspect;
 
-        // 3. UŻYWAMY VIEWPORTU DO WYLICZENIA UŁAMKA PRZESUNIĘCIA
         float worldDx = (dx / viewportW) * worldW;
         float worldDy = (dy / viewportH) * worldH;
 
@@ -108,7 +87,6 @@ void CameraLayer::OnUpdate(Timestep ts) {
         m_Camera.TargetPosition += delta;
     }
 
-    // --- WASD ---
     glm::vec3 dir(0.0f);
 
     if (Input::IsKeyPressed(GLFW_KEY_W)) dir += m_Camera.Up;
@@ -146,9 +124,8 @@ bool CameraLayer::OnMouseScrolled(MouseScrolledEvent &e) {
     if (m_IsGamePaused) return false;
     if (Gui::AnyItemActive()) return false;
 
-    // ProcessMouseScroll teraz zmienia OrthoSize zamiast FOV
     m_Camera.ProcessMouseScroll((float) e.GetYOffset());
-    return false; // nie pochlaniac eventu - inne warstwy tez moga go potrzebowac
+    return false; 
 }
 
 bool CameraLayer::OnKeyPressed(KeyPressedEvent& e) {

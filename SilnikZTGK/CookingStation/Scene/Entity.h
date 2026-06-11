@@ -12,27 +12,21 @@ struct RelationshipComponent {
     std::size_t FirstChild = NULL_ENTITY;
     std::size_t NextSibling = NULL_ENTITY;
     std::size_t PreviousSibling = NULL_ENTITY;
-
-    // do szybkiego sprawdzenia ilo�ci dzieci
     int ChildrenCount = 0;
 };
 
 struct TransformComponent {
 private:
-    // Lokalna pozycja wzgledem rodzica ukryta za enkapsulacj�
     glm::vec3 m_Position = { 0.0f, 0.0f, 0.0f };
     glm::vec3 m_Rotation = { 0.0f, 0.0f, 0.0f };
     glm::vec3 m_Scale = { 1.0f, 1.0f, 1.0f };
 
-    // Zbuforowana macierz lokalna
     glm::mat4 m_LocalMatrix = glm::mat4(1.0f);
 
-    // FLAGI OPTYMALIZACYJNE
     bool m_IsDirty = true;        
     bool m_WorldIsDirty = true;  
 
 public:
-    // Ostateczna macierz przekazywana do renderera
     glm::mat4 WorldMatrix = glm::mat4(1.0f);
 
     const glm::vec3& GetPosition() const { return m_Position; }
@@ -48,7 +42,6 @@ public:
     bool IsWorldDirty() const { return m_WorldIsDirty; }
     void ClearWorldDirty() { m_WorldIsDirty = false; }
 
-    // Funkcja licz�ca lokaln� macierz ze zintegrowan� pami�ci� podr�czn�
     const glm::mat4& GetLocalMatrix() {
         if (m_IsDirty) {
             glm::mat4 rotation = glm::rotate(glm::mat4(1.0f), glm::radians(m_Rotation.x), { 1, 0, 0 })
@@ -57,7 +50,7 @@ public:
 
             m_LocalMatrix = glm::translate(glm::mat4(1.0f), m_Position) * rotation * glm::scale(glm::mat4(1.0f), m_Scale);
 
-            m_IsDirty = false; // Zdejmujemy flag�
+            m_IsDirty = false; 
         }
         return m_LocalMatrix;
     }
@@ -70,10 +63,8 @@ struct MeshComponent {
     std::string ShaderName = "ModelShader";
     glm::vec4 HighlightColor = glm::vec4(1.0f, 0.9f, 0.0f, 1.0f);
 
-    // Konstruktor domy�lny
     MeshComponent() = default;
 
-    // Konstruktor z parametrami
     MeshComponent(std::shared_ptr<Model> model, std::shared_ptr<Shader> shader, const std::string& path = "")
         : ModelPtr(model), ShaderPtr(shader), Path(path) {
     }
@@ -109,7 +100,6 @@ struct ShaderComponent {
 struct AnimatorComponent {
     std::shared_ptr<Animator> AnimatorInstance;
 
-    // Opcjonalne parametry steruj�ce
     bool IsPlaying = true;
     float PlaybackSpeed = 1.0f;
 

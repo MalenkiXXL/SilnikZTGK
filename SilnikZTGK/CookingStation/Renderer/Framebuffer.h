@@ -5,8 +5,8 @@
 struct FramebufferSpecification {
     uint32_t Width, Height;
     uint32_t Samples = 1;
-    bool DepthOnly = false; // Wymagane dla map cieni
-    bool HDR = false;       // GL_RGBA16F zamiast GL_RGBA8 (wymagane dla poprawnego Bloom)
+    bool DepthOnly = false; 
+    bool HDR = false;       
 };
 
 class Framebuffer {
@@ -23,7 +23,7 @@ public:
     uint32_t GetRendererID() const { return m_RendererID; }
 
     uint32_t GetColorAttachmentRendererID() const { return m_ColorAttachment; }
-    uint32_t GetDepthAttachmentRendererID() const { return m_DepthAttachment; } // Zwraca ID tekstury cieni
+    uint32_t GetDepthAttachmentRendererID() const { return m_DepthAttachment; } 
     const FramebufferSpecification& GetSpecification() const { return m_Specification; }
     void SetSamples(uint32_t samples);
 

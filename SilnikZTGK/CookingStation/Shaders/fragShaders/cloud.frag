@@ -71,14 +71,11 @@ void main()
 
     vec3 diffuse = (diff * 0.40) * u_LightColor;
 
-    // Obliczenie Cienia
     float shadow = ShadowCalculation(FragPosLightSpace, norm, lightDir);
 
-    // Złożenie oświetlenia
     float cloudShadowStrength = 0.3;
     vec3 result = (ambient + (1.0 - (shadow * cloudShadowStrength)) * diffuse) * baseColor;
 
-    // Korekcja gamma
     float gammaParam = 1.4;
     result = pow(result, vec3(1.0 / gammaParam));
 

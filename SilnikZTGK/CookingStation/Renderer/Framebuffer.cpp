@@ -14,7 +14,7 @@ Framebuffer::~Framebuffer() {
         glDeleteRenderbuffers(1, &m_DepthAttachment);
     }
     else {
-        glDeleteTextures(1, &m_DepthAttachment); // Zwalnianie tekstury mapy cieni
+        glDeleteTextures(1, &m_DepthAttachment); 
     }
 }
 
@@ -36,7 +36,6 @@ void Framebuffer::Invalidate() {
     bool multisampled = m_Specification.Samples > 1;
 
     if (!m_Specification.DepthOnly) {
-        // Wybór formatu — GL_RGBA16F dla HDR (Bloom), GL_RGBA8 dla standardowego
         GLenum internalFormat = m_Specification.HDR ? GL_RGBA16F : GL_RGBA8;
         GLenum dataType = m_Specification.HDR ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
@@ -73,7 +72,6 @@ void Framebuffer::Invalidate() {
             GL_RENDERBUFFER, m_DepthAttachment);
     }
     else {
-        // --- FRAMEBUFFER CIENI (tylko g³êbokoœæ zapisana do tekstury) ---
         glGenTextures(1, &m_DepthAttachment);
         glBindTexture(GL_TEXTURE_2D, m_DepthAttachment);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24,
@@ -83,7 +81,6 @@ void Framebuffer::Invalidate() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-        // Clamp to border: zapobiega powielaniu siê cienia poza map¹
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
         float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
@@ -92,7 +89,6 @@ void Framebuffer::Invalidate() {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
             GL_TEXTURE_2D, m_DepthAttachment, 0);
 
-        // Krytyczne dla map cieni w OpenGL — mówimy karcie by nie rysowa³a pikseli koloru
         glDrawBuffer(GL_NONE);
         glReadBuffer(GL_NONE);
     }

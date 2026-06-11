@@ -4,7 +4,7 @@
 struct Plane {
     glm::vec3 normal = { 0.f, 1.f, 0.f };
     float distance = 0.f;
-    void Normalize(); // Implementacja w pliku .cpp
+    void Normalize(); 
 };
 
 struct Frustum {
@@ -16,7 +16,6 @@ struct AABB {
     glm::vec3 extents{ 0.f };
 };
 
-// Funkcje pomocnicze
 Frustum ExtractFrustum(const glm::mat4& viewProj);
 bool IsOnFrustum(const Frustum& camFrustum, const AABB& aabb);
 

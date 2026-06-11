@@ -104,13 +104,13 @@ class VertexBuffer
 {
 public:
     VertexBuffer(float* vertices, uint32_t size);
-    VertexBuffer(uint32_t size); // NOWY: Konstruktor dla bufora dynamicznego
+    VertexBuffer(uint32_t size); 
     ~VertexBuffer();
 
     void Bind() const;
     void Unbind() const;
 
-    void SetData(const void* data, uint32_t size); // NOWA: Metoda wrzucaj¹ca paczkê z RAMu na GPU
+    void SetData(const void* data, uint32_t size); 
 
     const BufferLayout& GetLayout() const { return m_Layout; }
     void SetLayout(const BufferLayout& layout) { m_Layout = layout; }

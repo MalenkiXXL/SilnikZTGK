@@ -26,7 +26,6 @@ void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("ShadowMap", "shaders://vsShaders/shadow.vert", "shaders://fragShaders/shadow.frag");
     m_ShaderLibrary.Load("CloudShader", "shaders://vsShaders/shader.vert", "shaders://fragShaders/cloud.frag");
 
-    // --- ŁADOWANIE SHADERÓW POST-PROCESS ---
     m_ShaderLibrary.Load("BloomExtract", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_extract.frag");
     m_ShaderLibrary.Load("BloomBlur", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_blur.frag");
     m_ShaderLibrary.Load("BloomComposite", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_composite.frag");
@@ -34,16 +33,12 @@ void RendererLayer::OnAttach() {
     m_RampTexture = std::make_shared<Texture2D>("assets://textures/RAMP_texture.png");
     m_BackgroundTexture = std::make_shared<Texture2D>("assets://background/background.png");
 
-    // --- SETUP FBO MAPY CIENI ---
     FramebufferSpecification shadowSpec;
     shadowSpec.Width = 4096;
     shadowSpec.Height = 4096;
     shadowSpec.DepthOnly = true;
     m_ShadowMapFBO = std::make_shared<Framebuffer>(shadowSpec);
 
-    // --- SETUP FBO DLA POST-PROCESSingu ---
-    // HDR = true — GL_RGBA16F pozwala przechowywać wartości > 1.0, co jest wymagane
-    // do poprawnego Bloom. Bez tego wszystkie wartości są obcinane do [0,1].
     FramebufferSpecification ppSpec;
     ppSpec.Width = 1920 / 2;
     ppSpec.Height = 1080 / 2;
@@ -57,9 +52,7 @@ void RendererLayer::OnAttach() {
     finalSpec.HDR = true;
     m_PostProcessFBO = std::make_shared<Framebuffer>(finalSpec);
 
-    // --- QUAD EKRANOWY ---
     float quadVertices[] = {
-        // positions   // texCoords
         -1.0f,  1.0f,  0.0f, 1.0f,
         -1.0f, -1.0f,  0.0f, 0.0f,
          1.0f, -1.0f,  1.0f, 0.0f,
@@ -142,7 +135,6 @@ void RendererLayer::OnUpdate(Timestep ts) {
     RenderCommand::SetClearColor(clearColor);
     RenderCommand::Clear();
 
-    // Rysowanie tła 2D
     glDisable(GL_DEPTH_TEST);
     glm::mat4 bgProjection = glm::ortho(0.0f, fboWidth, 0.0f, fboHeight, -1.0f, 1.0f);
     Renderer2D::BeginScene(bgProjection);
@@ -163,7 +155,6 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
         activeScene->CalculateTransforms();
 
-        // Zebranie obiektów do narysowania
         auto stdShader = m_ShaderLibrary.Get(Renderer::ActiveShader);
         auto conveyorShader = m_ShaderLibrary.Get("Conveyor");
         Frustum activeFrustum = ExtractFrustum(viewProjection);
@@ -219,11 +210,8 @@ void RendererLayer::OnUpdate(Timestep ts) {
             }
         }
 
-        // ===========================================================
-        // FAZA 1: RENDEROWANIE MAPY CIENI (DEPTH PASS)
-        // ===========================================================
         glm::vec3 sunDir = glm::normalize(glm::vec3(-0.321f, -0.766f, -0.557f));
-        glm::vec3 sunTarget = activeScene->GetCamera()->Position; // Słońce podąża za kamerą!
+        glm::vec3 sunTarget = activeScene->GetCamera()->Position; 
         glm::vec3 sunPos = sunTarget - (sunDir * 25.0f);
 
         glm::mat4 lightView = glm::lookAt(sunPos, sunTarget, glm::vec3(0.0f, 1.0f, 0.0f));
@@ -232,7 +220,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
         Renderer::BeginScene(viewProjection, lightSpaceMatrix, activeScene->GetCamera()->Position);
 
-        m_ShadowMapFBO->Bind(); // Odpina TargetFBO — depth pass do oddzielnego bufora
+        m_ShadowMapFBO->Bind(); 
         glClear(GL_DEPTH_BUFFER_BIT);
 
         auto shadowShader = m_ShaderLibrary.Get("ShadowMap");
@@ -255,15 +243,12 @@ void RendererLayer::OnUpdate(Timestep ts) {
             Renderer::SubmitInstanced(shadowShader, animDraw.model, singleInstance);
         }
 
-        // ===========================================================
-        // FAZA 2: GŁÓWNE RENDEROWANIE 3D (z cieniami)
-        // ===========================================================
-        if (m_TargetFBO) m_TargetFBO->Bind(); // Wracamy do głównego bufora HDR
-        glViewport(0, 0, fboWidth, fboHeight); // Przywracamy właściwy rozmiar okna
+   
+        if (m_TargetFBO) m_TargetFBO->Bind(); 
+        glViewport(0, 0, fboWidth, fboHeight); 
 
         if (Renderer::ActiveShader == "RAMP") m_RampTexture->Bind(10);
 
-        // Zbindowanie tekstury cieni na slot 15
         glActiveTexture(GL_TEXTURE15);
         glBindTexture(GL_TEXTURE_2D, m_ShadowMapFBO->GetDepthAttachmentRendererID());
 
@@ -288,7 +273,6 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
         Renderer::EndScene();
 
-        // Rysowanie cząsteczek
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDepthMask(GL_FALSE);
@@ -327,27 +311,21 @@ void RendererLayer::OnUpdate(Timestep ts) {
         glDepthMask(GL_TRUE);
     }
 
-    // ===========================================================
-    // FAZA POST-PROCESSING (BLOOM + COLOR GRADING)
-    // ===========================================================
+
     if (m_TargetFBO) {
-        // Sprawdzamy m_ResolveFBO przed użyciem — null dereference zabezpieczenie
         if (!m_ResolveFBO) {
             m_TargetFBO->Unbind();
             return;
         }
 
-        // Zrzucamy obraz MSAA do zwykłego ResolveFBO
         m_TargetFBO->ResolveTo(m_ResolveFBO);
         m_TargetFBO->Unbind();
 
-        // Zamykamy Blending — nie może wchodzić w interakcję z Bloomem
         glDisable(GL_BLEND);
 
         bool depthTestState = glIsEnabled(GL_DEPTH_TEST);
         glDisable(GL_DEPTH_TEST);
 
-        // Dynamiczne dopasowanie rozdzielczości FBO pod obecny rozmiar
         uint32_t currentWidth = (uint32_t)fboWidth;
         uint32_t currentHeight = (uint32_t)fboHeight;
 
@@ -357,7 +335,6 @@ void RendererLayer::OnUpdate(Timestep ts) {
             m_PingPongFBO[1]->Resize(currentWidth / 2, currentHeight / 2);
         }
 
-        // 1. Wyciągamy jasne kolory do PingPongFBO[0]
         m_PingPongFBO[0]->Bind();
         auto extractShader = m_ShaderLibrary.Get("BloomExtract");
         extractShader->use();
@@ -370,7 +347,6 @@ void RendererLayer::OnUpdate(Timestep ts) {
         glBindVertexArray(m_ScreenQuadVAO);
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
-        // 2. Ping-Pong Blur (10 przebiegów Gaussa)
         bool horizontal = true, first_iteration = true;
         int amount = 10;
         auto blurShader = m_ShaderLibrary.Get("BloomBlur");
@@ -395,7 +371,6 @@ void RendererLayer::OnUpdate(Timestep ts) {
             if (first_iteration) first_iteration = false;
         }
 
-        // 3. Finalny kompozyt i Color Grading
         m_PostProcessFBO->Bind();
         auto compositeShader = m_ShaderLibrary.Get("BloomComposite");
         compositeShader->use();
@@ -417,7 +392,6 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
         if (depthTestState) glEnable(GL_DEPTH_TEST);
 
-        // 4. Rysowanie przetworzonego obrazu na ekran
 #ifdef CS_DISTRIBUTION
         glBindFramebuffer(GL_READ_FRAMEBUFFER, m_PostProcessFBO->GetRendererID());
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);

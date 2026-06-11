@@ -2,7 +2,7 @@
 
 layout (std140, binding = 0) uniform SceneData {
     mat4 u_ViewProjection;
-    mat4 u_LightSpaceMatrix; // DODANE: Macierz rzutowania słońca
+    mat4 u_LightSpaceMatrix; 
     vec3 u_SunDir;
     float _pad0;
     vec3 u_LightColor;
@@ -11,23 +11,18 @@ layout (std140, binding = 0) uniform SceneData {
     float _pad2;
 };
 
-// 2. STANDARDOWE ATRYBUTY
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
 layout (location = 2) in vec2 aTexCoords;
 layout (location = 3) in vec2 aTexCoords2;
 
-// 3. NOWE ATRYBUTY ASSIMP
 layout (location = 4) in vec3 aTangent;
 layout (location = 5) in vec3 aBitangent;
 
-// 4. ANIMACJA SZKIELETOWA
 layout (location = 6) in ivec4 aBoneIDs;
 layout (location = 7) in vec4 aWeights;
 
-// 5. INSTANCJONOWANIE 
 layout (location = 8) in mat4 aInstanceMatrix;
-// zajmuje 8, 9, 10, 11
 layout (location = 12) in float a_uvOffset;
 
 out float v_uvOffset;
@@ -35,9 +30,8 @@ out vec2 TexCoords;
 out vec2 TexCoords2; 
 out vec3 Normal;
 out vec3 FragPos;
-out vec4 FragPosLightSpace; // DODANE: Pozycja z punktu widzenia słońca
+out vec4 FragPosLightSpace; 
 
-// POZOSTAŁE UNIFORMY (Per-Draw Call, nie do UBO)
 const int MAX_BONES = 100;
 const int MAX_BONE_INFLUENCE = 4;
 uniform mat4 finalBonesMatrices[MAX_BONES];
@@ -80,11 +74,9 @@ void main()
 
     Normal = mat3(transpose(inverse(aInstanceMatrix))) * totalNormal;
     
-    // Obliczamy pozycję fragmentu w świecie
     vec4 worldPos = aInstanceMatrix * totalPosition;
     FragPos = vec3(worldPos);
     
-    // Obliczamy pozycję fragmentu z perspektywy słońca i wysyłamy do Fragment Shadera
     FragPosLightSpace = u_LightSpaceMatrix * worldPos;
 
     gl_Position = u_ViewProjection * worldPos;

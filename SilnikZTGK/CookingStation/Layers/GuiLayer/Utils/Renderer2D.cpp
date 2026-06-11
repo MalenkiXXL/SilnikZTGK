@@ -1,5 +1,4 @@
 #include "Renderer2D.h"
-// ZMIANA 1: Poprawny include wskazuj�cy na Twoj� uniwersaln� klas� Texture z VFS
 #include "CookingStation/Core/Texture.h"   
 #include <glm/gtc/matrix_transform.hpp>
 #include "CookingStation/Renderer/Renderer.h"
@@ -25,7 +24,6 @@ struct Renderer2D::Renderer2DData {
     std::shared_ptr<VertexArray> QuadVAO;
     std::shared_ptr<VertexBuffer> QuadVBO;
 
-    // Texture (z Texture.h) - ma konstruktor (width,height) i SetData
     std::shared_ptr<Texture> WhiteTexture;
 
     uint32_t QuadIndexCount = 0;
@@ -84,8 +82,7 @@ void Renderer2D::Init() {
 
     s_Data->QuadVertexBufferBase = new QuadVertex[s_Data->MaxVertices];
 
-    // Tworzymy bia�� tekstur� 1x1 przez Texture(width,height) + SetData
-    // Texture u�ywa glTexSubImage2D bezpo�rednio - bez stbi, bez b��d�w
+
     uint32_t whiteTextureData = 0xffffffff;
     s_Data->WhiteTexture = std::make_shared<Texture>(1, 1);
     s_Data->WhiteTexture->SetData(&whiteTextureData, sizeof(uint32_t));
@@ -149,7 +146,6 @@ void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, cons
     DrawQuad(position, size, 0, color, { 0.0f, 0.0f }, { 1.0f, 1.0f }, radius);
 }
 
-// ZMIANA 2: Zast�piono Texture2D na std::shared_ptr<Texture>
 void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, const std::shared_ptr<Texture>& texture, const glm::vec4& color, const glm::vec2& uvMin, const glm::vec2& uvMax, float radius) {
     DrawQuad(position, size, texture->GetRendererID(), color, uvMin, uvMax, radius);
 }
@@ -192,11 +188,6 @@ void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& size, uint
     Renderer::GetStats().TriangleCountUI += 2;
 }
 
-// =========================================================================================
-// ZMIANA 3: To jest najwa�niejsza zmiana na samym dole! Zwr�� na to uwag�.
-// Poni�sze funkcje przekazuj� radius do GPU.
-// =========================================================================================
-
 void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color, float radius) {
     DrawQuad(transform, 0, color, radius);
 }
@@ -228,12 +219,10 @@ void Renderer2D::DrawQuad(const glm::mat4& transform, uint32_t textureID, const 
         s_Data->QuadVertexBufferPtr->TexCoord = uvs[i];
         s_Data->QuadVertexBufferPtr->TexIndex = textureIndex;
 
-        // Wydobywamy skal� bezpo�rednio z macierzy transformacji, bo Shader tego wymaga 
-        // do wyliczenia dystansu (SDF - Signed Distance Field) dla zaokr�gle�
         glm::vec2 scale = { glm::length(glm::vec3(transform[0])), glm::length(glm::vec3(transform[1])) };
         s_Data->QuadVertexBufferPtr->QuadSize = scale;
 
-        s_Data->QuadVertexBufferPtr->Radius = radius; // Tego tutaj wcze�niej brakowa�o!
+        s_Data->QuadVertexBufferPtr->Radius = radius; 
         s_Data->QuadVertexBufferPtr++;
     }
 
