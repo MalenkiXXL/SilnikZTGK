@@ -50,30 +50,30 @@ Application::Application()
 
 
 	// DO FINALOWEJ WERSJI Z EKSPORTEM
-
-#ifdef CS_DISTRIBUTION
-	std::filesystem::path exePath = std::filesystem::current_path();
-	VFS::Mount("assets", std::make_shared<PackageFileSystem>((exePath / "data.pak").string()));
-	VFS::Mount("shaders", std::make_shared<PackageFileSystem>((exePath / "shaders.pak").string()));
-#else
-	VFS::Mount("assets", std::make_shared<PhysicalFileSystem>("CookingStation/Assets"));
-	VFS::Mount("shaders", std::make_shared<PhysicalFileSystem>("CookingStation/Shaders"));
-#endif
+//
+//#ifdef CS_DISTRIBUTION
+//	std::filesystem::path exePath = std::filesystem::current_path();
+//	VFS::Mount("assets", std::make_shared<PackageFileSystem>((exePath / "data.pak").string()));
+//	VFS::Mount("shaders", std::make_shared<PackageFileSystem>((exePath / "shaders.pak").string()));
+//#else
+//	VFS::Mount("assets", std::make_shared<PhysicalFileSystem>("CookingStation/Assets"));
+//	VFS::Mount("shaders", std::make_shared<PhysicalFileSystem>("CookingStation/Shaders"));
+//#endif
 
 	// DO TESOTWANIA
 
-//#ifdef CS_DISTRIBUTION
-//	std::string assetsPath = "CookingStation/Assets";
-//	std::string shadersPath = "CookingStation/Shaders";
-//#else
-//	std::string assetsPath = "CookingStation/Assets";
-//	std::string shadersPath = "CookingStation/Shaders";
-//#endif
-//
-//	std::shared_ptr<PhysicalFileSystem> physicalFS = std::make_shared<PhysicalFileSystem>(assetsPath);
-//	VFS::Mount("assets", physicalFS);
-//	std::shared_ptr<PhysicalFileSystem> shaderFS = std::make_shared<PhysicalFileSystem>(shadersPath);
-//	VFS::Mount("shaders", shaderFS);
+#ifdef CS_DISTRIBUTION
+	std::string assetsPath = "CookingStation/Assets";
+	std::string shadersPath = "CookingStation/Shaders";
+#else
+	std::string assetsPath = "CookingStation/Assets";
+	std::string shadersPath = "CookingStation/Shaders";
+#endif
+
+	std::shared_ptr<PhysicalFileSystem> physicalFS = std::make_shared<PhysicalFileSystem>(assetsPath);
+	VFS::Mount("assets", physicalFS);
+	std::shared_ptr<PhysicalFileSystem> shaderFS = std::make_shared<PhysicalFileSystem>(shadersPath);
+	VFS::Mount("shaders", shaderFS);
 
 	SceneManager::NewScene();
 	Renderer::Init();
