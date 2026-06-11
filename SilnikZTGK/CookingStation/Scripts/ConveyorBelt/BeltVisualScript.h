@@ -8,7 +8,7 @@ class BeltVisualScript : public ScriptableEntity
 private:
     float Speed = 2.0f;
     ConveyorScript* m_ParentConveyor = nullptr;
-    std::size_t m_ClickSubId = 0; // Dodaj pole na subskrypcjê
+    std::size_t m_ClickSubId = 0;
 
 public:
     void OnCreate() override
@@ -24,10 +24,8 @@ public:
 
         m_ParentConveyor = GetParentScript<ConveyorScript>();
 
-        // 1. Subskrybujemy klikniêcia
         m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
             [this](const EntityClickedEvent& e) {
-                // Jeœli klikniêto w ten wizualny obiekt taœmy, przeka¿ klikniêcie do rodzica (ConveyorScript)
                 if (e.TargetEntity.id == this->m_Entity.id)
                 {
                     this->HandleClick();
@@ -59,12 +57,10 @@ public:
         if (scroll->Offset < 0.0f) scroll->Offset += 1.0f;
     }
 
-    // Nowa metoda obs³uguj¹ca klikniêcie (zastêpuje OnClick)
     void HandleClick()
     {
         if (m_ParentConveyor)
         {
-            // Przekazujemy logikê do ConveyorScript
             m_ParentConveyor->HandleClick();
         }
     }

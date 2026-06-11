@@ -51,7 +51,6 @@ public:
                     {
                         tagComp->Tag = "PlateReady";
 
-                        // EVENT BUS: Powiadamiamy wszystkich kelnerów na sali, że talerz czeka
                         GetScene()->GetWorld().GetEventBus().Publish(PlateReadyEvent{ entity });
                     }
                 }

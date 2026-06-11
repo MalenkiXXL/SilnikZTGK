@@ -19,7 +19,6 @@ void DeliveryManagerScript::OnCreate()
 
     spdlog::info("DeliveryManager uruchomiony!");
 
-    // Nasłuchujemy zniszczenia samochodu dostawczego
     m_DeliveryDestroySubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityDestroyedEvent>(
             [this](const EntityDestroyedEvent& e) {
                 if (e.TargetEntity.id == m_DeliveryCarEntityId)
@@ -82,7 +81,7 @@ void DeliveryManagerScript::OnCreate()
         }
     });
 
-    // 2. Usuwamy zrealizowane zamówienie z kolejki
+   //Usuwamy zrealizowane zamówienie z kolejki
     m_ValidationResponseSubId = bus.Subscribe<ValidateOrderResponseEvent>([this](const ValidateOrderResponseEvent& e) {
 
         auto it = std::find_if(m_ActiveOrdersQueue.begin(), m_ActiveOrdersQueue.end(),
@@ -137,7 +136,7 @@ void DeliveryManagerScript::RunDeliveryDecisionTree()
 void DeliveryManagerScript::CallForDelivery(std::vector<IngredientType> types)
 {
     m_CurrentOrderTypes = types;
-    m_SpawnedPackagesCount = 0; // Zaczynamy nową dostawę
+    m_SpawnedPackagesCount = 0;
 
     Entity car = PrefabSerializer::Deserialize(GetScene(), m_VanPrefabPath, m_CarStartPos)[0];
 

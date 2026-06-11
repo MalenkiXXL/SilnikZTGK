@@ -67,8 +67,7 @@ public:
     };
     std::vector<WaiterTask> m_TaskQueue;
 
-    // Lista klientów z zapisanym zamówieniem, którzy czekają fizycznie na talerz.
-    // DZIĘKI TEMU NIE SKANUJEMY JUŻ CAŁEJ SCENY I NIE UŻYWAMY DYNAMIC_CAST!
+
     std::vector<Entity> m_AwaitingFoodCustomers;
 
     std::size_t m_CustomerSubId = 0;
@@ -101,17 +100,17 @@ public:
             m_TaskQueue.push_back({ 1, e.Plate });
             });
 
-        // Gdy spiszemy zamówienie (albo inny kelner z AI to zrobi), dodajemy klienta do listy oczekujących na jedzenie
+        // Gdy spiszemy zamówienie, dodajemy klienta do listy oczekujących na jedzenie
         m_OrderTakenSubId = bus.Subscribe<OrderTakenEvent>([this](const OrderTakenEvent& e) {
             m_AwaitingFoodCustomers.push_back(e.Customer);
 
-            // Jeżeli ten klient nadal widniał u nas w kolejce jako zadanie nr 0, usuwamy to zadanie!
+            // Jeżeli ten klient nadal widniał u nas w kolejce jako zadanie nr 0, usuwamy to zadanie
             m_TaskQueue.erase(std::remove_if(m_TaskQueue.begin(), m_TaskQueue.end(),
                 [&e](const WaiterTask& t) { return t.Type == 0 && t.Target.id == e.Customer.id; }),
                 m_TaskQueue.end());
             });
 
-        // Gdy klient zostanie obsłużony (przez nas, albo kelnera AI), ściągamy go z naszej prywatnej listy
+        // Gdy klient zostanie obsłużony, ściągamy go z naszej prywatnej listy
         m_CustomerServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
             m_AwaitingFoodCustomers.erase(std::remove_if(m_AwaitingFoodCustomers.begin(), m_AwaitingFoodCustomers.end(),
                 [&e](Entity cust) { return cust.id == e.Customer.id; }),
@@ -176,7 +175,7 @@ public:
 
         case State::MOVING_TO_STATION_TO_WAVE:
             PlayAnimation("Walk");
-            CheckForTasks(); // Może coś wskoczyło podczas marszu!
+            CheckForTasks();
             if (m_CurrentState != State::MOVING_TO_STATION_TO_WAVE) break;
 
             {
@@ -216,11 +215,9 @@ public:
             m_TakeOrderTimer -= ts.GetSeconds();
 
             if (m_TakeOrderTimer <= 0.0f) {
-                // Notowanie zakończone - wysyłamy EVENT w świat!
                 RevealCustomerOrder(m_TargetCustomer);
                 m_TargetCustomer = { std::numeric_limits<std::size_t>::max(), 0 };
 
-                // Sprawdzamy czy jest coś do zrobienia bez wracania do bazy!
                 m_CurrentState = State::IDLE;
                 CheckForTasks();
 
@@ -308,13 +305,12 @@ private:
         m_WaitAtPassTimer = 0.0f;
     }
 
-    // Nowa, ekstremalnie wydajna funkcja. Patrzy tylko do wewn. listy!
     Entity FindCustomerWaitingForFood()
     {
         auto it = m_AwaitingFoodCustomers.begin();
         while (it != m_AwaitingFoodCustomers.end()) {
             if (IsValidEntity(*it)) return *it;
-            it = m_AwaitingFoodCustomers.erase(it); // Usuń jeśli klient zniknął ze sceny
+            it = m_AwaitingFoodCustomers.erase(it);
         }
         return { std::numeric_limits<std::size_t>::max(), 0 };
     }
@@ -327,7 +323,7 @@ private:
             auto task = *it;
             bool invalid = false;
 
-            if (task.Type == 0) // ZBIERZ ZAMÓWIENIE
+            if (task.Type == 0)
             {
                 if (!IsValidEntity(task.Target)) {
                     invalid = true;
@@ -357,7 +353,6 @@ private:
                         return;
                     }
                     else {
-                        // Talerz leży, ALE NIKT JESZCZE NIE ZŁOŻYŁ ZAMÓWIENIA! 
                         ++it;
                         continue;
                     }
@@ -376,7 +371,6 @@ private:
     void RevealCustomerOrder(Entity customer)
     {
         if (IsValidEntity(customer)) {
-            // ZAMIAST RZUTOWAĆ NA CustomerScript -> UŻYWAMY EVENTBUSA!
             GetScene()->GetWorld().GetEventBus().Publish(OrderTakenEvent{ customer });
         }
     }
@@ -399,7 +393,6 @@ private:
 
     void GrabFood()
     {
-        // EVENT BUS: Informujemy jedzenie, by samo się odpięło! Zamiast grzebać w ItemScript!
         GetScene()->GetWorld().GetEventBus().Publish(PlateGrabbedEvent{ m_TargetPlate });
 
         auto* tag = GetScene()->GetWorld().GetComponent<TagComponent>(m_TargetPlate);
@@ -422,7 +415,6 @@ private:
             auto* rel = GetScene()->GetWorld().GetComponent<RelationshipComponent>(m_TargetPlate);
             if (rel && rel->FirstChild != std::numeric_limits<std::size_t>::max())
             {
-                // Szukamy PRAWDZIWEJ encji dziecka, by system ECS nie odrzucił generacji = 0
                 auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
 
                 if (tags) {
@@ -433,7 +425,6 @@ private:
                         }
                     }
                 }
-                // UWAGA: Już nie niszczymy trueFoodChild tutaj!
             }
             GetScene()->GetWorld().DestroyEntity(m_TargetPlate);
         }
@@ -448,7 +439,6 @@ private:
                 spdlog::info("Kelner podaje klientowi encje jedzenia: {}", trueFoodChild.id);
             }
 
-            // EVENT BUS: Informujemy klienta, przekazując ENCJE jedzenia zamiast wektora tagów
             GetScene()->GetWorld().GetEventBus().Publish(CustomerServedEvent{ m_TargetCustomer, trueFoodChild });
         }
 

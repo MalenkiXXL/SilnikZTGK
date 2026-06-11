@@ -20,7 +20,7 @@ static constexpr AngleDirection s_Mappings[] = {
 class ConveyorScript : public ScriptableEntity
 {
 private:
-    std::size_t m_ClickSubId = 0; // ID subskrypcji zdarzenia
+    std::size_t m_ClickSubId = 0;
 
 public:
     glm::vec3 PushDirection = { 0.0f, 0.0f, 0.0f };
@@ -35,7 +35,6 @@ public:
 
         m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
             [this](const EntityClickedEvent& e) {
-                // --- SYSTEM BLOKOWANIA --- Jeśli UI pochłonęło kursor, ignorujemy event
                 if (Input::IsUICapturingMouse()) return;
 
                 if (e.TargetEntity.id == this->m_Entity.id) {
@@ -130,24 +129,21 @@ public:
 
             SetPushDirection();
             spdlog::info("Zwrotnica: Nowy kierunek: {}", newRot.y);
-            AudioEngine::Play("CookingStation/Assets/sounds/ui_click.mp3");
+            AudioEngine::Play("assets://sounds/ui_click.mp3");
         }
     }
 
     void OnUpdate(Timestep ts) override
     {
-        // --- SYSTEM BLOKOWANIA --- Ignorujemy pada, gdy menu jest otwarte
         if (Input::IsUICapturingMouse()) return;
 
         if (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0))
         {
             auto* tf = GetComponent<TransformComponent>();
             if (tf) {
-                // Pobieramy pozycję wirtualnego kursora z klasy bazowej
                 glm::vec2 cursor2D = { GetMouseWorldPosition().x, GetMouseWorldPosition().z };
                 glm::vec2 my2D = { tf->GetPosition().x, tf->GetPosition().z };
 
-                // Zasięg interakcji zwrotnicy to 1.5 jednostki
                 if (glm::distance(cursor2D, my2D) < 1.5f) {
                     HandleClick();
                 }

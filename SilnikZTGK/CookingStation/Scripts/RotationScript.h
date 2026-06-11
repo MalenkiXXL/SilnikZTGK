@@ -14,7 +14,6 @@ public:
     {
         m_CollisionSubId = GetScene()->GetWorld().GetEventBus().Subscribe<CollisionEvent>(
             [this](const CollisionEvent& e) {
-                // Sprawdzamy, czy to my bierzemy udzia³ w kolizji (czy uderzyliœmy my, czy ktoœ w nas)
                 if (e.EntityA.id == m_Entity.id || e.EntityB.id == m_Entity.id)
                 {
                     this->m_IsSpinning = true;
@@ -38,10 +37,10 @@ public:
                 // 1. Pobieramy obecny wektor rotacji
                 glm::vec3 currentRot = transform->GetRotation();
 
-                // 2. Modyfikujemy odpowiedni¹ oœ (dodajemy 90 stopni * delta time)
+                // 2. Modyfikujemy odpowiednio
                 currentRot.y += 90.0f * ts;
 
-                // 3. Wgrywamy z powrotem przez Setter (To aktywuje flagê IsDirty!)
+                // 3. Wgrywamy z powrotem przez Setter
                 transform->SetRotation(currentRot);
             }
         }

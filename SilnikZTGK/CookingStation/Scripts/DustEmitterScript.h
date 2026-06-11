@@ -11,8 +11,7 @@ public:
         ParticleEmitterScript::OnCreate();
 
         ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle.png"));
-        // parametry:
-        ParticleTemplate.PositionOffset = { 0.0f, -0.5f, 0.0f }; 
+        ParticleTemplate.PositionOffset = { 0.0f, -0.5f, 0.0f };
 
         ParticleTemplate.Velocity = { 0.0f, 0.2f, 0.0f };       
         ParticleTemplate.VelocityVariation = { 2.5f, 0.1f, 2.5f }; 
@@ -22,7 +21,7 @@ public:
 
         ParticleTemplate.SizeBegin = 0.3f; 
         ParticleTemplate.SizeVariation = 0.1f;
-        ParticleTemplate.SizeEnd = 0.5f;   // szybko roœnie - rozprasza siê
+        ParticleTemplate.SizeEnd = 0.5f;
 
         ParticleTemplate.LifeTime = 0.4f;  
         EmitRate = 0.1f;

@@ -30,7 +30,7 @@ public:
                 if (m_CurrentTime >= m_CookTime)
                 {
                     m_IsReady = true;
-                    AudioEngine::Play("CookingStation/Assets/sounds/dish_ready.mp3");
+                    AudioEngine::Play("assets://sounds/dish_ready.mp3");
                     UpdateVisuals();
                 }
             }
@@ -49,7 +49,6 @@ public:
 
         if (type == IngredientType::Flour || type == IngredientType::Milk)
         {
-            // Zabezpieczenie przed wrzuceniem dwa razy tego samego
             if (std::find(m_Ingredients.begin(), m_Ingredients.end(), type) != m_Ingredients.end())
             {
                 spdlog::warn("Mikser: Ten skladnik juz tu jest!");
@@ -66,8 +65,6 @@ public:
         return false;
     }
 
-    // Hybrydowe przenoszenie
-   // Hybrydowe przenoszenie
     void TryTransferToPlate() override
     {
         Entity targetPlate = m_LastHighlightedPlate;
@@ -77,7 +74,6 @@ public:
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())
         {
-            // Przeniesienie logiczne na talerz (jak w CuttingBoardScript)
             auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(targetPlate);
             PlateScript* pScript = nullptr;
             if (nsc) {
@@ -95,7 +91,6 @@ public:
                 {
                     spdlog::info("Mikser: Ciasto logicznie przeniesione na talerz!");
                     ClearHighlight();
-                    // Usuwamy stary model z maszyny - PlateScript wygeneruje go po swojej stronie
                     if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->DestroyEntity(m_SpawnedFood);
                         m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -104,9 +99,8 @@ public:
                 }
             }
         }
-        else if (!m_IsAutomated) // Je�li nie mamy talerza i nie jeste�my auto-ta�m�
+        else if (!m_IsAutomated)
         {
-            // Zabranie do reki (DragAndDrop)
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
                 GetScene()->DestroyEntity(m_SpawnedFood);
@@ -137,7 +131,6 @@ protected:
                 foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.2f, 0.0f));
             }
 
-            // Rejestracja pochodzenia
             DishHistory history;
             history.BaseIngredients = m_Ingredients;
             history.OriginMachine = "Mixer";

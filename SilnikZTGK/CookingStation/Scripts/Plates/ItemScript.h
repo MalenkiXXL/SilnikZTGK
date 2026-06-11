@@ -20,11 +20,10 @@ class ItemScript : public ScriptableEntity
 public:
     void OnCreate() override
     {
-        // Podpinamy się pod EventBusa - czekamy aż zostaniemy podniesieni!
         auto& bus = GetScene()->GetWorld().GetEventBus();
         m_GrabbedSubId = bus.Subscribe<PlateGrabbedEvent>([this](const PlateGrabbedEvent& e) {
             if (e.Plate.id == m_Entity.id) {
-                this->ReleaseConveyors(); // Sami schodzimy z taśmy
+                this->ReleaseConveyors();
             }
             });
 

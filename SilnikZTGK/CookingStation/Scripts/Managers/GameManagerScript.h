@@ -30,7 +30,6 @@ private:
     // System Pamięci Potraw
     std::unordered_map<std::size_t, DishHistory> m_DishMemory;
 
-    // ID Subskrypcji
     std::size_t m_IngredientUsedSubId = 0;
     std::size_t m_AddIngredientSubId = 0;
     std::size_t m_OrderFulfilledSubId = 0;

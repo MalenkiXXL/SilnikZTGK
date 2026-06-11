@@ -5,7 +5,6 @@
 #include <functional>
 #include <spdlog/spdlog.h>
 
-// --- INCLUDUJEMY WSZYSTKIE SKRYPTY ---
 #include "CookingStation/Scripts/RotationScript.h"
 #include "CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
 #include "CookingStation/Scripts/Plates/ItemScript.h"
@@ -33,7 +32,6 @@
 #include "CookingStation/Scripts/Delivery/DeliveryMushroomScript.h"
 #include "CrateScript.h"
 
-//globalny slownik ktory mapuke tekst na funkcje
 class ScriptRegistry
 {
 public:

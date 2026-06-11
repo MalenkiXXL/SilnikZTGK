@@ -53,7 +53,7 @@ private:
         m_ChopCount++;
         m_ChopCooldown = 0.2f;
         spdlog::info("Ciach! ({}/{})", m_ChopCount, m_ChopsRequired);
-        AudioEngine::Play("CookingStation/Assets/sounds/chop.wav");
+        AudioEngine::Play("assets://sounds/chop.wav");
 
         m_VisualJumpY = 0.3f;
 
@@ -78,11 +78,9 @@ private:
 public:
     void OnCreate() override
     {
-        // Pozwalamy klasie bazowej podpi�� swoje eventy fizyczne...
         MachineScript::OnCreate();
 
-        // ... a nast�pnie od razu je usuwamy dla tego konkretnego obiektu! 
-        // Deska u�ywa w�asnego "radaru" matematycznego, wi�c nie chcemy, aby wielkie kolidery sera i szynki same wywo�ywa�y transfer.
+
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_FoodClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId);
@@ -95,7 +93,6 @@ public:
             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_CursorKnife });
         }
 
-        // Zerujemy ID event�w, �eby klasa bazowa (MachineScript) nie wyrzuci�a b��du pr�buj�c usun�� co�, co zrobili�my w OnCreate
         m_ClickSubId = 0;
         m_FoodClickSubId = 0;
         m_HoverSubId = 0;
@@ -348,7 +345,6 @@ protected:
             }
         }
 
-        // NOWE: Publikujemy event dopiero wtedy, gdy gracz sko�czy kroi�
         if (m_IsReady)
         {
             DishHistory history;

@@ -25,13 +25,10 @@ public:
                 m_BaseScaleInitialized = true;
             }
 
-            // Fala zwraca od -1.0 (najmniejsza) do 1.0 (największa paczka)
             float wave = std::sin(m_TimeAlive * 4.0f);
 
-            // 1. SKALA
             transform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
 
-            // 2. OBLICZANIE OPACITY Z ROZMIAREM
             float currentOpacity = (wave + 1.0f) * 0.5f;
 
             float maxOpacity = 0.6f;

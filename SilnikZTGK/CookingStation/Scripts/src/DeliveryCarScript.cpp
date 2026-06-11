@@ -24,10 +24,10 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
     glm::vec3 currentPos = transform->GetPosition();
 
-    float hiddenY = -0.5f;   // Jak nisko grzyb jest w bagażniku (żeby go nie było widać)
-    float poppedY = 1.0f;    // Jak wysoko wyskakuje, żeby było go widać
-    float zOffset = 0.0f;   // Przesunięcie do tyłu (do bagażnika) vana
-    float xOffset = 2.5f;    // Przesunięcie lewo/prawo (środek)
+    float hiddenY = -0.5f;
+    float poppedY = 1.0f;
+    float zOffset = 0.0f;
+    float xOffset = 2.5f;
 
     switch (m_State)
     {

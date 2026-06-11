@@ -12,7 +12,7 @@
 
 struct DynamicQuest {
     std::string Title = "Brak zadania";
-    std::string Description = "Oczekiwanie na zamówienia...";
+    std::string Description = "Oczekiwanie na zamï¿½wienia...";
     std::string DishId = "pomidorowa";
     int PortionsRequired = 0;
     int PortionsDelivered = 0;
@@ -112,7 +112,6 @@ public:
 
                 if (tag == "Plate" || tag == "Talerz" || tag == "UgotowaneDanie" || tag == "TomatoSoup" || tag == requiredEngineTag)
                 {
-                    // POPRAWKA LOGIKI: Akceptujemy potrawê jeœli ma tag dedykowany LUB uniwersalny silnikowy "UgotowaneDanie"
                     if (m_ActiveQuest.IsActive && (tag == requiredEngineTag || tag == "UgotowaneDanie"))
                     {
                         correctDishDelivered = true;
@@ -140,14 +139,11 @@ public:
 
                 if (m_ActiveQuest.PortionsDelivered >= m_ActiveQuest.PortionsRequired)
                 {
-                    spdlog::info("[PRODUKCJA] Quest ukoñczony pomyœlnie!");
+                    spdlog::info("[PRODUKCJA] Quest ukoï¿½czony pomyï¿½lnie!");
                     m_ActiveQuest.IsActive = false;
                 }
             }
 
-            // PANCERNY RESET TAŒM I ZWROTNIC:
-            // Skanujemy kafel wejœciowy oraz ca³y obszar krzy¿owy wokó³ niego (+/- 2.0 jednostki)
-            // Zapobiega to utkniêciu logiki mechanizmu zwrotnic i rozjazdów.
             for (float offsetX = -2.0f; offsetX <= 2.0f; offsetX += 2.0f) {
                 for (float offsetZ = -2.0f; offsetZ <= 2.0f; offsetZ += 2.0f) {
                     ConveyorScript* conv = scene->GetConveyorAt(m_InputWorldPos.x + offsetX, m_InputWorldPos.z + offsetZ);

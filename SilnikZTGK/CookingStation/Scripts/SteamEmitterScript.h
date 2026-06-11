@@ -9,7 +9,7 @@ public:
 	{
 		ParticleEmitterScript::OnCreate();
 
-		//ladujemy tekstury
+		//ładujemy tekstury
 		ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle.png"));
 		ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle2.png"));
 		ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle3.png"));

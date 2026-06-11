@@ -12,14 +12,12 @@ void PlateSpawnerScript::OnUpdate(Timestep ts)
 
     if (m_TimeSinceLastSpawn >= m_SpawnInterval)
     {
-        // Dynamiczne liczenie talerzy
         int currentPlates = 0;
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         if (tags)
         {
             for (const auto& tagComp : tags->dense)
             {
-                // Zliczamy wszystkie encje, które w Tagu maj¹ s³owo Plate lub Talerz
                 if (tagComp.Tag.find("Plate") != std::string::npos || tagComp.Tag.find("Talerz") != std::string::npos)
                 {
                     currentPlates++;
@@ -27,7 +25,6 @@ void PlateSpawnerScript::OnUpdate(Timestep ts)
             }
         }
 
-        // Spawnuje nowy talerz tylko wtedy, gdy na mapie jest ich mniej ni¿ 6
         if (currentPlates < m_MaxPlates)
         {
             SpawnPrefab();

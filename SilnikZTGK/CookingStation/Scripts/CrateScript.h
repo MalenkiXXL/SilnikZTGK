@@ -15,7 +15,6 @@
 class CrateScript : public ScriptableEntity
 {
 public:
-    // ZMIANA: Teraz domy�lnym stanem jest None! 
     IngredientType m_CrateIngredient = IngredientType::None;
 
     Entity m_VisualFood = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -87,15 +86,12 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
-        // 1. Zabezpieczenie przed pust� konfiguracj�
         if (m_CrateIngredient == IngredientType::None) return;
 
-        // 2. Obs�uga cooldownu (�eby gracz nie wyplu� 100 pomidor�w w sekund�)
         if (m_SpawnCooldown > 0.0f) {
             m_SpawnCooldown -= ts.GetSeconds();
         }
 
-        // 3. Weryfikacja stanu magazynu i aktualizacja wizualna modelu
         int currentStock = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(m_CrateIngredient) : 0;
         bool shouldHaveStock = (currentStock > 0);
 
@@ -108,21 +104,17 @@ public:
         auto* tf = GetComponent<TransformComponent>();
         if (!tf) return;
 
-        // 1. Sprawdzamy, czy nast�pi�a jakakolwiek akcja interakcji (Mysz: LPM, Pad: Kwadrat/X [ID 2])
         bool isMouseClick = Input::IsMouseButtonJustPressed(0);
         bool isGamepadSquare = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0);
 
-        // 2. Wykonujemy zaawansowan� logik� TYLKO w momencie klikni�cia (du�a optymalizacja)
         if ((isMouseClick || isGamepadSquare) && m_SpawnCooldown <= 0.0f && !Input::IsUICapturingMouse() && !MachineScript::GlobalIsMachineHeld) {
             glm::vec3 cursorWorldPos = GetMouseWorldPosition(); // Teraz to samo wie, czy zwraca� pada czy mysz!
 
             glm::vec2 cursor2D = { cursorWorldPos.x, cursorWorldPos.z };
             glm::vec2 crate2D = { tf->GetPosition().x, tf->GetPosition().z };
 
-            // Powi�kszony, wygodny dystans klikania
             if (glm::distance(cursor2D, crate2D) < 1.2f)
             {
-                // Przekazujemy odpowiedni kursor (mysz albo ten wirtualny z pada) do weryfikacji s�siad�w
                 if (IsClosestCrate(cursor2D))
                 {
                     if (m_HasStock)
@@ -144,7 +136,6 @@ private:
 
     std::size_t m_ClickSubId = 0;
 
-    // Funkcja weryfikuj�ca, czy myszka nie jest przypadkiem bli�ej innej skrzynki
     bool IsClosestCrate(glm::vec2 mousePos2D)
     {
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
@@ -163,7 +154,6 @@ private:
                     auto* tf = transforms->Get(otherEntity);
                     if (tf) {
                         float otherDist = glm::distance(mousePos2D, glm::vec2(tf->GetPosition().x, tf->GetPosition().z));
-                        // Je�li inna skrzynka jest bli�ej kursora ni� my, zwracamy fa�sz
                         if (otherDist < myDist) {
                             return false;
                         }
@@ -179,13 +169,11 @@ private:
         auto* crateMesh = GetComponent<MeshComponent>();
         if (crateMesh) {
             if (m_HasStock) {
-                // Odkomentuj spos�b, w jaki przywracacie normalny kolor modelu w Waszym silniku
-                // crateMesh->Color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f); 
+                // crateMesh->Color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
                 // crateMesh->ShaderName = "ModelShader";
             }
             else {
-                // Odkomentuj spos�b, w jaki "szarzycie" model w Waszym silniku
-                // crateMesh->Color = glm::vec4(0.4f, 0.4f, 0.4f, 1.0f); 
+                // crateMesh->Color = glm::vec4(0.4f, 0.4f, 0.4f, 1.0f);
                 // crateMesh->ShaderName = "GrayShader"; 
             }
         }
@@ -261,7 +249,6 @@ private:
                                 closestConveyor = conveyorEntity;
                                 spawnPos = conveyorTf->GetPosition();
 
-                                // ZMIANA: Sk�adnik podniesiony wy�ej na ta�mie, �eby nie by� zatopiony w modelu
                                 spawnPos.y += 1.3f;
                             }
                         }
@@ -276,7 +263,6 @@ private:
 
             auto builder = GetScene()->GetWorld().BuildEntity();
 
-            // ZMIANA: Przypinamy typ sk�adnika jako String w Tagnam, aby system wiedzia�, co naje�d�a z ta�my
             builder.With<TagComponent>({ "BeltItem_" + std::to_string((int)m_CrateIngredient) });
 
             TransformComponent tc;

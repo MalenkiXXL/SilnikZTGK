@@ -43,7 +43,6 @@ public:
 
         if (m_IsHeld) return;
 
-        // Logika gotowania
         if (!m_Ingredients.empty() && !m_IsReady)
         {
             m_CurrentTime += ts.GetSeconds();
@@ -60,7 +59,6 @@ public:
             }
         }
 
-        // Automatyzacja 
         if (m_IsAutomated && m_IsReady)
         {
             TryTransferToPlate();
@@ -110,14 +108,12 @@ protected:
 
             m_SpawnedFood = SpawnMachineFood(IngredientType::None, "CookingStation/Assets/models/skladniki/pomidor/pomidorowa.gltf", "W_Garnku");
 
-            // Zupa zawsze wyl�duje dok�adnie o 1.0 wy�ej od garnka
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)
             {
                 foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
             }
 
-            // NOWE: Rejestrujemy pochodzenie potrawy w systemie
             DishHistory history;
             history.BaseIngredients = m_Ingredients;
             history.OriginMachine = "Pot";

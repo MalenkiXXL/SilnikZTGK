@@ -5,24 +5,23 @@
 #include <glm/glm.hpp>
 #include <cstdlib> // dla funkcji rand()
 
-// Definiuje parametry startowe (jak ma zachowaæ siê cz¹steczka przy wyrzucie)
+// Definiuje parametry startowe
 struct ParticleProps
 {
-    glm::vec3 PositionOffset = { 0.0f, 0.0f, 0.0f }; // Sk¹d wylatuje (wzglêdem obiektu)
-    glm::vec3 Velocity = { 0.0f, 1.0f, 0.0f };       // Bazowy kierunek (np. w górê)
+    glm::vec3 PositionOffset = { 0.0f, 0.0f, 0.0f }; // Skï¿½d wylatuje (wzglï¿½dem obiektu)
+    glm::vec3 Velocity = { 0.0f, 1.0f, 0.0f };       // Bazowy kierunek
     glm::vec3 VelocityVariation = { 0.5f, 0.5f, 0.5f }; // Rozrzut na boki
 
     glm::vec4 ColorBegin = { 1.0f, 1.0f, 1.0f, 1.0f };
     glm::vec4 ColorEnd = { 1.0f, 1.0f, 1.0f, 0.0f };
 
     float SizeBegin = 0.5f, SizeVariation = 0.1f, SizeEnd = 0.0f;
-    float LifeTime = 1.0f; // Ile sekund ¿yje
+    float LifeTime = 1.0f;
 
     // Kolekcja tekstur 
     std::vector<std::shared_ptr<Texture2D>> Textures;
 };
 
-// Fizyczna cz¹steczka, która ¿yje w pamiêci
 struct Particle
 {
     glm::vec3 Position;
@@ -52,7 +51,6 @@ private:
 public:
     void OnCreate() override
     {
-        // TYLKO alokacja pamiêci dla puli
         m_ParticlePool.resize(1000);
         m_PoolIndex = 999;
         IsEmitting = false;
@@ -122,7 +120,7 @@ private:
         auto* transform = GetComponent<TransformComponent>();
         glm::vec3 globalPos = glm::vec3(0.0f);
         if (transform) {
-            // Wyci¹gamy wektor translacji prosto z wymno¿onej macierzy œwiata
+            // Wyciï¿½gamy wektor translacji prosto z wymnoï¿½onej macierzy ï¿½wiata
             globalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
         }
 

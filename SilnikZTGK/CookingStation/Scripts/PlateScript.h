@@ -136,9 +136,8 @@ private:
 
     void TransformIntoDish(IngredientType dishType, const std::string& dishModelPath)
     {
-        spdlog::info("Talerz: Z³o¿ono gotowe danie!");
+        spdlog::info("Talerz: Zï¿½oï¿½ono gotowe danie!");
 
-        // Zapisujemy sk³adniki do bufora przed wyczyszczeniem talerza, ¿eby przekazaæ je do historii!
         std::vector<IngredientType> historyIngredients = m_Ingredients;
 
         m_CompletedDish = dishType;
@@ -170,7 +169,6 @@ private:
         GetScene()->SetParent(dishEntity, m_Entity);
         m_VisualModels.push_back(dishEntity);
 
-        // NOWE: Rejestrujemy gotowe danie z³o¿one na talerzu w g³ównym systemie
         DishHistory history;
         history.BaseIngredients = historyIngredients;
         history.OriginMachine = "Plate";

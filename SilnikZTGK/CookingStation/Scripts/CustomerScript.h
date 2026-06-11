@@ -24,7 +24,7 @@ public:
 
     void OnCreate() override
     {
-        // 1. Definiujemy, co jest w menu (zakomentowana reszta - zostaje tylko Pomidor)
+        // 1. Definiujemy, co jest w menu
         std::vector<IngredientType> menu = { IngredientType::Tomato /*, IngredientType::Cheese, IngredientType::Ham, IngredientType::Sandwich*/ };
 
         // 2. Losujemy jeden ze składników
@@ -46,7 +46,6 @@ public:
 
                 m_ReceivedFood = e.ServedFood;
 
-                // Pytamy System o skład!
                 GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderRequestEvent{
                     m_Entity, e.ServedFood, WantedIngredient
                     });

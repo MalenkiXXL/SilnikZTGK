@@ -13,7 +13,7 @@ void PackageScript::HandleClick()
     GetScene()->GetWorld().GetEventBus().Publish(DeliveryCollectedEvent{});
 
     spdlog::info("Gracz zebrał paczkę (Wysłano zdarzenie AddIngredientEvent)");
-    AudioEngine::Play("CookingStation/Assets/sounds/handleSmallLeather.mp3 ");
+    AudioEngine::Play("assets://sounds/handleSmallLeather.mp3 ");
 
     std::vector<Entity> allPackages = s_ActivePackages;
     s_ActivePackages.clear();

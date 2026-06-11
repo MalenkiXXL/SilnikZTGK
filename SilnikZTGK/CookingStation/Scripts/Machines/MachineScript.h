@@ -245,7 +245,6 @@ protected:
         mesh.ModelPtr = AssetManager::GetModel(modelPath);
         builder.With<MeshComponent>(mesh);
 
-        // Dodaje od razu collider �eby system wiedzia� w co myszka mo�e klika�
         BoxColliderComponent collider;
         collider.Size = glm::vec3(1.2f) / meta.scale;
         builder.With<BoxColliderComponent>(collider);

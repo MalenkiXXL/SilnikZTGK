@@ -16,19 +16,19 @@ private:
 
     // Zwykli klienci
     std::vector<std::string> m_CustomerModels = {
-        "CookingStation/Assets/models/klienci/klient.gltf",
-        "CookingStation/Assets/models/klienci/klient2.gltf",
-        "CookingStation/Assets/models/klienci/klient3.gltf",
-        "CookingStation/Assets/models/klienci/klientka1.gltf",
-        "CookingStation/Assets/models/klienci/klientka2.gltf",
-        "CookingStation/Assets/models/klienci/klientka3.gltf",
+        "assets://models/klienci/klient.gltf",
+        "assets://models/klienci/klient2.gltf",
+        "assets://models/klienci/klient3.gltf",
+        "assets://models/klienci/klientka1.gltf",
+        "assets://models/klienci/klientka2.gltf",
+        "assets://models/klienci/klientka3.gltf",
     };
 
     // Helper klienci
     std::vector<std::string> m_HelperModels = {
-        "CookingStation/Assets/models/warzywka/marchewka/marchewka.gltf",
-        "CookingStation/Assets/models/warzywka/pomidor/pomidor.gltf",
-        "CookingStation/Assets/models/warzywka/rzodkiewka/rzodkiewka.gltf"
+        "assets://models/warzywka/marchewka/marchewka.gltf",
+        "assets://models/warzywka/pomidor/pomidor.gltf",
+        "assets://models/warzywka/rzodkiewka/rzodkiewka.gltf"
     };
 
 public:
@@ -152,10 +152,6 @@ private:
         }
 
         builder.With<NativeScriptComponent>(nsc);
-        Entity newCustomer = builder.Build();
-
-        // USUNIĘTE: WaiterScript::RegisterCustomer(newCustomer); 
-        // Skrypty CustomerScript i HelperCustomerScript robią to teraz same przez EventBusa!
 
         spdlog::info("Zespawnowano nowego {} (Model: {}) - Patrzy na stolik!", isHelper ? "Helpera" : "Klienta", chosenModel);
     }

@@ -71,7 +71,6 @@ public:
 
             MoveTowards(transform, foodTransform->GetPosition(), ts.GetSeconds());
 
-            // P�aski dystans (ignorujemy o� Y)
             glm::vec2 myPos2D = { transform->GetPosition().x, transform->GetPosition().z };
             glm::vec2 foodPos2D = { foodTransform->GetPosition().x, foodTransform->GetPosition().z };
 
@@ -88,7 +87,7 @@ public:
             }
             auto* customerTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetCustomer);
             if (!customerTransform) {
-                m_State = WaiterState::Idle; // Klient znikn�� 
+                m_State = WaiterState::Idle;
                 return;
             }
 
@@ -109,7 +108,7 @@ private:
     {
         glm::vec3 myPos = myTransform->GetPosition();
         glm::vec3 direction = targetPos - myPos;
-        direction.y = 0; // Grzybek chodzi tylko po pod�odze
+        direction.y = 0;
 
         if (glm::length(direction) > 0.01f)
         {
@@ -147,14 +146,12 @@ private:
             if (tags->dense[i].Tag == "UgotowaneDanie") {
                 Entity potentialFood = tags->reverse[i];
 
-                // Danie jest dzieckiem talerza - bierzemy pozycję rodzica
                 Entity plateEntity = GetScene()->GetParent(potentialFood);
                 auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(plateEntity);
                 if (!plateTransform) continue;
 
                 glm::vec2 platePos2D = { plateTransform->GetPosition().x, plateTransform->GetPosition().z };
 
-                // Sprawdzamy czy talerz stoi na którymś pick poincie
                 bool isOnPickupPoint = false;
                 for (const auto& pp : pickupPoints)
                 {
@@ -177,7 +174,6 @@ private:
         {
             for (size_t i = 0; i < tags->dense.size(); ++i)
             {
-                // --- ZMIANA 1: Szukamy NormalCustomer LUB HelperCustomer ---
                 if (tags->dense[i].Tag == "NormalCustomer" || tags->dense[i].Tag == "HelperCustomer")
                 {
                     Entity custEntity = tags->reverse[i];
@@ -189,10 +185,8 @@ private:
                         // Przeszukujemy list� podpi�tych skrypt�w w tym kliencie
                         for (auto& s : nsc->Scripts)
                         {
-                            // --- ZMIANA 2: �apiemy oba rodzaje skrypt�w! ---
                             if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript")
                             {
-                                // Bezpieczne rzutowanie dzi�ki dziedziczeniu
                                 custScript = (CustomerScript*)s.Instance;
                                 break;
                             }
@@ -213,7 +207,6 @@ private:
             }
         }
 
-        // Je�li mamy gotowe danie i klienta kt�ry na nie czeka, to grzybek rusza
         if (foundFood.id != std::numeric_limits<std::size_t>::max() && foundCustomer.id != std::numeric_limits<std::size_t>::max())
         {
             m_TargetFood = foundFood;
@@ -233,14 +226,11 @@ private:
 
         if (foodTransform && transform)
         {
-            // 1. Podnosimy na głowę
             foodTransform->SetPosition(glm::vec3(0.0f, 2.0f, 0.0f));
             foodTransform->SetRotation(glm::vec3(0.0f, 0.0f, 0.0f));
 
-            // 2. KOREKTA SKALI
             glm::vec3 myScale = transform->GetScale();
 
-            // Zabezpieczenie przed dzieleniem przez zero
             if (myScale.x != 0.0f && myScale.y != 0.0f && myScale.z != 0.0f) {
                 foodTransform->SetScale(glm::vec3(1.0f) / myScale);
             }
@@ -273,7 +263,6 @@ private:
         GetScene()->DestroyEntity(m_TargetFood);
         m_TargetFood = nullEntity;
 
-        // Wywo�ujemy u klienta ReceiveFood(), �eby znikn�� (albo wsta�, je�li to Helper)
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
         if (scripts)
         {
@@ -283,7 +272,6 @@ private:
                 CustomerScript* custScript = nullptr;
                 for (auto& s : nsc->Scripts)
                 {
-                    // --- ZMIANA 3: Tu te� musi obs�u�y� Helpera! ---
                     if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript")
                     {
                         custScript = (CustomerScript*)s.Instance;

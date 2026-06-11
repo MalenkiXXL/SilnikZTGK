@@ -10,7 +10,7 @@ public:
     void OnCreate() override
     {
         MachineScript::OnCreate();
-        m_CookTime = 8.0f; // Pieczenie trwa troche dluzej
+        m_CookTime = 8.0f;
     }
 
     void OnUpdate(Timestep ts) override
@@ -18,19 +18,17 @@ public:
         MachineScript::OnUpdate(ts);
         if (m_IsHeld) return;
 
-        // Logika pieczenia
         if (!m_Ingredients.empty() && !m_IsReady)
         {
             m_CurrentTime += ts.GetSeconds();
             if (m_CurrentTime >= m_CookTime)
             {
                 m_IsReady = true;
-                AudioEngine::Play("CookingStation/Assets/sounds/dish_ready.mp3");
+                AudioEngine::Play("assets://sounds/dish_ready.mp3");
                 UpdateVisuals();
             }
         }
 
-        // Automatyzacja
         if (m_IsAutomated && m_IsReady)
         {
             TryTransferToPlate();
@@ -54,8 +52,6 @@ public:
         return false;
     }
 
-    // Hybrydowe przenoszenie
-    // Hybrydowe przenoszenie
     void TryTransferToPlate() override
     {
         Entity targetPlate = m_LastHighlightedPlate;
@@ -93,7 +89,6 @@ public:
         }
         else if (!m_IsAutomated)
         {
-            // Zabranie upieczonej bagietki do reki
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
                 GetScene()->DestroyEntity(m_SpawnedFood);
@@ -130,7 +125,6 @@ protected:
                 foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
             }
 
-            // Rejestracja pochodzenia
             DishHistory history;
             history.BaseIngredients = m_Ingredients;
             history.OriginMachine = "Oven";
