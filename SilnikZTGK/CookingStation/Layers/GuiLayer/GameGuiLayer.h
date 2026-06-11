@@ -14,6 +14,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
+#include <future>
 
 class Scene;
 
@@ -236,7 +237,8 @@ private:
     glm::vec3 m_MovingMachineOriginalPos = glm::vec3(0.0f);
     std::vector<std::pair<Entity, glm::vec3>> m_MovingGroup;
 
-
+    void RunQuestGeneratorAsync();
+    std::future<void> m_QuestGeneratorFuture;
 
     void DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
 

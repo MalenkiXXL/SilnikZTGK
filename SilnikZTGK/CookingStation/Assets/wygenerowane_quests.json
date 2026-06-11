@@ -1,92 +1,92 @@
 [
   {
-    "title": "Beach Snack Panic",
-    "description": "Sand is crunchy, but this snack is crunchier. Add tomato.",
+    "title": "Silent Librarian Soup",
+    "description": "Librarian is shouting! Drown the noise in tomato soup.",
     "dish_id": "pomidorowa",
-    "portions": 3,
-    "frequency": 5,
-    "reward_coins": 50,
-    "reward_flag": "US"
-  },
-  {
-    "title": "Ringo's Pizza Hut",
-    "description": "The drummer wants a sandwich. Make it crusty and bizarre.",
-    "dish_id": "kanapka",
     "portions": 2,
-    "frequency": 1,
-    "reward_coins": 100,
-    "reward_flag": "GB"
-  },
-  {
-    "title": "Ninja Theory Soup",
-    "description": "The hero is hungry. Serve soup to unlock the next level.",
-    "dish_id": "pomidorowa",
-    "portions": 8,
-    "frequency": 4,
-    "reward_coins": 200,
-    "reward_flag": "GB"
-  },
-  {
-    "title": "Padres Power Lunch",
-    "description": "The pitcher is weak. A heavy sandwich helps him hit homers.",
-    "dish_id": "kanapka",
-    "portions": 5,
-    "frequency": 3,
+    "frequency": 5,
     "reward_coins": 150,
     "reward_flag": "US"
   },
   {
-    "title": "Moms Demand Soup",
-    "description": "Service is busy! Soup keeps the mothers from rioting.",
-    "dish_id": "pomidorowa",
-    "portions": 20,
-    "frequency": 6,
+    "title": "Anglerfish Clay Snack",
+    "description": "The anglerfish wants a treat. Give it a golden kopytka.",
+    "dish_id": "kopytka-zlote",
+    "portions": 1,
+    "frequency": 3,
     "reward_coins": 300,
-    "reward_flag": "US"
+    "reward_flag": "UN"
   },
   {
-    "title": "Hockey Combine Grub",
-    "description": "Athletes answer weird questions better with a sandwich.",
+    "title": "Highway Road-Fuel",
+    "description": "Workers are stalled. Feed them sandwiches to unstick traffic.",
     "dish_id": "kanapka",
     "portions": 4,
-    "frequency": 2,
-    "reward_coins": 120,
-    "reward_flag": "CA"
-  },
-  {
-    "title": "Audrey's Red Soup",
-    "description": "Lipstick stains on the bowl. Make it classy and red.",
-    "dish_id": "pomidorowa",
-    "portions": 1,
-    "frequency": 1,
-    "reward_coins": 500,
+    "frequency": 10,
+    "reward_coins": 200,
     "reward_flag": "US"
   },
   {
-    "title": "Mystics Lineup Fix",
-    "description": "The team has a headache. A giant sandwich cures all ailments.",
-    "dish_id": "kanapka",
-    "portions": 10,
-    "frequency": 5,
+    "title": "Debut Stage Cupcake",
+    "description": "The comic is nervous. A cupcake will keep him funny.",
+    "dish_id": "babeczka",
+    "portions": 1,
+    "frequency": 2,
     "reward_coins": 250,
     "reward_flag": "US"
   },
   {
-    "title": "Monaco Racer Fuel",
-    "description": "The car is slow. Pour soup in the tank for extra velocity.",
-    "dish_id": "pomidorowa",
-    "portions": 6,
+    "title": "Raiders Shield Salad",
+    "description": "Players need grit. Serve caprese to sharpen their focus.",
+    "dish_id": "caprese",
+    "portions": 3,
     "frequency": 4,
     "reward_coins": 400,
-    "reward_flag": "MC"
+    "reward_flag": "US"
   },
   {
-    "title": "The Divine Sandwich",
-    "description": "God works in mysterious ways, especially with ham and cheese.",
-    "dish_id": "kanapka",
+    "title": "Mabel's Coffee Calm",
+    "description": "Mabel is acting strange. A milky coffee will fix her.",
+    "dish_id": "kawa-mleko",
     "portions": 1,
-    "frequency": 1,
-    "reward_coins": 75,
+    "frequency": 6,
+    "reward_coins": 100,
+    "reward_flag": "UN"
+  },
+  {
+    "title": "Joyous Kopytka",
+    "description": "Life is tough. Find joy in a plate of warm kopytka.",
+    "dish_id": "kopytka",
+    "portions": 2,
+    "frequency": 8,
+    "reward_coins": 500,
+    "reward_flag": "US"
+  },
+  {
+    "title": "Karl's Hockey Brew",
+    "description": "Karl is missing his charm. Serve black coffee for luck.",
+    "dish_id": "kawa",
+    "portions": 1,
+    "frequency": 3,
+    "reward_coins": 150,
+    "reward_flag": "CA"
+  },
+  {
+    "title": "El Nino's Morning Perk",
+    "description": "The weather is confusing. Drink coffee to stay focused.",
+    "dish_id": "kawa",
+    "portions": 2,
+    "frequency": 5,
+    "reward_coins": 200,
+    "reward_flag": "UN"
+  },
+  {
+    "title": "Paramedic Lunch Break",
+    "description": "The EMTs are exhausted. Serve soup to restore their shift.",
+    "dish_id": "pomidorowa",
+    "portions": 3,
+    "frequency": 7,
+    "reward_coins": 350,
     "reward_flag": "US"
   }
 ]

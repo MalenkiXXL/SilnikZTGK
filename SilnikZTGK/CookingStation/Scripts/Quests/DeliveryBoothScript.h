@@ -31,6 +31,7 @@ private:
     glm::ivec2 m_InputCell = { 0, 0 };
     glm::vec3 m_InputWorldPos = { 0.0f, 0.0f, 0.0f };
     DynamicQuest m_ActiveQuest;
+    std::vector<DynamicQuest> m_AllQuests;
 
     std::string MapPythonDishIdToEngineTag(const std::string& pythonId)
     {
@@ -160,28 +161,65 @@ public:
         }
     }
 
+
     void ReloadGenerativeQuest()
     {
+        m_AllQuests.clear();
         m_ActiveQuest = DynamicQuest();
+
         std::vector<uint8_t> fileData = VFS::ReadFile("assets://wygenerowane_quests.json");
         if (fileData.empty()) return;
 
         try
         {
-            nlohmann::json data = nlohmann::json::parse(fileData.begin(), fileData.end());
-            if (data.is_array() && !data.empty())
+            nlohmann::json data = nlohmann::json::parse(
+                fileData.begin(), fileData.end());
+
+            // Obs³ugujemy zarówno tablicê jak i pojedynczy obiekt
+            if (data.is_object()) data = nlohmann::json::array({ data });
+            if (!data.is_array() || data.empty()) return;
+
+            for (auto& item : data)
             {
-                auto& item = data[0];
-                m_ActiveQuest.Title = item.value("title", "Zamowienie AI");
-                m_ActiveQuest.Description = item.value("description", "Brak opisu.");
-                m_ActiveQuest.DishId = item.value("dish_id", "pomidorowa");
-                m_ActiveQuest.PortionsRequired = item.value("portions", 5);
-                m_ActiveQuest.PortionsDelivered = 0;
-                m_ActiveQuest.Reward = item.value("reward", "Monety");
-                m_ActiveQuest.IsActive = true;
+                DynamicQuest q;
+                q.Title = item.value("title", "Zamowienie AI");
+                q.Description = item.value("description", "Brak opisu.");
+                q.DishId = item.value("dish_id", "pomidorowa");
+                q.PortionsRequired = item.value("portions", 5);
+                q.PortionsDelivered = 0;
+                q.Reward = item.value("reward_coins", 0) > 0
+                    ? std::to_string(item.value("reward_coins", 0)) + " monet"
+                    : item.value("reward", "Monety");
+                q.IsActive = true;
+                m_AllQuests.push_back(q);
             }
+
+            if (!m_AllQuests.empty())
+                m_ActiveQuest = m_AllQuests[0];
         }
         catch (...) {}
+    }
+
+    // Losuje jeden z wczytanych questów (nie prze³adowuje pliku)
+    void ShuffleToRandomQuest()
+    {
+        if (m_AllQuests.size() <= 1) return;
+
+        // Zbieramy indeksy inne ni¿ aktywny (po tytule)
+        std::vector<int> candidates;
+        for (int i = 0; i < (int)m_AllQuests.size(); ++i)
+        {
+            if (m_AllQuests[i].Title != m_ActiveQuest.Title)
+                candidates.push_back(i);
+        }
+        if (candidates.empty()) return;
+
+        int pick = candidates[rand() % candidates.size()];
+        m_ActiveQuest = m_AllQuests[pick];
+        m_ActiveQuest.PortionsDelivered = 0;
+        m_ActiveQuest.IsActive = true;
+
+        spdlog::info("[Quest] Przelaczono na: {}", m_ActiveQuest.Title);
     }
 
     bool HasActiveQuest() const { return m_ActiveQuest.IsActive; }

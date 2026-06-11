@@ -24,9 +24,7 @@ cache_expiry_seconds = 3600
 # WAŻNE: Zostawiam "pomidorowa" po polsku, by pasowało do Waszego kodu w C++, 
 # ale opisy i tytuły będą już po angielsku.
 ALLOWED_DISHES = [
-    "pomidorowa", "kanapka", 
-    # "babeczka", "caprese", 
-    # "kopytka", "kopytka-zlote", "kawa", "kawa-mleko"
+    "pomidorowa", "kanapka", "kopytka", "kopytka-zlote", "kawa", "kawa-mleko", "babeczka", "caprese", 
 ]
 
 client = genai.Client(api_key=gemini_key)

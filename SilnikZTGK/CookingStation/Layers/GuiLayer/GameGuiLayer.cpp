@@ -21,6 +21,8 @@
 #include "CookingStation/Scripts/Delivery/PackageScript.h"
 #include <spdlog/spdlog.h>
 #include <algorithm> 
+#include <future>
+#include <cstdlib>
 
 bool GameGuiLayer::s_NeedsQuestReload = false;
 
@@ -766,6 +768,18 @@ void GameGuiLayer::OnEvent(Event& e) {
             return true;
         }
 
+        if (ev.GetKeyCode() == 81 && ev.GetRepeatCode() == 0) {
+            if (DeliveryBoothScript::s_Instance) {
+                DeliveryBoothScript::s_Instance->ShuffleToRandomQuest();
+            }
+            return true;
+        }
+
+        if (ev.GetKeyCode() == 76 && ev.GetRepeatCode() == 0) {
+            RunQuestGeneratorAsync();
+            return true;
+        }
+
         return false;
         });
 }
@@ -793,6 +807,9 @@ void GameGuiLayer::ReloadQuests() {
                     });
             }
             m_CurrentQuestIndex = 0;
+            if (DeliveryBoothScript::s_Instance) {
+                DeliveryBoothScript::s_Instance->ReloadGenerativeQuest();
+            }
             spdlog::info("GameUiLayer: Questy zaladowane responsywnie przez VFS.");
         }
         catch (...) {
@@ -1557,4 +1574,28 @@ void GameGuiLayer::DrawBuildGrid(const glm::mat4& viewProj3D,
 
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);
+}
+
+void GameGuiLayer::RunQuestGeneratorAsync()
+{
+    m_QuestGeneratorFuture = std::async(std::launch::async, []() {
+
+        spdlog::info("[Quest] Uruchamianie generatora questów...");
+
+        // Usuwamy cache żeby Python pobrał świeże newsy
+        std::remove("CookingStation/Assets/news_cache.json");
+
+        int result = std::system(
+            "python CookingStation/Tools/QuestGenerator/main.py"
+        );
+
+        if (result == 0) {
+            spdlog::info("[Quest] Generator zakończył pracę pomyślnie.");
+        }
+        else {
+            spdlog::warn("[Quest] Generator zakończył z kodem błędu: {}", result);
+        }
+
+        GameGuiLayer::s_NeedsQuestReload = true;
+        });
 }
