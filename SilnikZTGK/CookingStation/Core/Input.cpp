@@ -64,9 +64,6 @@ void Input::Update() {
 				s_PreviousGamepadAxes[i] = s_CurrentGamepadAxes[i];
 				s_CurrentGamepadAxes[i] = state.axes[i];
 
-				// Sprawdzamy, czy wychylenie zmieni³o siê o wiêcej ni¿ 0.05f.
-				// Ga³ki analogowe nigdy nie stoj¹ idealnie na 0.0000f, co bez tego
-				// warunku powodowa³oby generowanie tysiêcy eventów na sekundê.
 				if (std::abs(s_CurrentGamepadAxes[i] - s_PreviousGamepadAxes[i]) > 0.05f)
 				{
 					GamepadAxisMovedEvent event(i, s_CurrentGamepadAxes[i], 0);
@@ -79,12 +76,10 @@ void Input::Update() {
 }
 
 bool Input::IsMouseButtonJustPressed(int button) {
-	// Zwraca true TYLKO jeœli w tej klatce jest wciœniêty, a w poprzedniej nie by³
 	return s_CurrentMouseStates[button] && !s_PreviousMouseStates[button];
 }
 
 bool Input::IsMouseButtonJustReleased(int button) {
-	// Zwraca true TYLKO jeœli w tej klatce jest PUSZCZONY, a w poprzedniej by³ wciœniêty
 	return !s_CurrentMouseStates[button] && s_PreviousMouseStates[button];
 }
 
@@ -101,8 +96,6 @@ bool Input::IsMouseButtonPressed(int button)
 }
 
 bool Input::IsGamepadPresent(int gamepadId) {
-	// GLFW obs³uguje joystiki od GLFW_JOYSTICK_1 (0) do GLFW_JOYSTICK_16 (15)
-	// glfwJoystickIsGamepad sprawdza, czy wykryty sprzêt to zmapowany gamepad (np. pad PS4/Xbox)
 	return glfwJoystickPresent(gamepadId) && glfwJoystickIsGamepad(gamepadId);
 }
 

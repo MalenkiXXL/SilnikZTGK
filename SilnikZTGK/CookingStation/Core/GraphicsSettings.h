@@ -2,11 +2,10 @@
 #include <utility>
 
 struct GraphicsSettings {
-    int MsaaSamples = 4;   // 1 = wylaczone, 2, 4, 8
+    int MsaaSamples = 4;  
     int WindowWidth = 1280;
     int WindowHeight = 720;
 
-    // Preset rozdzielczosci
     static constexpr int ResolutionCount = 4;
     static constexpr std::pair<int, int> Resolutions[ResolutionCount] = {
         {1280, 720},

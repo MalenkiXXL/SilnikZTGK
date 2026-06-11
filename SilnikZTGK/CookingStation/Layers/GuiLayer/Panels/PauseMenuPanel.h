@@ -11,7 +11,6 @@ public:
     virtual void Draw(float baseScale) override;
     virtual void OnEvent(Event& e) override;
 
-    // Żeby z zewnątrz powiadomić o wciśnięciu ESC
     void TogglePause();
     bool IsPaused() const { return m_IsPaused; }
 
@@ -23,6 +22,5 @@ private:
     float m_ResumeBtnScale = 1.0f;
     float m_MenuBtnScale = 1.0f;
 
-    // Panel ustawień jest "Dzieckiem" panelu pauzy
     std::unique_ptr<SettingsMenuPanel> m_SettingsPanel;
 };

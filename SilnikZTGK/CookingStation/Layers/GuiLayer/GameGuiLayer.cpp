@@ -91,7 +91,7 @@ void GameGuiLayer::OnAttach()
             }
 
             m_ActiveScene = SceneManager::GetActiveScene();
-            m_ActiveOrderTickets.clear(); // Reset karteczek na początek gry
+            m_ActiveOrderTickets.clear(); 
 
             auto windowSize = Input::GetWindowSize();
             m_ViewportWidth = (float)windowSize.first;
@@ -199,11 +199,9 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<
     auto& state = m_BubblyStates[id];
     glm::vec2 mousePos = Gui::GetMappedMousePos();
 
-    // --- SYSTEM BLOKOWANIA PRZEBIJANIA KLIKNIĘĆ (MASKOWANIE TŁA) ---
     if (m_IsGamePaused || (m_IsRecipeBookOpen && id.find("Book") == std::string::npos && id.find("Recipe") == std::string::npos)) {
         mousePos = glm::vec2(-10000.0f, -10000.0f);
     }
-    // --------------------------------------------------------------
 
     float animSpeed = 15.0f;
     glm::vec2 center = { basePos.x + baseSize.x * 0.5f, basePos.y + baseSize.y * 0.5f };
@@ -388,35 +386,28 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
     float coinH = 80.0f * baseScale;
     glm::vec2 coinSize = { coinH, coinH };
 
-    // Mierzymy tekst
     float textWidth = Gui::MeasureTextWidth(text, textScale);
     float textHeight = Gui::MeasureTextHeight(text, textScale);
     float baselineOffset = 32.0f * 0.8f * textScale;
 
-    // Wyliczamy pozycje Y
     float textCenterY = textPos.y + baselineOffset - (textHeight * 0.5f);
     float spacing = 8.0f * baseScale;
     glm::vec2 coinPos = { textPos.x - coinSize.x - spacing, textCenterY - (coinSize.y * 0.5f) };
 
-    // Definiujemy marginesy wokół zawartości
     float paddingX = 45.0f * baseScale;
     float paddingY = 30.0f * baseScale;
 
-    // Szerokość to: szerokość monety + odstęp + szerokość tekstu
     float totalContentWidth = coinSize.x + spacing + textWidth;
     float totalContentHeight = std::max(coinSize.y, textHeight);
 
-    // Rozmiar i pozycja chmury
     glm::vec2 cloudSize = { totalContentWidth + (paddingX * 2.0f), totalContentHeight + (paddingY * 2.0f) };
     glm::vec2 cloudPos = {
             coinPos.x - paddingX,
             textCenterY - (cloudSize.y * 0.5f)
     };
 
-    // Rysujemy chmurę
     DrawBubblyImage("CloudIcon", m_CoinCloudIcon, cloudPos, cloudSize, dt, 1.05f, false);
 
-    // Rysujemy monetę
     DrawBubblyImage("CoinIcon", iconTex, coinPos, coinSize, dt, 1.05f, false);
 
     float coinCenterY = coinPos.y + (coinSize.y * 0.5f);
@@ -710,14 +701,13 @@ void GameGuiLayer::OnEvent(Event& e) {
     if (!m_IsVisible) return;
 #endif
 
-    // --- SYSTEM BLOKOWANIA PRZEBIJANIA KLIKNIĘĆ W ŚWIAT 3D ---
     if (m_IsRecipeBookOpen) {
         if (e.GetEventType() == EventType::MouseButtonPressed ||
             e.GetEventType() == EventType::MouseButtonReleased ||
             e.GetEventType() == EventType::MouseMoved ||
             e.GetEventType() == EventType::MouseScrolled)
         {
-            e.Handled = true; // Zatrzymuje kliknięcie w przestrzeni 3D i dla okien poniżej!
+            e.Handled = true; 
         }
     }
 
@@ -725,7 +715,6 @@ void GameGuiLayer::OnEvent(Event& e) {
         e.Handled = true;
         return;
     }
-    // ---------------------------------------------------------
 
     if (m_PausePanel) {
         m_PausePanel->OnEvent(e);
@@ -879,11 +868,10 @@ void GameGuiLayer::DrawHoverCloudUI(const glm::vec2& screenPos, const std::share
 
     glm::vec2 textPos = { cloudPos.x + (cloudSize.x - textWidth) * 0.5f, iconPos.y + iconSize.y - (6.0f * baseScale) };
 
-    // kolor w zależności od ilości
     glm::vec4 textColor = (amount > 0) ? glm::vec4(0.118f, 0.737f, 0.451f, 1.0f) : glm::vec4(1.0f, 0.3f, 0.3f, 1.0f);
 
-    Gui::DrawGuiText(amountStr, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.1f, 0.1f, 0.1f, 0.6f }); // Cień
-    Gui::DrawGuiText(amountStr, textPos, textScale, textColor); // Tekst główny
+    Gui::DrawGuiText(amountStr, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.1f, 0.1f, 0.1f, 0.6f }); 
+    Gui::DrawGuiText(amountStr, textPos, textScale, textColor); 
 }
 
 void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt)
@@ -908,14 +896,12 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
 
     for (size_t i = 0; i < tags->dense.size(); ++i) {
 
-        // 1. filtr po Tagu
         if (tags->dense[i].Tag.find("Package") != std::string::npos) {
 
             Entity packageEnt = tags->reverse[i];
             auto* tf = transforms->Get(packageEnt);
             if (!tf) continue;
 
-            // 2. MATEMATYKA: Liczymy pozycję na ekranie
             glm::vec3 packagePos = tf->GetPosition() + glm::vec3(0.0f, 0.8f, 0.0f);
             glm::vec4 clipSpace = viewProj * glm::vec4(packagePos, 1.0f);
             if (clipSpace.w == 0.0f) continue;
@@ -924,7 +910,6 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
             float screenX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
             float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
 
-            // 3. HOVER: Sprawdzamy czy kursor w ogóle jest w pobliżu
             float dx = mousePos.x - screenX;
             float dy = mousePos.y - (screenY + 40.0f * baseScale);
 
@@ -943,7 +928,6 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
 
             if (!packScript) continue;
 
-            // Mapowanie ikony
             std::shared_ptr<Texture> iconToDraw = nullptr;
             switch (packScript->getType()) {
             case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
@@ -976,7 +960,6 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
     glm::mat4 viewProj = proj3D * view;
 
     glm::vec2 mousePos = Gui::GetMappedMousePos();
-    // Nieco większy promień łapania dla skrzynek
     float hoverRadiusSq = (55.0f * baseScale) * (55.0f * baseScale);
 
     for (size_t i = 0; i < scripts->dense.size(); ++i) {
@@ -990,14 +973,12 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
             }
         }
 
-        // Jeśli to nie jest skrzynka lub nie ma typu, pomijamy
         if (!crateScript || crateScript->m_CrateIngredient == IngredientType::None) continue;
 
         Entity crateEnt = scripts->reverse[i];
         auto* tf = transforms->Get(crateEnt);
         if (!tf) continue;
 
-        // Środek skrzynki podniesiony w górę
         glm::vec3 cratePos = tf->GetPosition() + glm::vec3(0.0f, 1.2f, 0.0f);
         glm::vec4 clipSpace = viewProj * glm::vec4(cratePos, 1.0f);
         if (clipSpace.w == 0.0f) continue;
@@ -1024,7 +1005,7 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
         int amount = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(crateScript->m_CrateIngredient) : 0;
         DrawHoverCloudUI({ screenX, screenY }, iconToDraw, amount, baseScale);
     }
-} // <--- TO JEST KLAMRA, KTÓRĄ ZJADŁ GIT!
+} 
 
 void GameGuiLayer::ActivateBuildMode()
 {
@@ -1043,10 +1024,9 @@ void GameGuiLayer::DeactivateBuildMode()
     spdlog::info("DeactivateBuildMode wywolane, m_IsBuildModeActive={}", m_IsBuildModeActive);
     if (!m_IsBuildModeActive) return;
 
-    m_IsBuildModeActive = false;  // ← MUSI być przed wszystkim innym
+    m_IsBuildModeActive = false;  
     m_HeldMachineIndex = -1;
 
-    // Niszczymy całą grupę podglądu jeśli istnieje
     auto activeScene = SceneManager::GetActiveScene();
     if (!m_PreviewGroup.empty() && activeScene) {
         for (auto& [ent, offset] : m_PreviewGroup) {
@@ -1068,29 +1048,23 @@ void GameGuiLayer::DeactivateBuildMode()
     Application::Get().GetEventBus().Publish(GameResumedEvent{});
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 void GameGuiLayer::DrawBuildModeButton(float gameX, float gameY, float gameWidth,
     float gameHeight, float baseScale, float dt)
 {
-    if (m_IsGamePaused && !m_IsBuildModeActive) return; // ukryj gdy pauza z ESC
+    if (m_IsGamePaused && !m_IsBuildModeActive) return; 
     if (m_IsRecipeBookOpen) return;
 
-    // Pozycja: mała chmurka pod chmurką z książką.
-    // Chmurka z książką ma cloudPos.y ≈ gameY * baseScale i wysokość ~273px (210*1.3).
-    // Ustawiamy się z małym marginesem poniżej.
     float bookCloudH = 210.0f * baseScale * 1.3f;
     glm::vec2 cloudSize = { 180.0f * baseScale, 70.0f * baseScale };
     glm::vec2 cloudPos = { gameX + 14.0f * baseScale,
                              gameY + bookCloudH + 8.0f * baseScale };
 
-    // Tło — zaokrąglony prostokąt (radius 18px) z kolorem zależnym od stanu
     glm::vec4 bgColor = m_IsBuildModeActive
         ? glm::vec4(0.20f, 0.45f, 0.90f, 0.95f)
         : glm::vec4(0.10f, 0.12f, 0.20f, 0.82f);
     Renderer2D::DrawQuad(cloudPos, cloudSize, bgColor, 18.0f * baseScale);
 
-    // Tekst
     std::string label = m_IsBuildModeActive ? "[ BUILD ]" : "Build Mode";
     float       textScale = 0.55f * baseScale;
     float       tw = Gui::MeasureTextWidth(label, textScale);
@@ -1099,16 +1073,16 @@ void GameGuiLayer::DrawBuildModeButton(float gameX, float gameY, float gameWidth
         cloudPos.x + (cloudSize.x - tw) * 0.5f,
         cloudPos.y + (cloudSize.y - th) * 0.5f - th * 0.15f
     };
-    // Cień
+
     Gui::DrawGuiText(label, { textPos.x + 1.5f, textPos.y + 1.5f },
         textScale, { 0.0f, 0.0f, 0.0f, 0.55f });
-    // Tekst
+
     Gui::DrawGuiText(label, textPos, textScale,
         m_IsBuildModeActive
         ? glm::vec4(0.85f, 0.95f, 1.00f, 1.0f)
         : glm::vec4(0.70f, 0.80f, 1.00f, 1.0f));
 
-    // Hit-test + kliknięcie
+
     glm::vec2 mouse = Gui::GetMappedMousePos();
     bool inBounds = mouse.x >= cloudPos.x && mouse.x <= cloudPos.x + cloudSize.x
         && mouse.y >= cloudPos.y && mouse.y <= cloudPos.y + cloudSize.y;
@@ -1122,12 +1096,10 @@ void GameGuiLayer::DrawBuildModeButton(float gameX, float gameY, float gameWidth
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 
 void GameGuiLayer::DrawBuildModePanel(float gameX, float gameY, float gameWidth,
     float gameHeight, float baseScale, float dt)
 {
-    // Animacja slide (działa też gdy nieaktywny — wyjazd)
     float targetSlide = m_IsBuildModeActive ? 1.0f : 0.0f;
     m_BuildPanelSlideY += (targetSlide - m_BuildPanelSlideY) * std::min(dt * 14.0f, 1.0f);
     if (m_BuildPanelSlideY < 0.002f) m_BuildPanelSlideY = 0.0f;
@@ -1135,19 +1107,15 @@ void GameGuiLayer::DrawBuildModePanel(float gameX, float gameY, float gameWidth,
     if (m_BuildPanelSlideY <= 0.0f) return;
 
     const float panelH = 130.0f * baseScale;
-    // Panel jedzie od dołu ekranu w górę
     float panelY = gameY + gameHeight - panelH * m_BuildPanelSlideY;
 
-    // ── Tło panelu ──────────────────────────────────────────────────────────
     Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, panelH },
         { 0.06f, 0.08f, 0.14f, 0.94f }, 0.0f);
 
-    // Cienka linia na górze panelu
     Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, 2.0f * baseScale },
         { 0.3f, 0.55f, 1.0f, 0.7f }, 0.0f);
 
 
-    // ── Ikony maszyn ────────────────────────────────────────────────────────
     const float iconH = 80.0f * baseScale;
     const float iconW = iconH;
     const float spacing = 28.0f * baseScale;
@@ -1166,7 +1134,6 @@ void GameGuiLayer::DrawBuildModePanel(float gameX, float gameY, float gameWidth,
             && mouse.y >= iy && mouse.y <= iy + iconH;
         const bool isHeld = (m_HeldMachineIndex == i);
 
-        // Tło ikony
         glm::vec4 bg = isHeld
             ? glm::vec4(0.30f, 0.60f, 1.00f, 0.50f)
             : (inIcon
@@ -1174,7 +1141,6 @@ void GameGuiLayer::DrawBuildModePanel(float gameX, float gameY, float gameWidth,
                 : glm::vec4(1.00f, 1.00f, 1.00f, 0.07f));
         Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, bg, 8.0f * baseScale);
 
-        // Ikona
         auto& entry = m_MachineEntries[i];
         if (entry.Icon) {
             Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, entry.Icon,
@@ -1182,14 +1148,12 @@ void GameGuiLayer::DrawBuildModePanel(float gameX, float gameY, float gameWidth,
                 { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
 
-        // Etykieta
         float ls = 0.42f * baseScale;
         float lw = Gui::MeasureTextWidth(entry.Label, ls);
         Gui::DrawGuiText(entry.Label,
             { ix + (iconW - lw) * 0.5f, iy + iconH + 5.0f * baseScale },
             ls, { 0.80f, 0.90f, 1.00f, 1.0f });
 
-        // Kliknięcie
         if (inIcon && m_IsBuildModeActive) {
             Input::SetUICaptureMouse(true);
             if (Input::IsMouseButtonJustPressed(0) && m_HeldMachineIndex == -1) {
@@ -1199,7 +1163,6 @@ void GameGuiLayer::DrawBuildModePanel(float gameX, float gameY, float gameWidth,
         }
     }
 
-    // ── Podpowiedź sterowania ───────────────────────────────────────────────
     if (m_HeldMachineIndex >= 0 && m_BuildPanelSlideY > 0.95f) {
         const std::string hint = "LPM: postaw   PPM / Tab: anuluj";
         float hs = 0.44f * baseScale;
@@ -1210,16 +1173,12 @@ void GameGuiLayer::DrawBuildModePanel(float gameX, float gameY, float gameWidth,
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 void GameGuiLayer::UpdateBuildModePlacement()
 {
     auto activeScene = SceneManager::GetActiveScene();
     if (!activeScene) return;
 
-    // ── PPM — anuluj zawsze ──────────────────────────────────────────────
     if (Input::IsMouseButtonJustPressed(1)) {
-        // Anuluj preview nowej maszyny
         if (!m_PreviewGroup.empty()) {
             for (auto& [ent, offset] : m_PreviewGroup) {
                 activeScene->GetWorld().GetEventBus().Publish(
@@ -1228,7 +1187,6 @@ void GameGuiLayer::UpdateBuildModePlacement()
             m_PreviewGroup.clear();
         }
 
-        // Anuluj przesuwanie — wróć maszynę na oryginalne miejsce
         if (m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max()) {
             auto* tc = activeScene->GetWorld().GetComponent<TransformComponent>(m_MovingMachineEntity);
             if (tc) tc->SetPosition(m_MovingMachineOriginalPos);
@@ -1239,8 +1197,6 @@ void GameGuiLayer::UpdateBuildModePlacement()
         return;
     }
 
-
-    // ── Oblicz pozycję pod kursorem (identycznie jak GameLayer) ──────────
     auto mousePos = Input::GetMousePosition();
     auto windowSize = Input::GetWindowSize();
 
@@ -1281,7 +1237,6 @@ void GameGuiLayer::UpdateBuildModePlacement()
     {
         auto& world = activeScene->GetWorld();
 
-        // Przesuwamy maszynę główną — zachowujemy jej oryginalne Y
         auto* tc = world.GetComponent<TransformComponent>(m_MovingMachineEntity);
         if (tc) {
             glm::vec3 newPos = snappedPos;
@@ -1289,7 +1244,6 @@ void GameGuiLayer::UpdateBuildModePlacement()
             tc->SetPosition(newPos);
         }
 
-        // Przesuwamy grupę (palnik, szafka itp.) wraz z maszyną
         for (auto& [groupEnt, offset] : m_MovingGroup) {
             auto* groupTc = world.GetComponent<TransformComponent>(groupEnt);
             if (groupTc) {
@@ -1301,25 +1255,20 @@ void GameGuiLayer::UpdateBuildModePlacement()
             }
         }
 
-        // Rysujemy siatkę podczas przesuwania
         DrawBuildGrid(proj * view, camera->Position, snappedPos);
 
-        // LPM — upuszcza maszynę na nowej pozycji
         auto rawMouse = Input::GetMousePosition();
         auto winSize = Input::GetWindowSize();
-        // Panel w pikselach okna: dolne 130px viewportu
-        // W edytorze viewport zaczyna się od y=30, więc dół viewportu = viewportHeight + 30
-        float viewportBottomInWindow = (float)winSize.second - 30.0f; // 30 = górny offset edytora
+        float viewportBottomInWindow = (float)winSize.second - 30.0f; 
         bool mouseOverPanel = (rawMouse.second >= viewportBottomInWindow - 130.0f);
 
         if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
-            // Zatwierdzamy — tylko czyścimy stan, maszyna już jest na nowej pozycji
             m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
             m_MovingGroup.clear();
         }
 
         m_JustSelectedFromPanel = false;
-        return;  // ← KLUCZOWE: wychodzimy, nie wpadamy do spawn
+        return;  
     }
 
     if (m_HeldMachineIndex < 0 &&
@@ -1372,7 +1321,6 @@ void GameGuiLayer::UpdateBuildModePlacement()
                                 m_MovingMachineOriginalPos = tc->GetPosition();
                                 m_MovingMachineEntity = hit;
 
-                                // Zbieramy encje w tym samym kafelku (palnik, szafka itp.)
                                 m_MovingGroup.clear();
                                 glm::ivec2 machineCell = GridSystem::WorldToCell(tc->GetPosition());
 
@@ -1407,7 +1355,6 @@ void GameGuiLayer::UpdateBuildModePlacement()
         }
     }
 
-    // ── Encja podglądu (ghost) ───────────────────────────────────────────
     if (m_HeldMachineIndex < 0 || m_HeldMachineIndex >= (int)m_MachineEntries.size()) return;
     auto& entry = m_MachineEntries[m_HeldMachineIndex];
     auto& world = activeScene->GetWorld();
@@ -1440,13 +1387,11 @@ void GameGuiLayer::UpdateBuildModePlacement()
         }
     }
 
-    // ── Rysowanie siatki ─────────────────────────────────────────────────
     {
         glm::mat4 viewProj3D = proj * view;
         DrawBuildGrid(viewProj3D, camera->Position, snappedPos);
     }
 
-    // ── LPM poza UI — stawiamy maszynę ──────────────────────────────────
     auto windowSize2 = Input::GetWindowSize();
     float panelH = 130.0f;
     auto rawMouse = Input::GetMousePosition();
@@ -1456,17 +1401,14 @@ void GameGuiLayer::UpdateBuildModePlacement()
 
     if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
 
-        // 1. Niszczymy CAŁĄ encję podglądu
         for (auto& [ent, _] : m_PreviewGroup) {
             world.GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
         }
         m_PreviewGroup.clear();
 
-        // 2. Spawnujemy na gotowo
         std::vector<Entity> placedEntities = PrefabSerializer::Deserialize(
             activeScene.get(), entry.PrefabPath, snappedPos);
 
-        // 3. Nadajemy Label jako tag
         for (Entity ent : placedEntities) {
             auto* tagComp = world.GetComponent<TagComponent>(ent);
             if (tagComp) tagComp->Tag = entry.Label;
@@ -1484,11 +1426,9 @@ void GameGuiLayer::DrawBuildModeOverlay(float baseScale)
     float W = (float)windowSize.first;
     float H = (float)windowSize.second;
 
-    // Identyczne szare tło jak PauseMenuPanel
     Renderer2D::DrawQuad({ 0.0f, 0.0f }, { W, H },
         { 0.05f, 0.05f, 0.05f, 0.15f }, 0.0f);
 
-    // Ten sam napis "PAUSED" (pausedText.png) co przy ESC
     auto pausedTextTex = AssetManager::GetTexture("assets://UI/pausedText.png");
     if (pausedTextTex && pausedTextTex->GetRendererID() != 0) {
         float aspect = (float)pausedTextTex->GetWidth() / (float)pausedTextTex->GetHeight();
@@ -1506,7 +1446,6 @@ void GameGuiLayer::DrawBuildGrid(const glm::mat4& viewProj3D,
     const glm::vec3& camPos,
     const glm::vec3& hoverPos)
 {
-    // Identyczna logika jak EditorLayer::DrawGrid — wydzielona tu żeby działała w runtime
     const float cell = GridSystem::CELL_SIZE;
     const float t = 0.06f;
     const float range = 30.0f;
@@ -1525,11 +1464,9 @@ void GameGuiLayer::DrawBuildGrid(const glm::mat4& viewProj3D,
     float cX = (minX + maxX) * 0.5f;
     float cZ = (minZ + maxZ) * 0.5f;
 
-    // Hover kafelek
     glm::ivec2 hCell = GridSystem::WorldToCell(hoverPos);
     glm::vec3  hCenter = { (hCell.x + 0.5f) * cell, 0.01f, (hCell.y + 0.5f) * cell };
 
-    // Helper lokalny — quad leżący płasko na podłodze
     auto FlatQuad = [](const glm::vec3& center, float sx, float sz) -> glm::mat4 {
         return glm::translate(glm::mat4(1.0f), center)
             * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 1.f, 0.f, 0.f })
@@ -1544,14 +1481,11 @@ void GameGuiLayer::DrawBuildGrid(const glm::mat4& viewProj3D,
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Podświetlenie hover kafelka
     Renderer2D::DrawQuad(FlatQuad(hCenter, cell, cell), hoverColor);
 
-    // Linie poziome (wzdłuż X)
     for (int cz = startZ; cz <= endZ; ++cz)
         Renderer2D::DrawQuad(FlatQuad({ cX, 0.01f, cz * cell }, lenX, t), lineColor);
 
-    // Linie pionowe (wzdłuż Z)
     for (int cx = startX; cx <= endX; ++cx)
         Renderer2D::DrawQuad(FlatQuad({ cx * cell, 0.01f, cZ }, t, lenZ), lineColor);
 

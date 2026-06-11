@@ -42,7 +42,6 @@ private:
     float m_ViewportWidth = 800.0f;
     float m_ViewportHeight = 600.0f;
 
-    // System questów
     std::vector<Quest> m_ActiveQuests;
     std::atomic<bool> m_IsGenerating{ false };
     std::atomic<bool> m_GenerationDone{ false };
@@ -53,14 +52,11 @@ private:
 
     std::shared_ptr<Framebuffer> m_ResolveFBO;
 
-    // --- CIENIE ---
     std::shared_ptr<Framebuffer> m_ShadowMapFBO;
 
-    // --- BUFORY POST-PROCESSingu ---
-    std::shared_ptr<Framebuffer> m_PingPongFBO[2]; // Ping-pong do rozmycia Blooma
-    std::shared_ptr<Framebuffer> m_PostProcessFBO; // Finalny bufor po efektach
+    std::shared_ptr<Framebuffer> m_PingPongFBO[2]; 
+    std::shared_ptr<Framebuffer> m_PostProcessFBO; 
 
-    // Zmienne dla ekranowego quada (Post-processing)
     uint32_t m_ScreenQuadVAO = 0;
     uint32_t m_ScreenQuadVBO = 0;
 };

@@ -43,7 +43,6 @@ void Renderer::BeginScene(const glm::mat4& viewProjectionMatrix, const glm::mat4
     s_SceneData->ViewProjectionMatrix = viewProjectionMatrix;
     s_SceneData->ActiveFrustum = ExtractFrustum(viewProjectionMatrix);
 
-    // Wysy³amy poszerzone dane (cienie + bloom) do GPU
     SceneUBO uboData;
     uboData.ViewProjection = viewProjectionMatrix;
     uboData.LightSpaceMatrix = lightSpaceMatrix;

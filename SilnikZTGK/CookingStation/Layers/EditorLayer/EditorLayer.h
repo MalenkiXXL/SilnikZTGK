@@ -47,15 +47,12 @@ private:
         const glm::mat4& projection3D,
         const glm::mat4& view3D);
 
-    // menadzer undo/redo
     CommandHistory m_CommandHistory;
-    // stan zaznaczenia i stawiania
     Entity m_SelectedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     bool m_IsPlacing = false;
     std::string m_PendingModelName = "";
     std::string m_PendingModelPath = "";
 
-    // wymiary viewportu
     float m_ViewportWidth = 800.0f;
     float m_ViewportHeight = 600.0f;
 

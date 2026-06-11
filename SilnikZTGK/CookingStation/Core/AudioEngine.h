@@ -1,7 +1,6 @@
 #pragma once
 #include <string>
 
-// Forward declaration
 struct ma_engine;
 struct ma_sound;
 

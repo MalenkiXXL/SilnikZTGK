@@ -29,14 +29,12 @@ public:
     static float MeasureTextWidth(const std::string& text, float scale);
     static float MeasureTextHeight(const std::string& text, float scale);
 
-    // Uniwersalny animowany przycisk
     static bool ScaledButton(const std::string& label,
         glm::vec2 basePos, glm::vec2 baseSize,
         float btnScale, float bsc,
         glm::vec4 colorNormal, glm::vec4 colorHover,
         bool hovered);
 
-    // Uniwersalny sprężysty obrazek/ikona UI
     static bool BubblyImage(const std::string& id,
         const std::shared_ptr<Texture>& icon,
         glm::vec2 basePos, glm::vec2 baseSize,

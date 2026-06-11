@@ -12,7 +12,6 @@ void main() {
     int index = int(v_TexIndex);
     vec4 sampled = vec4(1.0);
 
-    // 1. Zwykłe pobranie piksela tekstury
     switch(index) {
         case  0: sampled = texture(u_Textures[0],  v_TexCoord); break;
         case  1: sampled = texture(u_Textures[1],  v_TexCoord); break;
@@ -32,27 +31,18 @@ void main() {
         case 15: sampled = texture(u_Textures[15], v_TexCoord); break;
     }
 
-    // -----------------------------------------------------------
-    // TRYB 1: Renderowanie tekstów (SDF) 
-    // Shader wie że to tekst, gdy promień (v_Radius) ma wartość -1.0
-    // -----------------------------------------------------------
     if (v_Radius < -0.5) {
         float distance = sampled.a;
-        
-        // fwidth analizuje jak szybko piksele zmieniają się na ekranie.
-        // Skutkuje to ZAWSZE ostrymi krawędziami niezależnie od skali x2, x10 czy x100.
+      
         float smoothing = fwidth(distance); 
         float alpha = smoothstep(0.5 - smoothing, 0.5 + smoothing, distance);
         
         FragColor = vec4(v_Color.rgb, v_Color.a * alpha);
         
         if (FragColor.a < 0.01) discard;
-        return; // Zakończ od razu dla tekstów!
+        return; 
     }
 
-    // -----------------------------------------------------------
-    // TRYB 2: Zwykłe obrazki i panele z zaokrąglanymi rogami
-    // -----------------------------------------------------------
     vec4 texColor = v_Color * sampled;
 
     if (v_Radius > 0.0 && v_QuadSize.x > 0.0 && v_QuadSize.y > 0.0) {

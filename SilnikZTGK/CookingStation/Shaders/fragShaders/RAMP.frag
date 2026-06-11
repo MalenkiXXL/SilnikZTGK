@@ -5,7 +5,7 @@ in vec3 Normal;
 in vec3 FragPos;
 
 uniform sampler2D texture_diffuse1;
-uniform sampler2D rampTex; // Tekstura Ramp (256x19), slot 10
+uniform sampler2D rampTex; 
 
 layout (std140, binding = 0) uniform SceneData {
     mat4 u_ViewProjection;

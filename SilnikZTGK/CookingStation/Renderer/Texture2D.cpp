@@ -2,8 +2,6 @@
 #include "stb_image.h"
 #include <glad/glad.h>
 #include <iostream>
-
-// ZMIANA: Dodajemy nag³ówek systemu VFS
 #include "CookingStation/Core/VFS/VFS.h" 
 
 Texture2D::Texture2D(const std::string& path, GLenum wrapMode)
@@ -11,19 +9,17 @@ Texture2D::Texture2D(const std::string& path, GLenum wrapMode)
     stbi_set_flip_vertically_on_load(1);
     int width, height, channels;
 
-    // ZMIANA 1: Pytamy VFS o bajty pliku, zamiast czytaæ z dysku
     std::vector<uint8_t> fileData = VFS::ReadFile(path);
 
     if (fileData.empty())
     {
         std::cout << "[Texture2D] B£¥D: Nie znaleziono pliku w VFS: " << path << std::endl;
-        return; // Przerywamy tworzenie tekstury
+        return; 
     }
 
-    // ZMIANA 2: U¿ywamy dekodowania bezpoœrednio z pamiêci RAM
     stbi_uc* data = stbi_load_from_memory(
-        fileData.data(),           // WskaŸnik na pocz¹tek danych
-        (int)fileData.size(),      // Rozmiar bufora w bajtach
+        fileData.data(),          
+        (int)fileData.size(),     
         &width,
         &height,
         &channels,
@@ -51,7 +47,6 @@ Texture2D::Texture2D(const std::string& path, GLenum wrapMode)
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
 
-        // Ustawienia filtrowania i powtarzania
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -63,7 +58,6 @@ Texture2D::Texture2D(const std::string& path, GLenum wrapMode)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, finalWrap);
         m_CurrentWrapMode = finalWrap;
 
-        // Przes³anie pikseli na kartê graficzn¹
         glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, m_Width, m_Height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -75,17 +69,13 @@ Texture2D::Texture2D(const std::string& path, GLenum wrapMode)
     }
 }
 
-// DRUGI KONSTRUKTOR ZOSTAWIONY BEZ ZMIAN (Dzia³a na pamiêci z Assimp/GLTF)
 Texture2D::Texture2D(const unsigned char* data, uint32_t size, GLenum wrapMode)
 {
-    // glTF/GLB zazwyczaj nie wymagaj¹ flipowania UV, ale jeœli Twoje UV 
-    // s¹ odwrócone, zostawiamy to zgodnie z Twoim projektem.
+ 
     stbi_set_flip_vertically_on_load(1);
 
     int width, height, channels;
 
-    // Prosimy stbi o za³adowanie obrazu zawsze jako 4 kana³y (RGBA), 
-    // aby unikn¹æ problemów z czarnym t³em detali.
     unsigned char* pixels = stbi_load_from_memory(data, size, &width, &height, &channels, 4);
 
     if (pixels)
@@ -93,8 +83,6 @@ Texture2D::Texture2D(const unsigned char* data, uint32_t size, GLenum wrapMode)
         m_Width = width;
         m_Height = height;
 
-        // Skoro wymusiliœmy 4 kana³y w stbi_load_from_memory, 
-        // u¿ywamy formatów wspieraj¹cych przezroczystoœæ (Alpha).
         GLenum internalFormat = GL_RGBA8;
         GLenum dataFormat = GL_RGBA;
 
@@ -102,11 +90,9 @@ Texture2D::Texture2D(const unsigned char* data, uint32_t size, GLenum wrapMode)
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
 
-        // Ustawienia filtrowania
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        // Ustawienia zawijania - wa¿ne dla tekstur detali (buŸki)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
 

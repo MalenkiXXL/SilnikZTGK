@@ -15,7 +15,6 @@
 #include "CookingStation/Scripts/Plates/ItemScript.h"
 #include "CookingStation/Scripts/Machines/PotScript.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
-// DODANO NAGŁÓWKI ANIMACJI
 #include "CookingStation/Layers/AssetLayer/Animation.h"
 #include "CookingStation/Layers/GameLayer/Animator.h"
 #include "CookingStation/Scripts/DragAndDropScript.h"
@@ -24,7 +23,6 @@
 
 using json = nlohmann::json;
 
-// Wczytuje dane z pliku do pamięci i buduje świat w silniku
 bool SceneSerializer::Deserialize(const std::string& path) {
     std::vector<uint8_t> fileData = VFS::ReadFile(path);
     if (fileData.empty()) {
@@ -32,21 +30,18 @@ bool SceneSerializer::Deserialize(const std::string& path) {
         return false;
     }
 
-    // Parsowanie bezpośrednio z bufora pamięci RAM
     json data = json::parse(fileData.begin(), fileData.end());
 
     if (data.contains("settings")) {
         auto& settings = data["settings"];
         if (settings.contains("clear_color")) {
-            auto& c = settings["clear_color"]; // pobieranie tablicy rgba
+            auto& c = settings["clear_color"]; 
 
-            // BEZPIECZNE pobieranie kolorów - jeżeli nie ma alfy (c[3]), dajemy 1.0f
             float r = c[0];
             float g = c[1];
             float b = c[2];
             float a = (c.size() > 3) ? c[3].get<float>() : 1.0f;
 
-            // encja techniczna, przechowujaca kolor czyszczenia 
             m_Scene->GetWorld().BuildEntity()
                 .With<ClearColorComponent>({ { r, g, b, a } })
                 .Build();
@@ -58,9 +53,6 @@ bool SceneSerializer::Deserialize(const std::string& path) {
         std::unordered_map<std::size_t, Entity> oldToNew;
         std::vector<std::pair<Entity, std::size_t>> pendingRelationships;
 
-        // =========================================================================
-        // FIX: Funkcja czyszcząca stare ścieżki z edytora na nowe ścieżki z VFS
-        // =========================================================================
         auto SanitizePath = [](std::string& pathStr) {
             std::string badPrefix = "CookingStation/Assets/";
             size_t pos = pathStr.find(badPrefix);
@@ -74,7 +66,6 @@ bool SceneSerializer::Deserialize(const std::string& path) {
             std::string name = item.contains("name") ? item["name"].get<std::string>() : "Nowy Obiekt";
             std::string modelPath = item.contains("model_path") ? item["model_path"].get<std::string>() : "";
 
-            // UŻYCIE FIXA DLA MODELU
             SanitizePath(modelPath);
 
             auto builder = m_Scene->GetWorld().BuildEntity();
@@ -111,13 +102,11 @@ bool SceneSerializer::Deserialize(const std::string& path) {
 
             if (item.contains("scripts")) {
                 NativeScriptComponent nsc;
-                // Iterujemy po liście w JSON i dodajemy do komponentu przez nasz nowy Rejestr
                 for (const auto& scriptName : item["scripts"]) {
                     ScriptRegistry::AddScriptToComponent(nsc, scriptName.get<std::string>());
                 }
                 builder.With<NativeScriptComponent>(nsc);
             }
-            // Opcjonalnie: kompatybilność wsteczna z Twoimi starymi zapisami scen (stary klucz "script")
             else if (item.contains("script")) {
                 NativeScriptComponent nsc;
                 ScriptRegistry::AddScriptToComponent(nsc, item["script"].get<std::string>());
@@ -132,29 +121,23 @@ bool SceneSerializer::Deserialize(const std::string& path) {
                 }
             }
 
-            // FINALIZACJA BUDOWY
             Entity newEntity = builder.Build();
 
-            // Zapamiętujemy, jakie ID dostał ten obiekt w stosunku do tego w pliku
             if (item.contains("id")) {
                 std::size_t oldId = item["id"].get<std::size_t>();
                 oldToNew[oldId] = newEntity;
             }
 
-            // Jeśli encja miała w pliku rodzica, dodajemy ją do kolejki 
             if (item.contains("parent_id")) {
                 std::size_t oldParentId = item["parent_id"].get<std::size_t>();
                 pendingRelationships.push_back({ newEntity, oldParentId });
             }
         }
 
-        // ODBUDOWA RELACJI
-        // Kiedy wszystkie obiekty są już na mapie, możemy je popiąć
         for (auto& pair : pendingRelationships) {
             Entity childEntity = pair.first;
             std::size_t oldParentId = pair.second;
 
-            // Szukamy nowo stworzonego rodzica w słowniku
             if (oldToNew.find(oldParentId) != oldToNew.end()) {
                 Entity newParentEntity = oldToNew[oldParentId];
                 m_Scene->SetParent(childEntity, newParentEntity);
@@ -162,9 +145,8 @@ bool SceneSerializer::Deserialize(const std::string& path) {
         }
     }
 
-    // Na końcu SceneSerializer::Deserialize(...)
     m_Scene->RebuildConveyorCache();
-    return true; // scena wczytana pomyslnie
+    return true; 
 }
 
 void SceneSerializer::Serialize(const std::string& filepath) {
@@ -181,7 +163,7 @@ void SceneSerializer::Serialize(const std::string& filepath) {
     auto* colliderStorage = world.GetComponentVector<BoxColliderComponent>();
     auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
     auto* relStorage = world.GetComponentVector<RelationshipComponent>();
-    auto* animatorStorage = world.GetComponentVector<AnimatorComponent>(); // DODANE
+    auto* animatorStorage = world.GetComponentVector<AnimatorComponent>();
 
     for (size_t i = 0; i < tagStorage->reverse.size(); ++i) {
         Entity entity = tagStorage->reverse[i];
@@ -228,22 +210,18 @@ void SceneSerializer::Serialize(const std::string& filepath) {
             }
         }
 
-        // ===============================================
-        // ZMIANA: SERIALIZACJA ANIMATORA DO JSON
-        // ===============================================
+
         if (animatorStorage) {
             if (auto* animComp = animatorStorage->Get(entity)) {
                 item["animator"]["is_playing"] = animComp->IsPlaying;
                 item["animator"]["playback_speed"] = animComp->PlaybackSpeed;
 
                 if (animComp->AnimatorInstance) {
-                    // Zapisujemy aktualnie ustawiony klip jako start_clip
                     const std::string& currentClip = animComp->AnimatorInstance->GetCurrentAnimationName();
                     if (!currentClip.empty() && currentClip != "Default") {
                         item["animator"]["start_clip"] = currentClip;
                     }
 
-                    // Zapisujemy wszystkie klipy (z wyjątkiem Default, który odtwarzamy z model_path)
                     json clips = json::object();
                     for (const auto& [clipName, clipAnim] : animComp->AnimatorInstance->GetAnimations()) {
                         if (clipName != "Default") {

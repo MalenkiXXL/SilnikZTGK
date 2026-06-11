@@ -47,7 +47,6 @@ public:
     DeleteEntityCommand(World* world, Entity entity)
         : m_World(world), m_Entity(entity) {
 
-        // 1. Snapshot: Pobieramy i kopiujemy dane wszystkich komponentów, póki encja istnieje
         if (auto* tag = m_World->GetComponent<TagComponent>(m_Entity)) {
             m_HasTag = true;
             m_Tag = *tag;
@@ -70,9 +69,8 @@ public:
 
         if (auto* script = m_World->GetComponent<NativeScriptComponent>(m_Entity)) {
             m_HasScript = true;
-            m_Script = *script; // Kopiujemy ca³y komponent (czyli listê NativeScriptElement)
-            // Upewniamy siê, ¿e w kopii zapasowej (do Undo) czyœcimy wskaŸniki na ewentualne
-             // dzia³aj¹ce instancje, aby nie doprowadziæ do wycieków pamiêci i crashy.
+            m_Script = *script; 
+    
             for (auto& s : m_Script.Scripts) {
                 s.Instance = nullptr;
             }
@@ -80,19 +78,15 @@ public:
     }
 
     virtual void Execute() override {
-        // Usuwamy encjê ze œwiata
         m_World->DestroyEntity(m_Entity);
         spdlog::info("Command: Usuniêto encjê ID: {}", m_Entity.id);
     }
 
     virtual void Undo() override {
-        // 2. Przywracanie: Tworzymy now¹ encjê
         Entity newEntity = m_World->CreateEntity();
 
-        // Aktualizujemy uchwyt, by kolejne wywo³ania Execute() wiedzia³y co usun¹æ
         m_Entity = newEntity;
 
-        // Przywracamy zapisane komponenty
         if (m_HasTag)       m_World->AddComponent<TagComponent>(newEntity, m_Tag);
         if (m_HasMesh)      m_World->AddComponent<MeshComponent>(newEntity, m_Mesh);
         if (m_HasTransform) m_World->AddComponent<TransformComponent>(newEntity, m_Transform);
@@ -106,14 +100,12 @@ private:
     World* m_World;
     Entity m_Entity;
 
-    // Flagi obecnoœci komponentów
     bool m_HasTag = false;
     bool m_HasMesh = false;
     bool m_HasTransform = false;
     bool m_HasCollider = false;
     bool m_HasScript = false;
 
-    // Kontenery na dane (kopie)
     TagComponent m_Tag;
     MeshComponent m_Mesh;
     TransformComponent m_Transform;

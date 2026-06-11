@@ -25,9 +25,7 @@ namespace GuiUtils {
         while (ss >> word) {
             if (currentLine.length() + word.length() + 1 > maxCharsPerLine) {
                 if (!currentLine.empty()) {
-                    // Cień
                     Gui::DrawGuiText(currentLine, { currentPos.x + 2.0f, currentPos.y + 2.0f }, scale, { 0.0f, 0.0f, 0.0f, 0.85f });
-                    // Właściwy tekst
                     Gui::DrawGuiText(currentLine, currentPos, scale, color);
                     currentPos.y += lineSpacing;
                 }
@@ -46,10 +44,8 @@ namespace GuiUtils {
 
     bool DrawScaledButton(const std::string& label, glm::vec2 basePos, glm::vec2 baseSize, float& currentScale, float targetScaleMultiplier, float baseScale, glm::vec4 colorNormal, glm::vec4 colorHover, bool hovered, float dt) {
         float animSpeed = 15.0f;
-        // Płynna interpolacja skali
         currentScale += (targetScaleMultiplier - currentScale) * dt * animSpeed;
 
-        // Zwraca true jeśli kliknięto
         return Gui::ScaledButton(label, basePos, baseSize, currentScale, baseScale, colorNormal, colorHover, hovered);
     }
 

@@ -56,8 +56,8 @@ public:
 
 	static std::shared_ptr<Scene> Copy(std::shared_ptr<Scene> other);
 
-	void OnRuntimeStart(); // inicjalizacja silnika fizycznego i skryptow C#
-	void OnRuntimeStop();  // czyszczenie pami�ci z  C# i niszczenie �wiata fizyki
+	void OnRuntimeStart(); 
+	void OnRuntimeStop();  
 
 	void OnUpdateRuntime(Timestep ts);
 
@@ -83,7 +83,6 @@ public:
 	GridRequest& GetGridRequest() { return m_GridRequest; }
 	void RebuildConveyorCache();
 
-	//Nowy interfejsc SSA
 	void UpdateSpatialGrid();
 	const std::vector<Entity>* GetEntitiesInCell(const glm::ivec2& cell) const;
 
@@ -108,7 +107,6 @@ private:
 
     std::vector<Entity> m_EntitiesToDestroy;
 
-	//struktura SSA: komorka siatki -> lista encji wewnatrz niej
 	std::unordered_map<glm::ivec2, std::vector<Entity>, IVec2Hash> m_SpartialGrid;
 	std::size_t m_DestroySubId;
 	void OnEntityDestroyRequest(const EntityDestroyRequestEvent& e);

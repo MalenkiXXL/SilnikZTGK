@@ -2,12 +2,9 @@
 #include <stb_image.h>
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
-#include <glad/glad.h> // ZMIANA: Doda³em jawny nag³ówek OpenGL dla sta³ych GL_TEXTURE_2D itd.
-
-// ZMIANA VFS: Dodajemy includa do systemu wirtualnego systemu plików
+#include <glad/glad.h> 
 #include "CookingStation/Core/VFS/VFS.h"
 
-// Sta³e anizotropii — definiujemy rêcznie jeœli GLAD ich nie eksponuje
 #ifndef GL_TEXTURE_MAX_ANISOTROPY_EXT
 #define GL_TEXTURE_MAX_ANISOTROPY_EXT     0x84FE
 #endif
@@ -18,18 +15,14 @@
 Texture::Texture(const std::string& path) : m_FilePath(path) {
     int width, height, channels;
 
-    // Wa¿ne dla uk³adu 2D (ortograficznego)
     stbi_set_flip_vertically_on_load(1);
 
-    // VFS: Zamiast szukaæ na dysku, wczytujemy plik do pamiêci RAM
     std::vector<uint8_t> fileData = VFS::ReadFile(path);
     if (fileData.empty()) {
         spdlog::error("[Texture_GUI] Brak pliku lub blad VFS dla tekstury: {}", path);
         return;
     }
 
-    // NAPRAWA PRZEZROCZYSTOŒCI: Zawsze wymuszamy 4 kana³y (ostatni argument), 
-    // aby niezale¿nie od typu pliku zawsze mieæ format RGBA (Alpha = przezroczystoœæ).
     unsigned char* data = stbi_load_from_memory(
         fileData.data(),
         static_cast<int>(fileData.size()),
@@ -50,16 +43,12 @@ Texture::Texture(const std::string& path) : m_FilePath(path) {
 
         glGenerateMipmap(GL_TEXTURE_2D);
 
-        // NAPRAWA PIKSELOZY: Miêkkie, dwuliniowe filtrowanie wyg³adza ikony, fonty i wektory GUI
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-        // NAPRAWA BIA£YCH OBWÓDEK: CLAMP_TO_EDGE pilnuje, aby piksele z przeciwleg³ej 
-        // strony obrazka nie "zawija³y siê" na krawêdziach elementów GUI
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-        // Opcjonalne: Filtrowanie anizotropowe, jeœli wspierane
         const char* extensions = (const char*)glGetString(GL_EXTENSIONS);
         bool hasAniso = extensions && strstr(extensions, "GL_EXT_texture_filter_anisotropic");
         if (hasAniso) {
@@ -75,7 +64,6 @@ Texture::Texture(const std::string& path) : m_FilePath(path) {
     }
 }
 
-// Konstruktor puste tekstury (Framebuffery itp.)
 Texture::Texture(uint32_t width, uint32_t height)
     : m_Width(width), m_Height(height)
 {

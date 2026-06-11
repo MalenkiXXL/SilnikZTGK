@@ -12,8 +12,7 @@ public:
     static bool IsMouseButtonJustPressed(int button);
     static bool IsMouseButtonJustReleased(int button);
 
-    // --- Obs³uga Gamepada ---
-    static bool IsGamepadPresent(int gamepadId = 0); // 0 to domyœlnie pierwszy pad
+    static bool IsGamepadPresent(int gamepadId = 0); 
     static const char* GetGamepadName(int gamepadId = 0);
     static bool IsGamepadButtonPressed(int button, int gamepadId = 0);
     static bool IsGamepadButtonJustPressed(int button, int gamepadId = 0);
@@ -23,7 +22,6 @@ public:
     static bool IsUICapturingMouse() { return s_UICapturesMouse; }
     static void SetUICaptureMouse(bool state) { s_UICapturesMouse = state; }
 
-    // Tê funkcjê bêdziesz musia³ wywo³ywaæ raz na klatkê!
     static void Update();
 
 private:
@@ -32,7 +30,6 @@ private:
 
     static bool s_UICapturesMouse;
 
-    // Gamepady standardowo maj¹ oko³o 15-20 przycisków
     static bool s_CurrentGamepadStates[32];
     static bool s_PreviousGamepadStates[32];
 

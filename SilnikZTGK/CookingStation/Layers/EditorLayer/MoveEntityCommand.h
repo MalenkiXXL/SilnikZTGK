@@ -5,7 +5,6 @@ public:
     }
 
     virtual void Execute() override {
-        // U¿ywamy nowej metody pobierania po ID
         TransformComponent* transform = m_World->GetComponentByID<TransformComponent>(m_EntityId);
         if (transform != nullptr) {
             transform->SetPosition(m_NewPosition);

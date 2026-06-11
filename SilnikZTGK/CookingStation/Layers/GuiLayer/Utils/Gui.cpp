@@ -58,7 +58,6 @@ bool Gui::SliderFloat(const std::string& label, float* value, float min, float m
 	return changed;
 }
 
-// ZMIANA: Wysyłamy -1.0f jako sygnał do shadera, że rysujemy ostre krawędzie czcionek SDF!
 void Gui::DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const glm::vec4& color) {
 	float baselineOffset = 32.0f * 0.8f * scale;
 
@@ -74,7 +73,6 @@ void Gui::DrawGuiText(const std::string& text, glm::vec2 pos, float scale, const
 
 			uint32_t fontTextureID = s_Font->GetTexture()->GetRendererID();
 
-			// MAGIA TUTAJ: Zamiast 0.0f podajemy -1.0f
 			Renderer2D::DrawQuad(charPos, size, fontTextureID, color, ch.UV_Min, ch.UV_Max, -1.0f);
 
 			pos.x += ch.Advance * scale;

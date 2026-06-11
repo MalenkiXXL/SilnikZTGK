@@ -6,13 +6,10 @@
 #include <assimp/scene.h> 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
-#include <spdlog/spdlog.h> // Wymagane do logowania b��d�w
-
+#include <spdlog/spdlog.h> 
 #include "Bone.h"
 #include "CookingStation/Renderer/Model.h" 
 
-// Struktura na zbuforowane drzewo modelu
-// ZABEZPIECZENIE: Zawsze inicjalizujemy warto�ci domy�lne na wypadek b��du �adowania!
 struct AssimpNodeData
 {
     glm::mat4 transformation = glm::mat4(1.0f);
@@ -37,14 +34,12 @@ public:
         importer.SetIOHandler(new VfsIOSystem()); 
         const aiScene* scene = importer.ReadFile(animationPath, aiProcess_Triangulate);
 
-        // 1. Sprawdzamy czy plik w og�le istnieje i za�adowa� si� poprawnie
         if (!scene || !scene->mRootNode)
         {
             spdlog::error("Animator BLAD: Nie udalo sie wczytac pliku animacji! Sciezka: {}", animationPath);
             return;
         }
 
-        // 2. Sprawdzamy, czy plik posiada jakiekolwiek klatki kluczowe
         if (scene->HasAnimations())
         {
             auto animation = scene->mAnimations[0];
@@ -94,23 +89,21 @@ private:
             auto channel = animation->mChannels[i];
             std::string boneName = channel->mNodeName.data;
 
-            // Upewniamy si�, �e ko�� ma wygenerowane ID w modelu
             if (boneInfoMap.find(boneName) == boneInfoMap.end())
             {
                 boneInfoMap[boneName].id = boneCount;
                 boneCount++;
             }
-            // Zapisujemy kluczow� struktur� ko�ci z jej klatkami 
             m_Bones.push_back(Bone(boneName, boneInfoMap[boneName].id, channel));
         }
 
-        m_BoneInfoMap = boneInfoMap; // Kopiujemy gotowy s�ownik do instancji animacji
+        m_BoneInfoMap = boneInfoMap; 
     }
 
     void ReadHierarchyData(AssimpNodeData& dest, const aiNode* src)
     {
         dest.name = src->mName.data;
-        dest.transformation = AssimpMatToGLM(src->mTransformation); // Uzywamy tej samej konwersji co w Model.h
+        dest.transformation = AssimpMatToGLM(src->mTransformation); 
         dest.childrenCount = src->mNumChildren;
 
         for (int i = 0; i < src->mNumChildren; i++)

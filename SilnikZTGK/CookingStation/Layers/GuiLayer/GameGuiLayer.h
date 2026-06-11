@@ -17,13 +17,11 @@
 
 class Scene;
 
-// Stan animacji "bubbly" dla pojedynczego elementu UI
 struct BubblyState {
     float scale = 1.0f;
     glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
 };
 
-// Struktura danych questa
 struct QuestData {
     std::string Title;
     std::string Description;
@@ -50,7 +48,6 @@ public:
     static bool s_NeedsQuestReload;
 
 private:
-    // ── Metody pomocnicze ──────────────────────────────────────────────
     bool OnWindowResize(WindowResizeEvent& e);
     bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
@@ -60,7 +57,6 @@ private:
     void LoadQuestsFromFile(const std::string& filepath);
     void CheckQuestProgress();
 
-    // ── Metody rysowania ───────────────────────────────────────────────
     bool DrawBubblyImage(const std::string& id, const std::shared_ptr<Texture>& icon,
         glm::vec2 basePos, glm::vec2 baseSize, float dt,
         float hoverScale = 1.15f, bool darkenOnHover = false,
@@ -100,7 +96,6 @@ private:
     void DrawCrateHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
 
 private:
-    // ── Stan ogólny ────────────────────────────────────────────────────
     bool m_IsVisible = false;
     bool m_IsActive = false;
     std::shared_ptr<Scene>       m_ActiveScene;
@@ -108,14 +103,11 @@ private:
     float m_ViewportWidth = 1920.0f;
     float m_ViewportHeight = 1080.0f;
 
-    // ── Panel pauzy ────────────────────────────────────────────────────
     std::unique_ptr<PauseMenuPanel> m_PausePanel;
 
-    // ── Karuzele ───────────────────────────────────────────────────────
     CarouselUI m_IngredientsCarousel;
     CarouselUI m_MachinesCarousel;
 
-    // ── Tekstury i ikony ───────────────────────────────────────────────
     std::shared_ptr<Texture> m_HeartIcon;
     std::shared_ptr<Texture> m_StarIcon;
     std::shared_ptr<Texture> m_CoinIcon;
@@ -128,10 +120,8 @@ private:
     std::shared_ptr<Texture> m_EventsIcon;
     std::shared_ptr<Texture> m_PauseIcon;
 
-    // Narożniki i tło
     std::shared_ptr<Texture> m_CornerIcon;
 
-    // Składniki
     std::shared_ptr<Texture> m_TomatoIcon;
     std::shared_ptr<Texture> m_CheeseIcon;
     std::shared_ptr<Texture> m_HamIcon;
@@ -141,24 +131,20 @@ private:
     std::shared_ptr<Texture> m_OvenIcon;
     std::shared_ptr<Texture> m_MixerIcon;
 
-    // Książka przepisów
     std::shared_ptr<Texture> m_BookCloudIcon;
     std::shared_ptr<Texture> m_BookIcon;
     std::shared_ptr<Texture> m_BookStarsIcon;
     std::shared_ptr<Texture> m_BookInsideIcon;
     std::shared_ptr<Texture> m_BookXIcon;
 
-    // Przepisy / dania
     std::shared_ptr<Texture> m_TomatoSoupIcon;
     std::shared_ptr<Texture> m_SandwichIcon;
     std::shared_ptr<Texture> m_CupcakeIcon;
     std::shared_ptr<Texture> m_CroissantIcon;
 
-    // Karteczki zamówień
     std::shared_ptr<Texture> m_CustomerOrderTex;
     std::shared_ptr<Texture> m_HelperOrderTex;
 
-    // ── Subskrypcje zdarzeń ────────────────────────────────────────────
     std::size_t m_SubMoney = 0;
     std::size_t m_SubInventory = 0;
     std::size_t m_SubDrag = 0;
@@ -168,7 +154,6 @@ private:
     std::size_t m_MoneySubId = 0;
     std::size_t m_OrderTakenSubId = 0;
 
-    // ── Ekwipunek i Drag & Drop ────────────────────────────────────────
     std::unordered_map<IngredientType, int>   m_Inventory;
     std::unordered_map<IngredientType, float> m_ItemScales;
     glm::vec4 m_InventoryRect = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -178,32 +163,25 @@ private:
     std::shared_ptr<Texture> m_DraggedIcon;
     std::string m_DraggedModelPath;
 
-    // ── Stan składników ────────────────────────────────────────────────
     int m_CurrentTomatoes = 0;
     std::unordered_map<std::string, int> m_IngredientCounts;
 
-    // ── Pieniądze ──────────────────────────────────────────────────────
     int         m_CurrentMoney = 0;
     int         m_LastMoney = -1;
     float       m_MoneyScale = 1.0f;
     std::string m_MoneyStr = "0";
 
-    // ── Aktywne zamówienia (karteczki) ─────────────────────────────────
     std::vector<Entity> m_ActiveOrderTickets;
 
-    // ── Flagi i stany paneli UI ────────────────────────────────────────
     bool m_IsRecipeBookOpen = false;
     int  m_CurrentRecipePage = 0;
     bool m_IsEventsPanelOpen = false;
 
-    // ── Questy ────────────────────────────────────────────────────────
     std::vector<QuestData> m_CurrentQuests;
     int m_CurrentQuestIndex = 0;
 
-    // ── FPS debug ─────────────────────────────────────────────────────
     bool m_ShowFPS = false;
 
-    // ── Animacje (skale przycisków) ────────────────────────────────────
     float m_RecipeBtnScale = 1.0f;
     float m_EventsBtnScale = 1.0f;
     float m_PauseBtnScale = 1.0f;
@@ -212,17 +190,15 @@ private:
     float m_CloseBtnScale = 1.0f;
     float m_EvCloseBtnScale = 1.0f;
 
-    // ── Stany animacji "bubbly" ────────────────────────────────────────
     std::unordered_map<std::string, BubblyState> m_BubblyStates;
 
     std::size_t m_GamePausedSubId = 0;
     std::size_t m_GameResumedSubId = 0;
     bool m_IsGamePaused = false;
 
-    // ── Build Mode ─────────────────────────────────────────────────────────────
     bool  m_IsBuildModeActive = false;
-    float m_BuildPanelSlideY = 0.0f;   // 0=ukryty → 1=widoczny (lerp)
-    int   m_HeldMachineIndex = -1;     // -1 = żadna ikona nie jest wybrana
+    float m_BuildPanelSlideY = 0.0f;   
+    int   m_HeldMachineIndex = -1;     
     bool m_JustSelectedFromPanel = false;
 
     struct MachineEntry {
@@ -230,16 +206,14 @@ private:
         std::string              PrefabPath;
         std::shared_ptr<Texture> Icon;
     };
+
     std::vector<MachineEntry> m_MachineEntries;
     std::vector<std::pair<Entity, glm::vec3>> m_PreviewGroup;
     Entity m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     glm::vec3 m_MovingMachineOriginalPos = glm::vec3(0.0f);
     std::vector<std::pair<Entity, glm::vec3>> m_MovingGroup;
 
-
-
     void DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
-
     void DrawBuildModeButton(float gameX, float gameY, float gameWidth, float gameHeight,
         float baseScale, float dt);
     void DrawBuildModePanel(float gameX, float gameY, float gameWidth, float gameHeight,

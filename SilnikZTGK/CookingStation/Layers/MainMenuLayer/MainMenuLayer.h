@@ -18,10 +18,6 @@ public:
     virtual void OnDetach() override;
     virtual void OnUpdate(Timestep ts) override;
     virtual void OnEvent(Event& e) override;
-
-    // Publiczne, bo GameGuiLayer ustawiał to bezpośrednio –
-    // teraz NIE jest już potrzebne z zewnątrz (sterujemy przez ShowMainMenuEvent),
-    // ale zostawiamy na wypadek kodu edytora lub testów.
     bool m_IsActive = true;
 
 private:
@@ -39,7 +35,6 @@ private:
 
     bool OnWindowResize(WindowResizeEvent& e);
 
-    // --- Tekstury / wymiary ---
     std::shared_ptr<Texture> m_Background;
     std::shared_ptr<Texture> m_BoardTex;
 
@@ -56,7 +51,6 @@ private:
     float m_CreditsBtnScale = 1.0f;
     float m_ExitBtnScale = 1.0f;
 
-    // --- Stan panelu ustawień ---
     bool  m_SettingsOpen = false;
     float m_BackBtnScale = 1.0f;
     float m_ApplyBtnScale = 1.0f;
@@ -71,6 +65,5 @@ private:
     static constexpr int MsaaOptions[] = { 1, 2, 4, 8 };
     static constexpr int MsaaOptionCount = 4;
 
-    // --- EventBus – subskrypcja ShowMainMenuEvent ---
     std::size_t m_ShowMenuSubId = 0;
 };

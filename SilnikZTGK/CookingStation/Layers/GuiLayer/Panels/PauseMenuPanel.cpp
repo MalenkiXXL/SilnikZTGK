@@ -23,7 +23,6 @@ void PauseMenuPanel::TogglePause() {
             activeScene->SetState(m_IsPaused ? SceneState::Pause : SceneState::Play);
         }
 
-        // --- NOWE: Wysłanie eventu w świat ---
         if (m_IsPaused) {
             Application::Get().GetEventBus().Publish(GamePausedEvent{});
         }
@@ -43,7 +42,6 @@ void PauseMenuPanel::OnEvent(Event& e) {
         return false;
         });
 
-    // Zablokuj kliknięcia pod menu
     if (m_IsPaused) {
         if (e.GetEventType() == EventType::MouseButtonPressed ||
             e.GetEventType() == EventType::MouseMoved ||
@@ -66,7 +64,6 @@ void PauseMenuPanel::Draw(float baseScale) {
 
     auto windowSize = Input::GetWindowSize();
 
-    // 1. Poszarzenie tła ekranu (lekki tint)
     Gui::Panel({ 0.0f, 0.0f }, { (float)windowSize.first, (float)windowSize.second }, { 0.05f, 0.05f, 0.05f, 0.75f }, 0.0f);
 
     if (m_SettingsPanel->IsVisible()) {
@@ -74,7 +71,6 @@ void PauseMenuPanel::Draw(float baseScale) {
         return;
     }
 
-    // 2. Pobranie tekstur przez AssetManager
     auto boardTex = AssetManager::GetTexture("assets://UI/cuttingBoard.png");
     auto resumeTex = AssetManager::GetTexture("assets://UI/resumeButton.png");
     auto settingsTex = AssetManager::GetTexture("assets://UI/settingsButtonCarrot.png");
@@ -95,12 +91,11 @@ void PauseMenuPanel::Draw(float baseScale) {
     float visualOffsetY = 60.0f * baseScale;
 
 
-    // 3. Rysowanie tła menu (Deska do krojenia)
-    float boardHeight = 600.0f * baseScale; // Tutaj Twoja powiększona deska
+    float boardHeight = 600.0f * baseScale; 
     glm::vec2 boardSize = getAspectSize(boardTex, boardHeight);
 
     float boardX = (windowSize.first - boardSize.x) * 0.5f;
-    float boardY = (windowSize.second - boardSize.y) * 0.5f + visualOffsetY; // <-- OBNIŻAMY
+    float boardY = (windowSize.second - boardSize.y) * 0.5f + visualOffsetY;
 
     if (boardTex) {
         Renderer2D::DrawQuad({ boardX, boardY }, boardSize, boardTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 0.90f }, uv0, uv1);
@@ -109,7 +104,6 @@ void PauseMenuPanel::Draw(float baseScale) {
         Gui::Panel({ boardX, boardY }, boardSize, { 0.7f, 0.5f, 0.3f, 0.85f }, 20.0f);
     }
 
-    // 3.5 Rysowanie napisu "PAUSED"
     if (pausedTextTex && pausedTextTex->GetRendererID() != 0) {
         float textAspect = (float)pausedTextTex->GetWidth() / (float)pausedTextTex->GetHeight();
 
@@ -119,12 +113,11 @@ void PauseMenuPanel::Draw(float baseScale) {
         float textGap = 50.0f * baseScale;
 
         float textX = (windowSize.first - textSize.x) * 0.5f;
-        float textY = boardY - textSize.y - textGap; // Ponieważ boardY zjechało w dół, napis automatycznie też!
+        float textY = boardY - textSize.y - textGap;
 
         Renderer2D::DrawQuad({ textX, textY }, textSize, pausedTextTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, uv0, uv1);
     }
 
-    // 4. Parametry i pozycjonowanie przycisków 
     float btnHeight = 115.0f * baseScale; 
     float btnGap = 45.0f * baseScale;     
 
@@ -133,7 +126,7 @@ void PauseMenuPanel::Draw(float baseScale) {
     glm::vec2 exitSize = getAspectSize(menuTex, btnHeight);
 
     float totalH = (3.0f * btnHeight) + (2.0f * btnGap);
-    float startY = (windowSize.second - totalH) * 0.5f + visualOffsetY; // <-- OBNIŻAMY
+    float startY = (windowSize.second - totalH) * 0.5f + visualOffsetY; 
 
     glm::vec2 mouse = Gui::GetMappedMousePos();
     auto isHov = [&](glm::vec2 p, glm::vec2 s) {
@@ -168,9 +161,6 @@ void PauseMenuPanel::Draw(float baseScale) {
         return hovered && mouseClicked;
         };
 
-    // RYSOWANIE PRZYCISKÓW I OBSŁUGA LOGIKI
-
-    // RETURN 
     float retX = (windowSize.first - playSize.x) * 0.5f;
     glm::vec2 retPos = { retX, startY };
     bool hoverRet = isHov(retPos, playSize);
@@ -178,7 +168,6 @@ void PauseMenuPanel::Draw(float baseScale) {
         TogglePause();
     }
 
-    // SETTINGS 
     float setX = (windowSize.first - settingsSize.x) * 0.5f;
     glm::vec2 setPos = { setX, startY + btnHeight + btnGap };
     bool hoverSet = isHov(setPos, settingsSize);
@@ -187,7 +176,6 @@ void PauseMenuPanel::Draw(float baseScale) {
         m_SettingsPanel->SetVisible(true);
     }
 
-    // EXIT 
     float exitX = (windowSize.first - exitSize.x) * 0.5f;
     glm::vec2 exitPos = { exitX, startY + 2.0f * (btnHeight + btnGap) };
     bool hoverExit = isHov(exitPos, exitSize);
@@ -197,6 +185,5 @@ void PauseMenuPanel::Draw(float baseScale) {
         Application::Get().GetEventBus().Publish(ShowMainMenuEvent{});
     }
 
-    // Zapis stanu myszki na koniec klatki
     s_LastMouseState = currentMouseState;
 }

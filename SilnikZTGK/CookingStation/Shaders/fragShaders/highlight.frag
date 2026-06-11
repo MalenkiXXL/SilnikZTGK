@@ -1,7 +1,6 @@
 #version 420 core
 out vec4 FragColor;
 
-// Dane wej�ciowe z Vertex Shadera
 in float v_uvOffset;
 in vec2 TexCoords;
 in vec2 TexCoords2; 
@@ -20,7 +19,6 @@ layout (std140, binding = 0) uniform SceneData {
     float _pad2;
 };
 
-// Tekstury
 uniform sampler2D texture_diffuse1;
 uniform sampler2D texture_diffuse2;
 uniform bool useTexture2; 
@@ -30,10 +28,8 @@ void main()
     vec4 texColor = texture(texture_diffuse1, TexCoords);
     float tintOpacity = v_HighlightColor.a;
 
-    // mix tekstury z kolorem
     vec3 baseColor = mix(texColor.rgb, v_HighlightColor.rgb, tintOpacity);
 
-    // Standardowe obliczanie �wiat�a, �eby talerz wygl�da� tr�jwymiarowo
     float ambientStrength = 0.55;
     vec3 ambient = ambientStrength * vec3(1.0); 
 
@@ -50,7 +46,6 @@ void main()
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
     vec3 specular = specularStrength * spec * u_LightColor;  
 
-    // Po��czenie naszego czystego ��tego z cieniami i �wiat�em
     vec3 result = (ambient + diffuse) * baseColor + specular;
 
     if(useTexture2) {
@@ -58,7 +53,6 @@ void main()
         result += emissiveColor;
     }
 
-    // Korekcja gamma
     float gammaParam = 1.4;
     result = pow(result, vec3(1.0 / gammaParam)); 
 

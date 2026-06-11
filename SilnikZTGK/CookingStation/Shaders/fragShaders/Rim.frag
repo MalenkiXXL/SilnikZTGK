@@ -25,7 +25,6 @@ void main()
 
     vec3 ambient = 0.2 * u_LightColor;
 
-    // Rim Lighting
     float n_r = 3.0;
     float rimFactor = pow(1.0 - max(dot(N, V), 0.0), n_r);
     vec3 rim = rimFactor * u_LightColor;

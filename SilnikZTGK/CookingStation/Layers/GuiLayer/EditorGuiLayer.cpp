@@ -71,7 +71,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
 
         if (viewportSize.x > 0.0f && viewportSize.y > 0.0f) {
 
-            //Informacja o rozmiarze okna gry potrzebna do wyliczania ruchu kamery
             activeScene->SetViewportSize((uint32_t)viewportSize.x, (uint32_t)viewportSize.y);
 
             if (m_ViewportFBO->GetSpecification().Width != (uint32_t)viewportSize.x ||
@@ -88,7 +87,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- GŁÓWNY PASEK ZADAŃ ---
     Gui::Panel({ 0.0f, 0.0f }, { m_ViewportWidth, 30.0f }, { 0.15f, 0.15f, 0.15f, 1.0f }, 15.0f);
 
     if (Gui::Button("Plik", { 10.0f, 5.0f }, { 80.0f, 20.0f })) {
@@ -142,15 +140,12 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             namespace fs = std::filesystem;
             std::error_code ec;
 
-            // Zapisujemy oryginalną ścieżkę PRZED jakimkolwiek current_path()
             fs::path originalPath = fs::current_path();
 
-            // Absolutne ścieżki do zasobów — niezależne od current_path
             fs::path absAssetsPath = originalPath / "CookingStation/Assets";
             fs::path absShadersPath = originalPath / "CookingStation/Shaders";
             fs::path absExportDir = originalPath / "Builds/CookingStation_Dystrybucja";
 
-            // Szukamy .sln idąc w górę drzewa katalogów
             fs::path rootDir = originalPath;
             bool foundSln = false;
             std::string slnFilename = "";
@@ -182,7 +177,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 fs::current_path(rootDir);
                 spdlog::info("[BuildTool] Znaleziono: {} w {}", slnFilename, rootDir.string());
 
-                // Szukamy vcvars64.bat
                 std::string vcvarsScript = "";
                 std::vector<std::string> suspectedVCVarsPaths = {
                     "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
@@ -208,7 +202,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 spdlog::info("[BuildTool] Uruchamiam kompilację...");
                 int compileResult = std::system(fullCommand.c_str());
 
-                // Przywracamy ścieżkę ZARAZ po kompilacji, przed operacjami na plikach
                 fs::current_path(originalPath);
 
                 if (compileResult != 0) {
@@ -240,12 +233,10 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                             spdlog::error("[BuildTool] Sprawdź Output Directory w ustawieniach projektu VS.");
                         }
                         else {
-                            // Kopiuj .exe
                             fs::copy_file(foundExePath,
                                 absExportDir / "CookingStation.exe",
                                 fs::copy_options::overwrite_existing);
 
-                            // Kopiuj .dll z tego samego folderu co .exe
                             fs::path exeDir = fs::path(foundExePath).parent_path();
                             for (const auto& entry : fs::directory_iterator(exeDir, ec)) {
                                 if (entry.path().extension() == ".dll") {
@@ -257,7 +248,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                             spdlog::info("[BuildTool] Skopiowano .exe i .dll.");
                         }
 
-                        // --- ZAMIAST FS::COPY DLA ASSETS, TWORZYMY PLIK DATA.PAK ---
                         if (fs::exists(absAssetsPath)) {
                             spdlog::info("[BuildTool] Pakowanie zasobow do data.pak...");
 
@@ -268,33 +258,27 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                                 struct FileInfo { std::string relativePath; std::string fullPath; uint64_t size; };
                                 std::vector<FileInfo> filesToPack;
 
-                                // 1. Zbieramy wszystkie pliki i odrzucamy pliki robocze
                                 for (const auto& entry : fs::recursive_directory_iterator(absAssetsPath)) {
                                     if (entry.is_regular_file()) {
                                         std::string ext = entry.path().extension().string();
-                                        // Ignorujemy surowe projekty (możesz dopisać .psd, .xcf itp.)
                                         if (ext == ".blend" || ext == ".blend1") continue;
 
                                         FileInfo info;
                                         info.fullPath = entry.path().string();
-                                        // Używamy generic_string() żeby wymusić '/' zamiast '\\' z Windowsa
                                         info.relativePath = fs::relative(entry.path(), absAssetsPath).generic_string();
                                         info.size = fs::file_size(entry.path());
                                         filesToPack.push_back(info);
                                     }
                                 }
 
-                                // 2. Zapisujemy ilość plików na samym początku paka
                                 uint32_t numFiles = static_cast<uint32_t>(filesToPack.size());
                                 pakFile.write(reinterpret_cast<const char*>(&numFiles), sizeof(uint32_t));
 
-                                // Obliczamy, gdzie (w bajtach) zaczną się surowe dane plików (za nagłówkiem)
-                                uint64_t currentDataOffset = sizeof(uint32_t); // Rozmiar numFiles
+                                uint64_t currentDataOffset = sizeof(uint32_t); 
                                 for (const auto& f : filesToPack) {
                                     currentDataOffset += sizeof(uint32_t) + f.relativePath.size() + sizeof(uint64_t) + sizeof(uint64_t);
                                 }
 
-                                // 3. Zapisujemy "Spis Treści" (TOC - Table of Contents)
                                 for (auto& f : filesToPack) {
                                     uint32_t pathLen = static_cast<uint32_t>(f.relativePath.size());
                                     pakFile.write(reinterpret_cast<const char*>(&pathLen), sizeof(uint32_t));
@@ -305,10 +289,9 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                                     pakFile.write(reinterpret_cast<const char*>(&offset), sizeof(uint64_t));
                                     pakFile.write(reinterpret_cast<const char*>(&size), sizeof(uint64_t));
 
-                                    currentDataOffset += size; // Przesuwamy wskaźnik dla następnego pliku
+                                    currentDataOffset += size;
                                 }
 
-                                // 4. Zapisujemy surowe bajty plików
                                 for (const auto& f : filesToPack) {
                                     std::ifstream inFile(f.fullPath, std::ios::binary);
                                     if (inFile.is_open()) {
@@ -338,7 +321,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                                 struct FileInfo { std::string relativePath; std::string fullPath; uint64_t size; };
                                 std::vector<FileInfo> filesToPack;
 
-                                // 1. Zbieramy wszystkie shadery
                                 for (const auto& entry : fs::recursive_directory_iterator(absShadersPath)) {
                                     if (entry.is_regular_file()) {
                                         FileInfo info;
@@ -349,17 +331,14 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                                     }
                                 }
 
-                                // 2. Nagłówek: liczba plików
                                 uint32_t numFiles = static_cast<uint32_t>(filesToPack.size());
                                 pakFile.write(reinterpret_cast<const char*>(&numFiles), sizeof(uint32_t));
 
-                                // 3. Obliczamy offsety dla TOC
                                 uint64_t currentDataOffset = sizeof(uint32_t);
                                 for (const auto& f : filesToPack) {
                                     currentDataOffset += sizeof(uint32_t) + f.relativePath.size() + sizeof(uint64_t) + sizeof(uint64_t);
                                 }
 
-                                // 4. Zapisujemy Spis Treści (TOC)
                                 for (auto& f : filesToPack) {
                                     uint32_t pathLen = static_cast<uint32_t>(f.relativePath.size());
                                     pakFile.write(reinterpret_cast<const char*>(&pathLen), sizeof(uint32_t));
@@ -373,7 +352,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                                     currentDataOffset += size;
                                 }
 
-                                // 5. Zapisujemy dane shaderów
                                 for (const auto& f : filesToPack) {
                                     std::ifstream inFile(f.fullPath, std::ios::binary);
                                     if (inFile.is_open()) {
@@ -403,9 +381,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- PANEL GENERATORA QUESTÓW AI ---
     if (m_ShowQuestsPanel) {
-        // ZMIANA 1: Zwiększamy wysokość panelu z 85.0f na 115.0f, aby pomieścić nowy przycisk
         glm::vec2 questPanelPos = GetAnchoredPosition(Anchor::TopLeft, 10.0f, 400.0f, 180.0f, 115.0f, m_ViewportWidth, m_ViewportHeight);
 
         Gui::Panel(questPanelPos, { 180.0f, 115.0f }, { 0.15f, 0.15f, 0.15f, 0.9f }, 15.0f);
@@ -423,13 +399,11 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             GameGuiLayer::s_NeedsQuestReload = true;
         }
 
-        // ZMIANA 2: Dodajemy przycisk "Resetuj (Domyslne)"
         if (Gui::Button("Resetuj (Domyslne)", { questPanelPos.x + 5.f, questPanelPos.y + 80.f }, { 170.f, 20.f })) {
             spdlog::info("Twardy reset questów do ustawień domyślnych (C++)...");
 
             std::ofstream outFile("CookingStation/Assets/wygenerowane_quests.json");
             if (outFile.is_open()) {
-                // Wpisujemy na sztywno "złoty" zestaw misji zapasowych.
                 outFile << "[\n"
                     << "  {\n"
                     << "    \"title\": \"Bunt Serwerow\",\n"
@@ -442,7 +416,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                     << "]";
                 outFile.close();
 
-                // Zmuszamy silnik (GameGuiLayer) do przeładowania pliku z dysku
                 GameGuiLayer::s_NeedsQuestReload = true;
                 spdlog::info("Questy zresetowane natychmiastowo.");
             }
@@ -451,7 +424,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             }
         }
     }
-    // --- PANEL DIAGNOSTYCZNY (ANCHOR: BOTTOM RIGHT) ---
+    
     if (m_ShowDiagnosticPanel) {
         m_StatsUpdateTimer += ts.GetSeconds();
         if (m_StatsUpdateTimer >= 0.25f) {
@@ -506,7 +479,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         Gui::DrawGuiText(m_TrisUIText, { textX, textY }, scale, textColor);
     }
 
-    // --- PANEL OTOCZENIA (ANCHOR: BOTTOM LEFT) ---
     if (m_ShowEnvironmentPanel) {
         glm::vec2 envSize = { 180.f, 350.f };
         glm::vec2 envPos = GetAnchoredPosition(Anchor::BottomLeft, 10.f, 10.f, envSize.x, envSize.y, m_ViewportWidth, m_ViewportHeight);
@@ -540,7 +512,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("16x", { envPos.x + 5.f,   envPos.y + 305.f }, { 32.f, 20.f }, currentMsaa == 16)) Application::Get().SetMsaaSamples(16);
     }
 
-    // --- HIERARCHIA SCENY (ANCHOR: TOP LEFT) ---
     if (m_ShowHierarchyPanel) {
         auto* tagStorage = world.GetComponentVector<TagComponent>();
         if (tagStorage) {
@@ -570,7 +541,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- BIBLIOTEKA MODELI ---
     if (m_ShowLibraryPanel) {
         glm::vec2 libSize = { m_ViewportWidth - 500.0f, 200.0f };
         glm::vec2 libPos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, libSize.x, libSize.y, m_ViewportWidth, m_ViewportHeight);
@@ -592,7 +562,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 auto& request = activeScene->GetPlacementRequest();
                 request.Name = entry.Name; request.Path = entry.Path; request.Active = true;
 
-                //odznaczam aktualnie zaznaczony obiekt
                 activeScene->SetSelectedEntity({ std::numeric_limits<std::size_t>::max(), 0 });
             }
             xOffset += 130.0f;
@@ -607,7 +576,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         Renderer2D::BeginScene(uiProj);
     }
 
-    // --- PANEL PREFABÓW ---
     if (m_ShowPrefabsPanel) {
         glm::vec2 prefSize = { m_ViewportWidth - 500.0f, 120.0f };
         glm::vec2 prefPos = GetAnchoredPosition(Anchor::BottomLeft, 200.0f, 0.0f, prefSize.x, prefSize.y, m_ViewportWidth, m_ViewportHeight);
@@ -642,7 +610,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- INSPEKTOR ENCJI (ANCHOR: TOP RIGHT) ---
     if (m_ShowInspectorPanel) {
         Entity selected = activeScene->GetSelectedEntity();
         if (selected.id != std::numeric_limits<std::size_t>::max()) {
@@ -663,11 +630,9 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                 currentY += 35.0f;
             }
 
-            // --- NAWIGACJA HIERARCHII (RODZIC / DZIECI) ---
             auto* rel = world.GetComponent<RelationshipComponent>(selected);
             if (rel)
             {
-                // 1. PRZYCISK POWROTU DO RODZICA
                 if (rel->Parent != std::numeric_limits<std::size_t>::max())
                 {
                     if (Gui::Button("<- Wroc do rodzica", { padX, currentY }, { elementW, 25.0f }))
@@ -678,7 +643,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                     currentY += 30.0f;
                 }
 
-                // 2. LISTA DZIECI
                 if (rel->FirstChild != std::numeric_limits<std::size_t>::max())
                 {
                     hasChildren = true;
@@ -859,7 +823,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- OKNO ZAPISU ---
     if (m_ShowSaveDialog) {
         glm::vec2 dialogSize = { 350.0f, 150.0f };
         glm::vec2 dialogPos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, dialogSize.x, dialogSize.y, m_ViewportWidth, m_ViewportHeight);
@@ -876,7 +839,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("Anuluj", { dialogPos.x + 180.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) m_ShowSaveDialog = false;
     }
 
-    // --- OKNO WCZYTYWANIA ---
     if (m_ShowLoadDialog) {
         glm::vec2 dialogSize = { 350.0f, 150.0f };
         glm::vec2 dialogPos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, dialogSize.x, dialogSize.y, m_ViewportWidth, m_ViewportHeight);
@@ -894,7 +856,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         if (Gui::Button("Anuluj", { dialogPos.x + 180.0f, dialogPos.y + 100.0f }, { 160.0f, 30.0f })) m_ShowLoadDialog = false;
     }
 
-    // --- PANEL POMOCY / STEROWANIE ---
     if (m_ShowHelpPanel) {
         glm::vec2 helpSize = { 350.0f, 280.0f };
         glm::vec2 helpPos = GetAnchoredPosition(Anchor::Center, 0.0f, 0.0f, helpSize.x, helpSize.y, m_ViewportWidth, m_ViewportHeight);
@@ -928,7 +889,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
 
-    // --- MENU WIDOKU ---
     if (m_ShowViewMenu) {
         Gui::Panel({ 100.0f, 30.0f }, { 160.0f, 220.0f }, { 0.2f, 0.2f, 0.2f, 0.9f }, 15.0f);
         if (Gui::Button("Panel Otoczenia", { 105.0f, 35.0f }, { 150.0f, 25.0f }, m_ShowEnvironmentPanel)) { m_ShowEnvironmentPanel = !m_ShowEnvironmentPanel; m_ShowViewMenu = false; }

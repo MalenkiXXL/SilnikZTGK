@@ -23,7 +23,6 @@ public:
     void AddAnimation(const std::string& name, std::shared_ptr<Animation> anim)
     {
         m_Animations[name] = anim;
-        // Je�li to pierwsza dodana animacja, ustawmy j� domy�lnie
         if (m_CurrentAnimation == nullptr) {
             PlayAnimation(name);
         }

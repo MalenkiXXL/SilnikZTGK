@@ -13,12 +13,11 @@ struct IVec2Hash
     }
 };
 
-// Odpowiada za logike siatki - przeliczanie pozycji swiata na kafelek i z powrotem.
-// Nie trzyma stanu - to czysty zestaw funkcji matematycznych.
+
 class GridSystem
 {
 public:
-    // Rozmiar jednego kafelka w jednostkach swiata (dopasuj do swoich modeli tasmy)
+    // Rozmiar jednego kafelka w jednostkach swiata 
     static float CELL_SIZE;
 
     // Przelicza dowolna pozycje w swiecie na srodek najblizszego kafelka

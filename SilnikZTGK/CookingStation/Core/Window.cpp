@@ -17,26 +17,16 @@ Window::~Window()
 
 void Window::Init()
 {
-	//konfiguracja glfw
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	//Inizjalizowanie okna
     window = glfwCreateWindow(screenWidth, screenHeight, screenName.c_str(), NULL, NULL);
 	glfwMakeContextCurrent(window);
 
     glfwSetWindowUserPointer(   window, this);
     
-
-    //// 3. Rejestracja funkcji reaguj¹cych na okno i myszkê
-    //glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-    //// Mówimy GLFW, ¿eby przechwyci³ i ukry³ nasz kursor myszy (tryb FPS)
-    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-    //// 4. Inicjalizacja GLAD (³aduje wskaŸniki do funkcji OpenGL dla naszej karty graficznej)
     gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
 
 
@@ -66,7 +56,6 @@ void Window::SetEventCallback(const EventCallbackFn& callback)
     m_EventCallbackFn = callback;
 }
 
-//-----------------------------------Myszka----------------------------------------
 void Window::MouseMoveCallback(GLFWwindow* window, double xPos, double yPos)
 {
     Window* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
@@ -116,10 +105,7 @@ void Window::ProcessMouseButtonPress(int button, int action, int mods)
     }
 }
 
-//---------------------------------------------------------------------------------
 
-
-//-----------------------------------Klawiatura----------------------------------------
 void Window::KeyCallBack(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     Window* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
@@ -151,12 +137,6 @@ void Window::ProcessKeyInput(int key, int action)
     }
 }
 
-//---------------------------------------------------------------------------------
-
-
-
-//-----------------------------------Okno----------------------------------------
-
 void Window::WindowCloseCallback(GLFWwindow* window)
 {
     Window* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
@@ -181,15 +161,11 @@ void Window::ProcessWindowResize(int width, int height)
     m_EventCallbackFn(event);
 }
 
-//---------------------------------------------------------------------------------
-
-// Statyczna funkcja poœrednicz¹ca
 void Window::CharCallback(GLFWwindow* window, unsigned int keycode) {
     Window* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));
     myWindow->ProcessCharInput(keycode);
 }
 
-// Metoda wysy³aj¹ca zdarzenie do silnika
 void Window::ProcessCharInput(unsigned int keycode) {
     KeyTypedEvent event(keycode); 
     m_EventCallbackFn(event);

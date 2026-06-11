@@ -1,10 +1,8 @@
 #pragma once
 #include <string>
 #include <functional>
-
 #include "glad/glad.h" 
 #include <GLFW/glfw3.h>
-
 #include "CookingStation/Events/Event.h"
 
 
@@ -47,7 +45,6 @@ public:
 	static void CharCallback(GLFWwindow* window, unsigned int keycode);
 	void ProcessCharInput(unsigned int keycode);
 
-	//statyczny dostep do okna dla inputow
 	inline GLFWwindow* GetNativeWindow() const { return window; };
 private:
 	GLFWwindow* window;

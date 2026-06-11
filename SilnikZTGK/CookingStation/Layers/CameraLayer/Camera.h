@@ -27,8 +27,6 @@ class Camera
 public:
     float AspectRatio = 1.7777f;
 
-    // rozmiar obszaru widocznego w rzucie ortograficznym
-    // Wiekszy = widac wiecej swiata, mniejszy = zoom in
     float OrthoSize = 10.0f;
     float NearPlane = 0.1f;
     float FarPlane = 100.0f;
@@ -42,7 +40,7 @@ public:
     float Pitch;
     float MovementSpeed;
     float MouseSensitivity;
-    float Zoom; // zachowujemy dla kompatybilnosci, ale ortho uzywa OrthoSize
+    float Zoom; 
 
     glm::vec3 TargetPosition;
     float     TargetOrthoSize = 10.0f;
@@ -149,7 +147,6 @@ public:
         UpdateFrustum();
     }
     
-    // Zwraca wektor skierowany "w przód" względem kamery, ale leżący płasko na płaszczyźnie XZ
     glm::vec3 GetFlatForward() const
     {
         return glm::normalize(glm::cross(WorldUp, Right));
@@ -173,7 +170,6 @@ private:
     Frustum m_Frustum;
     void UpdateFrustum()
     {
-        // Generujemy polaczone macierz P * V i wyciagamy z niej plaszczyzny
         glm::mat4 viewProj = GetProjectionMatrix() * GetViewMatrix();
         m_Frustum = ExtractFrustum(viewProj);
     }

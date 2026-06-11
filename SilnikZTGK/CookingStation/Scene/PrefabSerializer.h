@@ -12,7 +12,6 @@ class PrefabSerializer {
 public:
     inline static uint32_t s_PrefabSpawnCounter = 0;
 
-    // ZAPIS: Wyciagamy komponenty z wybranej encji i wrzucamy do JSONa
     static void Serialize(Scene* scene, Entity entity, const std::string& filepath) {
         nlohmann::json item;
         auto& world = scene->GetWorld();
@@ -80,7 +79,6 @@ public:
         }
     }
 
-    // ODCZYT: Teraz zwracamy WEKTOR wszystkich załadowanych encji!
     static std::vector<Entity> Deserialize(Scene* scene, const std::string& filepath, const glm::vec3& spawnPos) {
 
         s_PrefabSpawnCounter++;
@@ -99,7 +97,7 @@ public:
             spdlog::error("[PrefabSerializer] Blad VFS!");
             spdlog::error("   -> Oryginal: {}", filepath);
             spdlog::error("   -> Przerobiona: {}", vfsPath);
-            return {}; // Zwracamy pusty wektor
+            return {}; 
         }
 
         nlohmann::json parsedData = nlohmann::json::parse(fileData.begin(), fileData.end());
@@ -110,7 +108,7 @@ public:
         std::unordered_map<int, Entity> localIdToRealEntity;
         std::unordered_map<std::size_t, Entity> rawIdToEntity;
 
-        std::vector<Entity> createdEntities; // Tabela na wszystkie stworzone elementy
+        std::vector<Entity> createdEntities; 
         auto& world = scene->GetWorld();
 
         for (const auto& item : parsedData) {
@@ -189,10 +187,9 @@ public:
             }
             rawIdToEntity[newEntity.id] = newEntity;
 
-            createdEntities.push_back(newEntity); // Zapisujemy każdą encję do naszego wektora
+            createdEntities.push_back(newEntity);
         }
 
-        // Pętla budująca strukturę hierarchii (opcjonalna)
         for (const auto& item : parsedData) {
             if (item.contains("parent_id") && item.contains("local_id")) {
                 int localId = item["local_id"].get<int>();
@@ -236,7 +233,6 @@ public:
             }
         }
 
-        // Zwracamy caly wektor zbudowanych encji (Garnkow, Palnikow, Szafek itd.)
         return createdEntities;
     }
 };

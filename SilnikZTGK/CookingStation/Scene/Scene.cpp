@@ -68,7 +68,6 @@ void Scene::OnRuntimeStart()
 {
     std::cout << "[Scene] OnRuntimeStart\n";
 
-    //Jeden na całą gre
     Entity gameManager = m_ECSWorld.BuildEntity().Build();
 
     NativeScriptComponent managerScriptComp;
@@ -76,11 +75,9 @@ void Scene::OnRuntimeStart()
     managerScriptComp.AddScript<DeliveryManagerScript>("DeliveryManagerScript");
     m_ECSWorld.AddComponent(gameManager, managerScriptComp);
 
-    // Przeszukujemy wszystkie encje, które mają w sobie komponent animacji
     auto* animatorStorage = m_ECSWorld.GetComponentVector<AnimatorComponent>();
     if (animatorStorage) {
         for (auto& animComp : animatorStorage->dense) {
-            // Po wejściu w tryb Play, ODBLOKOWUJEMY animacje (i TYLKO TO!)
             animComp.IsPlaying = true;
         }
     }
@@ -93,15 +90,12 @@ void Scene::OnUpdateRuntime(Timestep ts)
     if (animatorStorage) {
         for (auto& animComp : animatorStorage->dense) {
             if (animComp.IsPlaying && animComp.AnimatorInstance) {
-                // Przesuwamy głowicę odtwarzania w czasie - to się wywołuje co klatkę!
                 animComp.AnimatorInstance->UpdateAnimation(ts.GetSeconds() * animComp.PlaybackSpeed);
             }
         }
     }
 
-    // ==========================================
-    // 1. update skrytpow
-    // ==========================================
+
     CalculateTransforms();
     auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
 
@@ -116,11 +110,10 @@ void Scene::OnUpdateRuntime(Timestep ts)
                         scriptStorage->dense[i].Scripts[s].Instance = instance;
                         instance->m_Entity = entity;
                         instance->m_Scene = this;
-                        instance->OnCreate(); // Uwaga: Tu ECS może realokować pamięć pod maską!
+                        instance->OnCreate();
                     }
                 }
 
-                // Ponownie odpytujemy za pomocą bezpiecznego indeksu [i][s]
                 if (scriptStorage->dense[i].Scripts[s].Instance) {
                     scriptStorage->dense[i].Scripts[s].Instance->OnUpdate(ts);
                 }
@@ -135,10 +128,6 @@ void Scene::OnUpdateRuntime(Timestep ts)
         RebuildConveyorCache();
         m_ConveyorCacheReady = true;
     }
-
-    // ==========================================
-    // 2. KROK FIZYKI I KOLIZJI 
-    // ==========================================
 
     auto* colliderStorage = m_ECSWorld.GetComponentVector<BoxColliderComponent>();
     auto* transformStorage = m_ECSWorld.GetComponentVector<TransformComponent>();
@@ -190,13 +179,9 @@ void Scene::OnUpdateRuntime(Timestep ts)
             }
         }
     }
-    // ==========================================
-     // 5. DEFERRED DELETION (USUWANIE ODROCZONE)
-     // ==========================================
+
     for (Entity e : m_EntitiesToDestroy)
     {
-        // 0. Najpierw bezpiecznie niszczymy instancje skryptów!
-        // Dzięki temu odpalą się wszystkie OnDestroy() w skryptach (np. wypisanie z EventBus)
         auto* scriptComp = m_ECSWorld.GetComponent<NativeScriptComponent>(e);
         if (scriptComp) {
             for (auto& scriptEl : scriptComp->Scripts) {
@@ -208,10 +193,8 @@ void Scene::OnUpdateRuntime(Timestep ts)
             }
         }
 
-        // 1. Odpinamy encję od rodzica, aby uchronić drzewo relacji przed zepsuciem
         RemoveParent(e);
 
-        // 2. Usuwamy encję z siatki przestrzennej (SSA)
         for (auto& pair : m_SpartialGrid)
         {
             auto& cellEntities = pair.second;
@@ -223,7 +206,6 @@ void Scene::OnUpdateRuntime(Timestep ts)
             );
         }
 
-        // 3. Następnie fizycznie niszczymy encję w ECS
         m_ECSWorld.DestroyEntity(e);
         GetWorld().GetEventBus().Publish(EntityDestroyedEvent{ e });
     }
@@ -236,7 +218,6 @@ void Scene::OnRuntimeStop()
 
     auto* scriptStorage = m_ECSWorld.GetComponentVector<NativeScriptComponent>();
     if (scriptStorage) {
-        // Poprawka bezpieczeństwa referencji przy usuwaniu
         for (size_t i = 0; i < scriptStorage->dense.size(); i++) {
             for (size_t s = 0; s < scriptStorage->dense[i].Scripts.size(); s++) {
                 auto& scriptEl = scriptStorage->dense[i].Scripts[s];
@@ -254,24 +235,18 @@ void Scene::OnRuntimeStop()
 
 std::shared_ptr<Scene> Scene::Copy(std::shared_ptr<Scene> other)
 {
-    // 1. Tworzymy nową, pustą scenę ( m_RuntimeScene)
     std::shared_ptr<Scene> newScene = std::make_shared<Scene>();
 
-    // 2. Używamy serializera, aby zapisać obecną scenę do pliku temp
     SceneSerializer serializer(other.get());
 
-    // Zapisujemy w folderze saves jako plik tymczasowy przez system VFS
     serializer.Serialize("assets://saves/temp_play_scene.json");
 
-    // 3. Wczytujemy dokładnie ten sam plik do nowej sceny przez system VFS
     SceneSerializer deserializer(newScene.get());
     deserializer.Deserialize("assets://saves/temp_play_scene.json");
 
-    // 4. Zwracamy nową, gotową do gry scenę, która jest dokładnym klonem edytora
     return newScene;
 }
 
-// 1. Rekurencyjna funkcja schodząca w głąb drzewa
 void UpdateTransformTree(World& world, std::size_t entityId, const glm::mat4& parentGlobalMatrix, bool parentIsDirty) {
     auto* transform = world.GetComponentByID<TransformComponent>(entityId);
     if (!transform) return;
@@ -282,15 +257,12 @@ void UpdateTransformTree(World& world, std::size_t entityId, const glm::mat4& pa
         glm::mat4 localMatrix = transform->GetLocalMatrix();
         transform->WorldMatrix = parentGlobalMatrix * localMatrix;
 
-        // Statystyka: Praca wykonana
         Renderer::GetStats().MatrixCalculations++;
     }
     else {
-        // Statystyka: Praca zaoszczędzona dzięki Dirty Flag
         Renderer::GetStats().SkippedCalculations++;
     }
 
-    // Przekazujemy macierz niżej
     auto* rel = world.GetComponentByID<RelationshipComponent>(entityId);
     if (rel && rel->FirstChild != NULL_ENTITY) {
         std::size_t currentChildId = rel->FirstChild;
@@ -316,30 +288,25 @@ void Scene::CalculateTransforms() {
 
     if (!transformStorage) return;
 
-    // Iterujemy po wszystkich encjach z Transform
     for (size_t i = 0; i < transformStorage->reverse.size(); i++) {
         Entity entity = transformStorage->reverse[i];
 
         bool isRoot = true;
 
-        // Sprawdzamy czy encja ma rodzica
         if (relStorage) {
-            // Używamy GetByID, aby ominąć weryfikację generacji i oprzeć się na czystym indeksie
             if (auto* rel = relStorage->GetByID(entity.id)) {
                 if (rel->Parent != NULL_ENTITY) {
-                    isRoot = false; // Ma rodzica! Zostanie przeliczona, gdy funkcja wywoła się dla rodzica.
+                    isRoot = false; 
                 }
             }
         }
 
-        // Je?li to korze? grafu (lub samodzielny obiekt), startujemy drzewo
         if (isRoot) {
             UpdateTransformTree(world, entity.id, glm::mat4(1.0f), true);
         }
     }
 }
 
-// W Scene.h
 Entity Scene::GetParent(Entity child)
 {
     auto* rel = m_ECSWorld.GetComponent<RelationshipComponent>(child);
@@ -363,19 +330,17 @@ Entity Scene::GetParent(Entity child)
 void Scene::SetParent(Entity child, Entity parent) {
     auto& world = GetWorld();
 
-    // Zabezpieczenie
     if (parent.id == NULL_ENTITY) {
         spdlog::warn("Uzyto SetParent z pustym rodzicem. Uzywaj RemoveParent!");
         RemoveParent(child);
         return;
     }
 
-    // 1. Zabezpieczenie przed zap?tleniem (Cylic Dependency Check)
     Entity currentAncestor = parent;
     while (currentAncestor.id != NULL_ENTITY) {
         if (currentAncestor.id == child.id) {
             spdlog::warn("Nie mozna podpiac: Cykl w hierarchii! Encja {} jest juz przodkiem {}.", child.id, parent.id);
-            return; // Przerywamy akcj?!
+            return; 
         }
         auto* ancestorRel = world.GetComponent<RelationshipComponent>(currentAncestor);
         if (ancestorRel && ancestorRel->Parent != NULL_ENTITY) {
@@ -388,7 +353,6 @@ void Scene::SetParent(Entity child, Entity parent) {
 
     RemoveParent(child);
 
-    // 2. Dodajemy komponenty relacji, je?li ich nie maj?
     if (!world.GetComponent<RelationshipComponent>(child)) {
         world.AddComponent<RelationshipComponent>(child, {});
     }
@@ -399,7 +363,6 @@ void Scene::SetParent(Entity child, Entity parent) {
     auto* childRel = world.GetComponent<RelationshipComponent>(child);
     auto* parentRel = world.GetComponent<RelationshipComponent>(parent);
 
-    // 3. NOWE PODPIĘCIE (odpięcie od starego rodzica obsługuje RemoveParent powyżej)
     childRel->Parent = parent.id;
     childRel->NextSibling = parentRel->FirstChild;
     childRel->PreviousSibling = NULL_ENTITY;
@@ -455,7 +418,6 @@ ConveyorScript* Scene::GetConveyorAt(float worldX, float worldZ)
     return (it != ConveyorMap.end()) ? it->second : nullptr;
 }
 
-//wypleniamy strukture ssa -> dla kazdego kafelka sprawdzamy jakie ma entity w srodku
 void Scene::UpdateSpatialGrid()
 {
     auto* transformStorage = GetWorld().GetComponentVector<TransformComponent>();
@@ -465,12 +427,10 @@ void Scene::UpdateSpatialGrid()
     {
         TransformComponent& transform = transformStorage->dense[i];
 
-        // aktualizujemy przypisanie do siatki tylko jeśli obiekt zmienił pozycję
         if (transform.IsWorldDirty())
         {
             Entity entity = transformStorage->reverse[i];
 
-            // 1. usuwamy encję z jej poprzedniego kafelka
             for (auto& pair : m_SpartialGrid)
             {
                 auto& cellEntities = pair.second;
@@ -490,17 +450,14 @@ void Scene::UpdateSpatialGrid()
 
             glm::vec3 globalPos = { transform.WorldMatrix[3][0], transform.WorldMatrix[3][1], transform.WorldMatrix[3][2] };
 
-            // 3. nowy klucz i dodajemy encję
             glm::ivec2 newCell = GridSystem::WorldToCell(globalPos);
             m_SpartialGrid[newCell].push_back(entity);
 
-            // 4. czyścimy flagę
             transform.ClearWorldDirty();
         }
     }
 }
 
-//pobieramy jakie sa entity w kafelku
 const std::vector<Entity>* Scene::GetEntitiesInCell(const glm::ivec2& cell) const
 {
     auto it = m_SpartialGrid.find(cell);
@@ -522,7 +479,6 @@ void Scene::RemoveParent(Entity child) {
 
     auto* oldParentRel = world.GetComponent<RelationshipComponent>({ childRel->Parent, 0 });
     if (oldParentRel) {
-        // Szukamy dziecka na liście starego rodzica i przepinamy sąsiadów
         if (oldParentRel->FirstChild == child.id) {
             oldParentRel->FirstChild = childRel->NextSibling;
         }
@@ -537,7 +493,6 @@ void Scene::RemoveParent(Entity child) {
         oldParentRel->ChildrenCount--;
     }
 
-    // Resetujemy relacje samego dziecka
     childRel->Parent = NULL_ID;
     childRel->NextSibling = NULL_ID;
     childRel->PreviousSibling = NULL_ID;

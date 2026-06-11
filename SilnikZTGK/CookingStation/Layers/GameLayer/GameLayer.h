@@ -22,7 +22,6 @@ private:
     bool OnKeyPressed(KeyPressedEvent& e);
     std::shared_ptr<Scene> m_ActiveScene;
 
-    //Zmienne dla Wirtualnego Kursora
     glm::vec3 m_VirtualCursorPos{ 0.0f, 0.0f, 0.0f };
     bool m_UsingGamepad = false;
     float m_GamepadCursorSpeed = 15.0f;
