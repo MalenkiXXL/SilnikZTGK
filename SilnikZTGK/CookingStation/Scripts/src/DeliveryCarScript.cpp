@@ -64,7 +64,7 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             m_AnimationTimer -= (float)ts;
 
             if (!m_MushroomSpawned) {
-                m_MushroomEntity = PrefabSerializer::Deserialize(GetScene(), "assets://prefabs/deliveryMushroom.json", m_DropPos);
+                m_MushroomEntity = PrefabSerializer::Deserialize(GetScene(), "assets://prefabs/deliveryMushroom.json", m_DropPos)[0];
 
                 GetScene()->SetParent(m_MushroomEntity, m_Entity);
 

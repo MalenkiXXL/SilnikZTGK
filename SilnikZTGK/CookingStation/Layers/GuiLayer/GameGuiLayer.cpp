@@ -423,7 +423,7 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
     float textDrawY = coinCenterY - baselineOffset + (textHeight * 0.25f);
 
     glm::vec2 shadowPos = { std::floor(textPos.x + 3.0f), std::floor(textDrawY + 3.0f) };
-    glm::vec2 finalPos  = { std::floor(textPos.x),         std::floor(textDrawY) };
+    glm::vec2 finalPos = { std::floor(textPos.x),         std::floor(textDrawY) };
 
     Gui::DrawGuiText(text, shadowPos, textScale, { 0.0f, 0.0f, 0.0f, 0.6f });
     Gui::DrawGuiText(text, finalPos, textScale, { 1.0f, 0.95f, 0.3f, 1.0f });
@@ -865,7 +865,7 @@ void GameGuiLayer::DrawHoverCloudUI(const glm::vec2& screenPos, const std::share
     glm::vec2 cloudPos = { screenPos.x - cloudSize.x * 0.5f, screenPos.y - cloudSize.y };
 
     if (m_BookCloudIcon) {
-        Renderer2D::DrawQuad(cloudPos, cloudSize, m_BookCloudIcon, {1.0f, 1.0f, 1.0f, 0.95f}, {0.0f, 1.0f}, {1.0f, 0.0f});
+        Renderer2D::DrawQuad(cloudPos, cloudSize, m_BookCloudIcon, { 1.0f, 1.0f, 1.0f, 0.95f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     }
 
     glm::vec2 iconSize = GuiUtils::CalculateAspectSize(icon, 55.0f * baseScale);
@@ -882,7 +882,7 @@ void GameGuiLayer::DrawHoverCloudUI(const glm::vec2& screenPos, const std::share
     // kolor w zależności od ilości
     glm::vec4 textColor = (amount > 0) ? glm::vec4(0.118f, 0.737f, 0.451f, 1.0f) : glm::vec4(1.0f, 0.3f, 0.3f, 1.0f);
 
-    Gui::DrawGuiText(amountStr, {textPos.x + 2.0f, textPos.y + 2.0f}, textScale, {0.1f, 0.1f, 0.1f, 0.6f}); // Cień
+    Gui::DrawGuiText(amountStr, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.1f, 0.1f, 0.1f, 0.6f }); // Cień
     Gui::DrawGuiText(amountStr, textPos, textScale, textColor); // Tekst główny
 }
 
@@ -954,21 +954,7 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
             default: iconToDraw = m_QuestionMarkIcon; break;
             }
 
-            DrawHoverCloudUI({screenX, screenY}, iconToDraw, packScript->getIngredientAmount(), baseScale);
-            // Rysowanie UI
-            if (iconToDraw) {
-                glm::vec2 cloudSize = { 120.0f * baseScale, 120.0f * baseScale };
-                glm::vec2 cloudPos = { screenX - cloudSize.x * 0.5f, screenY - cloudSize.y };
-
-                if (m_BookCloudIcon) {
-                    Renderer2D::DrawQuad(cloudPos, cloudSize, m_BookCloudIcon, { 1.0f, 1.0f, 1.0f, 0.95f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-                }
-
-                glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, 55.0f * baseScale);
-                glm::vec2 iconPos = { cloudPos.x + (cloudSize.x - iconSize.x) * 0.5f, cloudPos.y + (cloudSize.y - iconSize.y) * 0.5f };
-
-                Renderer2D::DrawQuad(iconPos, iconSize, iconToDraw, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-            }
+            DrawHoverCloudUI({ screenX, screenY }, iconToDraw, packScript->getIngredientAmount(), baseScale);
         }
     }
 }
@@ -1027,17 +1013,19 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
 
         std::shared_ptr<Texture> iconToDraw = nullptr;
         switch (crateScript->m_CrateIngredient) {
-            case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
-            case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
-            case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
-            case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
-            case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
-            default: iconToDraw = m_QuestionMarkIcon; break;
+        case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
+        case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
+        case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
+        case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
+        case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
+        default: iconToDraw = m_QuestionMarkIcon; break;
         }
 
         int amount = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(crateScript->m_CrateIngredient) : 0;
-        DrawHoverCloudUI({screenX, screenY}, iconToDraw, amount, baseScale);
+        DrawHoverCloudUI({ screenX, screenY }, iconToDraw, amount, baseScale);
     }
+} // <--- TO JEST KLAMRA, KTÓRĄ ZJADŁ GIT!
+
 void GameGuiLayer::ActivateBuildMode()
 {
     if (m_IsBuildModeActive) return;
@@ -1498,7 +1486,7 @@ void GameGuiLayer::DrawBuildModeOverlay(float baseScale)
 
     // Identyczne szare tło jak PauseMenuPanel
     Renderer2D::DrawQuad({ 0.0f, 0.0f }, { W, H },
-        { 0.00f, 0.0f, 0.00f, 0.0f }, 0.0f);
+        { 0.05f, 0.05f, 0.05f, 0.15f }, 0.0f);
 
     // Ten sam napis "PAUSED" (pausedText.png) co przy ESC
     auto pausedTextTex = AssetManager::GetTexture("assets://UI/pausedText.png");

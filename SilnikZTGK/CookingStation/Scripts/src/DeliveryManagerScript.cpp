@@ -139,7 +139,7 @@ void DeliveryManagerScript::CallForDelivery(std::vector<IngredientType> types)
     m_CurrentOrderTypes = types;
     m_SpawnedPackagesCount = 0; // Zaczynamy nową dostawę
 
-    Entity car = PrefabSerializer::Deserialize(GetScene(), m_VanPrefabPath, m_CarStartPos);
+    Entity car = PrefabSerializer::Deserialize(GetScene(), m_VanPrefabPath, m_CarStartPos)[0];
 
     if (car.id != std::numeric_limits<std::size_t>::max())
     {

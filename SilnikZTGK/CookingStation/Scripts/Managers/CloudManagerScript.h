@@ -48,7 +48,7 @@ public:
             glm::vec3 spawnPos{ x, m_Height, z };
 
             Entity cloudEntity = PrefabSerializer::Deserialize(
-                    m_CachedScene.get(), "CookingStation/Assets/prefabs/cloud.json", spawnPos);
+                m_CachedScene.get(), "CookingStation/Assets/prefabs/cloud.json", spawnPos)[0];
 
             if (!world.GetComponent<TagComponent>(cloudEntity))
                 world.AddComponent<TagComponent>(cloudEntity, TagComponent{ "Cloud" });
