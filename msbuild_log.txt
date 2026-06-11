@@ -1,5 +1,5 @@
 Wersja programu MSBuild 18.8.1+c99826b40 dla .NET Framework
-Kompilacja rozpoczęła się 11.06.2026 14:27:42.
+Kompilacja rozpoczęła się 11.06.2026 18:31:09.
 
 Projekt „C:\Silnik\SilnikZTGK\SilnikZTGK.sln” w węźle 1 (elementy docelowe: Rebuild).
 ValidateSolutionConfiguration:
@@ -10,7 +10,6 @@ _PrepareForClean:
 PrepareForBuild:
   Dane wyjściowe ze strukturą są włączone. Formatowanie diagnostyki kompilatora będzie odzwierciedlać hierarchię błędów. Aby uzyskać więcej informacji, zobacz https://aka.ms/cpp/structured-output.
 InitializeBuildStatus:
-  Trwa tworzenie „x64\Distribution\SilnikZTGK.tlog\unsuccessfulbuild”, ponieważ określono "AlwaysCreate".
   Modyfikowanie „x64\Distribution\SilnikZTGK.tlog\unsuccessfulbuild”.
 VcpkgTripletSelection:
   Using triplet "x64-windows" from "C:\Silnik\SilnikZTGK\vcpkg_installed\x64-windows\x64-windows\"
@@ -1639,7 +1638,7 @@ C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scripts\CustomerManagerScript.h(6
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scripts\Waiter\WaiterScript.h(633,36): warning C4244: "return": konwersja z "int" do "float", możliwa utrata danych [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
   (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/EditorGuiLayer.cpp”)
   
-C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp(929,24): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp(926,24): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
 C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Tools\MSVC\14.44.35207\include\xutility(476,82): warning C4267: "argument": konwersja z "size_t" do "uint32_t", możliwa utrata danych [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
   (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/EditorGuiLayer.cpp”)
       C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Tools\MSVC\14.44.35207\include\xutility(476,82):
@@ -2388,7 +2387,7 @@ C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scripts\CustomerManagerScript.h(6
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scripts\CustomerManagerScript.h(69,77): warning C4267:             _Ty=int [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
 C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scripts\CustomerManagerScript.h(69,77): warning C4267:         ] [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
   C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scripts\Waiter\WaiterScript.h(633,36): warning C4244: "return": konwersja z "int" do "float", możliwa utrata danych [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
-  C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp(929,24): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp(926,24): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
   C:\Program Files\Microsoft Visual Studio\18\Insiders\VC\Tools\MSVC\14.44.35207\include\xutility(476,82): warning C4267: "argument": konwersja z "size_t" do "uint32_t", możliwa utrata danych [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
   C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Texture2D.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x19c, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
   C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Texture2D.cpp(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x19d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [C:\Silnik\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
@@ -2434,4 +2433,4 @@ C:\Silnik\SilnikZTGK\SilnikZTGK\CookingStation\Scripts\CustomerManagerScript.h(6
     Ostrzeżenia: 376
     Liczba błędów: 0
 
-Czas, który upłynął: 00:03:17.41
+Czas, który upłynął: 00:09:21.36
