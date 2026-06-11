@@ -78,7 +78,7 @@ TEST(DeliveryLogicTest, MultipleCustomersSameIngredient_DetectsVirtualShortage) 
     // Act
     auto result = DeliveryLogic::CalculateWhatToOrder(queue, inventory, thresholds);
 
-    // Assert: Weryfikacja spójności stanu "brudnego" (dirty state).
+    // Assert: Weryfikacja spójności stanu dirty state.
     // Pierwszy klient wirtualnie konsumuje jedynego pomidora w pamięci algorytmu.
     // Algorytm musi wykryć brak dla drugiego klienta i wygenerować na niego zamówienie.
     ASSERT_EQ(result.size(), 2);
@@ -97,8 +97,8 @@ TEST(DeliveryLogicTest, RefillsEmptyPantryWithTwoDistinctPackages) {
 
     std::map<IngredientType, int> inventory = {
             { IngredientType::Tomato, 1 }, // Zabezpiecza bieżące zamówienie
-            { IngredientType::Milk, 1 },   // Poniżej progu!
-            { IngredientType::Egg, 0 }     // Poniżej progu!
+            { IngredientType::Milk, 1 },   // Poniżej progu
+            { IngredientType::Egg, 0 }     // Poniżej progu
     };
     std::map<IngredientType, int> thresholds = {
             { IngredientType::Milk, 3 },
@@ -113,7 +113,7 @@ TEST(DeliveryLogicTest, RefillsEmptyPantryWithTwoDistinctPackages) {
     ASSERT_EQ(result.size(), 2);
     EXPECT_TRUE(std::find(result.begin(), result.end(), IngredientType::Milk) != result.end());
     EXPECT_TRUE(std::find(result.begin(), result.end(), IngredientType::Egg) != result.end());
-    // Dodatkowy test na unikalność zalecony przy przeglądzie kodu (Code Review)
+    // Dodatkowy test na unikalność
     EXPECT_NE(result[0], result[1]);
 }
 
@@ -143,7 +143,7 @@ TEST(DeliveryLogicTest, EnsuresPackageUniquenessRegardlessOfDemand) {
 
     // Assert: Zabezpieczenie przed dublowaniem zawartości paczek.
     // Nawet jeśli Ser jest potrzebny zarówno do kolejki zamówień, jak i do progów,
-    // algorytm wciąż musi wygenerować szynkę jako drugą, RÓŻNĄ paczkę.
+    // algorytm wciąż musi wygenerować szynkę jako drugą, różną paczkę.
     ASSERT_EQ(result.size(), 2);
     EXPECT_EQ(result[0], IngredientType::Cheese);
     EXPECT_EQ(result[1], IngredientType::Ham);

@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <map>
+#include <algorithm>
+#include <spdlog/spdlog.h>
 #include "../Managers/IngredientType.h"
 
 struct OrderRecord {
