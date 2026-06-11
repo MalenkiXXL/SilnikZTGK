@@ -439,7 +439,34 @@
     {
       "name": "babcia",
       "path": "CookingStation/Assets/models/animacje/babcia/babcia-chodzi.gltf"
+    },
+    {
+      "name": "szarlotka",
+      "path": "CookingStation/Assets/models/skladniki/szarlotka/apple_pie.gltf"
+    },
+    {
+      "name": "mleko-z-miodem",
+      "path": "CookingStation/Assets/models/skladniki/mleko_z_miodem/milk_with_honey.gltf"
+    },
+    {
+      "name": "makaron",
+      "path": "CookingStation/Assets/models/skladniki/makaron/noddle.gltf"
+    },
+    {
+      "name": "nalesniki",
+      "path": "CookingStation/Assets/models/skladniki/nalesniki/pancakes.gltf"
+    },
+    {
+      "name": "pizza",
+      "path": "CookingStation/Assets/models/skladniki/pizza/pizza.gltf"
+    },
+    {
+      "name": "ramen",
+      "path": "CookingStation/Assets/models/skladniki/ramen/ramen.gltf"
+    },
+    {
+      "name": "spagetti",
+      "path": "CookingStation/Assets/models/skladniki/spagetti/spagetti.gltf"
     }
-
   ]
 }
