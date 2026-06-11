@@ -215,5 +215,35 @@ private:
     std::size_t m_GameResumedSubId = 0;
     bool m_IsGamePaused = false;
 
+    // ── Build Mode ─────────────────────────────────────────────────────────────
+    bool  m_IsBuildModeActive = false;
+    float m_BuildPanelSlideY = 0.0f;   // 0=ukryty → 1=widoczny (lerp)
+    int   m_HeldMachineIndex = -1;     // -1 = żadna ikona nie jest wybrana
+    bool m_JustSelectedFromPanel = false;
+
+    struct MachineEntry {
+        std::string              Label;
+        std::string              PrefabPath;
+        std::shared_ptr<Texture> Icon;
+    };
+    std::vector<MachineEntry> m_MachineEntries;
+    std::vector<std::pair<Entity, glm::vec3>> m_PreviewGroup;
+    Entity m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+    glm::vec3 m_MovingMachineOriginalPos = glm::vec3(0.0f);
+    std::vector<std::pair<Entity, glm::vec3>> m_MovingGroup;
+
+
+
     void DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
+
+    void DrawBuildModeButton(float gameX, float gameY, float gameWidth, float gameHeight,
+        float baseScale, float dt);
+    void DrawBuildModePanel(float gameX, float gameY, float gameWidth, float gameHeight,
+        float baseScale, float dt);
+    void UpdateBuildModePlacement();
+    void ActivateBuildMode();
+    void DeactivateBuildMode();
+    void DrawBuildModeOverlay(float baseScale);
+    void DrawBuildGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos,
+        const glm::vec3& hoverPos);
 };

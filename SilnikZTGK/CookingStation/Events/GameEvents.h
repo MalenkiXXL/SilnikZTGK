@@ -158,5 +158,9 @@ struct CustomerServedEvent {
     Entity ServedFood;
 };
 
+struct BuildModeToggledEvent {
+    bool IsActive;
+};
+
 struct GamePausedEvent {};
 struct GameResumedEvent {};

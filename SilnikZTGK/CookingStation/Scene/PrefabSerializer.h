@@ -11,12 +11,12 @@
 class PrefabSerializer {
 public:
     inline static uint32_t s_PrefabSpawnCounter = 0;
-    // ZAPIS: Wyci�gamy komponenty z wybranej encji i wrzucamy do JSONa
+
+    // ZAPIS: Wyciagamy komponenty z wybranej encji i wrzucamy do JSONa
     static void Serialize(Scene* scene, Entity entity, const std::string& filepath) {
         nlohmann::json item;
         auto& world = scene->GetWorld();
 
-        // Używamy bezpieczniejszego GetVector() - dokładnie jak w SceneSerializerze!
         auto* tagStorage = world.GetComponentVector<TagComponent>();
         auto* transformStorage = world.GetComponentVector<TransformComponent>();
         auto* meshStorage = world.GetComponentVector<MeshComponent>();
@@ -60,12 +60,11 @@ public:
                     for (const auto& s : nsc->Scripts) {
                         scriptNames.push_back(s.Name);
                     }
-                    item["scripts"] = scriptNames; // Klucz "scripts" z 's' na koncu!
+                    item["scripts"] = scriptNames;
                 }
             }
         }
 
-        // --- ZMIANA: Tylko JEDNO tworzenie pliku i konwersja VFS -> Ścieżka fizyczna ---
         std::string physicalPath = filepath;
         if (filepath.rfind("assets://", 0) == 0) {
             physicalPath = "CookingStation/Assets/" + filepath.substr(9);
@@ -77,37 +76,32 @@ public:
             spdlog::info("Zapisano prefab: {}", physicalPath);
         }
         else {
-            spdlog::error("Błąd: Nie udalo sie zapisac prefaba do pliku: {}", physicalPath);
+            spdlog::error("Blad: Nie udalo sie zapisac prefaba do pliku: {}", physicalPath);
         }
     }
 
-    static Entity Deserialize(Scene* scene, const std::string& filepath, const glm::vec3& spawnPos) {
+    // ODCZYT: Teraz zwracamy WEKTOR wszystkich załadowanych encji!
+    static std::vector<Entity> Deserialize(Scene* scene, const std::string& filepath, const glm::vec3& spawnPos) {
 
         s_PrefabSpawnCounter++;
         std::string idSuffix = "_" + std::to_string(s_PrefabSpawnCounter);
 
-        // --- KULOODPORNY SANITIZER ŚCIEŻEK ---
         std::string vfsPath = filepath;
-        std::replace(vfsPath.begin(), vfsPath.end(), '\\', '/'); // Zamiana backslashy na ukośniki
+        std::replace(vfsPath.begin(), vfsPath.end(), '\\', '/');
 
-        // Szukamy słowa "Assets/" w dowolnym miejscu ścieżki
         size_t pos = vfsPath.find("Assets/");
         if (pos != std::string::npos) {
-            // Ucinamy wszystko do "Assets/" i doklejamy assets://
-            vfsPath = "assets://" + vfsPath.substr(pos + 7); // 7 to długość słowa "Assets/"
+            vfsPath = "assets://" + vfsPath.substr(pos + 7);
         }
-        // -------------------------------------
 
         std::vector<uint8_t> fileData = VFS::ReadFile(vfsPath);
         if (fileData.empty()) {
-            // Jeśli VFS nadal nie zadziała, ten log powie nam całą prawdę
             spdlog::error("[PrefabSerializer] Blad VFS!");
             spdlog::error("   -> Oryginal: {}", filepath);
             spdlog::error("   -> Przerobiona: {}", vfsPath);
-            return { std::numeric_limits<std::size_t>::max(), 0 };
+            return {}; // Zwracamy pusty wektor
         }
 
-        // Parsowanie bezpośrednio z pamięci RAM (VFS)
         nlohmann::json parsedData = nlohmann::json::parse(fileData.begin(), fileData.end());
         if (parsedData.is_object()) {
             parsedData = nlohmann::json::array({ parsedData });
@@ -115,93 +109,90 @@ public:
 
         std::unordered_map<int, Entity> localIdToRealEntity;
         std::unordered_map<std::size_t, Entity> rawIdToEntity;
-        Entity rootEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+
+        std::vector<Entity> createdEntities; // Tabela na wszystkie stworzone elementy
         auto& world = scene->GetWorld();
 
         for (const auto& item : parsedData) {
             auto builder = scene->GetWorld().BuildEntity();
 
-        std::string name = item.contains("name") ? item["name"].get<std::string>() : "Prefab";
-        std::string nameWithId = name + idSuffix;
-        builder.With<TagComponent>({ nameWithId });
+            std::string name = item.contains("name") ? item["name"].get<std::string>() : "Prefab";
+            std::string nameWithId = name + idSuffix;
+            builder.With<TagComponent>({ nameWithId });
 
-        TransformComponent transComp;
+            TransformComponent transComp;
+            transComp.SetPosition(spawnPos);
 
-        // ZMIANA: Wgrywamy dane przez Settery, co automatycznie ustawi flag� m_IsDirty na true!
-        transComp.SetPosition(spawnPos);
-
-        glm::vec3 localPos = { 0.0f, 0.0f, 0.0f };
-        if (item.contains("position")) {
-            localPos = { item["position"][0], item["position"][1], item["position"][2] };
-        }
-
-        if (item.contains("parent_id")) {
-            transComp.SetPosition(localPos);
-        }
-        else {
-            transComp.SetPosition(spawnPos + localPos);
-        }
-
-        if (item.contains("rotation")) {
-            transComp.SetRotation({ item["rotation"][0], item["rotation"][1], item["rotation"][2] });
-        }
-
-        if (item.contains("scale")) {
-            transComp.SetScale({ item["scale"][0], item["scale"][1], item["scale"][2] });
-        }
-        builder.With<TransformComponent>(transComp);
-
-        std::shared_ptr<Model> model = nullptr;
-        if (item.contains("model_path")) {
-            std::string path = item["model_path"];
-            MeshComponent meshComp;
-            model = AssetManager::GetModel(path);
-            meshComp.ModelPtr = AssetManager::GetModel(path);
-            meshComp.ShaderPtr = nullptr;
-            meshComp.Path = path;
-            builder.With<MeshComponent>(meshComp);
-        }
-
-        if (item.contains("collider")) {
-            BoxColliderComponent bc;
-            bc.Size = { item["collider"]["size"][0], item["collider"]["size"][1], item["collider"]["size"][2] };
-            bc.Offset = { item["collider"]["offset"][0], item["collider"]["offset"][1], item["collider"]["offset"][2] };
-            builder.With<BoxColliderComponent>(bc);
-        }
-
-        if (item.contains("scripts")) {
-            NativeScriptComponent nsc;
-            for (const auto& scriptName : item["scripts"]) {
-                ScriptRegistry::AddScriptToComponent(nsc, scriptName.get<std::string>());
+            glm::vec3 localPos = { 0.0f, 0.0f, 0.0f };
+            if (item.contains("position")) {
+                localPos = { item["position"][0], item["position"][1], item["position"][2] };
             }
-            builder.With<NativeScriptComponent>(nsc);
-        }
-        else if (item.contains("script")) {
-            NativeScriptComponent nsc;
-            ScriptRegistry::AddScriptToComponent(nsc, item["script"].get<std::string>());
-            builder.With<NativeScriptComponent>(nsc);
-        }
 
-        if (model) {
-            AnimatorComponent animComp;
-            if (SceneSerializer::ParseAnimatorFromJson(item, model, animComp)) {
-                builder.With<AnimatorComponent>(animComp);
+            if (item.contains("parent_id")) {
+                transComp.SetPosition(localPos);
             }
-        }
+            else {
+                transComp.SetPosition(spawnPos + localPos);
+            }
 
-        Entity newEntity = builder.Build();
+            if (item.contains("rotation")) {
+                transComp.SetRotation({ item["rotation"][0], item["rotation"][1], item["rotation"][2] });
+            }
+
+            if (item.contains("scale")) {
+                transComp.SetScale({ item["scale"][0], item["scale"][1], item["scale"][2] });
+            }
+            builder.With<TransformComponent>(transComp);
+
+            std::shared_ptr<Model> model = nullptr;
+            if (item.contains("model_path")) {
+                std::string path = item["model_path"];
+                MeshComponent meshComp;
+                model = AssetManager::GetModel(path);
+                meshComp.ModelPtr = AssetManager::GetModel(path);
+                meshComp.ShaderPtr = nullptr;
+                meshComp.Path = path;
+                builder.With<MeshComponent>(meshComp);
+            }
+
+            if (item.contains("collider")) {
+                BoxColliderComponent bc;
+                bc.Size = { item["collider"]["size"][0], item["collider"]["size"][1], item["collider"]["size"][2] };
+                bc.Offset = { item["collider"]["offset"][0], item["collider"]["offset"][1], item["collider"]["offset"][2] };
+                builder.With<BoxColliderComponent>(bc);
+            }
+
+            if (item.contains("scripts")) {
+                NativeScriptComponent nsc;
+                for (const auto& scriptName : item["scripts"]) {
+                    ScriptRegistry::AddScriptToComponent(nsc, scriptName.get<std::string>());
+                }
+                builder.With<NativeScriptComponent>(nsc);
+            }
+            else if (item.contains("script")) {
+                NativeScriptComponent nsc;
+                ScriptRegistry::AddScriptToComponent(nsc, item["script"].get<std::string>());
+                builder.With<NativeScriptComponent>(nsc);
+            }
+
+            if (model) {
+                AnimatorComponent animComp;
+                if (SceneSerializer::ParseAnimatorFromJson(item, model, animComp)) {
+                    builder.With<AnimatorComponent>(animComp);
+                }
+            }
+
+            Entity newEntity = builder.Build();
 
             if (item.contains("local_id")) {
                 localIdToRealEntity[item["local_id"].get<int>()] = newEntity;
             }
             rawIdToEntity[newEntity.id] = newEntity;
 
-            if (rootEntity.id == std::numeric_limits<std::size_t>::max()) {
-                rootEntity = newEntity;
-            }
+            createdEntities.push_back(newEntity); // Zapisujemy każdą encję do naszego wektora
         }
 
-        // --- ZMIANA 6: Druga pętla budująca strukturę hierarchii (opcjonalna) ---
+        // Pętla budująca strukturę hierarchii (opcjonalna)
         for (const auto& item : parsedData) {
             if (item.contains("parent_id") && item.contains("local_id")) {
                 int localId = item["local_id"].get<int>();
@@ -210,32 +201,26 @@ public:
                 Entity child = localIdToRealEntity[localId];
                 Entity parent = localIdToRealEntity[parentId];
 
-                // 1. Zapewniamy istnienie komponentu Relationship na dziecku
                 auto* childRel = world.GetComponent<RelationshipComponent>(child);
                 if (!childRel) {
                     world.AddComponent<RelationshipComponent>(child, RelationshipComponent{});
                     childRel = world.GetComponent<RelationshipComponent>(child);
                 }
 
-                // 2. Zapewniamy istnienie komponentu Relationship na rodzicu
                 auto* parentRel = world.GetComponent<RelationshipComponent>(parent);
                 if (!parentRel) {
                     world.AddComponent<RelationshipComponent>(parent, RelationshipComponent{});
                     parentRel = world.GetComponent<RelationshipComponent>(parent);
                 }
 
-                // 3. Ustawiamy powiązanie w górę (dziecko -> rodzic)
                 childRel->Parent = parent.id;
                 parentRel->ChildrenCount++;
 
-                // 4. Ustawiamy powiązania w dół i w bok (rodzic -> dzieci, brat -> brat)
                 if (parentRel->FirstChild == NULL_ENTITY) {
-                    // Jeśli to pierwsze dziecko, przypisujemy je bezpośrednio do ojca
                     parentRel->FirstChild = child.id;
                 }
                 else {
                     std::size_t currSiblingId = parentRel->FirstChild;
-                    // Tłumaczymy surowe ID na pełną encję za pomocą naszej nowej mapy!
                     Entity currSibling = rawIdToEntity[currSiblingId];
                     auto* currSiblingRel = world.GetComponent<RelationshipComponent>(currSibling);
 
@@ -251,7 +236,7 @@ public:
             }
         }
 
-        return rootEntity;
-
-    } // Koniec funkcji Deserialize
-}; // Koniec klasy PrefabSerializer
+        // Zwracamy caly wektor zbudowanych encji (Garnkow, Palnikow, Szafek itd.)
+        return createdEntities;
+    }
+};

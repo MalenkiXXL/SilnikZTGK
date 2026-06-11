@@ -68,6 +68,13 @@ void GameGuiLayer::OnAttach()
     m_CustomerOrderTex = AssetManager::GetTexture("assets://UI/customerOrder.png");
     m_HelperOrderTex = AssetManager::GetTexture("assets://UI/helperOrder.png");
 
+    m_MachineEntries = {
+    { "Garnek",    "assets://prefabs/pot_station.json",   m_PotIcon   },
+    { "Deska",     "assets://prefabs/board_station.json", m_FlourIcon },
+    { "Mikser",    "assets://prefabs/mixer.json",         m_MixerIcon },
+    { "Piekarnik", "assets://prefabs/oven.json",         m_OvenIcon  },
+    };
+
 
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
@@ -146,6 +153,13 @@ void GameGuiLayer::OnAttach()
     appBus.Subscribe<GameResumedEvent>([this](const GameResumedEvent&) {
         m_IsGamePaused = false;
         });
+
+    appBus.Subscribe<BuildModeToggledEvent>([this](const BuildModeToggledEvent& e) {
+        m_IsBuildModeActive = e.IsActive;
+        if (!e.IsActive) {
+            DeactivateBuildMode();
+        }
+        });
 }
 
 void GameGuiLayer::OnDetach()
@@ -185,7 +199,6 @@ bool GameGuiLayer::DrawBubblyImage(const std::string& id, const std::shared_ptr<
     glm::vec2 mousePos = Gui::GetMappedMousePos();
 
     // --- SYSTEM BLOKOWANIA PRZEBIJANIA KLIKNIĘĆ (MASKOWANIE TŁA) ---
-    // Jeśli książka jest otwarta, a przycisk NIE JEST częścią książki, to myszka udaje, że jej tam nie ma
     if (m_IsGamePaused || (m_IsRecipeBookOpen && id.find("Book") == std::string::npos && id.find("Recipe") == std::string::npos)) {
         mousePos = glm::vec2(-10000.0f, -10000.0f);
     }
@@ -249,7 +262,6 @@ void GameGuiLayer::DrawRecipeIcon(const std::string& recipeId, const std::shared
 }
 
 void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, bool isPlayMode) {
-    // --- SYSTEM BLOKOWANIA --- Jeśli książka jest otwarta, chowamy popup questów pod spodem!
     if (m_IsRecipeBookOpen || m_IsGamePaused) return;
 
     if (!DeliveryBoothScript::s_Instance || !DeliveryBoothScript::s_Instance->HasActiveQuest()) return;
@@ -316,12 +328,10 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
     if (!m_CornerIcon) return;
 
-    // --- SYSTEM BLOKOWANIA --- Aktualizujemy karuzele tylko jak książka jest wyłączona
     if (!m_IsRecipeBookOpen) {
         m_IngredientsCarousel.OnUpdate(dt);
         m_MachinesCarousel.OnUpdate(dt);
     }
-    // -------------------------
 
     glm::vec2 baseIconSize = GuiUtils::CalculateAspectSize(m_CornerIcon, gameHeight * 0.30f);
     glm::vec2 leftPosBase = { gameX, gameY + gameHeight - baseIconSize.y };
@@ -580,6 +590,9 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
 
     DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
+    DrawBuildModeButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+    DrawBuildModePanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+
     if (m_CoinIcon) {
         if (m_LastMoney == -1 && GameManagerScript::s_Instance) {
             int money = GameManagerScript::s_Instance->GetMoney();
@@ -621,6 +634,9 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
 
+    if (m_IsBuildModeActive)
+        UpdateBuildModePlacement();
+
     if (m_PausePanel && m_PausePanel->IsPaused()) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -629,6 +645,18 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
         Renderer2D::BeginScene(uiProj);
         m_PausePanel->OnUpdate(dt);
         m_PausePanel->Draw(baseScale);
+        Renderer2D::EndScene();
+
+        glEnable(GL_DEPTH_TEST);
+    }
+
+    if (m_IsBuildModeActive && m_PausePanel && !m_PausePanel->IsPaused()) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_DEPTH_TEST);
+
+        Renderer2D::BeginScene(uiProj);
+        DrawBuildModeOverlay(baseScale);
         Renderer2D::EndScene();
 
         glEnable(GL_DEPTH_TEST);
@@ -660,6 +688,11 @@ void GameGuiLayer::OnEvent(Event& e) {
         {
             e.Handled = true; // Zatrzymuje kliknięcie w przestrzeni 3D i dla okien poniżej!
         }
+    }
+
+    if (m_IsBuildModeActive && e.GetEventType() == EventType::MouseScrolled) {
+        e.Handled = true;
+        return;
     }
     // ---------------------------------------------------------
 
@@ -695,6 +728,13 @@ void GameGuiLayer::OnEvent(Event& e) {
                 m_ShowFPS = !m_ShowFPS;
             }
         }
+
+        if (ev.GetKeyCode() == 258 && ev.GetRepeatCode() == 0) {
+            if (m_IsBuildModeActive) DeactivateBuildMode();
+            else                     ActivateBuildMode();
+            return true;
+        }
+
         return false;
         });
 }
@@ -848,12 +888,12 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
             // Mapowanie ikony
             std::shared_ptr<Texture> iconToDraw = nullptr;
             switch (packScript->getType()) {
-                case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
-                case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
-                case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
-                case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
-                case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
-                default: iconToDraw = m_QuestionMarkIcon; break;
+            case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
+            case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
+            case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
+            case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
+            case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
+            default: iconToDraw = m_QuestionMarkIcon; break;
             }
 
             // Rysowanie UI
@@ -862,7 +902,7 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
                 glm::vec2 cloudPos = { screenX - cloudSize.x * 0.5f, screenY - cloudSize.y };
 
                 if (m_BookCloudIcon) {
-                    Renderer2D::DrawQuad(cloudPos, cloudSize, m_BookCloudIcon, {1.0f, 1.0f, 1.0f, 0.95f}, {0.0f, 1.0f}, {1.0f, 0.0f});
+                    Renderer2D::DrawQuad(cloudPos, cloudSize, m_BookCloudIcon, { 1.0f, 1.0f, 1.0f, 0.95f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
                 }
 
                 glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, 55.0f * baseScale);
@@ -872,4 +912,537 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
             }
         }
     }
+}
+
+void GameGuiLayer::ActivateBuildMode()
+{
+    if (m_IsBuildModeActive) return;
+    m_IsBuildModeActive = true;
+    m_HeldMachineIndex = -1;
+
+    auto activeScene = SceneManager::GetActiveScene();
+    if (activeScene) activeScene->SetState(SceneState::Pause);
+
+    Application::Get().GetEventBus().Publish(GamePausedEvent{});
+}
+
+void GameGuiLayer::DeactivateBuildMode()
+{
+    spdlog::info("DeactivateBuildMode wywolane, m_IsBuildModeActive={}", m_IsBuildModeActive);
+    if (!m_IsBuildModeActive) return;
+
+    m_IsBuildModeActive = false;  // ← MUSI być przed wszystkim innym
+    m_HeldMachineIndex = -1;
+
+    // Niszczymy całą grupę podglądu jeśli istnieje
+    auto activeScene = SceneManager::GetActiveScene();
+    if (!m_PreviewGroup.empty() && activeScene) {
+        for (auto& [ent, offset] : m_PreviewGroup) {
+            activeScene->GetWorld().GetEventBus().Publish(
+                EntityDestroyRequestEvent{ ent });
+        }
+        m_PreviewGroup.clear();
+    }
+
+    if (m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max() && activeScene) {
+        auto* tc = activeScene->GetWorld().GetComponent<TransformComponent>(m_MovingMachineEntity);
+        if (tc) tc->SetPosition(m_MovingMachineOriginalPos);
+        m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+        m_MovingGroup.clear();
+    }
+
+    if (activeScene) activeScene->SetState(SceneState::Play);
+
+    Application::Get().GetEventBus().Publish(GameResumedEvent{});
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+void GameGuiLayer::DrawBuildModeButton(float gameX, float gameY, float gameWidth,
+    float gameHeight, float baseScale, float dt)
+{
+    if (m_IsGamePaused && !m_IsBuildModeActive) return; // ukryj gdy pauza z ESC
+    if (m_IsRecipeBookOpen) return;
+
+    // Pozycja: mała chmurka pod chmurką z książką.
+    // Chmurka z książką ma cloudPos.y ≈ gameY * baseScale i wysokość ~273px (210*1.3).
+    // Ustawiamy się z małym marginesem poniżej.
+    float bookCloudH = 210.0f * baseScale * 1.3f;
+    glm::vec2 cloudSize = { 180.0f * baseScale, 70.0f * baseScale };
+    glm::vec2 cloudPos = { gameX + 14.0f * baseScale,
+                             gameY + bookCloudH + 8.0f * baseScale };
+
+    // Tło — zaokrąglony prostokąt (radius 18px) z kolorem zależnym od stanu
+    glm::vec4 bgColor = m_IsBuildModeActive
+        ? glm::vec4(0.20f, 0.45f, 0.90f, 0.95f)
+        : glm::vec4(0.10f, 0.12f, 0.20f, 0.82f);
+    Renderer2D::DrawQuad(cloudPos, cloudSize, bgColor, 18.0f * baseScale);
+
+    // Tekst
+    std::string label = m_IsBuildModeActive ? "[ BUILD ]" : "Build Mode";
+    float       textScale = 0.55f * baseScale;
+    float       tw = Gui::MeasureTextWidth(label, textScale);
+    float       th = Gui::MeasureTextHeight(label, textScale);
+    glm::vec2   textPos = {
+        cloudPos.x + (cloudSize.x - tw) * 0.5f,
+        cloudPos.y + (cloudSize.y - th) * 0.5f - th * 0.15f
+    };
+    // Cień
+    Gui::DrawGuiText(label, { textPos.x + 1.5f, textPos.y + 1.5f },
+        textScale, { 0.0f, 0.0f, 0.0f, 0.55f });
+    // Tekst
+    Gui::DrawGuiText(label, textPos, textScale,
+        m_IsBuildModeActive
+        ? glm::vec4(0.85f, 0.95f, 1.00f, 1.0f)
+        : glm::vec4(0.70f, 0.80f, 1.00f, 1.0f));
+
+    // Hit-test + kliknięcie
+    glm::vec2 mouse = Gui::GetMappedMousePos();
+    bool inBounds = mouse.x >= cloudPos.x && mouse.x <= cloudPos.x + cloudSize.x
+        && mouse.y >= cloudPos.y && mouse.y <= cloudPos.y + cloudSize.y;
+
+    if (inBounds) {
+        Input::SetUICaptureMouse(true);
+        if (Input::IsMouseButtonJustPressed(0)) {
+            if (m_IsBuildModeActive) DeactivateBuildMode();
+            else                     ActivateBuildMode();
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+void GameGuiLayer::DrawBuildModePanel(float gameX, float gameY, float gameWidth,
+    float gameHeight, float baseScale, float dt)
+{
+    // Animacja slide (działa też gdy nieaktywny — wyjazd)
+    float targetSlide = m_IsBuildModeActive ? 1.0f : 0.0f;
+    m_BuildPanelSlideY += (targetSlide - m_BuildPanelSlideY) * std::min(dt * 14.0f, 1.0f);
+    if (m_BuildPanelSlideY < 0.002f) m_BuildPanelSlideY = 0.0f;
+    if (m_BuildPanelSlideY > 0.998f) m_BuildPanelSlideY = 1.0f;
+    if (m_BuildPanelSlideY <= 0.0f) return;
+
+    const float panelH = 130.0f * baseScale;
+    // Panel jedzie od dołu ekranu w górę
+    float panelY = gameY + gameHeight - panelH * m_BuildPanelSlideY;
+
+    // ── Tło panelu ──────────────────────────────────────────────────────────
+    Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, panelH },
+        { 0.06f, 0.08f, 0.14f, 0.94f }, 0.0f);
+
+    // Cienka linia na górze panelu
+    Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, 2.0f * baseScale },
+        { 0.3f, 0.55f, 1.0f, 0.7f }, 0.0f);
+
+
+    // ── Ikony maszyn ────────────────────────────────────────────────────────
+    const float iconH = 80.0f * baseScale;
+    const float iconW = iconH;
+    const float spacing = 28.0f * baseScale;
+    const int   count = (int)m_MachineEntries.size();
+    const float totalW = count * iconW + (count - 1) * spacing;
+    const float startX = gameX + (gameWidth - totalW) * 0.5f;
+    const float iconY = panelY + (panelH - iconH) * 0.5f;
+
+    glm::vec2 mouse = Gui::GetMappedMousePos();
+
+    for (int i = 0; i < count; ++i) {
+        const float ix = startX + i * (iconW + spacing);
+        const float iy = iconY;
+
+        const bool inIcon = mouse.x >= ix && mouse.x <= ix + iconW
+            && mouse.y >= iy && mouse.y <= iy + iconH;
+        const bool isHeld = (m_HeldMachineIndex == i);
+
+        // Tło ikony
+        glm::vec4 bg = isHeld
+            ? glm::vec4(0.30f, 0.60f, 1.00f, 0.50f)
+            : (inIcon
+                ? glm::vec4(1.00f, 1.00f, 1.00f, 0.18f)
+                : glm::vec4(1.00f, 1.00f, 1.00f, 0.07f));
+        Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, bg, 8.0f * baseScale);
+
+        // Ikona
+        auto& entry = m_MachineEntries[i];
+        if (entry.Icon) {
+            Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, entry.Icon,
+                { 1.0f, 1.0f, 1.0f, 1.0f },
+                { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        }
+
+        // Etykieta
+        float ls = 0.42f * baseScale;
+        float lw = Gui::MeasureTextWidth(entry.Label, ls);
+        Gui::DrawGuiText(entry.Label,
+            { ix + (iconW - lw) * 0.5f, iy + iconH + 5.0f * baseScale },
+            ls, { 0.80f, 0.90f, 1.00f, 1.0f });
+
+        // Kliknięcie
+        if (inIcon && m_IsBuildModeActive) {
+            Input::SetUICaptureMouse(true);
+            if (Input::IsMouseButtonJustPressed(0) && m_HeldMachineIndex == -1) {
+                m_HeldMachineIndex = i;
+                m_JustSelectedFromPanel = true;
+            }
+        }
+    }
+
+    // ── Podpowiedź sterowania ───────────────────────────────────────────────
+    if (m_HeldMachineIndex >= 0 && m_BuildPanelSlideY > 0.95f) {
+        const std::string hint = "LPM: postaw   PPM / Tab: anuluj";
+        float hs = 0.44f * baseScale;
+        float hw = Gui::MeasureTextWidth(hint, hs);
+        Gui::DrawGuiText(hint,
+            { gameX + (gameWidth - hw) * 0.5f, panelY - 26.0f * baseScale },
+            hs, { 0.95f, 0.95f, 0.60f, 0.90f });
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
+void GameGuiLayer::UpdateBuildModePlacement()
+{
+    auto activeScene = SceneManager::GetActiveScene();
+    if (!activeScene) return;
+
+    // ── PPM — anuluj zawsze ──────────────────────────────────────────────
+    if (Input::IsMouseButtonJustPressed(1)) {
+        // Anuluj preview nowej maszyny
+        if (!m_PreviewGroup.empty()) {
+            for (auto& [ent, offset] : m_PreviewGroup) {
+                activeScene->GetWorld().GetEventBus().Publish(
+                    EntityDestroyRequestEvent{ ent });
+            }
+            m_PreviewGroup.clear();
+        }
+
+        // Anuluj przesuwanie — wróć maszynę na oryginalne miejsce
+        if (m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max()) {
+            auto* tc = activeScene->GetWorld().GetComponent<TransformComponent>(m_MovingMachineEntity);
+            if (tc) tc->SetPosition(m_MovingMachineOriginalPos);
+            m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+            m_MovingGroup.clear();
+        }
+        m_HeldMachineIndex = -1;
+        return;
+    }
+
+
+    // ── Oblicz pozycję pod kursorem (identycznie jak GameLayer) ──────────
+    auto mousePos = Input::GetMousePosition();
+    auto windowSize = Input::GetWindowSize();
+
+    float mouseX = mousePos.first;
+    float mouseY = mousePos.second;
+    float viewW = (float)windowSize.first;
+    float viewH = (float)windowSize.second;
+
+#ifndef CS_DISTRIBUTION
+    mouseX -= 200.0f;
+    mouseY -= 30.0f;
+    viewW -= 500.0f;
+    viewH -= 230.0f;
+#endif
+
+    auto* camera = activeScene->GetCamera();
+    if (!camera) return;
+
+    float aspect = viewW / (viewH > 0.0f ? viewH : 1.0f);
+    float orthoSize = 10.0f * (camera->Zoom / 45.0f);
+    glm::mat4 proj = glm::ortho(-aspect * orthoSize, aspect * orthoSize,
+        -orthoSize, orthoSize, -100.0f, 100.0f);
+    glm::mat4 view = camera->GetViewMatrix();
+
+    Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, viewW, viewH, proj, view);
+
+    glm::vec3 snappedPos(0.0f);
+    if (std::abs(ray.Direction.y) > 1e-6f) {
+        float t = -ray.Origin.y / ray.Direction.y;
+        if (t > 0.0f) {
+            glm::vec3 hit = ray.Origin + t * ray.Direction;
+            snappedPos = GridSystem::SnapToGrid(hit);
+        }
+    }
+
+    if (m_HeldMachineIndex < 0 &&
+        m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max())
+    {
+        auto& world = activeScene->GetWorld();
+
+        // Przesuwamy maszynę główną — zachowujemy jej oryginalne Y
+        auto* tc = world.GetComponent<TransformComponent>(m_MovingMachineEntity);
+        if (tc) {
+            glm::vec3 newPos = snappedPos;
+            newPos.y = m_MovingMachineOriginalPos.y;
+            tc->SetPosition(newPos);
+        }
+
+        // Przesuwamy grupę (palnik, szafka itp.) wraz z maszyną
+        for (auto& [groupEnt, offset] : m_MovingGroup) {
+            auto* groupTc = world.GetComponent<TransformComponent>(groupEnt);
+            if (groupTc) {
+                glm::vec3 groupPos = snappedPos;
+                groupPos.y = m_MovingMachineOriginalPos.y;
+                groupPos += offset;
+                groupPos.y = m_MovingMachineOriginalPos.y + offset.y;
+                groupTc->SetPosition(groupPos);
+            }
+        }
+
+        // Rysujemy siatkę podczas przesuwania
+        DrawBuildGrid(proj * view, camera->Position, snappedPos);
+
+        // LPM — upuszcza maszynę na nowej pozycji
+        auto rawMouse = Input::GetMousePosition();
+        auto winSize = Input::GetWindowSize();
+        // Panel w pikselach okna: dolne 130px viewportu
+        // W edytorze viewport zaczyna się od y=30, więc dół viewportu = viewportHeight + 30
+        float viewportBottomInWindow = (float)winSize.second - 30.0f; // 30 = górny offset edytora
+        bool mouseOverPanel = (rawMouse.second >= viewportBottomInWindow - 130.0f);
+
+        if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
+            // Zatwierdzamy — tylko czyścimy stan, maszyna już jest na nowej pozycji
+            m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+            m_MovingGroup.clear();
+        }
+
+        m_JustSelectedFromPanel = false;
+        return;  // ← KLUCZOWE: wychodzimy, nie wpadamy do spawn
+    }
+
+    if (m_HeldMachineIndex < 0 &&
+        m_MovingMachineEntity.id == std::numeric_limits<std::size_t>::max())
+    {
+        auto rawMouse = Input::GetMousePosition();
+        bool mouseOverPanel = (rawMouse.second >=
+            (float)Input::GetWindowSize().second - 130.0f);
+
+        if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel)
+        {
+            Entity hit = Physics::GetHoveredEntity(
+                Physics::CastRayFromMouse(mouseX, mouseY, viewW, viewH, proj, view),
+                activeScene, true, true);
+            spdlog::info("[BuildMode] GetHoveredEntity zwrocilo id={}", hit.id);
+
+            if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel)
+            {
+                Entity hit = Physics::GetHoveredEntity(
+                    Physics::CastRayFromMouse(mouseX, mouseY, viewW, viewH, proj, view),
+                    activeScene, true, true);
+
+                spdlog::info("[BuildMode] GetHoveredEntity zwrocilo id={}", hit.id);
+
+                if (hit.id != std::numeric_limits<std::size_t>::max())
+                {
+                    auto* nsc = activeScene->GetWorld()
+                        .GetComponent<NativeScriptComponent>(hit);
+                    if (nsc)
+                    {
+                        bool isMachine = false;
+                        for (auto& s : nsc->Scripts)
+                        {
+                            if (s.Name == "PotScript" ||
+                                s.Name == "CuttingBoardScript" ||
+                                s.Name == "MixerScript" ||
+                                s.Name == "OvenScript")
+                            {
+                                isMachine = true;
+                                break;
+                            }
+                        }
+
+                        if (isMachine)
+                        {
+                            auto* tc = activeScene->GetWorld()
+                                .GetComponent<TransformComponent>(hit);
+                            if (tc)
+                            {
+                                m_MovingMachineOriginalPos = tc->GetPosition();
+                                m_MovingMachineEntity = hit;
+
+                                // Zbieramy encje w tym samym kafelku (palnik, szafka itp.)
+                                m_MovingGroup.clear();
+                                glm::ivec2 machineCell = GridSystem::WorldToCell(tc->GetPosition());
+
+                                auto* transforms = activeScene->GetWorld()
+                                    .GetComponentVector<TransformComponent>();
+
+                                if (transforms) {
+                                    for (size_t idx = 0;
+                                        idx < transforms->dense.size(); ++idx)
+                                    {
+                                        Entity candidate = transforms->reverse[idx];
+                                        if (candidate.id == hit.id) continue;
+
+                                        glm::vec3 candPos =
+                                            transforms->dense[idx].GetPosition();
+                                        glm::ivec2 candCell =
+                                            GridSystem::WorldToCell(candPos);
+
+                                        if (candCell == machineCell) {
+                                            glm::vec3 offset = candPos - tc->GetPosition();
+                                            m_MovingGroup.push_back({ candidate, offset });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return;
+        }
+    }
+
+    // ── Encja podglądu (ghost) ───────────────────────────────────────────
+    if (m_HeldMachineIndex < 0 || m_HeldMachineIndex >= (int)m_MachineEntries.size()) return;
+    auto& entry = m_MachineEntries[m_HeldMachineIndex];
+    auto& world = activeScene->GetWorld();
+
+    if (m_PreviewGroup.empty()) {
+        std::vector<Entity> spawnedParts = PrefabSerializer::Deserialize(
+            activeScene.get(), entry.PrefabPath, snappedPos);
+
+        for (Entity ent : spawnedParts) {
+            auto* tc = world.GetComponent<TransformComponent>(ent);
+            glm::vec3 offset = tc ? (tc->GetPosition() - snappedPos) : glm::vec3(0.0f);
+
+            m_PreviewGroup.push_back({ ent, offset });
+
+            auto* tagComp = world.GetComponent<TagComponent>(ent);
+            if (tagComp) tagComp->Tag = "__BuildPreview__";
+
+            world.RemoveComponent<NativeScriptComponent>(ent);
+            world.RemoveComponent<BoxColliderComponent>(ent);
+        }
+    }
+    else {
+        for (auto& [ent, offset] : m_PreviewGroup) {
+            auto* tc = world.GetComponent<TransformComponent>(ent);
+            if (tc) {
+                glm::vec3 newPos = snappedPos + offset;
+                newPos.y = snappedPos.y + offset.y;
+                tc->SetPosition(newPos);
+            }
+        }
+    }
+
+    // ── Rysowanie siatki ─────────────────────────────────────────────────
+    {
+        glm::mat4 viewProj3D = proj * view;
+        DrawBuildGrid(viewProj3D, camera->Position, snappedPos);
+    }
+
+    // ── LPM poza UI — stawiamy maszynę ──────────────────────────────────
+    auto windowSize2 = Input::GetWindowSize();
+    float panelH = 130.0f;
+    auto rawMouse = Input::GetMousePosition();
+    float rawY = rawMouse.second;
+    float rawWinH = (float)windowSize2.second;
+    bool mouseOverPanel = (rawY >= rawWinH - 130.0f);
+
+    if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
+
+        // 1. Niszczymy CAŁĄ encję podglądu
+        for (auto& [ent, _] : m_PreviewGroup) {
+            world.GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
+        }
+        m_PreviewGroup.clear();
+
+        // 2. Spawnujemy na gotowo
+        std::vector<Entity> placedEntities = PrefabSerializer::Deserialize(
+            activeScene.get(), entry.PrefabPath, snappedPos);
+
+        // 3. Nadajemy Label jako tag
+        for (Entity ent : placedEntities) {
+            auto* tagComp = world.GetComponent<TagComponent>(ent);
+            if (tagComp) tagComp->Tag = entry.Label;
+        }
+
+        m_HeldMachineIndex = -1;
+    }
+
+    m_JustSelectedFromPanel = false;
+}
+
+void GameGuiLayer::DrawBuildModeOverlay(float baseScale)
+{
+    auto windowSize = Input::GetWindowSize();
+    float W = (float)windowSize.first;
+    float H = (float)windowSize.second;
+
+    // Identyczne szare tło jak PauseMenuPanel
+    Renderer2D::DrawQuad({ 0.0f, 0.0f }, { W, H },
+        { 0.00f, 0.0f, 0.00f, 0.0f }, 0.0f);
+
+    // Ten sam napis "PAUSED" (pausedText.png) co przy ESC
+    auto pausedTextTex = AssetManager::GetTexture("assets://UI/pausedText.png");
+    if (pausedTextTex && pausedTextTex->GetRendererID() != 0) {
+        float aspect = (float)pausedTextTex->GetWidth() / (float)pausedTextTex->GetHeight();
+        float targetW = W * 0.35f;
+        glm::vec2 tSize = { targetW, targetW / aspect };
+        glm::vec2 tPos = { (W - tSize.x) * 0.5f, H * 0.08f };
+        Renderer2D::DrawQuad(tPos, tSize,
+            pausedTextTex->GetRendererID(),
+            { 1.0f, 1.0f, 1.0f, 1.0f },
+            { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    }
+}
+
+void GameGuiLayer::DrawBuildGrid(const glm::mat4& viewProj3D,
+    const glm::vec3& camPos,
+    const glm::vec3& hoverPos)
+{
+    // Identyczna logika jak EditorLayer::DrawGrid — wydzielona tu żeby działała w runtime
+    const float cell = GridSystem::CELL_SIZE;
+    const float t = 0.06f;
+    const float range = 30.0f;
+
+    glm::vec4 lineColor = { 0.6f, 0.6f, 0.6f, 0.40f };
+    glm::vec4 hoverColor = { 0.3f, 0.75f, 1.0f, 0.55f };
+
+    int startX = (int)std::floor((camPos.x - range) / cell);
+    int endX = (int)std::ceil((camPos.x + range) / cell);
+    int startZ = (int)std::floor((camPos.z - range) / cell);
+    int endZ = (int)std::ceil((camPos.z + range) / cell);
+
+    float minX = startX * cell, maxX = endX * cell;
+    float minZ = startZ * cell, maxZ = endZ * cell;
+    float lenX = maxX - minX, lenZ = maxZ - minZ;
+    float cX = (minX + maxX) * 0.5f;
+    float cZ = (minZ + maxZ) * 0.5f;
+
+    // Hover kafelek
+    glm::ivec2 hCell = GridSystem::WorldToCell(hoverPos);
+    glm::vec3  hCenter = { (hCell.x + 0.5f) * cell, 0.01f, (hCell.y + 0.5f) * cell };
+
+    // Helper lokalny — quad leżący płasko na podłodze
+    auto FlatQuad = [](const glm::vec3& center, float sx, float sz) -> glm::mat4 {
+        return glm::translate(glm::mat4(1.0f), center)
+            * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 1.f, 0.f, 0.f })
+            * glm::scale(glm::mat4(1.0f), { sx, sz, 1.f })
+            * glm::translate(glm::mat4(1.0f), { -0.5f, -0.5f, 0.f });
+        };
+
+    Renderer2D::EndScene();
+    Renderer2D::BeginScene(viewProj3D);
+
+    glDisable(GL_DEPTH_TEST);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Podświetlenie hover kafelka
+    Renderer2D::DrawQuad(FlatQuad(hCenter, cell, cell), hoverColor);
+
+    // Linie poziome (wzdłuż X)
+    for (int cz = startZ; cz <= endZ; ++cz)
+        Renderer2D::DrawQuad(FlatQuad({ cX, 0.01f, cz * cell }, lenX, t), lineColor);
+
+    // Linie pionowe (wzdłuż Z)
+    for (int cx = startX; cx <= endX; ++cx)
+        Renderer2D::DrawQuad(FlatQuad({ cx * cell, 0.01f, cZ }, t, lenZ), lineColor);
+
+    Renderer2D::EndScene();
+    glEnable(GL_DEPTH_TEST);
 }
