@@ -179,15 +179,12 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
 
                 std::string vcvarsScript = "";
 
-                // ROZSZERZONA LISTA ŚCIEŻEK - VS 2026 ORAZ VS 2022
                 std::vector<std::string> suspectedVCVarsPaths = {
-                    // Visual Studio 2026 (dla Ciebie)
                     "\"C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
                     "\"C:\\Program Files\\Microsoft Visual Studio\\18\\Insiders\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
                     "\"C:\\Program Files\\Microsoft Visual Studio\\18\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
                     "\"C:\\Program Files\\Microsoft Visual Studio\\18\\BuildTools\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
 
-                    // Visual Studio 2022 (dla znajomych)
                     "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
                     "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Professional\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
                     "\"C:\\Program Files\\Microsoft Visual Studio\\2022\\Enterprise\\VC\\Auxiliary\\Build\\vcvars64.bat\"",
