@@ -67,8 +67,15 @@ void DeliveryManagerScript::OnCreate()
 
                 m_SpawnedPackagesCount++;
 
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<> distrib(2, 5);
+                int randomAmount = distrib(gen);
+
                 // Odpowiadamy konkretnej paczce jej własnym, unikalnym typem
-                GetScene()->GetWorld().GetEventBus().Publish(ConfigurePackageEvent{ e.TargetEntity, typeForThisPackage, 5 });
+                GetScene()->GetWorld().GetEventBus().Publish(ConfigurePackageEvent{ e.TargetEntity,
+                                                                                    typeForThisPackage,
+                                                                                    randomAmount });
             }
     );
 

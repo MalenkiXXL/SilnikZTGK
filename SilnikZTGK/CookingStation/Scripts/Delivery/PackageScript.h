@@ -7,11 +7,33 @@ class PackageScript : public ScriptableEntity{
 public:
     inline static std::vector<Entity> s_ActivePackages;
 
+    void OnCreate() override {
+        spdlog::info("[PackageScript] Utworzono paczke typu {}", (int)m_Type);
 
+        s_ActivePackages.push_back(m_Entity);
 
-    float m_TimeAlive = 0.0f;
-    glm::vec3 m_BaseScale = glm::vec3(0.0f);
-    bool m_BaseScaleInitialized = false;
+        m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
+                [this](const EntityClickedEvent& e) {
+                    if (e.TargetEntity.id == m_Entity.id) {
+                        this->HandleClick();
+                    }
+                }
+        );
+
+        m_ConfigSubId = GetScene()->GetWorld().GetEventBus().Subscribe<ConfigurePackageEvent>(
+                [this](const ConfigurePackageEvent& e) {
+                    if (e.TargetEntity.id == this->m_Entity.id && !this->m_IsConfigured) {
+                        this->m_Type = e.Type;
+                        this->m_IngredientAmount = e.Amount;
+                        this->m_IsConfigured = true;
+                        spdlog::info("[PackageScript] Złapałem event! Jestem typem: {}", (int)m_Type);
+                    }
+                }
+        );
+
+        GetScene()->GetWorld().GetEventBus().Publish(PackageSpawnedEvent{ m_Entity });
+    }
+
 
     void OnUpdate(Timestep ts) override {
         m_TimeAlive += (float)ts;
@@ -41,33 +63,6 @@ public:
 
     void HandleClick();
 
-    void OnCreate() override {
-        spdlog::info("[PackageScript] Utworzono paczke typu {}", (int)m_Type);
-
-        s_ActivePackages.push_back(m_Entity);
-
-        m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
-            [this](const EntityClickedEvent& e) {
-                if (e.TargetEntity.id == m_Entity.id) {
-                    this->HandleClick();
-                }
-            }
-        );
-
-        m_ConfigSubId = GetScene()->GetWorld().GetEventBus().Subscribe<ConfigurePackageEvent>(
-                [this](const ConfigurePackageEvent& e) {
-                    if (e.TargetEntity.id == this->m_Entity.id && !this->m_IsConfigured) {
-                        this->m_Type = e.Type;
-                        this->m_IngredientAmount = e.Amount;
-                        this->m_IsConfigured = true;
-                        spdlog::info("[PackageScript] Złapałem event! Jestem typem: {}", (int)m_Type);
-                    }
-                }
-        );
-
-        GetScene()->GetWorld().GetEventBus().Publish(PackageSpawnedEvent{ m_Entity });
-    }
-
     void OnDestroy() override {
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<ConfigurePackageEvent>(m_ConfigSubId);
@@ -83,6 +78,10 @@ public:
     int getIngredientAmount() const { return m_IngredientAmount; }
 
 private:
+    float m_TimeAlive = 0.0f;
+    glm::vec3 m_BaseScale = glm::vec3(0.0f);
+    bool m_BaseScaleInitialized = false;
+
     std::size_t m_ClickSubId = 0;
     bool m_IsCollected = false;
 
