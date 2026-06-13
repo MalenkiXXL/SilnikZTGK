@@ -10,7 +10,7 @@ private:
     float m_ChopCooldown = 0.0f;
 
     float m_VisualJumpY = 0.0f;
-    const float m_BaseYOffset = 0.7f;
+    const float m_BaseYOffset = 0.05f;
 
     float m_AutoChopTimer = 0.0f;
     const float m_AutoChopInterval = 0.8f;
@@ -187,12 +187,29 @@ public:
         auto* tf = GetComponent<TransformComponent>();
         if (!tf) return;
 
-        glm::vec3 mousePos = GetMouseWorldPosition();
+        glm::vec3 floorMousePos = GetMouseWorldPosition();
 
-        glm::vec2 mouse2D = { mousePos.x, mousePos.z };
+        Camera* camera = GetScene()->GetCamera();
+
+        glm::vec3 preciseMousePos = floorMousePos;
+
+        if (camera)
+        {
+            float targetY = tf->GetPosition().y;
+            glm::vec3 rayDir = camera->Front;
+
+            if (std::abs(rayDir.y) > 0.001f)
+            {
+                float t = (targetY - floorMousePos.y) / rayDir.y;
+
+                preciseMousePos = floorMousePos + rayDir * t;
+            }
+        }
+
+        glm::vec2 mouse2D = { preciseMousePos.x, preciseMousePos.z };
         glm::vec2 board2D = { tf->GetPosition().x, tf->GetPosition().z };
 
-        bool isHovering = (glm::distance(mouse2D, board2D) < 2.0f);
+        bool isHovering = (glm::distance(mouse2D, board2D) < 1.5f);
 
         bool shouldShowKnife = isHovering && !m_IsAutomated && !m_IsReady && !m_Ingredients.empty() && !GlobalIsMachineHeld;
         if (shouldShowKnife)
@@ -216,8 +233,17 @@ public:
             auto* knifeTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_CursorKnife);
             if (knifeTf)
             {
-                glm::vec3 knifePos = mousePos;
-                knifePos.y = tf->GetPosition().y + 1.2f + m_VisualJumpY;
+                // Ustawiamy nóż w wyliczonym punkcie
+                glm::vec3 knifePos = preciseMousePos;
+
+                glm::vec3 handleOffset = glm::vec3(0.5f, 0.0f, 0.5f);
+
+                knifePos.x += handleOffset.x;
+                knifePos.z += handleOffset.z;
+
+                // Unosimy nóż lekko do góry + animacja skakania
+                knifePos.y = tf->GetPosition().y + 0.5f + m_VisualJumpY;
+
                 knifeTf->SetPosition(knifePos);
             }
         }

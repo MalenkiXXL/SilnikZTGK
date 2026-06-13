@@ -4,6 +4,7 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include <vector>
 #include <algorithm>
+#include <random>
 
 class PlateScript : public ScriptableEntity
 {
@@ -87,12 +88,29 @@ private:
         auto builder = GetScene()->GetWorld().BuildEntity();
 
         TransformComponent tc;
-        float stackYOffset = 0.2f + (m_Ingredients.size() * 0.20f);
+        int itemIndex = (int)m_Ingredients.size() - 1;
+
+        float basePlateHeight = 0.08f;  // Wysokość dna Twojego głębokiego talerza
+        float itemThickness = 0.04f;    // Grubość pojedynczego składnika
+
+        float stackYOffset = basePlateHeight + (itemIndex * itemThickness);
         tc.SetPosition(glm::vec3(0.0f, stackYOffset, 0.0f));
 
+        // 2. SKALA
         IngredientMetadata meta = GetIngredientMetadata(type);
         tc.SetScale(meta.scale);
-        tc.SetRotation(meta.rotation);
+
+        // 3. LOSOWA ROTACJA (Wokół osi Y)
+        std::random_device rd;
+        std::mt19937 gen(rd());
+
+        std::uniform_real_distribution<float> distrib(-35.0f, 35.0f);
+        float randomYRotation = distrib(gen);
+
+        glm::vec3 finalRotation = meta.rotation;
+        finalRotation.y += randomYRotation;
+
+        tc.SetRotation(finalRotation);
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
