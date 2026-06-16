@@ -1,0 +1,35 @@
+{
+    "collider": {
+        "offset": [
+            0.0,
+            0.5,
+            0.0
+        ],
+        "size": [
+            1.0,
+            0.5,
+            1.0
+        ]
+    },
+    "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+    "name": "tasma_PickupConveyor",
+    "position": [
+        9.0,
+        0.0,
+        -7.0
+    ],
+    "rotation": [
+        0.0,
+        270.0,
+        0.0
+    ],
+    "scale": [
+        1.0,
+        1.0,
+        1.0
+    ],
+    "scripts": [
+        "ConveyorScript",
+        "WaiterPickupStationScript"
+    ]
+}
