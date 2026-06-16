@@ -198,17 +198,15 @@ public:
                 Entity child = localIdToRealEntity[localId];
                 Entity parent = localIdToRealEntity[parentId];
 
-                auto* childRel = world.GetComponent<RelationshipComponent>(child);
-                if (!childRel) {
+                if (!world.GetComponent<RelationshipComponent>(child)) {
                     world.AddComponent<RelationshipComponent>(child, RelationshipComponent{});
-                    childRel = world.GetComponent<RelationshipComponent>(child);
+                }
+                if (!world.GetComponent<RelationshipComponent>(parent)) {
+                    world.AddComponent<RelationshipComponent>(parent, RelationshipComponent{});
                 }
 
+                auto* childRel = world.GetComponent<RelationshipComponent>(child);
                 auto* parentRel = world.GetComponent<RelationshipComponent>(parent);
-                if (!parentRel) {
-                    world.AddComponent<RelationshipComponent>(parent, RelationshipComponent{});
-                    parentRel = world.GetComponent<RelationshipComponent>(parent);
-                }
 
                 childRel->Parent = parent.id;
                 parentRel->ChildrenCount++;

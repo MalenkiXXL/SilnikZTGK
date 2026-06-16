@@ -20,6 +20,7 @@
 #include "CookingStation/Layers/GuiLayer/Utils/Gui.h"
 #include "CookingStation/Scripts/ScriptRegistry.h"
 #include "CookingStation/Events/GamepadEvent.h"
+#include "CookingStation/Events/GameEvents.h"
 
 Application* Application::s_Instance = nullptr;
 
@@ -32,35 +33,19 @@ Application::Application()
 
 	glEnable(GL_MULTISAMPLE);
 
-	// 1. zwykly FBO
 	FramebufferSpecification fbSpec;
 	fbSpec.Width = m_Window->GetWidth();
 	fbSpec.Height = m_Window->GetHeight();
 	fbSpec.Samples = 1;
-	fbSpec.HDR = true; 
+	fbSpec.HDR = true;
 	m_ViewportFBO = std::make_shared<Framebuffer>(fbSpec);
 
-	// 2. FBO z MSAA
 	FramebufferSpecification msaaSpec;
 	msaaSpec.Width = m_Window->GetWidth();
 	msaaSpec.Height = m_Window->GetHeight();
 	msaaSpec.Samples = 4;
 	msaaSpec.HDR = true;
 	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
-
-
-	// DO FINALOWEJ WERSJI Z EKSPORTEM
-//
-//#ifdef CS_DISTRIBUTION
-//	std::filesystem::path exePath = std::filesystem::current_path();
-//	VFS::Mount("assets", std::make_shared<PackageFileSystem>((exePath / "data.pak").string()));
-//	VFS::Mount("shaders", std::make_shared<PackageFileSystem>((exePath / "shaders.pak").string()));
-//#else
-//	VFS::Mount("assets", std::make_shared<PhysicalFileSystem>("CookingStation/Assets"));
-//	VFS::Mount("shaders", std::make_shared<PhysicalFileSystem>("CookingStation/Shaders"));
-//#endif
-
-	// DO TESOTWANIA
 
 #ifdef CS_DISTRIBUTION
 	std::string assetsPath = "CookingStation/Assets";
@@ -78,7 +63,13 @@ Application::Application()
 	SceneManager::NewScene();
 	Renderer::Init();
 	Renderer2D::Init();
-    AudioEngine::Init();
+	AudioEngine::Init();
+
+	GetEventBus().Subscribe<AudioSettingsChangedEvent>([](const AudioSettingsChangedEvent& e) {
+		AudioEngine::SetMusicEnabled(e.MusicEnabled);
+		AudioEngine::SetSoundsEnabled(e.SoundsEnabled);
+		spdlog::info("Zaktualizowano audio (Muzyka: {}, Dzwieki: {})", e.MusicEnabled, e.SoundsEnabled);
+		});
 
 #ifdef CS_DISTRIBUTION
 	{
@@ -125,8 +116,21 @@ Application::Application()
 
 Application::~Application()
 {
-	delete m_Window;
+	for (Layer* layer : m_LayerStack)
+	{
+		layer->OnDetach();
+		delete layer;
+	}
+	m_LayerStack.clear();
+
+	m_ViewportFBO.reset();
+	m_MsaaFBO.reset();
+
 	AudioEngine::Shutdown();
+
+	delete m_Window;
+
+	spdlog::shutdown();
 }
 
 void Application::ApplyGraphicsSettings()
@@ -134,6 +138,8 @@ void Application::ApplyGraphicsSettings()
 	auto& settings = GraphicsSettings::Get();
 	int width = settings.WindowWidth;
 	int height = settings.WindowHeight;
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	glfwSetWindowSize((GLFWwindow*)m_Window->GetNativeWindow(), width, height);
 
@@ -162,12 +168,10 @@ void Application::ApplyGraphicsSettings()
 		settings.MsaaSamples, width, height);
 }
 
-
 void Application::Run()
 {
 	while (m_Running)
 	{
-		// 1. OBLICZANIE CZASU
 		float time = (float)glfwGetTime();
 		Timestep timestep = time - m_LastFrameTime;
 		m_LastFrameTime = time;
@@ -175,15 +179,12 @@ void Application::Run()
 		if (timestep > 0.1f)
 			timestep = 0.1f;
 
-		// 2. PRZYGOTOWANIE RENDERERA
 		RenderCommand::SetClearColor(glm::vec4(0.05f, 0.05f, 0.05f, 1.0f));
 		RenderCommand::Clear();
 
 		Renderer::ResetStats();
 
-		// 3. UPDATE LOGIKI I ECS
 		{
-			// timer startuje w tym momencie
 			ProfileTimer timer(Renderer::GetStats().CPULogicTime);
 
 			for (Layer* layer : m_LayerStack)
@@ -192,10 +193,9 @@ void Application::Run()
 			}
 		}
 
-		// 4. AKTUALIZACJA OKNA I WEJSCIA
 		m_Window->OnUpdate();
 
-		Input::Update(); 
+		Input::Update();
 	}
 }
 
@@ -204,12 +204,10 @@ void Application::OnEvent(Event& e)
 	EventDispatcher dispatcher(e);
 
 	dispatcher.Dispatch<GamepadButtonPressedEvent>([](GamepadButtonPressedEvent& event) {
-		spdlog::info("TEST: Pad dziala! Wcisnieto przycisk o ID: {}", event.GetButton());
-		return false; 
+		return false;
 		});
 
 	dispatcher.Dispatch<GamepadAxisMovedEvent>([](GamepadAxisMovedEvent& event) {
-		spdlog::info("TEST: O {} ruszona! Wartosc: {}", event.GetAxis(), event.GetValue());
 		return false;
 		});
 
@@ -233,11 +231,9 @@ void Application::PushLayer(Layer* layer)
 	layer->OnAttach();
 }
 
-
 bool Application::OnWindowClose(WindowCloseEvent& e)
 {
 	m_Running = false;
-	std::cout << "Zamykam okno silnika! " << std::endl;
 	return true;
 }
 
@@ -254,14 +250,11 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 	glViewport(0, 0, width, height);
 
 #ifdef CS_DISTRIBUTION
-	// 1. Dopasowujemy rozmiary buforow renderowania do pelnego okna gry
 	if (m_ViewportFBO) m_ViewportFBO->Resize(width, height);
 	if (m_MsaaFBO) m_MsaaFBO->Resize(width, height);
 
-	// 2. Bezpiecznie aktualizujemy wymiary ekranu dla silnika GUI
 	Gui::SetScreenSize((float)width, (float)height);
 
-	// 3. Aktualizujemy Aspect Ratio kamery w swiecie gry
 	auto activeScene = SceneManager::GetActiveScene();
 	if (activeScene)
 	{
@@ -274,6 +267,5 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 
 bool Application::OnKeyPressed(KeyPressedEvent& e)
 {
-	//	std::cout << "Wcisnieto klawisz: " << e.GetKeyCode() << std::endl;;
 	return false;
 }

@@ -8,6 +8,7 @@
 #include "CookingStation/Core/GraphicsSettings.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Core/AudioEngine.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <string>
@@ -99,7 +100,7 @@ void MainMenuLayer::OnUpdate(Timestep ts) {
     float dt = ts.GetSeconds();
 
     float baseScale = std::min(m_ViewportWidth / 1920.0f, m_ViewportHeight / 1080.0f);
-    baseScale = std::max(baseScale, 0.35f); 
+    baseScale = std::max(baseScale, 0.35f);
 
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
     glEnable(GL_BLEND);
@@ -135,7 +136,7 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
             float aspect = (float)tex->GetWidth() / (float)tex->GetHeight();
             return { targetHeight * aspect, targetHeight };
         }
-        return { targetHeight * 4.0f, targetHeight }; 
+        return { targetHeight * 4.0f, targetHeight };
         };
 
     glm::vec2 settingsSize = getBtnSize(m_SettingsBtnTex, settingsTargetHeight);
@@ -153,8 +154,8 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
     float boardHeight = 620.0f * baseScale;
     glm::vec2 boardSize = getBtnSize(m_BoardTex, boardHeight);
 
-    float boardX = m_ViewportWidth * 0.07f;  
-    float boardY = m_ViewportHeight * 0.37f;  
+    float boardX = m_ViewportWidth * 0.07f;
+    float boardY = m_ViewportHeight * 0.37f;
 
     if (m_BoardTex && m_BoardTex->GetRendererID() != 0) {
         Renderer2D::DrawQuad({ boardX, boardY }, boardSize, m_BoardTex, { 1.0f, 1.0f, 1.0f, 1.00f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
@@ -180,13 +181,17 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
     bool hoverExit = isHov(exitPos, exitSize);
 
     float animSpeed = 14.0f;
-    m_SettingsBtnScale += ((hoverSettings ? 1.08f : 1.0f) - m_SettingsBtnScale) * dt * animSpeed;
-    m_PlayBtnScale += ((hoverPlay ? 1.05f : 1.0f) - m_PlayBtnScale) * dt * animSpeed;
-    m_CreditsBtnScale += ((hoverCredits ? 1.05f : 1.0f) - m_CreditsBtnScale) * dt * animSpeed;
-    m_ExitBtnScale += ((hoverExit ? 1.05f : 1.0f) - m_ExitBtnScale) * dt * animSpeed;
+    float lerpT = std::min(dt * animSpeed, 1.0f);
+
+    m_SettingsBtnScale += ((hoverSettings ? 1.08f : 1.0f) - m_SettingsBtnScale) * lerpT;
+    m_PlayBtnScale += ((hoverPlay ? 1.05f : 1.0f) - m_PlayBtnScale) * lerpT;
+    m_CreditsBtnScale += ((hoverCredits ? 1.05f : 1.0f) - m_CreditsBtnScale) * lerpT;
+    m_ExitBtnScale += ((hoverExit ? 1.05f : 1.0f) - m_ExitBtnScale) * lerpT;
 
     if (DrawImageButton(m_SettingsBtnTex, settingsPos, settingsSize, m_SettingsBtnScale, baseScale, hoverSettings)) {
         m_SettingsOpen = true;
+        m_PendingMusicEnabled = AudioEngine::IsMusicEnabled();
+        m_PendingSoundsEnabled = AudioEngine::AreSoundsEnabled();
     }
 
     if (DrawImageButton(m_PlayBtnTex, playPos, playSize, m_PlayBtnScale, baseScale, hoverPlay)) {
@@ -197,6 +202,7 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
     }
 
     if (DrawImageButton(m_ExitBtnTex, exitPos, exitSize, m_ExitBtnScale, baseScale, hoverExit)) {
+        Application::Get().Close();
     }
 }
 
@@ -205,7 +211,7 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
     glm::vec2 mouse = Gui::GetMappedMousePos();
 
     float panelW = 700.0f * baseScale;
-    float panelH = 500.0f * baseScale;
+    float panelH = 580.0f * baseScale;
     float panelX = (m_ViewportWidth - panelW) * 0.5f;
     float panelY = (m_ViewportHeight - panelH) * 0.5f;
 
@@ -233,8 +239,11 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
     float valueBoxH = 52.0f * baseScale;
     float controlsX = panelX + panelW * 0.45f;
     float labelScale = 0.9f * baseScale;
-    float animSpeed = 14.0f;
 
+    float animSpeed = 14.0f;
+    float lerpT = std::min(dt * animSpeed, 1.0f);
+
+    // --- WIERSZ 1: RESOLUTION ---
     {
         float      rowY = rowStart;
         std::string lbl = "Resolution";
@@ -253,8 +262,8 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
         bool hovR = mouse.x >= rightPos.x && mouse.x <= rightPos.x + arrowW &&
             mouse.y >= rightPos.y && mouse.y <= rightPos.y + arrowH;
 
-        m_ResLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_ResLeftBtnScale) * dt * animSpeed;
-        m_ResRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_ResRightBtnScale) * dt * animSpeed;
+        m_ResLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_ResLeftBtnScale) * lerpT;
+        m_ResRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_ResRightBtnScale) * lerpT;
 
         if (DrawScaledButton("<", leftPos, arrowSize, m_ResLeftBtnScale, baseScale,
             { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovL))
@@ -284,6 +293,7 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
             valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
+    // --- WIERSZ 2: ANTI-ALIASING ---
     {
         float       rowY = rowStart + rowH;
         std::string lbl = "Anti-Aliasing";
@@ -302,8 +312,8 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
         bool hovR = mouse.x >= rightPos.x && mouse.x <= rightPos.x + arrowW &&
             mouse.y >= rightPos.y && mouse.y <= rightPos.y + arrowH;
 
-        m_MsaaLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_MsaaLeftBtnScale) * dt * animSpeed;
-        m_MsaaRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_MsaaRightBtnScale) * dt * animSpeed;
+        m_MsaaLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_MsaaLeftBtnScale) * lerpT;
+        m_MsaaRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_MsaaRightBtnScale) * lerpT;
 
         if (DrawScaledButton("<", leftPos, arrowSize, m_MsaaLeftBtnScale, baseScale,
             { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovL))
@@ -332,6 +342,105 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
             valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
     }
 
+    // --- WIERSZ 3: MUSIC (Tło) ---
+    {
+        float       rowY = rowStart + rowH * 2.0f;
+        std::string lbl = "Music";
+        float       lblH = Gui::MeasureTextHeight(lbl, labelScale);
+        float       baselineOff = 32.0f * 0.8f * labelScale;
+        Gui::DrawGuiText(lbl,
+            { labelX, rowY + (arrowH - lblH) * 0.5f - baselineOff + lblH * 0.5f },
+            labelScale, { 0.85f, 0.85f, 0.90f, 1.0f });
+
+        glm::vec2 leftPos = { controlsX, rowY };
+        glm::vec2 rightPos = { controlsX + arrowW + valueBoxW + 8.0f * baseScale, rowY };
+        glm::vec2 arrowSize = { arrowW, arrowH };
+
+        bool hovL = mouse.x >= leftPos.x && mouse.x <= leftPos.x + arrowW &&
+            mouse.y >= leftPos.y && mouse.y <= leftPos.y + arrowH;
+        bool hovR = mouse.x >= rightPos.x && mouse.x <= rightPos.x + arrowW &&
+            mouse.y >= rightPos.y && mouse.y <= rightPos.y + arrowH;
+
+        m_MusicLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_MusicLeftBtnScale) * lerpT;
+        m_MusicRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_MusicRightBtnScale) * lerpT;
+
+        if (DrawScaledButton("<", leftPos, arrowSize, m_MusicLeftBtnScale, baseScale,
+            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovL))
+        {
+            m_PendingMusicEnabled = !m_PendingMusicEnabled;
+        }
+        if (DrawScaledButton(">", rightPos, arrowSize, m_MusicRightBtnScale, baseScale,
+            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovR))
+        {
+            m_PendingMusicEnabled = !m_PendingMusicEnabled;
+        }
+
+        glm::vec2 vbPos = { controlsX + arrowW + 8.0f * baseScale,
+                            rowY + (arrowH - valueBoxH) * 0.5f };
+        Gui::Panel(vbPos, { valueBoxW, valueBoxH }, { 0.18f, 0.18f, 0.22f, 1.0f }, 10.0f * baseScale);
+
+        std::string musicStr = m_PendingMusicEnabled ? "ON" : "OFF";
+        float valScale = 0.85f * baseScale;
+        float mW = Gui::MeasureTextWidth(musicStr, valScale);
+        float mH = Gui::MeasureTextHeight(musicStr, valScale);
+        float mBase = 32.0f * 0.8f * valScale;
+
+        Gui::DrawGuiText(musicStr,
+            { vbPos.x + (valueBoxW - mW) * 0.5f,
+              vbPos.y + (valueBoxH - mH) * 0.5f - mBase + mH * 0.5f },
+            valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+    }
+
+    // --- WIERSZ 4: SOUNDS (Dźwięki SFX) ---
+    {
+        float       rowY = rowStart + rowH * 3.0f;
+        std::string lbl = "Sounds";
+        float       lblH = Gui::MeasureTextHeight(lbl, labelScale);
+        float       baselineOff = 32.0f * 0.8f * labelScale;
+        Gui::DrawGuiText(lbl,
+            { labelX, rowY + (arrowH - lblH) * 0.5f - baselineOff + lblH * 0.5f },
+            labelScale, { 0.85f, 0.85f, 0.90f, 1.0f });
+
+        glm::vec2 leftPos = { controlsX, rowY };
+        glm::vec2 rightPos = { controlsX + arrowW + valueBoxW + 8.0f * baseScale, rowY };
+        glm::vec2 arrowSize = { arrowW, arrowH };
+
+        bool hovL = mouse.x >= leftPos.x && mouse.x <= leftPos.x + arrowW &&
+            mouse.y >= leftPos.y && mouse.y <= leftPos.y + arrowH;
+        bool hovR = mouse.x >= rightPos.x && mouse.x <= rightPos.x + arrowW &&
+            mouse.y >= rightPos.y && mouse.y <= rightPos.y + arrowH;
+
+        m_SoundsLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_SoundsLeftBtnScale) * lerpT;
+        m_SoundsRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_SoundsRightBtnScale) * lerpT;
+
+        if (DrawScaledButton("<", leftPos, arrowSize, m_SoundsLeftBtnScale, baseScale,
+            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovL))
+        {
+            m_PendingSoundsEnabled = !m_PendingSoundsEnabled;
+        }
+        if (DrawScaledButton(">", rightPos, arrowSize, m_SoundsRightBtnScale, baseScale,
+            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovR))
+        {
+            m_PendingSoundsEnabled = !m_PendingSoundsEnabled;
+        }
+
+        glm::vec2 vbPos = { controlsX + arrowW + 8.0f * baseScale,
+                            rowY + (arrowH - valueBoxH) * 0.5f };
+        Gui::Panel(vbPos, { valueBoxW, valueBoxH }, { 0.18f, 0.18f, 0.22f, 1.0f }, 10.0f * baseScale);
+
+        std::string soundsStr = m_PendingSoundsEnabled ? "ON" : "OFF";
+        float valScale = 0.85f * baseScale;
+        float mW = Gui::MeasureTextWidth(soundsStr, valScale);
+        float mH = Gui::MeasureTextHeight(soundsStr, valScale);
+        float mBase = 32.0f * 0.8f * valScale;
+
+        Gui::DrawGuiText(soundsStr,
+            { vbPos.x + (valueBoxW - mW) * 0.5f,
+              vbPos.y + (valueBoxH - mH) * 0.5f - mBase + mH * 0.5f },
+            valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+    }
+
+    // --- DOLNY PANEL (PRZYCISKI APPLY / BACK) ---
     float     bottomY = panelY + panelH - 80.0f * baseScale;
     float     smallBtnW = 180.0f * baseScale;
     float     smallBtnH = 56.0f * baseScale;
@@ -344,8 +453,8 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
     bool hovApply = mouse.x >= applyPos.x && mouse.x <= applyPos.x + smallBtnW &&
         mouse.y >= applyPos.y && mouse.y <= applyPos.y + smallBtnH;
 
-    m_BackBtnScale += ((hovBack ? 1.05f : 1.0f) - m_BackBtnScale) * dt * animSpeed;
-    m_ApplyBtnScale += ((hovApply ? 1.05f : 1.0f) - m_ApplyBtnScale) * dt * animSpeed;
+    m_BackBtnScale += ((hovBack ? 1.05f : 1.0f) - m_BackBtnScale) * lerpT;
+    m_ApplyBtnScale += ((hovApply ? 1.05f : 1.0f) - m_ApplyBtnScale) * lerpT;
 
     if (DrawScaledButton("BACK", backPos, sbSize, m_BackBtnScale, baseScale,
         { 0.28f, 0.28f, 0.32f, 1.0f }, { 0.42f, 0.42f, 0.48f, 1.0f }, hovBack))
@@ -356,12 +465,24 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
     if (DrawScaledButton("APPLY", applyPos, sbSize, m_ApplyBtnScale, baseScale,
         { 0.15f, 0.50f, 0.18f, 1.0f }, { 0.20f, 0.70f, 0.25f, 1.0f }, hovApply))
     {
-        auto& gs = GraphicsSettings::Get();
-        gs.MsaaSamples = MsaaOptions[m_PendingMsaaIndex];
-        gs.WindowWidth = GraphicsSettings::Resolutions[m_PendingResIndex].first;
-        gs.WindowHeight = GraphicsSettings::Resolutions[m_PendingResIndex].second;
+        Application::Get().GetEventBus().Publish(AudioSettingsChangedEvent{
+            m_PendingMusicEnabled,
+            m_PendingSoundsEnabled
+            });
 
-        Application::Get().ApplyGraphicsSettings();
+        auto& gs = GraphicsSettings::Get();
+        int newWidth = GraphicsSettings::Resolutions[m_PendingResIndex].first;
+        int newHeight = GraphicsSettings::Resolutions[m_PendingResIndex].second;
+        int newMsaa = MsaaOptions[m_PendingMsaaIndex];
+
+        if (gs.WindowWidth != newWidth || gs.WindowHeight != newHeight || gs.MsaaSamples != newMsaa) {
+
+            gs.WindowWidth = newWidth;
+            gs.WindowHeight = newHeight;
+            gs.MsaaSamples = newMsaa;
+
+            Application::Get().ApplyGraphicsSettings();
+        }
 
         m_ViewportWidth = (float)gs.WindowWidth;
         m_ViewportHeight = (float)gs.WindowHeight;
@@ -406,7 +527,7 @@ void MainMenuLayer::OnEvent(Event& e) {
         e.GetEventType() == EventType::MouseMoved ||
         e.GetEventType() == EventType::MouseScrolled)
     {
-        e.Handled = true; 
+        e.Handled = true;
     }
 }
 

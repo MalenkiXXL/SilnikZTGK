@@ -9,6 +9,9 @@
 ma_engine* AudioEngine::s_Engine = nullptr;
 ma_sound* AudioEngine::s_BackgroundMusic = nullptr;
 bool AudioEngine::s_IsMusicPlaying = false;
+bool AudioEngine::s_MusicEnabled = true;
+bool AudioEngine::s_SoundsEnabled = true;
+float AudioEngine::s_MusicBaseVolume = 1.0f;
 
 struct VfsAudioFile {
     std::vector<uint8_t> data;
@@ -16,7 +19,7 @@ struct VfsAudioFile {
 };
 
 static ma_result vfs_open(ma_vfs* pVFS, const char* pFilePath, ma_uint32 openMode, ma_vfs_file* pFile) {
-    if (openMode & MA_OPEN_MODE_WRITE) return MA_ERROR; 
+    if (openMode & MA_OPEN_MODE_WRITE) return MA_ERROR;
 
     std::string path = pFilePath;
     std::replace(path.begin(), path.end(), '\\', '/');
@@ -99,7 +102,7 @@ static ma_result vfs_info(ma_vfs* pVFS, ma_vfs_file file, ma_file_info* pInfo) {
 
 
 struct MyCustomVFS {
-    ma_vfs_callbacks cb; 
+    ma_vfs_callbacks cb;
 };
 
 static MyCustomVFS g_CustomVFS;
@@ -111,10 +114,10 @@ void AudioEngine::Init()
 
     static ma_vfs_callbacks vfsCallbacks = {
         vfs_open,
-        NULL, 
+        NULL,
         vfs_close,
         vfs_read,
-        NULL, 
+        NULL,
         vfs_seek,
         vfs_tell,
         vfs_info
@@ -122,7 +125,7 @@ void AudioEngine::Init()
     g_CustomVFS.cb = vfsCallbacks;
 
     ma_resource_manager_config rmConfig = ma_resource_manager_config_init();
-    rmConfig.pVFS = (ma_vfs*)&g_CustomVFS; 
+    rmConfig.pVFS = (ma_vfs*)&g_CustomVFS;
 
     ma_result rmResult = ma_resource_manager_init(&rmConfig, &g_ResourceManager);
     if (rmResult != MA_SUCCESS) {
@@ -167,7 +170,8 @@ void AudioEngine::Shutdown()
 
 void AudioEngine::Play(const std::string& filepath)
 {
-    if (!s_Engine) return;
+    // BARDZO WAŻNE: Odcinamy odtwarzanie dźwięków jeśli są wyłączone
+    if (!s_Engine || !s_SoundsEnabled) return;
 
     std::string vfsPath = filepath;
     std::replace(vfsPath.begin(), vfsPath.end(), '\\', '/');
@@ -181,7 +185,7 @@ void AudioEngine::Play(const std::string& filepath)
     if (result != MA_SUCCESS)
     {
         std::cerr << "[AudioEngine] Blad (Play): Nie mozna odtworzyc " << vfsPath
-                  << " | Kod bledu miniaudio: " << result << std::endl;
+            << " | Kod bledu miniaudio: " << result << std::endl;
     }
 }
 
@@ -210,10 +214,17 @@ void AudioEngine::PlayMusic(const std::string& filepath, bool loop, float volume
     if (result != MA_SUCCESS)
     {
         std::cerr << "[AudioEngine] Blad ladowania muzyki tla: " << vfsPath << " Kod: " << result << std::endl;
+
+        // NAPRAWA WYJĄTKU (CRASHA): Usuwamy zepsuty wskaźnik jeśli plik nie istnieje!
+        delete s_BackgroundMusic;
+        s_BackgroundMusic = nullptr;
         return;
     }
 
-    ma_sound_set_volume(s_BackgroundMusic, volume);
+    // Od razu wyciszamy, jeśli muzyka jest globalnie wyłączona
+    s_MusicBaseVolume = volume;
+    float finalVolume = s_MusicEnabled ? volume : 0.0f;
+    ma_sound_set_volume(s_BackgroundMusic, finalVolume);
 
     ma_sound_set_looping(s_BackgroundMusic, loop ? MA_TRUE : MA_FALSE);
     ma_result startResult = ma_sound_start(s_BackgroundMusic);
@@ -237,4 +248,30 @@ void AudioEngine::StopMusic()
 
     s_IsMusicPlaying = false;
     std::cout << "[AudioEngine] Muzyka tla zatrzymana." << std::endl;
+}
+
+void AudioEngine::SetMusicEnabled(bool enabled)
+{
+    s_MusicEnabled = enabled;
+
+    // Bezpieczne sprawdzanie zanim przekażemy do miniaudio
+    if (s_BackgroundMusic && s_IsMusicPlaying) {
+        // Zamiast 1.0f (100%), wracamy do zapamiętanej bazowej głośności:
+        ma_sound_set_volume(s_BackgroundMusic, enabled ? s_MusicBaseVolume : 0.0f);
+    }
+}
+
+bool AudioEngine::IsMusicEnabled()
+{
+    return s_MusicEnabled;
+}
+
+void AudioEngine::SetSoundsEnabled(bool enabled)
+{
+    s_SoundsEnabled = enabled;
+}
+
+bool AudioEngine::AreSoundsEnabled()
+{
+    return s_SoundsEnabled;
 }
