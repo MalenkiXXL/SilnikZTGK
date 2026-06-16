@@ -44,6 +44,7 @@ public:
 	}
 
 	void ApplyGraphicsSettings();
+	inline void Close() { m_Running = false; }
 
 private:
 	bool OnWindowClose(WindowCloseEvent& e);
