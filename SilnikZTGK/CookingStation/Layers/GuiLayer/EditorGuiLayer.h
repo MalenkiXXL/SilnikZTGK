@@ -13,6 +13,7 @@
 #include <limits>
 #include <nlohmann/json.hpp>
 #include <vector>
+#include "CookingStation/Tools/QuestGenerator/QuestManager.h"
 
 class EditorGuiLayer : public Layer {
 public:
@@ -24,7 +25,6 @@ public:
     bool OnWindowResize(WindowResizeEvent& e);
     void SetViewportFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_ViewportFBO = fbo; }
     void SetMsaaFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_MsaaFBO = fbo; }
-    void ReloadQuests();
 
 private:
     Entity m_SelectedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -71,12 +71,6 @@ private:
     glm::vec3 m_TransformStartPos = { 0.0f, 0.0f, 0.0f };
     std::shared_ptr<Framebuffer> m_ViewportFBO;
 
-    struct QuestData {
-        std::string title;
-        std::string desc;
-        int portions;
-        std::string reward;
-    };
     std::vector<QuestData> m_CurrentQuests;
     int m_CurrentQuestIndex = 0;
     bool m_ShowPrefabsPanel = false;

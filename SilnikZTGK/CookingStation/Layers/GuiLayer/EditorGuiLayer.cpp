@@ -394,18 +394,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         Gui::Panel(questPanelPos, { 180.0f, 115.0f }, { 0.15f, 0.15f, 0.15f, 0.9f }, 15.0f);
         Gui::DrawGuiText("Generator Questow:", { questPanelPos.x + 5.f, questPanelPos.y + 10.f }, 0.45f, { 1.0f, 0.8f, 0.2f, 1.0f });
 
-        if (Gui::Button("Generuj (Stary Cache)", { questPanelPos.x + 5.f, questPanelPos.y + 30.f }, { 170.f, 20.f })) {
-            spdlog::info("Generowanie z istniejacego cache...");
-            system("python CookingStation/Tools/QuestGenerator/main.py");
-            GameGuiLayer::s_NeedsQuestReload = true;
-        }
-        if (Gui::Button("Generuj (Nowe Newsy)", { questPanelPos.x + 5.f, questPanelPos.y + 55.f }, { 170.f, 20.f })) {
-            spdlog::info("Czyszczenie cache i pobieranie nowych newsow...");
-            std::remove("CookingStation/Assets/news_cache.json");
-            system("python CookingStation/Tools/QuestGenerator/main.py");
-            GameGuiLayer::s_NeedsQuestReload = true;
-        }
-
         if (Gui::Button("Resetuj (Domyslne)", { questPanelPos.x + 5.f, questPanelPos.y + 80.f }, { 170.f, 20.f })) {
             spdlog::info("Twardy reset questów do ustawień domyślnych (C++)...");
 
@@ -423,7 +411,6 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
                     << "]";
                 outFile.close();
 
-                GameGuiLayer::s_NeedsQuestReload = true;
                 spdlog::info("Questy zresetowane natychmiastowo.");
             }
             else {

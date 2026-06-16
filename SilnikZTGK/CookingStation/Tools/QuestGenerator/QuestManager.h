@@ -8,18 +8,21 @@
 
 using json = nlohmann::json;
 
-struct Quest {
+struct QuestData {
     std::string Title;
     std::string Description;
+    std::string DishID;
     int Portions;
     int Frequency;
-    std::string Reward;
+    int RewardCoins;
+    std::string RewardFlag;
 };
 
 class QuestManager {
 public:
-    static std::vector<Quest> LoadQuests(const std::string& filepath) {
-        std::vector<Quest> quests;
+    // Magiczne s³ówko 'inline' rozwi¹zuje b³¹d LNK2001
+    static inline std::vector<QuestData> LoadQuests(const std::string& filepath) {
+        std::vector<QuestData> quests;
         std::vector<uint8_t> fileData = VFS::ReadFile(filepath);
         if (fileData.empty()) {
             spdlog::error("Nie udao sie otworzyc pliku z questami przez VFS: {}", filepath);
@@ -28,12 +31,14 @@ public:
         try {
             json data = json::parse(fileData.begin(), fileData.end());
             for (auto& item : data) {
-                Quest q;
-                q.Title = item["title"].get<std::string>();
-                q.Description = item["description"].get<std::string>();
-                q.Portions = item["portions"].get<int>();
-                q.Frequency = item["frequency"].get<int>();
-                q.Reward = item["reward"].get<std::string>();
+                QuestData q;
+                q.Title = item.value("title", "");
+                q.Description = item.value("description", "");
+                q.DishID = item.value("dish_id", "");
+                q.Portions = item.value("portions", 0);
+                q.Frequency = item.value("frequency", 0);
+                q.RewardCoins = item.value("reward_coins", 0);
+                q.RewardFlag = item.value("reward_flag", "");
                 quests.push_back(q);
             }
             spdlog::info("Pomyslnie wczytano {} questow!", quests.size());

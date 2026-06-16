@@ -16,6 +16,14 @@ void GameManagerScript::OnCreate()
         }
     );
 
+    m_AvailableQuests = QuestManager::LoadQuests("assets://wygenerowane_quests.json");
+    if (m_AvailableQuests.empty()) {
+        spdlog::warn("GameManager: Brak questow, timer nie zostanie uruchomiony.");
+    }
+
+    m_QuestTimer = QUEST_INTERVAL;
+    m_CurrentQuestState = QuestEventState::WaitingForTimer;
+
     m_AddIngredientSubId = bus.Subscribe<AddIngredientEvent>(
         [this](const AddIngredientEvent& e) {
             this->AddIngredients(e.Type, e.Amount);
@@ -79,6 +87,70 @@ void GameManagerScript::OnCreate()
     AddIngredients(IngredientType::Milk, 5);
     AddIngredients(IngredientType::Flour, 5);
     AddIngredients(IngredientType::Egg, 5);
+
+    // --- Rejestracja i ukrywanie elementów Questowych ---
+
+    auto findEntityByName = [&](const std::string& targetName) -> Entity {
+        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+        if (tags) {
+            for (size_t i = 0; i < tags->dense.size(); ++i) {
+                if (tags->dense[i].Tag == targetName) {
+                    return tags->reverse[i];
+                }
+            }
+        }
+        return { std::numeric_limits<std::size_t>::max(), 0 };
+        };
+
+    // 1. Grupa Wyspy Eventowej (Przylatuje z BOKU po osi X)
+    std::vector<std::string> eventIslandNames = { "event_78", "budka", "balony1", "balony2", "balony3", "balony4"};
+    for (const auto& name : eventIslandNames) {
+        Entity e = findEntityByName(name);
+        auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
+
+        if (transform) {
+            if (name == "budka" && transform->GetPosition().x > -20.0f) continue;
+
+            // UWAGA: Dla wyspy eventowej w pair.second zapisujemy teraz oryginalną pozycję X!
+            float origX = transform->GetPosition().x;
+            m_EventIslandGroup.push_back({ e, origX });
+
+            glm::vec3 pos = transform->GetPosition();
+            pos.x = origX - 60.0f; // Schowaj 60 jednostek w lewo poza mapę
+            transform->SetPosition(pos);
+        }
+    }
+
+    // 2. Grupa Głównej Wyspy (Przylatuje z GÓRY)
+    std::vector<std::string> mainIslandNames = {
+        "narożnikPas",
+        "tasma_20", "tasma_21", "tasma_22", "tasma_23", "tasma_24", "tasma_25",
+        "zwrotnica_quest"
+    };
+    for (const auto& name : mainIslandNames) {
+        Entity e = findEntityByName(name);
+        auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
+
+        if (transform) {
+            float origY = transform->GetPosition().y;
+            m_MainIslandQuestGroup.push_back({ e, origY });
+
+            glm::vec3 pos = transform->GetPosition();
+            pos.y = origY + 30.0f; // Schowaj 30 jednostek w GÓRĘ (w niebo)
+            transform->SetPosition(pos);
+        }
+    }
+
+    // 3. Element wymieniany (Znika dopiero jak quest dojedzie)
+    std::vector<std::string> replacedNames = { "tasma_do_wymiany" }; 
+    for (const auto& name : replacedNames) {
+        Entity e = findEntityByName(name);
+        auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
+        if (transform) {
+            float origY = transform->GetPosition().y;
+            m_ReplacedByQuestGroup.push_back({ e, origY });
+        }
+    }
 }
 
 void GameManagerScript::OnDestroy()
@@ -147,4 +219,182 @@ void GameManagerScript::OnOrderFulfilled(const OrderFulfilledEvent& e)
 {
     AddMoney(static_cast<int>(e.RewardAmount));
     spdlog::info("Order fulfilled! Reward added: {}", e.RewardAmount);
+}
+
+void GameManagerScript::OnUpdate(Timestep ts)
+{
+    if (m_AvailableQuests.empty()) return;
+
+    switch (m_CurrentQuestState)
+    {
+    case QuestEventState::WaitingForTimer:
+    {
+        m_QuestTimer -= ts;
+        if (m_QuestTimer <= 0.0f)
+        {
+            spdlog::info("Quest Timer minal! Rozpoczynamy przylot wyspy eventowej.");
+            m_AnimationProgress = 0.0f;
+            m_CurrentQuestState = QuestEventState::IslandArriving;
+        }
+        break;
+    }
+    case QuestEventState::IslandArriving:
+    {
+        m_AnimationProgress += ts * 0.5f;
+        if (m_AnimationProgress > 1.0f) m_AnimationProgress = 1.0f;
+
+        float easeOut = 1.0f - (1.0f - m_AnimationProgress) * (1.0f - m_AnimationProgress);
+
+        // Wyspa przylatuje z lewej strony (od -60 do 0 po osi X)
+        float xOffset = -60.0f * (1.0f - easeOut);
+
+        for (auto& pair : m_EventIslandGroup) {
+            auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
+            if (transform) {
+                glm::vec3 pos = transform->GetPosition();
+                pos.x = pair.second + xOffset; // Animujemy oś X
+                transform->SetPosition(pos);
+            }
+        }
+
+        if (m_AnimationProgress >= 1.0f) {
+            m_CurrentQuestState = QuestEventState::WaitingForAccept;
+        }
+        break;
+    }
+    case QuestEventState::WaitingForAccept:
+    {
+        // Oczekujemy na UI
+        break;
+    }
+    case QuestEventState::QuestActive:
+    {
+        if (m_AnimationProgress < 1.0f) {
+            m_AnimationProgress += ts * 0.5f;
+            if (m_AnimationProgress > 1.0f) m_AnimationProgress = 1.0f;
+
+            float easeOut = 1.0f - (1.0f - m_AnimationProgress) * (1.0f - m_AnimationProgress);
+
+            // 1. Dobudówka (z budką i zwrotnicą) zlatuje z GÓRY (od +30 do 0 po osi Y)
+            float yOffset = 30.0f * (1.0f - easeOut);
+            for (auto& pair : m_MainIslandQuestGroup) {
+                auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
+                if (transform) {
+                    glm::vec3 pos = transform->GetPosition();
+                    pos.y = pair.second + yOffset;
+                    transform->SetPosition(pos);
+                }
+            }
+
+            // 2. OPÓŹNIONE ZNIKANIE: Stara taśma zapada się pod ziemię (od 0 do -30), 
+            // ale DOPIERO gdy m_AnimationProgress > 0.8 (czyli gdy nowa już prawie wylądowała)
+            float hideProgress = std::max(0.0f, (m_AnimationProgress - 0.8f) / 0.2f);
+            float hideOffset = -30.0f * hideProgress;
+
+            for (auto& pair : m_ReplacedByQuestGroup) {
+                auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
+                if (transform) {
+                    glm::vec3 pos = transform->GetPosition();
+                    pos.y = pair.second + hideOffset;
+                    transform->SetPosition(pos);
+                }
+            }
+        }
+        break;
+    }
+    case QuestEventState::IslandLeaving:
+    {
+        m_AnimationProgress += ts * 0.5f;
+        if (m_AnimationProgress > 1.0f) m_AnimationProgress = 1.0f;
+
+        float easeIn = m_AnimationProgress * m_AnimationProgress;
+
+        // 1. Wyspa eventowa odlatuje w lewo (od 0 do -60 po osi X)
+        float xOffset = -60.0f * easeIn;
+        for (auto& pair : m_EventIslandGroup) {
+            auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
+            if (transform) {
+                glm::vec3 pos = transform->GetPosition();
+                pos.x = pair.second + xOffset;
+                transform->SetPosition(pos);
+            }
+        }
+
+        // 2. Budka questowa odlatuje z powrotem do góry (od 0 do +30)
+        float yOffsetMain = 30.0f * easeIn;
+        for (auto& pair : m_MainIslandQuestGroup) {
+            auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
+            if (transform) {
+                glm::vec3 pos = transform->GetPosition();
+                pos.y = pair.second + yOffsetMain;
+                transform->SetPosition(pos);
+            }
+        }
+
+        // 3. Stara, zwykła taśma natychmiastowo wraca z dołu na górę (od -30 do 0)
+        // Robimy to w pierwszych 20% animacji odlotu, żeby od razu zakryła dziurę.
+        float showProgress = std::min(1.0f, m_AnimationProgress / 0.2f);
+        float showOffset = -30.0f * (1.0f - showProgress);
+
+        for (auto& pair : m_ReplacedByQuestGroup) {
+            auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
+            if (transform) {
+                glm::vec3 pos = transform->GetPosition();
+                pos.y = pair.second + showOffset;
+                transform->SetPosition(pos);
+            }
+        }
+
+        if (m_AnimationProgress >= 1.0f) {
+            m_QuestTimer = QUEST_INTERVAL; // Reset timera
+            m_CurrentQuestState = QuestEventState::WaitingForTimer;
+            spdlog::info("Koniec cyklu Questa. Wszystko odlecialo.");
+        }
+        break;
+    }
+    }
+}
+
+
+void GameManagerScript::AcceptQuest()
+{
+    if (m_CurrentQuestState == QuestEventState::WaitingForAccept) {
+        spdlog::info("Quest Zaakceptowany! Rozbudowuje glowna wyspe.");
+        m_AnimationProgress = 0.0f; // Resetujemy pasek dla nowej animacji
+        m_CurrentQuestState = QuestEventState::QuestActive;
+    }
+}
+
+void GameManagerScript::SkipQuest()
+{
+    if (m_CurrentQuestState == QuestEventState::WaitingForAccept) {
+        if (m_SkipsLeft > 0) {
+            m_SkipsLeft--;
+            m_CurrentQuestIndex++;
+            if (m_CurrentQuestIndex >= m_AvailableQuests.size()) m_CurrentQuestIndex = 0; // Zapętlenie listy
+            spdlog::info("Quest pominiety! Pozostalo pominięc: {}", m_SkipsLeft);
+            // Tutaj w następnym etapie odświeżymy wizualnie HUD z nowym zadaniem
+        }
+        else {
+            spdlog::warn("Brak pominiec!");
+            // Ewentualnie wymuszamy QuestActive
+        }
+    }
+}
+
+void GameManagerScript::CompleteQuest()
+{
+    if (m_CurrentQuestState == QuestEventState::QuestActive) {
+        spdlog::info("Quest Zrealizowany! Rozpoczynam odlot wszystkiego.");
+        m_AnimationProgress = 0.0f;
+        m_SkipsLeft = 3;
+
+        QuestData currentQuest = m_AvailableQuests[m_CurrentQuestIndex];
+        AddMoney(currentQuest.RewardCoins);
+
+        m_CurrentQuestIndex++;
+        if (m_CurrentQuestIndex >= m_AvailableQuests.size()) m_CurrentQuestIndex = 0;
+
+        m_CurrentQuestState = QuestEventState::IslandLeaving;
+    }
 }

@@ -263,7 +263,7 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClCompile Include="CookingStation\Scene\ecs.cpp" />
     <ClCompile Include="CookingStation\Layers\EditorLayer\EditorLayer.cpp" />
     <ClCompile Include="CookingStation\Layers\GameLayer\GameLayer.cpp" />
-    <ClCompile Include="CookingStation\Tools\QuestGenerator\QuestManager.cpp" />
+    <ClCompile Include="CookingStation\Tools\QuestGenerator\QuestManager.h" />
     <ClCompile Include="gettingStarted.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="CookingStation\Core\Input.cpp" />
