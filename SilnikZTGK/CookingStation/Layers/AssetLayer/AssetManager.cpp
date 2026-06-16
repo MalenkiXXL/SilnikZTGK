@@ -59,6 +59,8 @@ void AssetManager::Clean() {
 	m_Models.clear();
 	m_Textures.clear();
 	m_Textures2D.clear();
+	s_Animations.clear();
+	s_Shaders = ShaderLibrary();
 }
 
 void AssetManager::InitCoreAssets() {

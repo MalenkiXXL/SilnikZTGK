@@ -125,8 +125,14 @@ Application::~Application()
 
 	m_ViewportFBO.reset();
 	m_MsaaFBO.reset();
-
+	Renderer2D::Shutdown();
+	Renderer::Shutdown();
+	Gui::Shutdown();         
+	SceneManager::Shutdown();
 	AudioEngine::Shutdown();
+
+
+	AssetManager::Clean();
 
 	delete m_Window;
 
