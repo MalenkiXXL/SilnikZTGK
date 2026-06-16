@@ -16,6 +16,10 @@ private:
     int m_PendingMsaaIndex = 0;
     std::vector<int> m_MsaaOptions = { 1, 2, 4, 8 };
 
+    // Zmienne dla dźwięków i muzyki
+    bool m_PendingMusicEnabled = true;
+    bool m_PendingSoundsEnabled = true;
+
     float m_BackBtnScale = 1.0f;
     float m_ApplyBtnScale = 1.0f;
     float m_ResLeftBtnScale = 1.0f;
@@ -23,5 +27,11 @@ private:
     float m_MsaaLeftBtnScale = 1.0f;
     float m_MsaaRightBtnScale = 1.0f;
 
-    float m_DeltaTime = 0.0f; 
+    // Skale animacji dla nowych przycisków
+    float m_MusicLeftBtnScale = 1.0f;
+    float m_MusicRightBtnScale = 1.0f;
+    float m_SoundsLeftBtnScale = 1.0f;
+    float m_SoundsRightBtnScale = 1.0f;
+
+    float m_DeltaTime = 0.0f;
 };

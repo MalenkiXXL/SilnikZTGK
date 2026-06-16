@@ -66,4 +66,13 @@ private:
     static constexpr int MsaaOptionCount = 4;
 
     std::size_t m_ShowMenuSubId = 0;
+
+
+    float m_MusicLeftBtnScale = 1.0f;
+    float m_MusicRightBtnScale = 1.0f;
+    bool  m_PendingMusicEnabled = true;
+
+    float m_SoundsLeftBtnScale = 1.0f;
+    float m_SoundsRightBtnScale = 1.0f;
+    bool  m_PendingSoundsEnabled = true;
 };

@@ -141,3 +141,8 @@ struct BuildModeToggledEvent {
 
 struct GamePausedEvent {};
 struct GameResumedEvent {};
+
+struct AudioSettingsChangedEvent {
+    bool MusicEnabled;
+    bool SoundsEnabled;
+};
