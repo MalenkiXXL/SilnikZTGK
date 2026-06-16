@@ -1,6 +1,8 @@
 #pragma once
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Core/AudioEngine.h"
+#include "CookingStation/Core/Application.h"
+#include <GLFW/glfw3.h>
 
 class CuttingBoardScript : public MachineScript
 {
@@ -16,6 +18,9 @@ private:
     const float m_AutoChopInterval = 0.8f;
 
     Entity m_CursorKnife = { std::numeric_limits<std::size_t>::max(), 0 };
+
+    // Nowa zmienna do śledzenia stanu kursora
+    bool m_WasShowingKnife = false;
 
     std::pair<std::string, std::string> GetModelPathsForIngredient(IngredientType type)
     {
@@ -80,7 +85,6 @@ public:
     {
         MachineScript::OnCreate();
 
-
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_FoodClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId);
@@ -88,6 +92,14 @@ public:
 
     void OnDestroy() override
     {
+        // Zabezpieczenie: Przywróć kursor jeśli niszczymy maszynę w trakcie krojenia
+        if (m_WasShowingKnife)
+        {
+            GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            m_WasShowingKnife = false;
+        }
+
         if (m_CursorKnife.id != std::numeric_limits<std::size_t>::max())
         {
             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_CursorKnife });
@@ -128,19 +140,19 @@ public:
 
                 if (pScript->AddIngredient(choppedType))
                 {
-                    spdlog::info("Sk�adnik z deski przeniesiony na talerz!");
+                    spdlog::info("Składnik z deski przeniesiony na talerz!");
                     ClearHighlight();
                     ResetMachineState();
                 }
                 else
                 {
-                    spdlog::warn("Talerz jest pe�ny lub nie mo�e przyj�� sk�adnika!");
+                    spdlog::warn("Talerz jest pełny lub nie może przyjąć składnika!");
                 }
             }
         }
         else
         {
-            spdlog::warn("Brak pod�wietlonego talerza - najed� na danie przed klikni�ciem!");
+            spdlog::warn("Brak podświetlonego talerza - najedź na danie przed kliknięciem!");
         }
     }
 
@@ -195,8 +207,18 @@ public:
         bool isHovering = (glm::distance(mouse2D, board2D) < 2.0f);
 
         bool shouldShowKnife = isHovering && !m_IsAutomated && !m_IsReady && !m_Ingredients.empty() && !GlobalIsMachineHeld;
+
+        // Zaktualizowana logika pokazywania noża
         if (shouldShowKnife)
         {
+            if (!m_WasShowingKnife)
+            {
+                // Ukrywa systemowy kursor przez natywne wywołanie GLFW
+                GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+                m_WasShowingKnife = true;
+            }
+
             if (m_CursorKnife.id == std::numeric_limits<std::size_t>::max())
             {
                 auto builder = GetScene()->GetWorld().BuildEntity();
@@ -217,12 +239,27 @@ public:
             if (knifeTf)
             {
                 glm::vec3 knifePos = mousePos;
-                knifePos.y = tf->GetPosition().y + 1.2f + m_VisualJumpY;
+                knifePos.y = tf->GetPosition().y + m_BaseYOffset + 1.f;
+
+                float offsetX = 1.7f; 
+                float offsetZ = 1.7f; 
+
+                knifePos.x += offsetX;
+                knifePos.z += offsetZ;
+
                 knifeTf->SetPosition(knifePos);
             }
         }
         else
         {
+            if (m_WasShowingKnife)
+            {
+                // Przywraca systemowy kursor przez natywne wywołanie GLFW
+                GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+                glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+                m_WasShowingKnife = false;
+            }
+
             if (m_CursorKnife.id != std::numeric_limits<std::size_t>::max())
             {
                 GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_CursorKnife });
@@ -295,11 +332,11 @@ public:
             m_ChopCooldown = 0.2f;
             m_AutoChopTimer = 0.0f;
             UpdateVisuals();
-            spdlog::info("Po�o�ono sk�adnik na desce do krojenia.");
+            spdlog::info("Położono składnik na desce do krojenia.");
             return true;
         }
 
-        spdlog::warn("Deska: Tego sk�adnika tu nie pokroisz!");
+        spdlog::warn("Deska: Tego składnika tu nie pokroisz!");
         return false;
     }
 
@@ -351,7 +388,7 @@ protected:
             history.BaseIngredients = m_Ingredients;
             history.OriginMachine = "CuttingBoard";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
-            spdlog::info("Sk�adnik pokrojony i wpisany do rejestru historii.");
+            spdlog::info("Składnik pokrojony i wpisany do rejestru historii.");
         }
     }
 };
