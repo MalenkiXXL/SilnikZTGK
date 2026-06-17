@@ -128,3 +128,33 @@ void Texture2D::SetWrapMode(GLenum wrapMode)
 
     m_CurrentWrapMode = wrapMode;
 }
+
+Texture2D::Texture2D(uint32_t width, uint32_t height)
+    : m_Width(width), m_Height(height)
+{
+    glGenTextures(1, &m_RendererID);
+    glBindTexture(GL_TEXTURE_2D, m_RendererID);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    m_CurrentWrapMode = GL_CLAMP_TO_EDGE;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, m_Width, m_Height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+}
+
+void Texture2D::SetData(void* data, uint32_t size)
+{
+    uint32_t expectedSize = m_Width * m_Height * 4;
+    if (size != expectedSize)
+    {
+        std::cout << "[Texture2D] B£¥D: SetData oczekuje rozmiaru " << expectedSize << " bajtów, a otrzyma³o " << size << std::endl;
+        return;
+    }
+
+    glBindTexture(GL_TEXTURE_2D, m_RendererID);
+    glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_Width, m_Height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+}

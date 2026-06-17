@@ -3,7 +3,7 @@
     "title": "Beach Snack Panic",
     "description": "Sand is crunchy, but this snack is crunchier. Add tomato.",
     "dish_id": "pomidorowa",
-    "portions": 3,
+    "portions": 1,
     "frequency": 5,
     "reward_coins": 50,
     "reward_flag": "US"
