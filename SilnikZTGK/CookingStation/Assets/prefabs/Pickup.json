@@ -1,0 +1,21 @@
+{
+  "collider": {
+    "offset": [
+      0.0069272518157958984,
+      1.8842203617095947,
+      0.0
+    ],
+    "size": [
+      1.9999566078186035,
+      1.8842203617095947,
+      1.0000003576278687
+    ]
+  },
+  "id": 2,
+  "model_path": "assets://models/wystroj/wydawka/wydawka2.gltf",
+  "name": "Wydawka",
+  "scripts": [
+    "ConveyorPickupScript",
+    "WaiterPickupStationScript"
+  ]
+}

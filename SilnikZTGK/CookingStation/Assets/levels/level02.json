@@ -76,7 +76,7 @@
         1.0
       ],
       "scripts": [
-        "ConveyorScript",
+        "ConveyorPickupScript",
         "WaiterPickupStationScript"
       ]
     },
@@ -1345,7 +1345,7 @@
         1.0
       ],
       "scripts": [
-        "ConveyorScript"
+        "ConveyorSwitchScript"
       ]
     },
     {
@@ -1522,7 +1522,7 @@
         1.0
       ],
       "scripts": [
-        "ConveyorScript"
+        "ConveyorSwitchScript"
       ]
     },
     {
@@ -2997,7 +2997,7 @@
         1.0
       ],
       "scripts": [
-        "ConveyorScript"
+        "ConveyorSwitchScript"
       ]
     },
     {
@@ -3410,7 +3410,7 @@
         1.0
       ],
       "scripts": [
-        "ConveyorScript"
+        "ConveyorSwitchScript"
       ]
     },
     {
@@ -4883,7 +4883,7 @@
         1
       ],
       "scripts": [
-        "ConveyorScript"
+        "ConveyorSwitchScript"
       ]
     },
     {
