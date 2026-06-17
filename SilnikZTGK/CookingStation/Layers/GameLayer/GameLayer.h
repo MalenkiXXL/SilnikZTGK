@@ -19,6 +19,7 @@ public:
     virtual void OnEvent(Event& e) override;
 
 private:
+    float m_TimeScale = 1.0f;
     bool OnKeyPressed(KeyPressedEvent& e);
     std::shared_ptr<Scene> m_ActiveScene;
 

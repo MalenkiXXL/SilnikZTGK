@@ -84,7 +84,7 @@ void DeliveryManagerScript::OnCreate()
     m_CustomerSeatedSubId = bus.Subscribe<KitchenOrderPlacedEvent>([this](const KitchenOrderPlacedEvent& e) {
         if (e.WantedDish != IngredientType::None) {
             m_ActiveOrdersQueue.push_back({ e.Customer.id, e.WantedDish });
-            spdlog::info("Magazyn dopisał zamówienie na pozycję {}: {}", m_ActiveOrdersQueue.size(), IngredientTypeToString(e.WantedDish));
+            spdlog::info("Magazyn dopisal zamowienie na pozycje {}: {}", m_ActiveOrdersQueue.size(), IngredientTypeToString(e.WantedDish));
         }
     });
 
@@ -96,7 +96,7 @@ void DeliveryManagerScript::OnCreate()
 
         if (it != m_ActiveOrdersQueue.end()) {
             m_ActiveOrdersQueue.erase(it);
-            spdlog::info("Zamówienie klienta {} zrealizowane i usunięte z kolejki magazynu.", e.Customer.id);
+            spdlog::info("Zamowienie klienta {} zrealizowane i usuniete z kolejki magazynu.", e.Customer.id);
         }
     });
 }

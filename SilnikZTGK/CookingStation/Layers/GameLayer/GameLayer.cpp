@@ -24,7 +24,6 @@ void GameLayer::OnAttach()
     }
 
     AudioEngine::PlayMusic("assets://sounds/aktasok-ambient-background-loop.mp3", true, 0.01f);
-
 }
 
 void GameLayer::OnDetach()
@@ -33,9 +32,16 @@ void GameLayer::OnDetach()
         m_ActiveScene->OnRuntimeStop();
 }
 
-
 void GameLayer::OnUpdate(Timestep ts)
 {
+    if (Input::IsKeyPressed(GLFW_KEY_X)) {
+        m_TimeScale = 4.0f;
+    }
+    else {
+        m_TimeScale = 1.0f;
+    }
+
+    Timestep scaledTs = ts.GetSeconds() * m_TimeScale;
     m_ActiveScene = SceneManager::GetActiveScene();
     if (!m_ActiveScene) return;
 
@@ -47,7 +53,7 @@ void GameLayer::OnUpdate(Timestep ts)
 
     if (m_ActiveScene->GetState() != SceneState::Play) return;
 
-    m_ActiveScene->OnUpdateRuntime(ts);
+    m_ActiveScene->OnUpdateRuntime(scaledTs);
     auto& world = m_ActiveScene->GetWorld();
 
     auto mousePos = Input::GetMousePosition();
@@ -143,7 +149,6 @@ void GameLayer::OnUpdate(Timestep ts)
                 world.GetEventBus().Publish(EntityClickedEvent{ hoveredEntity, 0 });
         }
 
-        
         if (m_UsingGamepad)
         {
             if (m_GamepadCursor.id == std::numeric_limits<std::size_t>::max() || !world.GetComponent<TagComponent>(m_GamepadCursor))
@@ -166,22 +171,21 @@ void GameLayer::OnUpdate(Timestep ts)
             if (tc)
             {
                 glm::vec3 snappedCursor = GridSystem::SnapToGrid(m_VirtualCursorPos);
-                snappedCursor.y += 0.1f; 
+                snappedCursor.y += 0.1f;
                 tc->SetPosition(snappedCursor);
             }
 
             glm::vec3 screenCenterOnFloor = camera->TargetPosition;
-            if (std::abs(camera->Front.y) > 0.001f) 
+            if (std::abs(camera->Front.y) > 0.001f)
             {
                 float t = -camera->TargetPosition.y / camera->Front.y;
                 screenCenterOnFloor = camera->TargetPosition + t * camera->Front;
             }
 
             glm::vec3 diff = m_VirtualCursorPos - screenCenterOnFloor;
-            diff.y = 0.0f; 
+            diff.y = 0.0f;
 
             float distance = glm::length(diff);
-
             float deadzone = 8.0f;
 
             if (distance > deadzone)
@@ -199,8 +203,7 @@ void GameLayer::OnEvent(Event& e)
 
     dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& event) {
         return OnKeyPressed(event);
-    });
-
+        });
 }
 
 bool GameLayer::OnKeyPressed(KeyPressedEvent& e)
@@ -222,74 +225,59 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
 
     spdlog::info("AudioEngine: Podpinam pelna liste eventow audio!");
 
-
     eventBus.Subscribe<GamePausedEvent>([](const GamePausedEvent& e) {
         AudioEngine::Play("assets://sounds/pause.mp3");
-    });
+        });
 
     eventBus.Subscribe<GameResumedEvent>([](const GameResumedEvent& e) {
         AudioEngine::Play("assets://sounds/unpause.mp3");
-    });
+        });
 
     eventBus.Subscribe<MachinePickedUpEvent>([](const MachinePickedUpEvent& e) {
         AudioEngine::Play("assets://sounds/pickup.wav");
-    });
+        });
 
     eventBus.Subscribe<StartDragRequestEvent>([](const StartDragRequestEvent& e) {
         AudioEngine::Play("assets://sounds/drag_start.mp3");
-    });
-
-//    eventBus.Subscribe<DishCreatedEvent>([](const DishCreatedEvent& e) {
-//        AudioEngine::Play("assets://sounds/dish_ready.mp3"); 
-//    });
-
-//    eventBus.Subscribe<PlateReadyEvent>([](const PlateReadyEvent& e) {
-//        AudioEngine::Play("assets://sounds/ding.mp3"); 
-//    });
+        });
 
     eventBus.Subscribe<PlateGrabbedEvent>([](const PlateGrabbedEvent& e) {
-        AudioEngine::Play("assets://sounds/plate_pickup.wav"); 
-    });
+        AudioEngine::Play("assets://sounds/plate_pickup.wav");
+        });
 
     eventBus.Subscribe<IngredientUsedEvent>([](const IngredientUsedEvent& e) {
-        AudioEngine::Play("assets://sounds/put_ingredient.mp3"); 
-    });
+        AudioEngine::Play("assets://sounds/put_ingredient.mp3");
+        });
 
     eventBus.Subscribe<CustomerSeatedEvent>([](const CustomerSeatedEvent& e) {
-        AudioEngine::Play("assets://sounds/footstep09.mp3"); 
-    });
-
-//    eventBus.Subscribe<OrderTakenEvent>([](const OrderTakenEvent& e) {
-//        AudioEngine::Play("assets://sounds/writing.mp3"); 
-//    });
+        AudioEngine::Play("assets://sounds/footstep09.mp3");
+        });
 
     eventBus.Subscribe<CustomerServedEvent>([](const CustomerServedEvent& e) {
-        //AudioEngine::Play("assets://sounds/plate_down.wav");
-        //TODO dźwięk do poprawy
-    });
+        });
 
     eventBus.Subscribe<ValidateOrderResponseEvent>([](const ValidateOrderResponseEvent& e) {
         if (e.IsCorrect) {
             AudioEngine::Play("assets://sounds/happy_customer.mp3");
-        } else {
+        }
+        else {
             AudioEngine::Play("assets://sounds/angry_customer.mp3");
         }
-    });
+        });
 
     eventBus.Subscribe<MoneyChangedEvent>([](const MoneyChangedEvent& e) {
         AudioEngine::Play("assets://sounds/coin.mp3");
-    });
+        });
 
     eventBus.Subscribe<OrderFulfilledEvent>([](const OrderFulfilledEvent& e) {
-        AudioEngine::Play("assets://sounds/success.mp3"); 
-    });
+        AudioEngine::Play("assets://sounds/success.mp3");
+        });
 
     eventBus.Subscribe<CarArrivedEvent>([](const CarArrivedEvent& e) {
-        AudioEngine::Play("assets://sounds/truck_horn.mp3"); 
-    });
+        AudioEngine::Play("assets://sounds/truck_horn.mp3");
+        });
 
     eventBus.Subscribe<PackageSpawnedEvent>([](const PackageSpawnedEvent& e) {
-        AudioEngine::Play("assets://sounds/box_drop.mp3"); 
-    });
-
+        AudioEngine::Play("assets://sounds/box_drop.mp3");
+        });
 }

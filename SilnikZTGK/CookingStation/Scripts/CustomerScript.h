@@ -24,8 +24,13 @@ public:
 
     void OnCreate() override
     {
-        // 1. Definiujemy, co jest w menu
-        std::vector<IngredientType> menu = { IngredientType::Tomato /*, IngredientType::Cheese, IngredientType::Ham, IngredientType::Sandwich*/ };
+        // 1. Definiujemy, co jest w menu (odblokowane pozostałe opcje!)
+        std::vector<IngredientType> menu = {
+            IngredientType::Tomato,
+            IngredientType::Cheese,
+            IngredientType::Ham,
+            IngredientType::Sandwich
+        };
 
         // 2. Losujemy jeden ze składników
         std::random_device rd;
