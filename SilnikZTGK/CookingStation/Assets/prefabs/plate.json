@@ -4,6 +4,10 @@
     "position": [ 0.0, 0.0, 0.0 ],
     "rotation": [ 0.0, 0.0, 0.0 ],
     "scale": [ 1.0, 1.0, 1.0 ],
+    "collider": {
+        "offset": [ 0.0, 0.0, 0.0 ],
+        "size": [ 1.0, 0.1, 1.0 ]
+    },
     "scripts": [
         "ItemScript",
         "PlateScript"

@@ -114,6 +114,13 @@ protected:
                 foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
             }
 
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                    m_SpawnedFood, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
+            });
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                    m_Entity, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
+            });
+
             DishHistory history;
             history.BaseIngredients = m_Ingredients;
             history.OriginMachine = "Pot";

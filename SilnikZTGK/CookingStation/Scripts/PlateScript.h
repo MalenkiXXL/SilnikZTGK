@@ -42,6 +42,16 @@ public:
 
         CheckRecipes();
 
+        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                m_Entity, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
+        });
+
+        for (Entity e : m_VisualModels) {
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                    e, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
+            });
+        }
+
         return true;
     }
 
@@ -96,11 +106,11 @@ private:
         float stackYOffset = basePlateHeight + (itemIndex * itemThickness);
         tc.SetPosition(glm::vec3(0.0f, stackYOffset, 0.0f));
 
-        // 2. SKALA
+        // SKALA
         IngredientMetadata meta = GetIngredientMetadata(type);
         tc.SetScale(meta.scale);
 
-        // 3. LOSOWA ROTACJA (Wokół osi Y)
+        // LOSOWA ROTACJA (Wokół osi Y)
         std::random_device rd;
         std::mt19937 gen(rd());
 
@@ -191,23 +201,13 @@ private:
         history.BaseIngredients = historyIngredients;
         history.OriginMachine = "Plate";
         GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ dishEntity, history });
+
+        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                m_Entity, glm::vec3(1.0f, 0.8f, 0.0f), 2.0f, false
+        });
+        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                dishEntity, glm::vec3(1.0f, 0.8f, 0.0f), 2.0f, false
+        });
     }
 
-private:
-    Entity m_HighlightModelEntity = { std::numeric_limits<std::size_t>::max(), 0 };
-
-public:
-    void SetHighlight(bool isHighlighted)
-    {
-        const std::string targetShader = isHighlighted ? "HighlightShader" : "ModelShader";
-
-        auto* mesh = GetComponent<MeshComponent>();
-        if (mesh) mesh->ShaderName = targetShader;
-
-        for (Entity e : m_VisualModels)
-        {
-            auto* childMesh = GetScene()->GetWorld().GetComponent<MeshComponent>(e);
-            if (childMesh) childMesh->ShaderName = targetShader;
-        }
-    }
 };

@@ -211,6 +211,15 @@ public:
 
         bool isHovering = (glm::distance(mouse2D, board2D) < 1.5f);
 
+        if (isHovering && m_IsReady && !m_IsAutomated && !GlobalIsMachineHeld && !m_IsHeld)
+        {
+            Entity closestPlate = GetClosestAvailablePlate();
+            if (closestPlate.id != std::numeric_limits<std::size_t>::max())
+            {
+                SetPlateHighlight(closestPlate, true);
+            }
+        }
+
         bool shouldShowKnife = isHovering && !m_IsAutomated && !m_IsReady && !m_Ingredients.empty() && !GlobalIsMachineHeld;
         if (shouldShowKnife)
         {
@@ -233,15 +242,12 @@ public:
             auto* knifeTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_CursorKnife);
             if (knifeTf)
             {
-                // Ustawiamy nóż w wyliczonym punkcie
                 glm::vec3 knifePos = preciseMousePos;
 
                 glm::vec3 handleOffset = glm::vec3(0.5f, 0.0f, 0.5f);
 
                 knifePos.x += handleOffset.x;
                 knifePos.z += handleOffset.z;
-
-                // Unosimy nóż lekko do góry + animacja skakania
                 knifePos.y = tf->GetPosition().y + 0.5f + m_VisualJumpY;
 
                 knifeTf->SetPosition(knifePos);
@@ -256,25 +262,9 @@ public:
             }
         }
 
-        if (isHovering && m_IsReady && !GlobalIsMachineHeld)
-        {
-            Entity closestPlate = GetClosestAvailablePlate();
-            if (closestPlate.id != m_LastHighlightedPlate.id)
-            {
-                ClearHighlight();
-                if (closestPlate.id != std::numeric_limits<std::size_t>::max())
-                    SetPlateHighlight(closestPlate, true);
-                m_LastHighlightedPlate = closestPlate;
-            }
-        }
-        else if (!isHovering && m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max())
-        {
-            ClearHighlight();
-        }
-
         bool isMouseClick = Input::IsMouseButtonJustPressed(0);
-        bool isGamepadTransfer = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0); // Przycisk ID 2 - Transfer
-        bool isGamepadChop = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(3, 0); // Przycisk ID 3 - Ciach!
+        bool isGamepadTransfer = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0);
+        bool isGamepadChop = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(3, 0);
 
         if ((isMouseClick || isGamepadTransfer || isGamepadChop) && isHovering && !Input::IsUICapturingMouse()) {
             if (Input::IsKeyPressed(340))
@@ -301,6 +291,7 @@ public:
                 }
             }
         }
+        m_IsHoveredThisFrame = false;
     }
 
     virtual void HandleClick() override {}

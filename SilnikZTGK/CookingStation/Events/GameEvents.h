@@ -141,3 +141,11 @@ struct BuildModeToggledEvent {
 
 struct GamePausedEvent {};
 struct GameResumedEvent {};
+
+//UI
+struct TriggerHighlightEvent {
+    Entity TargetEntity;
+    glm::vec3 Color;
+    float Duration = 0.6f;
+    bool IsInfinite = false;
+};

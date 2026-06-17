@@ -7,6 +7,8 @@ class PackageScript : public ScriptableEntity{
 public:
     inline static std::vector<Entity> s_ActivePackages;
 
+    void SetHovered(bool isHovered) { m_IsHovered = isHovered; }
+
     void OnCreate() override {
         spdlog::info("[PackageScript] Utworzono paczke typu {}", (int)m_Type);
 
@@ -57,7 +59,13 @@ public:
             currentOpacity *= maxOpacity;
 
             mesh->ShaderName = "HighlightShader";
-            mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity);
+            if (m_IsHovered) {
+                mesh->HighlightColor = glm::vec4(1.0f, 0.9f, 0.0f, currentOpacity);
+            } else {
+                mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity);
+            }
+
+            m_IsHovered = false;
         }
     };
 
@@ -79,6 +87,7 @@ public:
 
 private:
     float m_TimeAlive = 0.0f;
+    bool m_IsHovered = false;
     glm::vec3 m_BaseScale = glm::vec3(0.0f);
     bool m_BaseScaleInitialized = false;
 

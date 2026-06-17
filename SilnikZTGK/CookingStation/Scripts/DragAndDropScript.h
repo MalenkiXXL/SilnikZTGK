@@ -25,12 +25,6 @@ public:
     std::size_t m_DragSubId;
     std::size_t m_HoverSubId;
 
-    static inline Entity HighlightedPotFromPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-    static inline Entity HighlightedMachineFromBelt = { std::numeric_limits<std::size_t>::max(), 0 };
-    static inline Entity HighlightedMachineForPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-    static inline Entity HighlightedBeltItemForMachine = { std::numeric_limits<std::size_t>::max(), 0 };
-    static inline Entity HighlightedPlateForMachine = { std::numeric_limits<std::size_t>::max(), 0 };
-
     Entity m_Hovered3DEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
     void OnCreate() override {
@@ -64,6 +58,26 @@ public:
             if (!transform) return;
 
             transform->SetPosition(mousePos + glm::vec3(0.0f, 0.5f, 0.0f));
+
+            if (m_Hovered3DEntity.id != std::numeric_limits<std::size_t>::max()) {
+                auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Hovered3DEntity);
+                if (nsc) {
+                    for (auto& s : nsc->Scripts) {
+                        if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" || s.Name == "OvenScript") {
+                            MachineScript* mScript = static_cast<MachineScript*>(s.Instance);
+                            if (mScript && mScript->CanAcceptIngredient(CurrentIngredient)) {
+                                TriggerInfiniteHighlight(m_Hovered3DEntity);
+                            }
+                        }
+                        else if (s.Name == "PlateScript") {
+                            PlateScript* pScript = static_cast<PlateScript*>(s.Instance);
+                            if (pScript && pScript->m_CompletedDish == IngredientType::None && pScript->m_Ingredients.size() < 5) {
+                                TriggerInfiniteHighlight(m_Hovered3DEntity, pScript);
+                            }
+                        }
+                    }
+                }
+            }
 
             if (Input::IsMouseButtonJustPressed(0))
             {
@@ -147,28 +161,6 @@ private:
         PlateScript* PlateInstance = nullptr;
     };
 
-    PlateScript* FindHoveredPlate(const glm::vec3& mousePos, Entity& outEntity) {
-        auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
-        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
-        if (!scripts || !transforms) return nullptr;
-
-        glm::vec2 mouse2D = { mousePos.x, mousePos.z };
-        for (size_t i = 0; i < scripts->dense.size(); ++i) {
-            for (auto& s : scripts->dense[i].Scripts) {
-                if (s.Name == "PlateScript") {
-                    Entity entity = scripts->reverse[i];
-                    auto* tf = transforms->Get(entity);
-                    if (tf && glm::distance(mouse2D, glm::vec2(tf->GetPosition().x, tf->GetPosition().z)) < 2.0f) {
-                        outEntity = entity;
-                        return static_cast<PlateScript*>(s.Instance);
-                    }
-                    break;
-                }
-            }
-        }
-        return nullptr;
-    }
-
     NeighborResult FindClosestNeighbor(const glm::vec3& sourcePos, std::function<bool(const std::string&, ScriptableEntity*)> filter) {
         NeighborResult result;
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
@@ -202,71 +194,26 @@ private:
         return result;
     }
 
-    // SEKCJA HIGHLIGHTÓW
-    static void SetMachineHighlight(Entity machineEntity, bool state) {
-        if (machineEntity.id == std::numeric_limits<std::size_t>::max() || !ActiveScene) return;
-        const std::string targetShader = state ? "HighlightShader" : "ModelShader";
-        auto* mesh = ActiveScene->GetWorld().GetComponent<MeshComponent>(machineEntity);
-        if (mesh) mesh->ShaderName = targetShader;
-    }
-
-    static void ClearMachineHighlight() {
-        if (HighlightedMachineFromBelt.id != std::numeric_limits<std::size_t>::max()) {
-            SetMachineHighlight(HighlightedMachineFromBelt, false);
-            HighlightedMachineFromBelt = { std::numeric_limits<std::size_t>::max(), 0 };
-        }
-    }
-
-    static void SetPotHighlight(Entity potEntity, bool state) {
-        SetMachineHighlight(potEntity, state);
-    }
-
-    static void ClearPotHighlight() {
-        if (HighlightedPotFromPlate.id != std::numeric_limits<std::size_t>::max()) {
-            SetPotHighlight(HighlightedPotFromPlate, false);
-            HighlightedPotFromPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-        }
-    }
-
-    static void ClearMachineForPlateHighlight() {
-        if (HighlightedMachineForPlate.id != std::numeric_limits<std::size_t>::max()) {
-            SetMachineHighlight(HighlightedMachineForPlate, false);
-            HighlightedMachineForPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-        }
-    }
-
-    static void SetBeltItemHighlight(Entity entity, bool state) {
+    static void TriggerInfiniteHighlight(Entity entity, PlateScript* plateScript = nullptr) {
         if (entity.id == std::numeric_limits<std::size_t>::max() || !ActiveScene) return;
-        auto* mesh = ActiveScene->GetWorld().GetComponent<MeshComponent>(entity);
-        if (mesh) mesh->ShaderName = state ? "HighlightShader" : "ModelShader";
-    }
 
-    static void ClearBeltItemHighlight() {
-        if (HighlightedBeltItemForMachine.id != std::numeric_limits<std::size_t>::max()) {
-            SetBeltItemHighlight(HighlightedBeltItemForMachine, false);
-            HighlightedBeltItemForMachine = { std::numeric_limits<std::size_t>::max(), 0 };
-        }
-    }
+        ActiveScene->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                entity, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
+        });
 
-    static void ClearPlateForMachineHighlight() {
-        if (HighlightedPlateForMachine.id != std::numeric_limits<std::size_t>::max() && ActiveScene) {
-            auto* nsc = ActiveScene->GetWorld().GetComponent<NativeScriptComponent>(HighlightedPlateForMachine);
-            if (nsc) {
-                for (auto& s : nsc->Scripts) {
-                    if (s.Name == "PlateScript" && s.Instance) {
-                        static_cast<PlateScript*>(s.Instance)->SetHighlight(false);
-                        break;
-                    }
-                }
+        if (plateScript) {
+            for (Entity e : plateScript->m_VisualModels) {
+                ActiveScene->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                        e, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
+                });
             }
-            HighlightedPlateForMachine = { std::numeric_limits<std::size_t>::max(), 0 };
         }
     }
 
     // SEKCJA INTERAKCJI 
     void CheckBeltToMachineTransfer(glm::vec3 mousePos)
     {
-        if (MachineScript::GlobalIsMachineHeld) { ClearMachineHighlight(); return; }
+        if (MachineScript::GlobalIsMachineHeld) return;
 
         Entity hoveredBeltItem = { std::numeric_limits<std::size_t>::max(), 0 };
         IngredientType hoveredType = IngredientType::None;
@@ -305,10 +252,8 @@ private:
                 return false;
                 });
 
-            if (neighbor.TargetEntity.id != HighlightedMachineFromBelt.id) {
-                ClearMachineHighlight();
-                if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max()) SetMachineHighlight(neighbor.TargetEntity, true);
-                HighlightedMachineFromBelt = neighbor.TargetEntity;
+            if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max()) {
+                TriggerInfiniteHighlight(neighbor.TargetEntity);
             }
 
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
@@ -316,21 +261,14 @@ private:
                 if (!Input::IsKeyPressed(340) && neighbor.MachineInstance && neighbor.MachineInstance->AddIngredient(hoveredType)) {
                     spdlog::info("Składnik z taśmy wskoczył prosto na maszynę!");
                     GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ hoveredBeltItem });
-                    ClearMachineHighlight();
                 }
             }
-        }
-        else {
-            ClearMachineHighlight();
         }
     }
 
     void CheckMachinePullFromBelt(glm::vec3 mousePos)
     {
-        if (MachineScript::GlobalIsMachineHeld) {
-            ClearBeltItemHighlight();
-            return;
-        }
+        if (MachineScript::GlobalIsMachineHeld) return;
 
         Entity hoveredMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
         MachineScript* hoveredMachineScript = nullptr;
@@ -401,12 +339,8 @@ private:
                 }
             }
 
-            if (closestBeltItem.id != HighlightedBeltItemForMachine.id) {
-                ClearBeltItemHighlight();
-                if (closestBeltItem.id != std::numeric_limits<std::size_t>::max()) {
-                    SetBeltItemHighlight(closestBeltItem, true);
-                }
-                HighlightedBeltItemForMachine = closestBeltItem;
+            if (closestBeltItem.id != std::numeric_limits<std::size_t>::max()) {
+                TriggerInfiniteHighlight(closestBeltItem);
             }
 
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
@@ -415,22 +349,31 @@ private:
                     if (hoveredMachineScript->AddIngredient(foundType)) {
                         spdlog::info("Maszyna zassała składnik z taśmy obok!");
                         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ closestBeltItem });
-                        ClearBeltItemHighlight();
                     }
                 }
             }
-        }
-        else {
-            ClearBeltItemHighlight();
         }
     }
 
     void CheckPlatePullFromMachine(glm::vec3 mousePos)
     {
-        if (MachineScript::GlobalIsMachineHeld) { ClearMachineForPlateHighlight(); return; }
+        if (MachineScript::GlobalIsMachineHeld) return;
 
         Entity currentHoveredPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-        PlateScript* hoveredPlateScript = FindHoveredPlate(mousePos, currentHoveredPlate);
+        PlateScript* hoveredPlateScript = nullptr;
+
+        if (m_Hovered3DEntity.id != std::numeric_limits<std::size_t>::max()) {
+            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Hovered3DEntity);
+            if (nsc) {
+                for (auto& s : nsc->Scripts) {
+                    if (s.Name == "PlateScript") {
+                        currentHoveredPlate = m_Hovered3DEntity;
+                        hoveredPlateScript = static_cast<PlateScript*>(s.Instance);
+                        break;
+                    }
+                }
+            }
+        }
 
         if (hoveredPlateScript && hoveredPlateScript->m_CompletedDish == IngredientType::None && hoveredPlateScript->m_Ingredients.size() < 5) {
             auto* plateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(currentHoveredPlate);
@@ -441,28 +384,22 @@ private:
                 return mScript && mScript->m_IsReady;
                 });
 
-            if (neighbor.TargetEntity.id != HighlightedMachineForPlate.id) {
-                ClearMachineForPlateHighlight();
-                if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max()) SetMachineHighlight(neighbor.TargetEntity, true);
-                HighlightedMachineForPlate = neighbor.TargetEntity;
+            if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max()) {
+                TriggerInfiniteHighlight(neighbor.TargetEntity);
             }
 
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
             if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !Input::IsUICapturingMouse()) {
                 if (!Input::IsKeyPressed(340) && neighbor.MachineInstance) {
                     neighbor.MachineInstance->TryTransferToPlate();
-                    ClearMachineForPlateHighlight();
                 }
             }
-        }
-        else {
-            ClearMachineForPlateHighlight();
         }
     }
 
     void CheckMachinePullFromPlate(glm::vec3 mousePos)
     {
-        if (MachineScript::GlobalIsMachineHeld) { ClearPlateForMachineHighlight(); return; }
+        if (MachineScript::GlobalIsMachineHeld) return;
 
         Entity hoveredMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
         MachineScript* hoveredMachineScript = nullptr;
@@ -509,12 +446,8 @@ private:
                 return false;
                 });
 
-            if (neighbor.TargetEntity.id != HighlightedPlateForMachine.id) {
-                ClearPlateForMachineHighlight();
-                if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && neighbor.PlateInstance) {
-                    neighbor.PlateInstance->SetHighlight(true);
-                }
-                HighlightedPlateForMachine = neighbor.TargetEntity;
+            if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && neighbor.PlateInstance) {
+                TriggerInfiniteHighlight(neighbor.TargetEntity, neighbor.PlateInstance);
             }
 
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
@@ -529,22 +462,30 @@ private:
                             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
                             neighbor.PlateInstance->m_VisualModels.pop_back();
                         }
-                        ClearPlateForMachineHighlight();
                     }
                 }
             }
-        }
-        else {
-            ClearPlateForMachineHighlight();
         }
     }
 
     void CheckPlateToPotTransfer(glm::vec3 mousePos)
     {
-        if (MachineScript::GlobalIsMachineHeld) { ClearPotHighlight(); return; }
-
+        if (MachineScript::GlobalIsMachineHeld) return;
         Entity currentHoveredPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-        PlateScript* hoveredPlateScript = FindHoveredPlate(mousePos, currentHoveredPlate);
+        PlateScript* hoveredPlateScript = nullptr;
+
+        if (m_Hovered3DEntity.id != std::numeric_limits<std::size_t>::max()) {
+            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Hovered3DEntity);
+            if (nsc) {
+                for (auto& s : nsc->Scripts) {
+                    if (s.Name == "PlateScript") {
+                        currentHoveredPlate = m_Hovered3DEntity;
+                        hoveredPlateScript = static_cast<PlateScript*>(s.Instance);
+                        break;
+                    }
+                }
+            }
+        }
 
         if (hoveredPlateScript && hoveredPlateScript->m_CompletedDish == IngredientType::None && !hoveredPlateScript->m_Ingredients.empty()) {
             auto* plateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(currentHoveredPlate);
@@ -570,12 +511,10 @@ private:
                     return mScript->m_Ingredients.empty() && topIngredient == IngredientType::RawDough;
                 }
                 return false;
-                });
+            });
 
-            if (neighbor.TargetEntity.id != HighlightedPotFromPlate.id) {
-                ClearPotHighlight();
-                if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max()) SetPotHighlight(neighbor.TargetEntity, true);
-                HighlightedPotFromPlate = neighbor.TargetEntity;
+            if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max()) {
+                TriggerInfiniteHighlight(neighbor.TargetEntity);
             }
 
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
@@ -586,23 +525,17 @@ private:
                         spdlog::info("Składnik wrzucony z talerza z powrotem do maszyny!");
                         hoveredPlateScript->m_Ingredients.pop_back();
 
-                        // ZABEZPIECZENIE: Sprawdzamy czy wektor ma elementy zanim spróbujemy wziąć .back()
                         if (!hoveredPlateScript->m_VisualModels.empty()) {
                             Entity visualToRemove = hoveredPlateScript->m_VisualModels.back();
                             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
                             hoveredPlateScript->m_VisualModels.pop_back();
                         }
-
-                        ClearPotHighlight();
                     }
                     else {
                         spdlog::warn("Maszyna nie potrafi przetworzyć składnika, który chcesz w niej umieścić!");
                     }
                 }
             }
-        }
-        else {
-            ClearPotHighlight();
         }
     }
 
@@ -649,15 +582,31 @@ private:
         }
 
         if (closestMachine.id != std::numeric_limits<std::size_t>::max()) {
-            if (targetPlateScript && targetPlateScript->AddIngredient(CurrentIngredient)) {
-                spdlog::info("Złożono składnik na talerzu!");
-                GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
-                CancelDrag();
+
+            bool canHighlight = false;
+
+            if (targetPlateScript) {
+                canHighlight = (targetPlateScript->m_CompletedDish == IngredientType::None && targetPlateScript->m_Ingredients.size() < 5);
             }
-            else if (targetMachineScript && targetMachineScript->AddIngredient(CurrentIngredient)) {
-                spdlog::info("Wrzucono składnik do maszyny!");
-                GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
-                CancelDrag();
+            else if (targetMachineScript) {
+                canHighlight = targetMachineScript->CanAcceptIngredient(CurrentIngredient);
+            }
+
+            if (canHighlight) {
+                TriggerInfiniteHighlight(closestMachine, targetPlateScript);
+            }
+
+            if (Input::IsMouseButtonJustPressed(0)) {
+                if (targetPlateScript && targetPlateScript->AddIngredient(CurrentIngredient)) {
+                    spdlog::info("Złożono składnik na talerzu!");
+                    GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
+                    CancelDrag();
+                }
+                else if (targetMachineScript && targetMachineScript->AddIngredient(CurrentIngredient)) {
+                    spdlog::info("Wrzucono składnik do maszyny!");
+                    GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
+                    CancelDrag();
+                }
             }
         }
     }
