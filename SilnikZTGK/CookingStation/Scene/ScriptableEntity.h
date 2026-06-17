@@ -45,6 +45,8 @@ public:
 	virtual void OnDestroy() {}
 	virtual void OnUpdate(Timestep ts) {}
 
+    virtual void OnHoverCursor() {}
+
 protected:
 	Entity m_Entity;
 	Scene* m_Scene;

@@ -28,7 +28,7 @@ void main()
     vec4 texColor = texture(texture_diffuse1, TexCoords);
     float tintOpacity = v_HighlightColor.a;
 
-    vec3 baseColor = mix(texColor.rgb, v_HighlightColor.rgb, tintOpacity);
+    vec3 baseColor = texColor.rgb;
 
     float ambientStrength = 0.55;
     vec3 ambient = ambientStrength * vec3(1.0); 
@@ -47,6 +47,14 @@ void main()
     vec3 specular = specularStrength * spec * u_LightColor;  
 
     vec3 result = (ambient + diffuse) * baseColor + specular;
+
+    vec3 glowColor = v_HighlightColor.rgb * 1.2;
+    result = mix(result, glowColor, tintOpacity);
+
+    float rimFactor = 1.0 - max(dot(viewDir, norm), 0.0);
+    rimFactor = smoothstep(0.5, 1.0, rimFactor);
+    vec3 rimGlow = v_HighlightColor.rgb * rimFactor * tintOpacity * 1.5;
+    result += rimGlow;
 
     if(useTexture2) {
         vec3 emissiveColor = texture(texture_diffuse2, TexCoords2).rgb;

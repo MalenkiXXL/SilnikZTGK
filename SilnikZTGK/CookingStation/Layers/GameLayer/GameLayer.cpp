@@ -264,7 +264,8 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
 //    });
 
     eventBus.Subscribe<CustomerServedEvent>([](const CustomerServedEvent& e) {
-        AudioEngine::Play("assets://sounds/plate_down.wav"); 
+        //AudioEngine::Play("assets://sounds/plate_down.wav");
+        //TODO dźwięk do poprawy
     });
 
     eventBus.Subscribe<ValidateOrderResponseEvent>([](const ValidateOrderResponseEvent& e) {

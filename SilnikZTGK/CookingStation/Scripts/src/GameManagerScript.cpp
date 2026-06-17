@@ -1,6 +1,7 @@
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
 #include "CookingStation/Scripts/Managers/CloudManagerScript.h"
+#include "CookingStation/Scripts/Managers/HighlightManagerScript.h"
 #include <spdlog/spdlog.h>
 
 void GameManagerScript::OnCreate()
@@ -71,6 +72,12 @@ void GameManagerScript::OnCreate()
     world.AddComponent<NativeScriptComponent>(cloudManagerEntity, nsc);
 
     spdlog::info("GameManager: Utworzono encje Cloud Managera!");
+
+    Entity highlightManagerEntity = world.CreateEntity();
+    world.AddComponent<TagComponent>(highlightManagerEntity, TagComponent{ "HighlightManager" });
+    NativeScriptComponent nscHighlight;
+    nscHighlight.AddScript<HighlightManagerScript>("HighlightManagerScript");
+    world.AddComponent<NativeScriptComponent>(highlightManagerEntity, nscHighlight);
 
     AddIngredients(IngredientType::Tomato, 5);
     AddIngredients(IngredientType::Cheese, 5);

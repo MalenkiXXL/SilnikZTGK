@@ -25,3 +25,4 @@ SilnikZTGK/SilnikZTGK.vcxproj
 *.vcxproj
 .env
 __pycache__/
+msbuild_log.txt

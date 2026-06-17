@@ -4,6 +4,7 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include <vector>
 #include <algorithm>
+#include <random>
 
 class PlateScript : public ScriptableEntity
 {
@@ -40,6 +41,16 @@ public:
         SpawnIngredientVisual(type);
 
         CheckRecipes();
+
+        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                m_Entity, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
+        });
+
+        for (Entity e : m_VisualModels) {
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                    e, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
+            });
+        }
 
         return true;
     }
@@ -87,12 +98,29 @@ private:
         auto builder = GetScene()->GetWorld().BuildEntity();
 
         TransformComponent tc;
-        float stackYOffset = 0.2f + (m_Ingredients.size() * 0.20f);
+        int itemIndex = (int)m_Ingredients.size() - 1;
+
+        float basePlateHeight = 0.08f;  // Wysokość dna Twojego głębokiego talerza
+        float itemThickness = 0.04f;    // Grubość pojedynczego składnika
+
+        float stackYOffset = basePlateHeight + (itemIndex * itemThickness);
         tc.SetPosition(glm::vec3(0.0f, stackYOffset, 0.0f));
 
+        // SKALA
         IngredientMetadata meta = GetIngredientMetadata(type);
         tc.SetScale(meta.scale);
-        tc.SetRotation(meta.rotation);
+
+        // LOSOWA ROTACJA (Wokół osi Y)
+        std::random_device rd;
+        std::mt19937 gen(rd());
+
+        std::uniform_real_distribution<float> distrib(-35.0f, 35.0f);
+        float randomYRotation = distrib(gen);
+
+        glm::vec3 finalRotation = meta.rotation;
+        finalRotation.y += randomYRotation;
+
+        tc.SetRotation(finalRotation);
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
@@ -173,23 +201,13 @@ private:
         history.BaseIngredients = historyIngredients;
         history.OriginMachine = "Plate";
         GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ dishEntity, history });
+
+        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                m_Entity, glm::vec3(1.0f, 0.8f, 0.0f), 2.0f, false
+        });
+        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                dishEntity, glm::vec3(1.0f, 0.8f, 0.0f), 2.0f, false
+        });
     }
 
-private:
-    Entity m_HighlightModelEntity = { std::numeric_limits<std::size_t>::max(), 0 };
-
-public:
-    void SetHighlight(bool isHighlighted)
-    {
-        const std::string targetShader = isHighlighted ? "HighlightShader" : "ModelShader";
-
-        auto* mesh = GetComponent<MeshComponent>();
-        if (mesh) mesh->ShaderName = targetShader;
-
-        for (Entity e : m_VisualModels)
-        {
-            auto* childMesh = GetScene()->GetWorld().GetComponent<MeshComponent>(e);
-            if (childMesh) childMesh->ShaderName = targetShader;
-        }
-    }
 };
