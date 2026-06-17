@@ -60,18 +60,15 @@ public:
     Entity m_TargetPlate = { std::numeric_limits<std::size_t>::max(), 0 };
     bool m_IsCarryingPlate = false;
 
-    // Struktura zadań FIFO
     struct WaiterTask {
-        int Type; // 0 = ZBIERZ_ZAMOWIENIE, 1 = PODAJ_TALERZ
+        int Type; // 0 = ZBIERZ_ZAMOWIENIE
         Entity Target;
     };
     std::vector<WaiterTask> m_TaskQueue;
 
-
     std::vector<Entity> m_AwaitingFoodCustomers;
 
     std::size_t m_CustomerSubId = 0;
-    std::size_t m_PlateSubId = 0;
     std::size_t m_OrderTakenSubId = 0;
     std::size_t m_CustomerServedSubId = 0;
 
@@ -86,7 +83,7 @@ public:
 
         auto* meshComp = GetComponent<MeshComponent>();
         if (meshComp) {
-            m_OriginalModel = meshComp->ModelPtr; 
+            m_OriginalModel = meshComp->ModelPtr;
         }
         m_PageModel = AssetManager::GetModel("assets://models/animacje/grzybek/grzybek-notes.gltf");
 
@@ -96,21 +93,14 @@ public:
             m_TaskQueue.push_back({ 0, e.Customer });
             });
 
-        m_PlateSubId = bus.Subscribe<PlateReadyEvent>([this](const PlateReadyEvent& e) {
-            m_TaskQueue.push_back({ 1, e.Plate });
-            });
-
-        // Gdy spiszemy zamówienie, dodajemy klienta do listy oczekujących na jedzenie
         m_OrderTakenSubId = bus.Subscribe<OrderTakenEvent>([this](const OrderTakenEvent& e) {
             m_AwaitingFoodCustomers.push_back(e.Customer);
 
-            // Jeżeli ten klient nadal widniał u nas w kolejce jako zadanie nr 0, usuwamy to zadanie
             m_TaskQueue.erase(std::remove_if(m_TaskQueue.begin(), m_TaskQueue.end(),
                 [&e](const WaiterTask& t) { return t.Type == 0 && t.Target.id == e.Customer.id; }),
                 m_TaskQueue.end());
             });
 
-        // Gdy klient zostanie obsłużony, ściągamy go z naszej prywatnej listy
         m_CustomerServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
             m_AwaitingFoodCustomers.erase(std::remove_if(m_AwaitingFoodCustomers.begin(), m_AwaitingFoodCustomers.end(),
                 [&e](Entity cust) { return cust.id == e.Customer.id; }),
@@ -124,7 +114,6 @@ public:
         if (scene) {
             auto& bus = scene->GetWorld().GetEventBus();
             if (m_CustomerSubId != 0) bus.Unsubscribe<CustomerSeatedEvent>(m_CustomerSubId);
-            if (m_PlateSubId != 0) bus.Unsubscribe<PlateReadyEvent>(m_PlateSubId);
             if (m_OrderTakenSubId != 0) bus.Unsubscribe<OrderTakenEvent>(m_OrderTakenSubId);
             if (m_CustomerServedSubId != 0) bus.Unsubscribe<CustomerServedEvent>(m_CustomerServedSubId);
         }
@@ -250,7 +239,6 @@ public:
         }
         UpdateCarriedPlatePosition();
 
-     
         bool isWavingOrNoting = (m_CurrentState == State::WAVING_AT_STATION || m_CurrentState == State::TAKING_ORDER);
 
         if (isWavingOrNoting && !m_WasWavingState) {
@@ -315,18 +303,55 @@ private:
         return { std::numeric_limits<std::size_t>::max(), 0 };
     }
 
+    // --- NOWA LOGIKA: Aktywne wyszukiwanie talerza z tagiem PlateReady w świecie ---
+    Entity FindReadyPlate()
+    {
+        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+        if (!tags) return { std::numeric_limits<std::size_t>::max(), 0 };
+
+        for (size_t i = 0; i < tags->dense.size(); ++i)
+        {
+            if (tags->dense[i].Tag == "PlateReady")
+            {
+                Entity plate = tags->reverse[i];
+                if (IsValidEntity(plate)) return plate;
+            }
+        }
+        return { std::numeric_limits<std::size_t>::max(), 0 };
+    }
+
     void CheckForTasks()
     {
+        // 1. Priorytet: Wydawanie jedzenia. Jeśli ktoś czeka na jedzenie...
+        Entity waitingCust = FindCustomerWaitingForFood();
+        if (IsValidEntity(waitingCust))
+        {
+            // ...kelner po prostu rozgląda się za gotowym talerzem. Żadnych gubiących się eventów!
+            Entity readyPlate = FindReadyPlate();
+            if (IsValidEntity(readyPlate))
+            {
+                // Rezerwujemy talerz, aby stacja i inne skrypty wiedziały, że kelner po niego idzie
+                auto* tag = GetScene()->GetWorld().GetComponent<TagComponent>(readyPlate);
+                if (tag) tag->Tag = "PlateAssigned";
+
+                m_TargetPlate = readyPlate;
+                m_TargetCustomer = waitingCust;
+                m_HasWaypoint = false;
+                m_CurrentState = State::MOVING_TO_FOOD;
+                return;
+            }
+        }
+
+        // 2. Jeśli nie ma jedzenia do wydania, sprawdź kolejkę zamówień
         auto it = m_TaskQueue.begin();
         while (it != m_TaskQueue.end())
         {
             auto task = *it;
-            bool invalid = false;
-
-            if (task.Type == 0)
+            if (task.Type == 0) // ZBIERZ ZAMOWIENIE
             {
                 if (!IsValidEntity(task.Target)) {
-                    invalid = true;
+                    it = m_TaskQueue.erase(it);
+                    continue;
                 }
                 else {
                     m_TargetCustomer = task.Target;
@@ -336,35 +361,7 @@ private:
                     return;
                 }
             }
-            else if (task.Type == 1) // WYDAJ TALERZ
-            {
-                auto* tag = GetScene()->GetWorld().GetComponent<TagComponent>(task.Target);
-                if (!tag || tag->Tag != "PlateReady") {
-                    invalid = true;
-                }
-                else {
-                    Entity cust = FindCustomerWaitingForFood();
-                    if (IsValidEntity(cust)) {
-                        m_TargetPlate = task.Target;
-                        m_TargetCustomer = cust;
-                        m_HasWaypoint = false;
-                        m_CurrentState = State::MOVING_TO_FOOD;
-                        m_TaskQueue.erase(it);
-                        return;
-                    }
-                    else {
-                        ++it;
-                        continue;
-                    }
-                }
-            }
-
-            if (invalid) {
-                it = m_TaskQueue.erase(it);
-            }
-            else {
-                ++it;
-            }
+            ++it;
         }
     }
 
@@ -420,7 +417,7 @@ private:
                 if (tags) {
                     for (size_t i = 0; i < tags->dense.size(); ++i) {
                         if (tags->reverse[i].id == rel->FirstChild) {
-                            trueFoodChild = tags->reverse[i]; // Mamy prawidłowe Entity i Generację!
+                            trueFoodChild = tags->reverse[i];
                             break;
                         }
                     }
