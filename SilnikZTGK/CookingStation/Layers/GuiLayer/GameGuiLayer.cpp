@@ -656,53 +656,6 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
 
-    if (!m_IsBuildModeActive && !m_IsGamePaused && !m_IsRecipeBookOpen && isPlayMode && activeScene){
-        auto mousePos = Input::GetMousePosition();
-        float mouseX = mousePos.first;
-        float mouseY = mousePos.second;
-
-#ifndef CS_DISTRIBUTION
-        mouseX -= gameX;
-        mouseY -= gameY;
-#endif
-
-        auto* camera = activeScene->GetCamera();
-        if (camera && mouseX >= 0 && mouseY >= 0 && mouseX <= gameWidth && mouseY <= gameHeight)
-        {
-            float aspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
-            float orthoSize = 10.0f * (camera->Zoom / 45.0f);
-            glm::mat4 proj = glm::ortho(-aspect * orthoSize, aspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
-            glm::mat4 view = camera->GetViewMatrix();
-
-            Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, gameWidth, gameHeight, proj, view);
-            Entity hoveredEntity = Physics::GetHoveredEntity(ray, activeScene, true, true);
-
-            if (hoveredEntity.id != std::numeric_limits<std::size_t>::max())
-            {
-                auto* nsc = activeScene->GetWorld().GetComponent<NativeScriptComponent>(hoveredEntity);
-
-                if (!nsc) {
-                    auto* rel = activeScene->GetWorld().GetComponent<RelationshipComponent>(hoveredEntity);
-                    if (rel && rel->Parent != std::numeric_limits<std::size_t>::max()) {
-                        Entity parentEntity = { rel->Parent, 0 };
-                        nsc = activeScene->GetWorld().GetComponent<NativeScriptComponent>(parentEntity);
-                    }
-                }
-
-                if (nsc)
-                {
-                    for (auto& s : nsc->Scripts)
-                    {
-                        if (s.Instance)
-                        {
-                            s.Instance->OnHoverCursor();
-                        }
-                    }
-                }
-            }
-        }
-    }
-
     if (m_IsBuildModeActive)
         UpdateBuildModePlacement();
 
@@ -974,8 +927,6 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
             }
 
             if (!packScript) continue;
-
-            packScript->SetHovered(true);
 
             std::shared_ptr<Texture> iconToDraw = nullptr;
             switch (packScript->getType()) {

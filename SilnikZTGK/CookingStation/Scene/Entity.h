@@ -61,7 +61,7 @@ struct MeshComponent {
     std::shared_ptr<Shader> ShaderPtr = nullptr; 
     std::string Path = "";
     std::string ShaderName = "ModelShader";
-    glm::vec4 HighlightColor = glm::vec4(1.0f, 0.9f, 0.0f, 0.8f);
+    glm::vec4 HighlightColor = glm::vec4(1.0f, 0.9f, 0.0f, 1.0f);
 
     MeshComponent() = default;
 
