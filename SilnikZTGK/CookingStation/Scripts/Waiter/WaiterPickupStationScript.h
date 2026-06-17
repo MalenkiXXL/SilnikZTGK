@@ -47,7 +47,7 @@ public:
                         if (script.Name == "ItemScript") { isItem = true; break; }
                     }
 
-                    if (isItem && tagComp->Tag != "PlateReady" && tagComp->Tag != "PlateCarried")
+                    if (isItem && tagComp->Tag != "PlateReady" && tagComp->Tag != "PlateCarried" && tagComp->Tag != "PlateAssigned")
                     {
                         tagComp->Tag = "PlateReady";
 
