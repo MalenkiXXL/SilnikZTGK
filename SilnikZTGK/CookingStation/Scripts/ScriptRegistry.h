@@ -7,6 +7,8 @@
 
 #include "CookingStation/Scripts/RotationScript.h"
 #include "CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
+#include "CookingStation/Scripts/ConveyorBelt/ConveyorPickupScript.h"
+#include "CookingStation/Scripts/ConveyorBelt/ConveyorSwitchScript.h"
 #include "CookingStation/Scripts/Plates/ItemScript.h"
 #include "CookingStation/Scripts/ConveyorBelt/BeltVisualScript.h"
 #include "CookingStation/Scripts/Machines/PotScript.h"
@@ -56,6 +58,8 @@ public:
         if (!GetRegistry().empty()) return;
         Register<RotationScript>("RotationScript");
         Register<ConveyorScript>("ConveyorScript");
+        Register<ConveyorSwitchScript>("ConveyorSwitchScript");
+        Register<ConveyorPickupScript>("ConveyorPickupScript");
         Register<ItemScript>("ItemScript");
         Register<BeltVisualScript>("BeltVisualScript");
         Register<PotScript>("PotScript");

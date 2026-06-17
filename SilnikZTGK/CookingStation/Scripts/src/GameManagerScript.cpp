@@ -110,7 +110,7 @@ void GameManagerScript::OnCreate()
         };
 
     // 1. Grupa Wyspy Eventowej (Przylatuje z BOKU po osi X)
-    std::vector<std::string> eventIslandNames = { "event_78", "budka", "balony1", "balony2", "balony3", "balony4"};
+    std::vector<std::string> eventIslandNames = { "event_78", "event-detal", "balony1", "balony2", "balony3", "balony4"};
     for (const auto& name : eventIslandNames) {
         Entity e = findEntityByName(name);
         auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
@@ -130,9 +130,7 @@ void GameManagerScript::OnCreate()
 
     // 2. Grupa Głównej Wyspy (Przylatuje z GÓRY)
     std::vector<std::string> mainIslandNames = {
-        "narożnikPas",
-        "tasma_20", "tasma_21", "tasma_22", "tasma_23", "tasma_24", "tasma_25",
-        "zwrotnica_quest"
+            "tasma_questy_1", "tasma_questy_2", "tasma_questy_3", "event-detal2", "tasma_switch_quest"
     };
     for (const auto& name : mainIslandNames) {
         Entity e = findEntityByName(name);
@@ -148,8 +146,21 @@ void GameManagerScript::OnCreate()
         }
     }
 
+    auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+    if (scripts) {
+        for (size_t i = 0; i < scripts->dense.size(); ++i) {
+            for (auto& s : scripts->dense[i].Scripts) {
+                if (s.Name == "DeliveryBoothScript" && s.Instance) {
+                    auto* booth = static_cast<DeliveryBoothScript*>(s.Instance);
+                    booth->m_DirectionOffset = { 0.0f, 0.0f, 2.0f }; // nasłuchuj na +Z czyli [-9,0,-7]
+                    break;
+                }
+            }
+        }
+    }
+
     // 3. Element wymieniany (Znika dopiero jak quest dojedzie)
-    std::vector<std::string> replacedNames = { "tasma_do_wymiany" }; 
+    std::vector<std::string> replacedNames = { "tasma_17" }; 
     for (const auto& name : replacedNames) {
         Entity e = findEntityByName(name);
         auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
@@ -312,8 +323,14 @@ void GameManagerScript::OnUpdate(Timestep ts)
 
             // 3. Jeśli to była ostatnia klatka animacji, PRZEBUDUJ MAPĘ TAŚM!
             if (finishedNow) {
-                GetScene()->RebuildConveyorCache();
-                spdlog::info("Wyspa questowa zadokowana. Przebudowano fizyke tasm!");
+                for (auto& pair : m_ReplacedByQuestGroup) {
+                    Entity e = pair.first;
+                    if (e.id != std::numeric_limits<std::size_t>::max()) {
+                        GetScene()->DestroyEntity(e);
+                        // Czyścimy ID, żeby nie próbować jej usuwać ponownie
+                        pair.first.id = std::numeric_limits<std::size_t>::max();
+                    }
+                }
             }
         }
         break;
@@ -350,7 +367,7 @@ void GameManagerScript::OnUpdate(Timestep ts)
         // 3. Stara, zwykła taśma natychmiastowo wraca z dołu na górę (od -30 do 0)
         // Robimy to w pierwszych 20% animacji odlotu, żeby od razu zakryła dziurę.
         float showProgress = std::min(1.0f, m_AnimationProgress / 0.2f);
-        float showOffset = -30.0f * (1.0f - showProgress);
+        float showOffset = -500.0f * (1.0f - showProgress);
 
         for (auto& pair : m_ReplacedByQuestGroup) {
             auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
@@ -365,8 +382,54 @@ void GameManagerScript::OnUpdate(Timestep ts)
             m_QuestTimer = QUEST_INTERVAL; // Reset timera
             m_CurrentQuestState = QuestEventState::WaitingForTimer;
 
+            // RESPRAWN STAREJ TAŚMY!
+            for (auto& pair : m_ReplacedByQuestGroup) {
+                // Skoro ją usunęliśmy, to jest martwa, musimy zbudować nową
+                auto builder = GetScene()->GetWorld().BuildEntity();
+
+                TransformComponent tc;
+                tc.SetPosition(glm::vec3(-9.0f, pair.second, -1.0f)); // Oryginalna pozycja Y zapisana wcześniej
+                tc.SetRotation(glm::vec3(0.0f, glm::radians(180.0f), 0.0f)); // Twój kąt z JSON
+                builder.With<TransformComponent>(tc);
+
+                MeshComponent mesh;
+                mesh.ModelPtr = AssetManager::GetModel("assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf");
+                builder.With<MeshComponent>(mesh);
+
+                BoxColliderComponent collider;
+                collider.Offset = glm::vec3(0.0f, 0.5f, 0.0f);
+                collider.Size = glm::vec3(1.0f, 0.5f, 1.0f);
+                builder.With<BoxColliderComponent>(collider);
+
+                NativeScriptComponent nsc;
+                nsc.AddScript<ConveyorScript>("ConveyorScript");
+                builder.With<NativeScriptComponent>(nsc);
+
+                builder.With<TagComponent>({ "tasma_17" });
+
+                Entity newBelt = builder.Build();
+
+                // Dodanie animowanego pasa transmisyjnego jako child
+                auto beltBuilder = GetScene()->GetWorld().BuildEntity();
+                TransformComponent btc;
+                btc.SetPosition(glm::vec3(0.0f, 0.01f, 0.0f));
+                beltBuilder.With<TransformComponent>(btc);
+                MeshComponent bmesh;
+                bmesh.ModelPtr = AssetManager::GetModel("assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf");
+                beltBuilder.With<MeshComponent>(bmesh);
+                NativeScriptComponent bnsc;
+                bnsc.AddScript<BeltVisualScript>("BeltVisualScript");
+                beltBuilder.With<NativeScriptComponent>(bnsc);
+                Entity visualBelt = beltBuilder.Build();
+
+                GetScene()->SetParent(visualBelt, newBelt);
+
+                // Zapisujemy nowe ID, na wypadek kolejnego questa
+                pair.first = newBelt;
+            }
+
             GetScene()->RebuildConveyorCache();
-            spdlog::info("Koniec cyklu Questa. Zwykle tasmy przywrocone.");
+            spdlog::info("Koniec cyklu Questa. Zwykle tasmy przywrocone (respawn).");
         }
         break;
     }
