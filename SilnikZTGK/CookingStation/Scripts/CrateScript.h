@@ -101,6 +101,22 @@ public:
             UpdateVisuals();
         }
 
+        if (m_IsInitialized && currentStock > m_LastStockCount) {
+            if (m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                        m_VisualFood, glm::vec3(1.0f, 0.9f, 0.0f), 0.6f
+                });
+            }
+        }
+
+        m_LastStockCount = currentStock;
+
+        if (!m_IsInitialized || shouldHaveStock != m_HasStock) {
+            m_HasStock = shouldHaveStock;
+            m_IsInitialized = true;
+            UpdateVisuals();
+        }
+
         auto* tf = GetComponent<TransformComponent>();
         if (!tf) return;
 
@@ -135,6 +151,7 @@ public:
 private:
 
     std::size_t m_ClickSubId = 0;
+    int m_LastStockCount = 0;
 
     bool IsClosestCrate(glm::vec2 mousePos2D)
     {
@@ -288,6 +305,16 @@ private:
         }
         else {
             spdlog::warn("Skrzynka: Nie wykryto w poblizu zadnego tasmociagu!");
+        }
+    }
+
+    void OnHoverCursor() override
+    {
+        if (m_HasStock && m_VisualFood.id != std::numeric_limits<std::size_t>::max())
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                    m_VisualFood, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
+            });
         }
     }
 };

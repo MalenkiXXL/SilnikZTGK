@@ -30,6 +30,7 @@ protected:
 
     std::size_t m_FoodClickSubId = 0;
     std::size_t m_HoverSubId = 0;
+    bool m_IsHoveredThisFrame = false;
 
 public:
 
@@ -99,20 +100,22 @@ public:
 
                     Entity closestPlate = GetClosestAvailablePlate();
 
-                    if (closestPlate.id != m_LastHighlightedPlate.id)
+                        if (closestPlate.id != m_LastHighlightedPlate.id)
+                        {
+                            ClearHighlight();
+                            m_LastHighlightedPlate = closestPlate;
+                        }
+
+                        if (m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max()) {
+                            SetPlateHighlight(m_LastHighlightedPlate, true);
+                        }
+                    }
+                    else if (!isHoveringFood && m_IsMouseHoveringFood)
                     {
+                        m_IsMouseHoveringFood = false;
                         ClearHighlight();
-                        if (closestPlate.id != std::numeric_limits<std::size_t>::max())
-                            SetPlateHighlight(closestPlate, true);
-                        m_LastHighlightedPlate = closestPlate;
                     }
                 }
-                else if (!isHoveringFood && m_IsMouseHoveringFood)
-                {
-                    m_IsMouseHoveringFood = false;
-                    ClearHighlight();
-                }
-            }
         );
     }
 
@@ -212,6 +215,28 @@ public:
         }
     }
 
+    void OnHoverCursor() override
+    {
+        m_IsHoveredThisFrame = true;
+
+        if (m_IsReady && !m_IsAutomated && !GlobalIsMachineHeld && !m_IsHeld)
+        {
+            Entity closestPlate = GetClosestAvailablePlate();
+            if (closestPlate.id != std::numeric_limits<std::size_t>::max())
+            {
+                m_LastHighlightedPlate = closestPlate;
+                SetPlateHighlight(closestPlate, true);
+            }
+        }
+    }
+
+    virtual bool CanAcceptIngredient(IngredientType type)
+    {
+        if (m_IsReady || m_Ingredients.size() >= 2) return false;
+
+        return true;
+    }
+
     virtual void HandleClick()
     {
         if (!m_IsHeld && Input::IsKeyPressed(340) && !GlobalIsMachineHeld)
@@ -222,12 +247,17 @@ public:
             m_PickupDelay = 0.2f;
             auto* transform = GetComponent<TransformComponent>();
             if (transform) m_OriginalPosition = transform->GetPosition();
+        }else
+        {
+            if (m_IsReady && !m_IsAutomated)
+            {
+                TryTransferToPlate();
+            }
         }
     }
 
 protected:
 
-    // Buduje jedzenie na podstawie metadanych
     Entity SpawnMachineFood(IngredientType type, const std::string& modelPath, const std::string& tag)
     {
         auto builder = GetScene()->GetWorld().BuildEntity();
@@ -244,10 +274,6 @@ protected:
         MeshComponent mesh;
         mesh.ModelPtr = AssetManager::GetModel(modelPath);
         builder.With<MeshComponent>(mesh);
-
-        BoxColliderComponent collider;
-        collider.Size = glm::vec3(1.2f) / meta.scale;
-        builder.With<BoxColliderComponent>(collider);
 
         return builder.Build();
     }
@@ -326,15 +352,24 @@ protected:
     {
         if (plateEntity.id == std::numeric_limits<std::size_t>::max()) return;
 
-        auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(plateEntity);
-        if (nsc)
+        if (state)
         {
-            for (auto& s : nsc->Scripts)
-            {
-                if (s.Name == "PlateScript" && s.Instance)
-                {
-                    static_cast<PlateScript*>(s.Instance)->SetHighlight(state);
-                    break;
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                    plateEntity,
+                    glm::vec3(1.0f, 0.9f, 0.0f),
+                    0.0f,
+                    true
+            });
+
+            auto* tagSet = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+            if (tagSet) {
+                for (size_t i = 0; i < tagSet->dense.size(); ++i) {
+                    Entity childEntity = tagSet->reverse[i];
+                    if (GetScene()->GetParent(childEntity).id == plateEntity.id) {
+                        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                                childEntity, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
+                        });
+                    }
                 }
             }
         }
@@ -344,7 +379,6 @@ protected:
     {
         if (m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max())
         {
-            SetPlateHighlight(m_LastHighlightedPlate, false);
             m_LastHighlightedPlate = { std::numeric_limits<std::size_t>::max(), 0 };
         }
     }

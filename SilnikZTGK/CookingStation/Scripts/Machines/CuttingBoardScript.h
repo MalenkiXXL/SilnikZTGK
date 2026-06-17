@@ -12,14 +12,13 @@ private:
     float m_ChopCooldown = 0.0f;
 
     float m_VisualJumpY = 0.0f;
-    const float m_BaseYOffset = 0.7f;
+    const float m_BaseYOffset = 0.05f;
 
     float m_AutoChopTimer = 0.0f;
     const float m_AutoChopInterval = 0.8f;
 
     Entity m_CursorKnife = { std::numeric_limits<std::size_t>::max(), 0 };
 
-    // Nowa zmienna do śledzenia stanu kursora
     bool m_WasShowingKnife = false;
 
     std::pair<std::string, std::string> GetModelPathsForIngredient(IngredientType type)
@@ -85,6 +84,7 @@ public:
     {
         MachineScript::OnCreate();
 
+
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_FoodClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId);
@@ -92,7 +92,6 @@ public:
 
     void OnDestroy() override
     {
-        // Zabezpieczenie: Przywróć kursor jeśli niszczymy maszynę w trakcie krojenia
         if (m_WasShowingKnife)
         {
             GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
@@ -199,16 +198,40 @@ public:
         auto* tf = GetComponent<TransformComponent>();
         if (!tf) return;
 
-        glm::vec3 mousePos = GetMouseWorldPosition();
+        glm::vec3 floorMousePos = GetMouseWorldPosition();
 
-        glm::vec2 mouse2D = { mousePos.x, mousePos.z };
+        Camera* camera = GetScene()->GetCamera();
+
+        glm::vec3 preciseMousePos = floorMousePos;
+
+        if (camera)
+        {
+            float targetY = tf->GetPosition().y;
+            glm::vec3 rayDir = camera->Front;
+
+            if (std::abs(rayDir.y) > 0.001f)
+            {
+                float t = (targetY - floorMousePos.y) / rayDir.y;
+
+                preciseMousePos = floorMousePos + rayDir * t;
+            }
+        }
+
+        glm::vec2 mouse2D = { preciseMousePos.x, preciseMousePos.z };
         glm::vec2 board2D = { tf->GetPosition().x, tf->GetPosition().z };
 
-        bool isHovering = (glm::distance(mouse2D, board2D) < 2.0f);
+        bool isHovering = (glm::distance(mouse2D, board2D) < 1.5f);
+
+        if (isHovering && m_IsReady && !m_IsAutomated && !GlobalIsMachineHeld && !m_IsHeld)
+        {
+            Entity closestPlate = GetClosestAvailablePlate();
+            if (closestPlate.id != std::numeric_limits<std::size_t>::max())
+            {
+                SetPlateHighlight(closestPlate, true);
+            }
+        }
 
         bool shouldShowKnife = isHovering && !m_IsAutomated && !m_IsReady && !m_Ingredients.empty() && !GlobalIsMachineHeld;
-
-        // Zaktualizowana logika pokazywania noża
         if (shouldShowKnife)
         {
             if (!m_WasShowingKnife)
@@ -238,11 +261,11 @@ public:
             auto* knifeTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_CursorKnife);
             if (knifeTf)
             {
-                glm::vec3 knifePos = mousePos;
+                glm::vec3 knifePos = preciseMousePos;
                 knifePos.y = tf->GetPosition().y + m_BaseYOffset + 1.f;
 
-                float offsetX = 1.7f; 
-                float offsetZ = 1.7f; 
+                float offsetX = 1.7f;
+                float offsetZ = 1.7f;
 
                 knifePos.x += offsetX;
                 knifePos.z += offsetZ;
@@ -254,7 +277,6 @@ public:
         {
             if (m_WasShowingKnife)
             {
-                // Przywraca systemowy kursor przez natywne wywołanie GLFW
                 GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
                 m_WasShowingKnife = false;
@@ -267,25 +289,9 @@ public:
             }
         }
 
-        if (isHovering && m_IsReady && !GlobalIsMachineHeld)
-        {
-            Entity closestPlate = GetClosestAvailablePlate();
-            if (closestPlate.id != m_LastHighlightedPlate.id)
-            {
-                ClearHighlight();
-                if (closestPlate.id != std::numeric_limits<std::size_t>::max())
-                    SetPlateHighlight(closestPlate, true);
-                m_LastHighlightedPlate = closestPlate;
-            }
-        }
-        else if (!isHovering && m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max())
-        {
-            ClearHighlight();
-        }
-
         bool isMouseClick = Input::IsMouseButtonJustPressed(0);
-        bool isGamepadTransfer = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0); // Przycisk ID 2 - Transfer
-        bool isGamepadChop = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(3, 0); // Przycisk ID 3 - Ciach!
+        bool isGamepadTransfer = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0);
+        bool isGamepadChop = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(3, 0);
 
         if ((isMouseClick || isGamepadTransfer || isGamepadChop) && isHovering && !Input::IsUICapturingMouse()) {
             if (Input::IsKeyPressed(340))
@@ -312,6 +318,7 @@ public:
                 }
             }
         }
+        m_IsHoveredThisFrame = false;
     }
 
     virtual void HandleClick() override {}

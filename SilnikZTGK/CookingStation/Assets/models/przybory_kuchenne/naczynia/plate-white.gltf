@@ -15,7 +15,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Sphere"
+			"name":"Cylinder"
 		}
 	],
 	"materials":[
@@ -26,14 +26,14 @@
 				"baseColorTexture":{
 					"index":0
 				},
-				"metallicFactor":0.10000000149011612,
-				"roughnessFactor":0.20000000298023224
+				"metallicFactor":0.4000000059604645,
+				"roughnessFactor":0.4000000059604645
 			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"Sphere",
+			"name":"Cylinder",
 			"primitives":[
 				{
 					"attributes":{
@@ -55,70 +55,70 @@
 	],
 	"images":[
 		{
-			"mimeType": "image/png",
-			"name": "palette",
-			"uri": "../../../textures/palette.png"
+			"mimeType":"image/png",
+			"name":"palette",
+			"uri":"../../../textures/palette.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":6481,
+			"count":1048,
 			"max":[
-				0.7005897760391235,
-				0.23350393772125244,
-				0.7005897164344788
+				1,
+				0.102706179022789,
+				1
 			],
 			"min":[
-				-0.700589656829834,
-				0.011063337326049805,
-				-0.7005895972251892
+				-1,
+				0.02960212156176567,
+				-1
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":6481,
+			"count":1048,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":6481,
+			"count":1048,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":35328,
+			"count":3060,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":77772,
+			"byteLength":12576,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":77772,
-			"byteOffset":77772,
+			"byteLength":12576,
+			"byteOffset":12576,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":51848,
-			"byteOffset":155544,
+			"byteLength":8384,
+			"byteOffset":25152,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":70656,
-			"byteOffset":207392,
+			"byteLength":6120,
+			"byteOffset":33536,
 			"target":34963
 		}
 	],
@@ -130,8 +130,8 @@
 	],
 	"buffers":[
 		{
-			"byteLength":278048,
-			"uri":"deep_plate.bin"
+			"byteLength":39656,
+			"uri":"plate-white.bin"
 		}
 	]
 }
