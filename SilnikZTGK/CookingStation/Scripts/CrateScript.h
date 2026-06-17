@@ -37,7 +37,7 @@ public:
                 m_CrateIngredient = IngredientType::Baguette;
             else if (name.find("Milk") != std::string::npos || name.find("Mleko") != std::string::npos)
                 m_CrateIngredient = IngredientType::Milk;
-            else if (name.find("Flour") != std::string::npos || name.find("Maka") != std::string::npos || name.find("M�ka") != std::string::npos)
+            else if (name.find("Flour") != std::string::npos || name.find("Maka") != std::string::npos || name.find("Maka") != std::string::npos)
                 m_CrateIngredient = IngredientType::Flour;
         }
 
