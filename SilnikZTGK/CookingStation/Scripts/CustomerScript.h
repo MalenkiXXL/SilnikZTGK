@@ -22,6 +22,9 @@ public:
     std::size_t m_ServedSubId = 0;
     std::size_t m_OrderSubId = 0;
 
+    // NOWE: Dynamiczna cena za zamówienie
+    float OrderPrice = 50.0f;
+
     void OnCreate() override
     {
         // 1. Definiujemy, co jest w menu (odblokowane pozostałe opcje!)
@@ -39,6 +42,11 @@ public:
 
         WantedIngredient = menu[dist(gen)];
         OrderTaken = false;
+
+        // NOWE: 3. Losujemy kwotę do zapłaty (25, 50 lub 75)
+        std::vector<float> prices = { 25.0f, 50.0f, 75.0f };
+        std::uniform_int_distribution<> priceDist(0, prices.size() - 1);
+        OrderPrice = prices[priceDist(gen)];
 
         spdlog::info("Klient nr {} usiadl i czeka na: {}", m_Entity.id, IngredientTypeToString(WantedIngredient));
 
@@ -70,7 +78,7 @@ public:
                 GetScene()->GetWorld().GetEventBus().Publish(KitchenOrderPlacedEvent{
                         m_Entity,
                         WantedIngredient
-                });
+                    });
 
                 spdlog::info("[Customer] Zamówienie klienta {} (Na: {}) wysłane do magazynu!", m_Entity.id, IngredientTypeToString(WantedIngredient));
             }
@@ -116,9 +124,10 @@ public:
             spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
             if (GameManagerScript::s_Instance)
             {
-                OrderFulfilledEvent e(50.0f);
+                // NOWE: Przekazujemy wylosowaną cenę do Eventu, zamiast twardego 50.0f
+                OrderFulfilledEvent e(OrderPrice);
                 GetScene()->GetWorld().GetEventBus().Publish(e);
-                spdlog::info("Klient nr {} zaplacil 50 monet!", m_Entity.id);
+                spdlog::info("Klient nr {} zaplacil {} monet!", m_Entity.id, OrderPrice);
             }
             auto* tag = GetComponent<TagComponent>();
             if (tag) tag->Tag = "ZadowolonyKlient";
@@ -130,6 +139,7 @@ public:
             if (tag) tag->Tag = "ZlyKlient";
         }
 
+        // --- ZACHOWANE: Ostateczne usuwanie klienta ---
         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
         spdlog::info("PUBLISHED DESTROY EVENT");
     }

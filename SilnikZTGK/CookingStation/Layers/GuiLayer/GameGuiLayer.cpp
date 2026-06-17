@@ -172,8 +172,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     }
 }
 
-void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
-{
+void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale) {
     if (!m_ActiveScene) return;
 
     auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
@@ -181,20 +180,24 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
     if (!tags || !scripts) return;
 
     bool isPlaying = (m_ActiveScene->GetState() == SceneState::Play);
+
+    // 1. Czyszczenie starych/usuniętych klientów
     for (auto it = m_ActiveOrderTickets.begin(); it != m_ActiveOrderTickets.end(); ) {
         auto* nsc = scripts->Get(*it);
         if (!nsc) {
             it = m_ActiveOrderTickets.erase(it);
             continue;
         }
-        if (isPlaying) {
-            CustomerScript* custScript = nullptr;
-            for (auto& s : nsc->Scripts) {
-                if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript") {
-                    custScript = (CustomerScript*)s.Instance;
-                    break;
-                }
+
+        CustomerScript* custScript = nullptr;
+        for (auto& s : nsc->Scripts) {
+            if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript") {
+                custScript = (CustomerScript*)s.Instance;
+                break;
             }
+        }
+
+        if (isPlaying) {
             if (!custScript || custScript->IsServed || custScript->IsPendingDestroy) {
                 it = m_ActiveOrderTickets.erase(it);
                 continue;
@@ -206,20 +209,78 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
     float currentY = gameY + (15.0f * baseScale);
     float rightMargin = 20.0f * baseScale;
 
+    // 2. Rysowanie aktywnych kartek
     for (size_t i = 0; i < m_ActiveOrderTickets.size(); ++i) {
         Entity custEntity = m_ActiveOrderTickets[i];
         auto* tagComp = tags->Get(custEntity);
-        if (!tagComp) continue;
+        auto* nsc = scripts->Get(custEntity);
+
+        if (!tagComp || !nsc) continue;
+
+        CustomerScript* custScript = nullptr;
+        for (auto& s : nsc->Scripts) {
+            if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript") {
+                custScript = (CustomerScript*)s.Instance;
+                break;
+            }
+        }
 
         bool isFirst = (i == 0);
         float ticketHeight = isFirst ? (220.0f * baseScale) : (140.0f * baseScale);
-        std::shared_ptr<Texture> ticketTex = (tagComp->Tag == "HelperCustomer") ? m_HelperOrderTex : m_CustomerOrderTex;
+        bool isHelper = (tagComp->Tag == "HelperCustomer");
+
+        std::shared_ptr<Texture> ticketTex = isHelper ? m_HelperOrderTex : m_CustomerOrderTex;
         if (!ticketTex) ticketTex = m_BookCloudIcon;
 
         if (ticketTex) {
             glm::vec2 ticketSize = GuiUtils::CalculateAspectSize(ticketTex, ticketHeight);
             glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin, currentY };
+
+            // Tło kartki
             Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+            if (custScript) {
+                std::shared_ptr<Texture> iconToDraw = nullptr;
+
+                switch (custScript->WantedIngredient) {
+                case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
+                case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
+                case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
+                case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
+                case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
+                case IngredientType::Sandwich:   iconToDraw = AssetManager::GetTexture("assets://UI/sandwich.png"); break;
+                default: iconToDraw = m_QuestionMarkIcon; break;
+                }
+
+                if (iconToDraw) {
+                    float iconH = isFirst ? (70.0f * baseScale) : (40.0f * baseScale);
+                    glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, iconH);
+
+                    glm::vec2 iconPos = {
+                        ticketPos.x + (ticketSize.x - iconSize.x) * 0.5f,
+                        ticketPos.y + (ticketSize.y - iconSize.y) * 0.40f
+                    };
+
+                    Renderer2D::DrawQuad(iconPos, iconSize, iconToDraw, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+                    if (!isHelper) {
+                        // NOWE: Dynamiczne czytanie ceny z klienta i zamiana jej na tekst
+                        std::string rewardText = std::to_string((int)custScript->OrderPrice);
+                        float textScale = isFirst ? (0.75f * baseScale) : (0.55f * baseScale);
+                        float textWidth = Gui::MeasureTextWidth(rewardText, textScale);
+
+                        float textYOffset = isFirst ? (18.0f * baseScale) : (12.0f * baseScale);
+                        glm::vec2 textPos = {
+                            ticketPos.x + (ticketSize.x - textWidth) * 0.5f,
+                            ticketPos.y + ticketSize.y - textYOffset * 2.75f
+                        };
+
+                        Gui::DrawGuiText(rewardText, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.1f, 0.2f, 0.1f, 0.7f });
+                        Gui::DrawGuiText(rewardText, textPos, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+                    }
+                }
+            }
+
             currentY += ticketHeight + (10.0f * baseScale);
         }
     }
