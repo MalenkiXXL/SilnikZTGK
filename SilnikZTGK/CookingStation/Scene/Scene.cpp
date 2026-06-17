@@ -402,6 +402,8 @@ void Scene::RebuildConveyorCache()
         auto* t = conveyor->GetComponent<TransformComponent>();
         if (!t) continue;
 
+        if (t->GetPosition().y < -5.0f) continue;
+
         GridPos key{ (int)std::round(t->GetPosition().x / 2.0f),
                      (int)std::round(t->GetPosition().z / 2.0f) };
 

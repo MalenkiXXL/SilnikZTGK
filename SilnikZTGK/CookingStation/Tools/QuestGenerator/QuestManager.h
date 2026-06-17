@@ -20,7 +20,6 @@ struct QuestData {
 
 class QuestManager {
 public:
-    // Magiczne s³ówko 'inline' rozwi¹zuje b³¹d LNK2001
     static inline std::vector<QuestData> LoadQuests(const std::string& filepath) {
         std::vector<QuestData> quests;
         std::vector<uint8_t> fileData = VFS::ReadFile(filepath);

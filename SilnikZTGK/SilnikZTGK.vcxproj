@@ -284,6 +284,9 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClCompile Include="CookingStation\Layers\HudLayer\HUDLayer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CookingStation\Assets\Flags\FlagData.h" />
+    <ClInclude Include="CookingStation\Assets\Flags\FlagScript.h" />
+    <ClInclude Include="CookingStation\Assets\Flags\FlagTextureGenerator.h" />
     <ClInclude Include="CookingStation\Core\AudioEngine.h" />
     <ClInclude Include="CookingStation\Core\GameProgress.h" />
     <ClInclude Include="CookingStation\Core\GridSystem.h" />

@@ -374,7 +374,8 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 
     float footerY = cloudPos.y + cloudSize.y - (state == QuestEventState::WaitingForAccept ? 100.0f : 45.0f) * baseScale;
 
-    std::string goalStr = "Wymagane: " + activeQuest->DishID + " (0 / " + std::to_string(activeQuest->Portions) + " szt.)";
+    int delivered = GameManagerScript::s_Instance->GetQuestProgress();
+    std::string goalStr = "Wymagane: " + activeQuest->DishID + " (" + std::to_string(delivered) + " / " + std::to_string(activeQuest->Portions) + " szt.)";
     Gui::DrawGuiText(goalStr, { textX, footerY }, 0.60f * baseScale, { 0.3f, 1.0f, 0.4f, 1.0f });
     Gui::DrawGuiText("Nagroda: " + std::to_string(activeQuest->RewardCoins) + " monet", { textX, footerY + 24.0f * baseScale }, 0.42f * baseScale, { 0.3f, 0.8f, 1.0f, 1.0f });
 

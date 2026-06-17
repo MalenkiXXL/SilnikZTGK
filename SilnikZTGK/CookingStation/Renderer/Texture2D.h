@@ -14,6 +14,9 @@ public:
 	inline uint32_t GetHeight() const { return m_Height; }
 	inline uint32_t GetRendererID() const { return m_RendererID; }
 
+	Texture2D(uint32_t width, uint32_t height);
+	void SetData(void* data, uint32_t size);
+
 	void Bind(uint32_t slot = 0) const;
 	void SetWrapMode(GLenum wrapMode);
 private:

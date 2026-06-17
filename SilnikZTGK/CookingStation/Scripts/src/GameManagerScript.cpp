@@ -271,11 +271,15 @@ void GameManagerScript::OnUpdate(Timestep ts)
     {
         if (m_AnimationProgress < 1.0f) {
             m_AnimationProgress += ts * 0.5f;
-            if (m_AnimationProgress > 1.0f) m_AnimationProgress = 1.0f;
+            bool finishedNow = false; // Flaga sprawdzająca czy animacja W TYM MOMENCIE dobiła do końca
+            if (m_AnimationProgress >= 1.0f) {
+                m_AnimationProgress = 1.0f;
+                finishedNow = true;
+            }
 
             float easeOut = 1.0f - (1.0f - m_AnimationProgress) * (1.0f - m_AnimationProgress);
 
-            // 1. Dobudówka (z budką i zwrotnicą) zlatuje z GÓRY (od +30 do 0 po osi Y)
+            // 1. Dobudówka zlatuje z góry
             float yOffset = 30.0f * (1.0f - easeOut);
             for (auto& pair : m_MainIslandQuestGroup) {
                 auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
@@ -286,8 +290,7 @@ void GameManagerScript::OnUpdate(Timestep ts)
                 }
             }
 
-            // 2. OPÓŹNIONE ZNIKANIE: Stara taśma zapada się pod ziemię (od 0 do -30), 
-            // ale DOPIERO gdy m_AnimationProgress > 0.8 (czyli gdy nowa już prawie wylądowała)
+            // 2. Opóźnione znikanie starej taśmy
             float hideProgress = std::max(0.0f, (m_AnimationProgress - 0.8f) / 0.2f);
             float hideOffset = -30.0f * hideProgress;
 
@@ -298,6 +301,12 @@ void GameManagerScript::OnUpdate(Timestep ts)
                     pos.y = pair.second + hideOffset;
                     transform->SetPosition(pos);
                 }
+            }
+
+            // 3. Jeśli to była ostatnia klatka animacji, PRZEBUDUJ MAPĘ TAŚM!
+            if (finishedNow) {
+                GetScene()->RebuildConveyorCache();
+                spdlog::info("Wyspa questowa zadokowana. Przebudowano fizyke tasm!");
             }
         }
         break;
@@ -348,7 +357,9 @@ void GameManagerScript::OnUpdate(Timestep ts)
         if (m_AnimationProgress >= 1.0f) {
             m_QuestTimer = QUEST_INTERVAL; // Reset timera
             m_CurrentQuestState = QuestEventState::WaitingForTimer;
-            spdlog::info("Koniec cyklu Questa. Wszystko odlecialo.");
+
+            GetScene()->RebuildConveyorCache();
+            spdlog::info("Koniec cyklu Questa. Zwykle tasmy przywrocone.");
         }
         break;
     }
@@ -360,7 +371,8 @@ void GameManagerScript::AcceptQuest()
 {
     if (m_CurrentQuestState == QuestEventState::WaitingForAccept) {
         spdlog::info("Quest Zaakceptowany! Rozbudowuje glowna wyspe.");
-        m_AnimationProgress = 0.0f; // Resetujemy pasek dla nowej animacji
+        m_AnimationProgress = 0.0f; 
+        m_CurrentQuestProgress = 0; 
         m_CurrentQuestState = QuestEventState::QuestActive;
     }
 }
@@ -396,5 +408,79 @@ void GameManagerScript::CompleteQuest()
         if (m_CurrentQuestIndex >= m_AvailableQuests.size()) m_CurrentQuestIndex = 0;
 
         m_CurrentQuestState = QuestEventState::IslandLeaving;
+        SpawnCollectibleFlag(currentQuest.RewardFlag);
+        m_CurrentQuestProgress = 0;
     }
+}
+
+void GameManagerScript::DeliverQuestPortion()
+{
+    if (m_CurrentQuestState == QuestEventState::QuestActive) {
+        m_CurrentQuestProgress++;
+        QuestData* q = GetCurrentQuest();
+        spdlog::info("Dostarczono porcje AI! Stan: {} / {}", m_CurrentQuestProgress, q ? q->Portions : 0);
+
+        if (q && m_CurrentQuestProgress >= q->Portions) {
+            CompleteQuest();
+        }
+    }
+}
+
+void GameManagerScript::SpawnCollectibleFlag(const std::string& countryCode)
+{
+    // Znajdź wydawkę po tagu
+    auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+    Entity wydawkaEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+    if (tags) {
+        for (size_t i = 0; i < tags->dense.size(); ++i) {
+            if (tags->dense[i].Tag == "Wydawka") {
+                wydawkaEntity = tags->reverse[i];
+                break;
+            }
+        }
+    }
+
+    glm::vec3 spawnPos = { 12.0f, 1.5f, -9.0f }; // Twardy fallback obok wydawki
+
+    if (wydawkaEntity.id != std::numeric_limits<std::size_t>::max()) {
+        auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(wydawkaEntity);
+        // Przesunięcie o +3.0 w osi X (w prawo) i +1.5 w osi Y (żeby nie wbijała się w ziemię)
+        if (tf) spawnPos = tf->GetPosition() + glm::vec3(3.0f, 1.5f, 0.0f);
+    }
+
+    // Usuń poprzednią flagę jeśli istnieje
+    if (m_ActiveFlagEntity.id != std::numeric_limits<std::size_t>::max()) {
+        GetScene()->GetWorld().GetEventBus().Publish(
+            EntityDestroyRequestEvent{ m_ActiveFlagEntity });
+        m_ActiveFlagEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+    }
+
+    auto& world = GetScene()->GetWorld();
+    auto builder = world.BuildEntity();
+
+    builder.With<TagComponent>({ "CollectibleFlag" });
+
+    TransformComponent tc;
+    tc.SetPosition(spawnPos);
+    tc.SetScale(glm::vec3(1.0f));
+    builder.With<TransformComponent>(tc);
+
+    MeshComponent mesh;
+    mesh.ModelPtr = AssetManager::GetModel("assets://models/wystroj/flaga.gltf");
+    builder.With<MeshComponent>(mesh);
+
+    NativeScriptComponent nsc;
+    nsc.AddScript<FlagScript>("FlagScript");
+    builder.With<NativeScriptComponent>(nsc);
+
+    m_ActiveFlagEntity = builder.Build();
+
+    // Ustaw teksturę flagi - potrzebujemy dostępu do FlagScript po spawnie
+    // FlagScript::OnCreate zostanie wywołany w następnej klatce przez Scene::OnUpdateRuntime
+    // Zamiast tego, przechowaj kod kraju żeby FlagScript mógł go użyć w OnCreate
+    // Najprostsze rozwiązanie: tag zawiera kod kraju
+    auto* tagComp = world.GetComponent<TagComponent>(m_ActiveFlagEntity);
+    if (tagComp) tagComp->Tag = "CollectibleFlag_" + countryCode;
+
+    spdlog::info("[GameManager] Spawning flag for country: {}", countryCode);
 }
