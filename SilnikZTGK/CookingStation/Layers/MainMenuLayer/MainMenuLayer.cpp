@@ -9,6 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include "CookingStation/Events/GameEvents.h"
 #include "CookingStation/Core/AudioEngine.h"
+#include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <string>
@@ -210,261 +211,192 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
 {
     glm::vec2 mouse = Gui::GetMappedMousePos();
 
-    float panelW = 700.0f * baseScale;
-    float panelH = 580.0f * baseScale;
-    float panelX = (m_ViewportWidth - panelW) * 0.5f;
-    float panelY = (m_ViewportHeight - panelH) * 0.5f;
+    // --- ŁADOWANIE TEKSTUR ---
+    auto backBtnTex = AssetManager::GetTexture("assets://UI/backButton.png");
+    auto applyBtnTex = AssetManager::GetTexture("assets://UI/applyButton.png");
+    auto leftArrowTex = AssetManager::GetTexture("assets://UI/leftArrow.png");
+    auto rightArrowTex = AssetManager::GetTexture("assets://UI/rightArrow.png");
 
-    Gui::Panel({ panelX - 3.0f, panelY - 3.0f }, { panelW + 6.0f, panelH + 6.0f },
-        { 0.6f, 0.6f, 0.7f, 0.5f }, 20.0f * baseScale);
-    Gui::Panel({ panelX, panelY }, { panelW, panelH },
-        { 0.10f, 0.10f, 0.14f, 0.97f }, 18.0f * baseScale);
+    glm::vec2 uv0 = { 0.0f, 1.0f };
+    glm::vec2 uv1 = { 1.0f, 0.0f };
 
-    float       titleScale = 1.6f * baseScale;
-    std::string title = "SETTINGS";
-    float       titleW = Gui::MeasureTextWidth(title, titleScale);
-    Gui::DrawGuiText(title,
-        { panelX + (panelW - titleW) * 0.5f + 2.0f, panelY + 38.0f * baseScale + 2.0f },
-        titleScale, { 0.0f, 0.0f, 0.0f, 0.6f });
-    Gui::DrawGuiText(title,
-        { panelX + (panelW - titleW) * 0.5f, panelY + 38.0f * baseScale },
-        titleScale, { 0.9f, 0.9f, 1.0f, 1.0f });
-
-    float rowH = 80.0f * baseScale;
-    float rowStart = panelY + 110.0f * baseScale;
-    float labelX = panelX + 40.0f * baseScale;
-    float arrowW = 48.0f * baseScale;
-    float arrowH = 48.0f * baseScale;
-    float valueBoxW = 260.0f * baseScale;
-    float valueBoxH = 52.0f * baseScale;
-    float controlsX = panelX + panelW * 0.45f;
-    float labelScale = 0.9f * baseScale;
-
-    float animSpeed = 14.0f;
-    float lerpT = std::min(dt * animSpeed, 1.0f);
-
-    // --- WIERSZ 1: RESOLUTION ---
-    {
-        float      rowY = rowStart;
-        std::string lbl = "Resolution";
-        float lblH = Gui::MeasureTextHeight(lbl, labelScale);
-        float baselineOff = 32.0f * 0.8f * labelScale;
-        Gui::DrawGuiText(lbl,
-            { labelX, rowY + (arrowH - lblH) * 0.5f - baselineOff + lblH * 0.5f },
-            labelScale, { 0.85f, 0.85f, 0.90f, 1.0f });
-
-        glm::vec2 leftPos = { controlsX, rowY };
-        glm::vec2 rightPos = { controlsX + arrowW + valueBoxW + 8.0f * baseScale, rowY };
-        glm::vec2 arrowSize = { arrowW, arrowH };
-
-        bool hovL = mouse.x >= leftPos.x && mouse.x <= leftPos.x + arrowW &&
-            mouse.y >= leftPos.y && mouse.y <= leftPos.y + arrowH;
-        bool hovR = mouse.x >= rightPos.x && mouse.x <= rightPos.x + arrowW &&
-            mouse.y >= rightPos.y && mouse.y <= rightPos.y + arrowH;
-
-        m_ResLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_ResLeftBtnScale) * lerpT;
-        m_ResRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_ResRightBtnScale) * lerpT;
-
-        if (DrawScaledButton("<", leftPos, arrowSize, m_ResLeftBtnScale, baseScale,
-            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovL))
-        {
-            m_PendingResIndex = (m_PendingResIndex - 1 + GraphicsSettings::ResolutionCount)
-                % GraphicsSettings::ResolutionCount;
+    auto getAspectSize = [&](const std::shared_ptr<Texture>& tex, float targetHeight) -> glm::vec2 {
+        if (tex && tex->GetRendererID() != 0) {
+            float aspect = (float)tex->GetWidth() / (float)tex->GetHeight();
+            return { targetHeight * aspect, targetHeight };
         }
-        if (DrawScaledButton(">", rightPos, arrowSize, m_ResRightBtnScale, baseScale,
-            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovR))
-        {
-            m_PendingResIndex = (m_PendingResIndex + 1) % GraphicsSettings::ResolutionCount;
-        }
+        return { targetHeight * 3.0f, targetHeight };
+        };
 
-        glm::vec2 vbPos = { controlsX + arrowW + 8.0f * baseScale,
-                            rowY + (arrowH - valueBoxH) * 0.5f };
-        Gui::Panel(vbPos, { valueBoxW, valueBoxH }, { 0.18f, 0.18f, 0.22f, 1.0f }, 10.0f * baseScale);
+    // --- TŁO: DESKA DO KROJENIA ---
+    float boardHeight = 750.0f * baseScale;
+    glm::vec2 boardSize = getAspectSize(m_BoardTex, boardHeight);
 
-        auto [rw, rh] = GraphicsSettings::Resolutions[m_PendingResIndex];
-        std::string resStr = std::to_string(rw) + " x " + std::to_string(rh);
-        float valScale = 0.85f * baseScale;
-        float resW = Gui::MeasureTextWidth(resStr, valScale);
-        float resH = Gui::MeasureTextHeight(resStr, valScale);
-        float resBase = 32.0f * 0.8f * valScale;
-        Gui::DrawGuiText(resStr,
-            { vbPos.x + (valueBoxW - resW) * 0.5f,
-              vbPos.y + (valueBoxH - resH) * 0.5f - resBase + resH * 0.5f },
-            valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+    // Zabezpieczenie minimalnej szerokości, żeby elementy się zmieściły
+    if (boardSize.x < 850.0f * baseScale) boardSize.x = 850.0f * baseScale;
+
+    glm::vec2 panelPos = { (m_ViewportWidth - boardSize.x) * 0.5f, (m_ViewportHeight - boardSize.y) * 0.5f };
+
+    if (m_BoardTex && m_BoardTex->GetRendererID() != 0) {
+        Renderer2D::DrawQuad(panelPos, boardSize, m_BoardTex, { 1.0f, 1.0f, 1.0f, 1.0f }, uv0, uv1);
+    }
+    else {
+        Gui::Panel(panelPos, boardSize, { 0.12f, 0.12f, 0.15f, 0.95f }, 20.0f * baseScale);
     }
 
-    // --- WIERSZ 2: ANTI-ALIASING ---
-    {
-        float       rowY = rowStart + rowH;
-        std::string lbl = "Anti-Aliasing";
-        float       lblH = Gui::MeasureTextHeight(lbl, labelScale);
-        float       baselineOff = 32.0f * 0.8f * labelScale;
-        Gui::DrawGuiText(lbl,
-            { labelX, rowY + (arrowH - lblH) * 0.5f - baselineOff + lblH * 0.5f },
-            labelScale, { 0.85f, 0.85f, 0.90f, 1.0f });
+    // --- TYTUŁ ---
+    float titleScale = 1.6f * baseScale;
+    float titleW = Gui::MeasureTextWidth("SETTINGS", titleScale);
+    Gui::DrawGuiText("SETTINGS", { panelPos.x + (boardSize.x - titleW) * 0.5f, panelPos.y + 80.0f * baseScale }, titleScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-        glm::vec2 leftPos = { controlsX, rowY };
-        glm::vec2 rightPos = { controlsX + arrowW + valueBoxW + 8.0f * baseScale, rowY };
-        glm::vec2 arrowSize = { arrowW, arrowH };
+    // --- LOGIKA MYSZKI I PRZYCISKÓW GRAFICZNYCH ---
+    auto isHov = [&](glm::vec2 p, glm::vec2 s) {
+        return mouse.x >= p.x && mouse.x <= p.x + s.x && mouse.y >= p.y && mouse.y <= p.y + s.y;
+        };
 
-        bool hovL = mouse.x >= leftPos.x && mouse.x <= leftPos.x + arrowW &&
-            mouse.y >= leftPos.y && mouse.y <= leftPos.y + arrowH;
-        bool hovR = mouse.x >= rightPos.x && mouse.x <= rightPos.x + arrowW &&
-            mouse.y >= rightPos.y && mouse.y <= rightPos.y + arrowH;
+    static bool s_LastMouseStateMainMenuSettings = false;
+    bool currentMouseState = Input::IsMouseButtonPressed(0);
+    bool mouseClicked = currentMouseState && !s_LastMouseStateMainMenuSettings;
 
-        m_MsaaLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_MsaaLeftBtnScale) * lerpT;
-        m_MsaaRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_MsaaRightBtnScale) * lerpT;
+    auto drawImageBtn = [&](std::shared_ptr<Texture> tex, glm::vec2 basePos, glm::vec2 baseSize, float& scaleVar, bool hovered) {
+        float targetScale = hovered ? 1.05f : 1.0f;
+        scaleVar += (targetScale - scaleVar) * 15.0f * dt;
 
-        if (DrawScaledButton("<", leftPos, arrowSize, m_MsaaLeftBtnScale, baseScale,
-            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovL))
-        {
-            m_PendingMsaaIndex = (m_PendingMsaaIndex - 1 + MsaaOptionCount) % MsaaOptionCount;
-        }
-        if (DrawScaledButton(">", rightPos, arrowSize, m_MsaaRightBtnScale, baseScale,
-            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovR))
-        {
-            m_PendingMsaaIndex = (m_PendingMsaaIndex + 1) % MsaaOptionCount;
+        glm::vec2 scaledSize = baseSize * scaleVar;
+        glm::vec2 offset = (baseSize - scaledSize) * 0.5f;
+        glm::vec2 finalPos = basePos + offset;
+
+        glm::vec4 tint = hovered ? glm::vec4(0.85f, 0.85f, 0.85f, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        if (hovered && currentMouseState) {
+            tint = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f);
         }
 
-        glm::vec2 vbPos = { controlsX + arrowW + 8.0f * baseScale,
-                            rowY + (arrowH - valueBoxH) * 0.5f };
-        Gui::Panel(vbPos, { valueBoxW, valueBoxH }, { 0.18f, 0.18f, 0.22f, 1.0f }, 10.0f * baseScale);
+        if (tex && tex->GetRendererID() != 0) {
+            Renderer2D::DrawQuad(finalPos, scaledSize, tex->GetRendererID(), tint, uv0, uv1);
+        }
+        else {
+            Gui::Panel(finalPos, scaledSize, tint, 10.0f * baseScale);
+        }
 
-        int         msaaSamples = MsaaOptions[m_PendingMsaaIndex];
-        std::string msaaStr = (msaaSamples == 1) ? "OFF" : ("x" + std::to_string(msaaSamples));
-        float valScale = 0.85f * baseScale;
-        float mW = Gui::MeasureTextWidth(msaaStr, valScale);
-        float mH = Gui::MeasureTextHeight(msaaStr, valScale);
-        float mBase = 32.0f * 0.8f * valScale;
-        Gui::DrawGuiText(msaaStr,
-            { vbPos.x + (valueBoxW - mW) * 0.5f,
-              vbPos.y + (valueBoxH - mH) * 0.5f - mBase + mH * 0.5f },
-            valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+        return hovered && mouseClicked;
+        };
+
+    // --- POZYCJONOWANIE OPCJI USTAWIEŃ ---
+    float startY = panelPos.y + 200.0f * baseScale;
+    float rowGap = 100.0f * baseScale;
+
+    float leftColX = panelPos.x + boardSize.x * 0.15f;
+    float rightColX = panelPos.x + boardSize.x * 0.48f;
+    float textScale = 1.0f * baseScale;
+
+    float arrowYOffset = 25.0f * baseScale;
+    float textYOffset = 18.0f * baseScale;
+
+    glm::vec2 arrowSize = { 50.0f * baseScale, 50.0f * baseScale };
+    float distanceBetweenArrows = 300.0f * baseScale;
+
+    auto drawCenteredValue = [&](const std::string& text, float rowCenterY) {
+        float textW = Gui::MeasureTextWidth(text, textScale);
+        float centerX = rightColX + arrowSize.x + (distanceBetweenArrows - arrowSize.x) * 0.5f;
+        Gui::DrawGuiText(text, { centerX - textW * 0.5f, rowCenterY - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+        };
+
+    // --- RZĄD 1: ROZDZIELCZOŚĆ ---
+    float row1Y = startY;
+    Gui::DrawGuiText("Resolution:", { leftColX, row1Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+    glm::vec2 resLeftPos = { rightColX, row1Y - arrowYOffset };
+    bool hovResL = isHov(resLeftPos, arrowSize);
+    if (drawImageBtn(leftArrowTex, resLeftPos, arrowSize, m_ResLeftBtnScale, hovResL)) {
+        m_PendingResIndex = (m_PendingResIndex - 1 + GraphicsSettings::ResolutionCount) % GraphicsSettings::ResolutionCount;
     }
 
-    // --- WIERSZ 3: MUSIC (Tło) ---
-    {
-        float       rowY = rowStart + rowH * 2.0f;
-        std::string lbl = "Music";
-        float       lblH = Gui::MeasureTextHeight(lbl, labelScale);
-        float       baselineOff = 32.0f * 0.8f * labelScale;
-        Gui::DrawGuiText(lbl,
-            { labelX, rowY + (arrowH - lblH) * 0.5f - baselineOff + lblH * 0.5f },
-            labelScale, { 0.85f, 0.85f, 0.90f, 1.0f });
+    std::string resText = std::to_string(GraphicsSettings::Resolutions[m_PendingResIndex].first) + " x " + std::to_string(GraphicsSettings::Resolutions[m_PendingResIndex].second);
+    drawCenteredValue(resText, row1Y);
 
-        glm::vec2 leftPos = { controlsX, rowY };
-        glm::vec2 rightPos = { controlsX + arrowW + valueBoxW + 8.0f * baseScale, rowY };
-        glm::vec2 arrowSize = { arrowW, arrowH };
-
-        bool hovL = mouse.x >= leftPos.x && mouse.x <= leftPos.x + arrowW &&
-            mouse.y >= leftPos.y && mouse.y <= leftPos.y + arrowH;
-        bool hovR = mouse.x >= rightPos.x && mouse.x <= rightPos.x + arrowW &&
-            mouse.y >= rightPos.y && mouse.y <= rightPos.y + arrowH;
-
-        m_MusicLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_MusicLeftBtnScale) * lerpT;
-        m_MusicRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_MusicRightBtnScale) * lerpT;
-
-        if (DrawScaledButton("<", leftPos, arrowSize, m_MusicLeftBtnScale, baseScale,
-            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovL))
-        {
-            m_PendingMusicEnabled = !m_PendingMusicEnabled;
-        }
-        if (DrawScaledButton(">", rightPos, arrowSize, m_MusicRightBtnScale, baseScale,
-            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovR))
-        {
-            m_PendingMusicEnabled = !m_PendingMusicEnabled;
-        }
-
-        glm::vec2 vbPos = { controlsX + arrowW + 8.0f * baseScale,
-                            rowY + (arrowH - valueBoxH) * 0.5f };
-        Gui::Panel(vbPos, { valueBoxW, valueBoxH }, { 0.18f, 0.18f, 0.22f, 1.0f }, 10.0f * baseScale);
-
-        std::string musicStr = m_PendingMusicEnabled ? "ON" : "OFF";
-        float valScale = 0.85f * baseScale;
-        float mW = Gui::MeasureTextWidth(musicStr, valScale);
-        float mH = Gui::MeasureTextHeight(musicStr, valScale);
-        float mBase = 32.0f * 0.8f * valScale;
-
-        Gui::DrawGuiText(musicStr,
-            { vbPos.x + (valueBoxW - mW) * 0.5f,
-              vbPos.y + (valueBoxH - mH) * 0.5f - mBase + mH * 0.5f },
-            valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+    glm::vec2 resRightPos = { rightColX + distanceBetweenArrows, row1Y - arrowYOffset };
+    bool hovResR = isHov(resRightPos, arrowSize);
+    if (drawImageBtn(rightArrowTex, resRightPos, arrowSize, m_ResRightBtnScale, hovResR)) {
+        m_PendingResIndex = (m_PendingResIndex + 1) % GraphicsSettings::ResolutionCount;
     }
 
-    // --- WIERSZ 4: SOUNDS (Dźwięki SFX) ---
-    {
-        float       rowY = rowStart + rowH * 3.0f;
-        std::string lbl = "Sounds";
-        float       lblH = Gui::MeasureTextHeight(lbl, labelScale);
-        float       baselineOff = 32.0f * 0.8f * labelScale;
-        Gui::DrawGuiText(lbl,
-            { labelX, rowY + (arrowH - lblH) * 0.5f - baselineOff + lblH * 0.5f },
-            labelScale, { 0.85f, 0.85f, 0.90f, 1.0f });
+    // --- RZĄD 2: ANTI-ALIASING ---
+    float row2Y = startY + rowGap;
+    Gui::DrawGuiText("Antialiasing:", { leftColX, row2Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-        glm::vec2 leftPos = { controlsX, rowY };
-        glm::vec2 rightPos = { controlsX + arrowW + valueBoxW + 8.0f * baseScale, rowY };
-        glm::vec2 arrowSize = { arrowW, arrowH };
-
-        bool hovL = mouse.x >= leftPos.x && mouse.x <= leftPos.x + arrowW &&
-            mouse.y >= leftPos.y && mouse.y <= leftPos.y + arrowH;
-        bool hovR = mouse.x >= rightPos.x && mouse.x <= rightPos.x + arrowW &&
-            mouse.y >= rightPos.y && mouse.y <= rightPos.y + arrowH;
-
-        m_SoundsLeftBtnScale += ((hovL ? 1.08f : 1.0f) - m_SoundsLeftBtnScale) * lerpT;
-        m_SoundsRightBtnScale += ((hovR ? 1.08f : 1.0f) - m_SoundsRightBtnScale) * lerpT;
-
-        if (DrawScaledButton("<", leftPos, arrowSize, m_SoundsLeftBtnScale, baseScale,
-            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovL))
-        {
-            m_PendingSoundsEnabled = !m_PendingSoundsEnabled;
-        }
-        if (DrawScaledButton(">", rightPos, arrowSize, m_SoundsRightBtnScale, baseScale,
-            { 0.25f, 0.25f, 0.30f, 1.0f }, { 0.40f, 0.40f, 0.50f, 1.0f }, hovR))
-        {
-            m_PendingSoundsEnabled = !m_PendingSoundsEnabled;
-        }
-
-        glm::vec2 vbPos = { controlsX + arrowW + 8.0f * baseScale,
-                            rowY + (arrowH - valueBoxH) * 0.5f };
-        Gui::Panel(vbPos, { valueBoxW, valueBoxH }, { 0.18f, 0.18f, 0.22f, 1.0f }, 10.0f * baseScale);
-
-        std::string soundsStr = m_PendingSoundsEnabled ? "ON" : "OFF";
-        float valScale = 0.85f * baseScale;
-        float mW = Gui::MeasureTextWidth(soundsStr, valScale);
-        float mH = Gui::MeasureTextHeight(soundsStr, valScale);
-        float mBase = 32.0f * 0.8f * valScale;
-
-        Gui::DrawGuiText(soundsStr,
-            { vbPos.x + (valueBoxW - mW) * 0.5f,
-              vbPos.y + (valueBoxH - mH) * 0.5f - mBase + mH * 0.5f },
-            valScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+    glm::vec2 msaaLeftPos = { rightColX, row2Y - arrowYOffset };
+    bool hovMsaaL = isHov(msaaLeftPos, arrowSize);
+    if (drawImageBtn(leftArrowTex, msaaLeftPos, arrowSize, m_MsaaLeftBtnScale, hovMsaaL)) {
+        m_PendingMsaaIndex = (m_PendingMsaaIndex - 1 + MsaaOptionCount) % MsaaOptionCount;
     }
 
-    // --- DOLNY PANEL (PRZYCISKI APPLY / BACK) ---
-    float     bottomY = panelY + panelH - 80.0f * baseScale;
-    float     smallBtnW = 180.0f * baseScale;
-    float     smallBtnH = 56.0f * baseScale;
-    glm::vec2 backPos = { panelX + 40.0f * baseScale, bottomY };
-    glm::vec2 applyPos = { panelX + panelW - smallBtnW - 40.0f * baseScale, bottomY };
-    glm::vec2 sbSize = { smallBtnW, smallBtnH };
+    int msaaSamples = MsaaOptions[m_PendingMsaaIndex];
+    std::string msaaText = (msaaSamples == 1) ? "Off" : "MSAA x" + std::to_string(msaaSamples);
+    drawCenteredValue(msaaText, row2Y);
 
-    bool hovBack = mouse.x >= backPos.x && mouse.x <= backPos.x + smallBtnW &&
-        mouse.y >= backPos.y && mouse.y <= backPos.y + smallBtnH;
-    bool hovApply = mouse.x >= applyPos.x && mouse.x <= applyPos.x + smallBtnW &&
-        mouse.y >= applyPos.y && mouse.y <= applyPos.y + smallBtnH;
+    glm::vec2 msaaRightPos = { rightColX + distanceBetweenArrows, row2Y - arrowYOffset };
+    bool hovMsaaR = isHov(msaaRightPos, arrowSize);
+    if (drawImageBtn(rightArrowTex, msaaRightPos, arrowSize, m_MsaaRightBtnScale, hovMsaaR)) {
+        m_PendingMsaaIndex = (m_PendingMsaaIndex + 1) % MsaaOptionCount;
+    }
 
-    m_BackBtnScale += ((hovBack ? 1.05f : 1.0f) - m_BackBtnScale) * lerpT;
-    m_ApplyBtnScale += ((hovApply ? 1.05f : 1.0f) - m_ApplyBtnScale) * lerpT;
+    // --- RZĄD 3: MUZYKA (Tło) ---
+    float row3Y = row2Y + rowGap;
+    Gui::DrawGuiText("Music:", { leftColX, row3Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-    if (DrawScaledButton("BACK", backPos, sbSize, m_BackBtnScale, baseScale,
-        { 0.28f, 0.28f, 0.32f, 1.0f }, { 0.42f, 0.42f, 0.48f, 1.0f }, hovBack))
-    {
+    glm::vec2 musLeftPos = { rightColX, row3Y - arrowYOffset };
+    bool hovMusL = isHov(musLeftPos, arrowSize);
+    if (drawImageBtn(leftArrowTex, musLeftPos, arrowSize, m_MusicLeftBtnScale, hovMusL)) {
+        m_PendingMusicEnabled = !m_PendingMusicEnabled;
+    }
+
+    std::string musText = m_PendingMusicEnabled ? "ON" : "OFF";
+    drawCenteredValue(musText, row3Y);
+
+    glm::vec2 musRightPos = { rightColX + distanceBetweenArrows, row3Y - arrowYOffset };
+    bool hovMusR = isHov(musRightPos, arrowSize);
+    if (drawImageBtn(rightArrowTex, musRightPos, arrowSize, m_MusicRightBtnScale, hovMusR)) {
+        m_PendingMusicEnabled = !m_PendingMusicEnabled;
+    }
+
+    // --- RZĄD 4: DŹWIĘKI (SFX) ---
+    float row4Y = row3Y + rowGap;
+    Gui::DrawGuiText("Sounds:", { leftColX, row4Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+    glm::vec2 sndLeftPos = { rightColX, row4Y - arrowYOffset };
+    bool hovSndL = isHov(sndLeftPos, arrowSize);
+    if (drawImageBtn(leftArrowTex, sndLeftPos, arrowSize, m_SoundsLeftBtnScale, hovSndL)) {
+        m_PendingSoundsEnabled = !m_PendingSoundsEnabled;
+    }
+
+    std::string sndText = m_PendingSoundsEnabled ? "ON" : "OFF";
+    drawCenteredValue(sndText, row4Y);
+
+    glm::vec2 sndRightPos = { rightColX + distanceBetweenArrows, row4Y - arrowYOffset };
+    bool hovSndR = isHov(sndRightPos, arrowSize);
+    if (drawImageBtn(rightArrowTex, sndRightPos, arrowSize, m_SoundsRightBtnScale, hovSndR)) {
+        m_PendingSoundsEnabled = !m_PendingSoundsEnabled;
+    }
+
+    // --- DOLNY PANEL (PRZYCISKI BACK / APPLY) ---
+    float btnHeight = 90.0f * baseScale;
+    glm::vec2 backBtnSize = getAspectSize(backBtnTex, btnHeight);
+    glm::vec2 applyBtnSize = getAspectSize(applyBtnTex, btnHeight);
+
+    float bottomY = panelPos.y + boardSize.y - btnHeight - 70.0f * baseScale;
+
+    // Przycisk BACK
+    glm::vec2 backPos = { panelPos.x + boardSize.x * 0.12f, bottomY };
+    bool hovBack = isHov(backPos, backBtnSize);
+    if (drawImageBtn(backBtnTex, backPos, backBtnSize, m_BackBtnScale, hovBack)) {
         m_SettingsOpen = false;
     }
 
-    if (DrawScaledButton("APPLY", applyPos, sbSize, m_ApplyBtnScale, baseScale,
-        { 0.15f, 0.50f, 0.18f, 1.0f }, { 0.20f, 0.70f, 0.25f, 1.0f }, hovApply))
-    {
+    // Przycisk APPLY
+    glm::vec2 applyPos = { panelPos.x + boardSize.x * 0.88f - applyBtnSize.x, bottomY };
+    bool hovApply = isHov(applyPos, applyBtnSize);
+    if (drawImageBtn(applyBtnTex, applyPos, applyBtnSize, m_ApplyBtnScale, hovApply)) {
+
         Application::Get().GetEventBus().Publish(AudioSettingsChangedEvent{
             m_PendingMusicEnabled,
             m_PendingSoundsEnabled
@@ -476,7 +408,6 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
         int newMsaa = MsaaOptions[m_PendingMsaaIndex];
 
         if (gs.WindowWidth != newWidth || gs.WindowHeight != newHeight || gs.MsaaSamples != newMsaa) {
-
             gs.WindowWidth = newWidth;
             gs.WindowHeight = newHeight;
             gs.MsaaSamples = newMsaa;
@@ -489,6 +420,8 @@ void MainMenuLayer::DrawSettingsPanel(float baseScale, float dt)
 
         m_SettingsOpen = false;
     }
+
+    s_LastMouseStateMainMenuSettings = currentMouseState;
 }
 
 void MainMenuLayer::PlayGame()
