@@ -12,7 +12,7 @@
 class DeliveryBoothScript : public ScriptableEntity
 {
 private:
-    glm::vec3 m_DirectionOffset = { 0.0f, 0.0f, 0.0f };
+
 
     bool IsQuestItem(const std::string& tag, const std::string& questDishId)
     {
@@ -48,21 +48,23 @@ private:
     }
 
 public:
+    glm::vec3 m_DirectionOffset = { 0.0f, 0.0f, 0.0f };
     void OnCreate() override
     {
         auto* transform = GetComponent<TransformComponent>();
         if (transform)
         {
-            float rotationY = transform->GetRotation().y;
+            // 1. Zabezpieczenie na radiany, które uciekło przy merge'u
+            float rotationY = glm::degrees(transform->GetRotation().y);
 
             if (std::abs(rotationY - 90.0f) < 5.0f || std::abs(rotationY - (-270.0f)) < 5.0f)
-                m_DirectionOffset = { -2.0f, 0.0f, 0.0f };
-            else if (std::abs(rotationY - 270.0f) < 5.0f || std::abs(rotationY - (-90.0f)) < 5.0f)
                 m_DirectionOffset = { 2.0f, 0.0f, 0.0f };
+            else if (std::abs(rotationY - 270.0f) < 5.0f || std::abs(rotationY - (-90.0f)) < 5.0f)
+                m_DirectionOffset = { -2.0f, 0.0f, 0.0f };
             else if (std::abs(rotationY - 180.0f) < 5.0f)
-                m_DirectionOffset = { 0.0f, 0.0f, 2.0f };
-            else
                 m_DirectionOffset = { 0.0f, 0.0f, -2.0f };
+            else
+                m_DirectionOffset = { 0.0f, 0.0f, 2.0f };
         }
     }
 
