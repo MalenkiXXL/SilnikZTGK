@@ -3805,7 +3805,7 @@
     {
       "id": 130,
       "model_path": "assets://models/wystroj/krzeslo.gltf",
-      "name": "Chair_2",
+      "name": "Krzeslo2",
       "parent_id": 129,
       "position": [
         2.0,
@@ -3826,7 +3826,7 @@
     {
       "id": 131,
       "model_path": "assets://models/wystroj/krzeslo.gltf",
-      "name": "Chair_2",
+      "name": "Krzeslo1",
       "parent_id": 129,
       "position": [
         -2.0,
@@ -3867,7 +3867,7 @@
     {
       "id": 133,
       "model_path": "assets://models/wystroj/krzeslo.gltf",
-      "name": "Chair_3",
+      "name": "Krzeslo3",
       "parent_id": 132,
       "position": [
         2.0,
@@ -3888,7 +3888,7 @@
     {
       "id": 134,
       "model_path": "assets://models/wystroj/krzeslo.gltf",
-      "name": "Chair_3",
+      "name": "Krzeslo4",
       "parent_id": 132,
       "position": [
         -2.0,
@@ -4386,7 +4386,7 @@
     {
       "id": 150,
       "model_path": "assets://models/wystroj/krzeslo.gltf",
-      "name": "Chair_43",
+      "name": "Krzeslo5",
       "parent_id": 149,
       "position": [
         2.0,
@@ -4407,7 +4407,7 @@
     {
       "id": 151,
       "model_path": "assets://models/wystroj/krzeslo.gltf",
-      "name": "Chair_43",
+      "name": "Krzeslo6",
       "parent_id": 149,
       "position": [
         -2.0,
