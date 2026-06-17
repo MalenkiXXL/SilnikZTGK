@@ -308,3 +308,7 @@ bool Gui::ScaledButton(const std::string& label,
 
 	return hovered && Input::IsMouseButtonJustPressed(0);
 }
+
+void Gui::Shutdown() {
+	s_Font.reset(); // To uwalnia teksturê czcionki z pamiêci GPU!
+}

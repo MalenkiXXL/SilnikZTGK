@@ -62,11 +62,11 @@ private:
         std::string chosenModel;
 
         if (isHelper) {
-            std::uniform_int_distribution<> dist(0, m_HelperModels.size() - 1);
+            std::uniform_int_distribution<> dist(0, (int)m_HelperModels.size() - 1);
             chosenModel = m_HelperModels[dist(gen)];
         }
         else {
-            std::uniform_int_distribution<> dist(0, m_CustomerModels.size() - 1);
+            std::uniform_int_distribution<> dist(0, (int)m_CustomerModels.size() - 1);
             chosenModel = m_CustomerModels[dist(gen)];
         }
 
@@ -111,8 +111,21 @@ private:
         auto* chairTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(targetChair);
         TransformComponent tc;
 
-        // Aplikowanie wyliczonej Skali i Pozycji
+        // --- OBLICZANIE POZYCJI GLOBALNEJ KRZES£A ---
         glm::vec3 chairPos = chairTransform->GetPosition();
+
+        auto* chairRel = GetScene()->GetWorld().GetComponent<RelationshipComponent>(targetChair);
+        if (chairRel && chairRel->Parent != NULL_ENTITY) {
+            Entity parentEntity;
+            parentEntity.id = chairRel->Parent;
+
+            auto* parentTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(parentEntity);
+            if (parentTransform) {
+                chairPos += parentTransform->GetPosition();
+            }
+        }
+        // --------------------------------------------
+
         tc.SetPosition(chairPos + glm::vec3(0.0f, heightOffset, 0.0f));
         tc.SetScale(finalScale);
 
@@ -159,7 +172,7 @@ private:
     Entity FindEmptyChair()
     {
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
-        if (!tags) return { std::numeric_limits<std::size_t>::max(), 0 };
+        if (!tags) return { std::numeric_limits<std::size_t>::max() };
 
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
@@ -173,7 +186,7 @@ private:
                 }
             }
         }
-        return { std::numeric_limits<std::size_t>::max(), 0 };
+        return { std::numeric_limits<std::size_t>::max() };
     }
 
     bool IsChairEmpty(Entity chair)
@@ -181,7 +194,21 @@ private:
         auto* chairTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(chair);
         if (!chairTransform) return false;
 
+        // --- PRAWDZIWA POZYCJA GLOBALNA KRZES£A ---
         glm::vec3 chairPos = chairTransform->GetPosition();
+
+        auto* chairRel = GetScene()->GetWorld().GetComponent<RelationshipComponent>(chair);
+        if (chairRel && chairRel->Parent != NULL_ENTITY) {
+            Entity parentEntity;
+            parentEntity.id = chairRel->Parent;
+
+            auto* parentTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(parentEntity);
+            if (parentTransform) {
+                chairPos += parentTransform->GetPosition();
+            }
+        }
+        // ------------------------------------------
+
         glm::vec2 chairPos2D = { chairPos.x, chairPos.z };
 
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -220,7 +247,7 @@ private:
         if (tags && transforms) {
             for (size_t i = 0; i < tags->dense.size(); ++i) {
                 std::string tag = tags->dense[i].Tag;
-                if (tag.find("Table") != std::string::npos)
+                if (tag.find("Table") != std::string::npos || tag.find("stolik") != std::string::npos)
                 {
                     Entity tableEntity = tags->reverse[i];
                     auto* tableTransform = transforms->Get(tableEntity);

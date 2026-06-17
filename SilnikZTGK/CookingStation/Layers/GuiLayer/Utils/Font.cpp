@@ -1,102 +1,82 @@
 #include "Font.h"
 #include <vector>
 #include <spdlog/spdlog.h>
+
+// ZMIANA VFS: Dodajemy system wirtualny
 #include "CookingStation/Core/VFS/VFS.h"
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <stb_truetype.h>
 
 Font::Font(const std::string& fontPath, float fontSize) {
+
+    // ZABEZPIECZENIE: Awaryjna tekstura (1x1), aby gra NIE crashowa³a
+    // przy renderowaniu tekstu, jeœli plik czcionki usuniêto lub jest zepsuty.
+    auto initFallback = [this]() {
+        m_Texture = std::make_shared<Texture>(1, 1);
+        uint32_t white = 0xffffffff;
+        m_Texture->SetData(&white, sizeof(uint32_t));
+        for (int i = 0; i < 96; i++) {
+            m_Characters[(char)(32 + i)] = { {0,0}, {1,1}, {0,0}, {0,0}, 10.0f };
+        }
+        };
+
+    // 1. VFS: Wczytujemy plik do pamiêci RAM jako ci¹g bajtów
     std::vector<uint8_t> fontBuffer = VFS::ReadFile(fontPath);
 
-    if (fontBuffer.empty()) {
-        spdlog::error("[Font] Nie udalo sie zaladowac czcionki z VFS: {}", fontPath);
+    // Sprawdzamy czy plik istnieje i ma racjonalny rozmiar (>256 bajtów)
+    if (fontBuffer.size() < 256) {
+        spdlog::error("[Font] Nie udalo sie zaladowac czcionki (brak pliku lub uszkodzony): {}", fontPath);
+        initFallback();
         return;
     }
 
-    stbtt_fontinfo info;
-    if (!stbtt_InitFont(&info, fontBuffer.data(), 0)) {
-        spdlog::error("[Font] Nie udalo sie zainicjowac czcionki stb_truetype!");
+    // TWARDY FIX NA CRASHE STB_TRUETYPE W WINDOWSIE:
+    // Wyszukujemy prawdziwego pocz¹tku czcionki (indeks 0). 
+    // Ignoruje to problem plików .TTC udaj¹cych .TTF.
+    int fontOffset = stbtt_GetFontOffsetForIndex(fontBuffer.data(), 0);
+    if (fontOffset < 0) {
+        spdlog::error("[Font] Plik nie ma poprawnego naglowka TTF/TTC: {}", fontPath);
+        initFallback();
         return;
     }
 
-    const int atlasWidth = 1024;
-    const int atlasHeight = 1024;
+    // 2. przygotowujemy parametry atlasu
+    const int atlasWidth = 512;
+    const int atlasHeight = 512;
     std::vector<unsigned char> bitmap(atlasWidth * atlasHeight, 0);
+    stbtt_bakedchar chardata[96]; // ASCII 32-126
 
-    float scale = stbtt_ScaleForPixelHeight(&info, fontSize);
-    int padding = 4; 
-    unsigned char onedge_value = 128; 
-    float pixel_dist_scale = 32.0f; 
+    // 3. bakujemy bitmapê czcionki bezposrednio zaczynaj¹c od ZNALEZIONEGO OFFSETU!
+    int result = stbtt_BakeFontBitmap(fontBuffer.data(), fontOffset, fontSize, bitmap.data(),
+        atlasWidth, atlasHeight, 32, 96, chardata);
 
-    int currentX = 0;
-    int currentY = 0;
-    int maxRowHeight = 0;
-
-    for (int i = 0; i < 96; i++) {
-        char c = (char)(32 + i);
-        int w = 0, h = 0, xoff = 0, yoff = 0;
-
-        unsigned char* sdf = stbtt_GetCodepointSDF(&info, scale, c, padding, onedge_value, pixel_dist_scale, &w, &h, &xoff, &yoff);
-
-        if (!sdf || w == 0 || h == 0) {
-            if (sdf) stbtt_FreeSDF(sdf, nullptr);
-
-            int advanceWidth, leftSideBearing;
-            stbtt_GetCodepointHMetrics(&info, c, &advanceWidth, &leftSideBearing);
-
-            Character ch;
-            ch.UV_Min = { 0.0f, 0.0f };
-            ch.UV_Max = { 0.0f, 0.0f };
-            ch.Size = { 0.0f, 0.0f };
-            ch.Offset = { 0.0f, 0.0f };
-            ch.Advance = advanceWidth * scale;
-
-            m_Characters[c] = ch;
-            continue;
-        }
-
-        if (currentX + w >= atlasWidth) {
-            currentX = 0;
-            currentY += maxRowHeight;
-            maxRowHeight = 0;
-        }
-
-        if (currentY + h > atlasHeight) {
-            spdlog::error("[Font] Atlas przepelniony! Zwieksz rozmiar atlasu lub zmniejsz fontSize.");
-            stbtt_FreeSDF(sdf, nullptr);
-            break;
-        }
-
-        for (int y = 0; y < h; y++) {
-            for (int x = 0; x < w; x++) {
-                bitmap[(currentY + y) * atlasWidth + (currentX + x)] = sdf[y * w + x];
-            }
-        }
-        stbtt_FreeSDF(sdf, nullptr);
-
-        int advanceWidth, leftSideBearing;
-        stbtt_GetCodepointHMetrics(&info, c, &advanceWidth, &leftSideBearing);
-
-        Character ch;
-        ch.UV_Min = { (float)currentX / atlasWidth, (float)currentY / atlasHeight };
-        ch.UV_Max = { (float)(currentX + w) / atlasWidth, (float)(currentY + h) / atlasHeight };
-        ch.Size = { (float)w, (float)h };
-        ch.Offset = { (float)xoff, (float)yoff };
-        ch.Advance = advanceWidth * scale;
-
-        m_Characters[c] = ch;
-
-        currentX += w;
-        if (h > maxRowHeight) maxRowHeight = h;
+    if (result <= 0) {
+        spdlog::warn("[Font] Ostrzezenie: atlas {}x{} moze byc za maly dla rozmiaru czcionki {}", atlasWidth, atlasHeight, fontSize);
     }
 
+    // 4. konwertujemy 8-bitow¹ bitmapê (alpha) na 32-bitowe RGBA
     std::vector<uint32_t> rgbaData(atlasWidth * atlasHeight);
     for (int i = 0; i < atlasWidth * atlasHeight; i++) {
         unsigned char alpha = bitmap[i];
-        rgbaData[i] = (alpha << 24) | (0xffffff); 
+        rgbaData[i] = (alpha << 24) | (0xffffff); // bia³y kolor + kana³ alpha
     }
 
+    // 5. tworzymy teksturê i przesy³amy dane
     m_Texture = std::make_shared<Texture>(atlasWidth, atlasHeight);
     m_Texture->SetData(rgbaData.data(), rgbaData.size() * sizeof(uint32_t));
+
+    // 6. mapujemy dane znaków
+    for (int i = 0; i < 96; i++) {
+        char c = (char)(32 + i);
+        stbtt_bakedchar b = chardata[i];
+        Character ch;
+        // skalujemy wspó³rzêdne pikselowe na zakres 0.0 - 1.0 (UV)
+        ch.UV_Min = { (float)b.x0 / atlasWidth, (float)b.y0 / atlasHeight };
+        ch.UV_Max = { (float)b.x1 / atlasWidth, (float)b.y1 / atlasHeight };
+        ch.Size = { (float)(b.x1 - b.x0), (float)(b.y1 - b.y0) };
+        ch.Offset = { (float)b.xoff, (float)b.yoff };
+        ch.Advance = b.xadvance;
+        m_Characters[c] = ch;
+    }
 }

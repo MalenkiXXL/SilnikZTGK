@@ -58,7 +58,7 @@
                 ]
             },
             "id": 2,
-            "model_path": "assets://models/wystroj/wydawka/wydawka2.gltf",
+            "model_path": "assets://models/wystroj/wydawka/wydawka.gltf",
             "name": "Wydawka",
             "position": [
                 3.0,

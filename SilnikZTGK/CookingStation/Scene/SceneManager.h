@@ -11,7 +11,7 @@ public:
 	static std::shared_ptr<Scene> NewScene();
 
 	static void SetActiveScene(std::shared_ptr<Scene> scene);
-
+	static void Shutdown();
 private:
 	static std::shared_ptr<Scene> s_ActiveScene;
 };
