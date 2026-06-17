@@ -22,8 +22,6 @@
 #include <spdlog/spdlog.h>
 #include <algorithm> 
 
-bool GameGuiLayer::s_NeedsQuestReload = false;
-
 void GameGuiLayer::OnAttach()
 {
     m_ActiveScene = SceneManager::GetActiveScene();
@@ -73,9 +71,8 @@ void GameGuiLayer::OnAttach()
     { "Garnek",    "assets://prefabs/pot_station.json",   m_PotIcon   },
     { "Deska",     "assets://prefabs/board_station.json", m_FlourIcon },
     { "Mikser",    "assets://prefabs/mixer.json",         m_MixerIcon },
-    { "Piekarnik", "assets://prefabs/oven.json",         m_OvenIcon  },
+    { "Piekarnik", "assets://prefabs/oven.json",          m_OvenIcon  },
     };
-
 
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
@@ -91,7 +88,7 @@ void GameGuiLayer::OnAttach()
             }
 
             m_ActiveScene = SceneManager::GetActiveScene();
-            m_ActiveOrderTickets.clear(); 
+            m_ActiveOrderTickets.clear();
 
             auto windowSize = Input::GetWindowSize();
             m_ViewportWidth = (float)windowSize.first;
@@ -262,21 +259,70 @@ void GameGuiLayer::DrawRecipeIcon(const std::string& recipeId, const std::shared
 
 void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, bool isPlayMode) {
     if (m_IsRecipeBookOpen || m_IsGamePaused) return;
+    if (!GameManagerScript::s_Instance) return;
 
-    if (!DeliveryBoothScript::s_Instance || !DeliveryBoothScript::s_Instance->HasActiveQuest()) return;
-    const auto* activeQuest = DeliveryBoothScript::s_Instance->GetActiveQuest();
+    QuestEventState state = GameManagerScript::s_Instance->GetQuestState();
+    if (state != QuestEventState::WaitingForAccept && state != QuestEventState::QuestActive) return;
+
+    Entity targetEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+    float yOffset3D = 2.5f;
+
+    // 1. Zale¿nie od stanu szukamy odpowiedniego obiektu (wyspa vs ma³a budka)
+    if (state == QuestEventState::WaitingForAccept) {
+        // Szukamy du¿ej wyspy
+        auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
+        if (tags) {
+            for (size_t i = 0; i < tags->dense.size(); ++i) {
+                if (tags->dense[i].Tag == "event_78") {
+                    targetEntity = tags->reverse[i];
+                    break;
+                }
+            }
+        }
+        yOffset3D = 2.5f; // Du¿a wyspa jest wysoka
+    }
+    else if (state == QuestEventState::QuestActive) {
+        // Szukamy ma³ej budki po tym, ¿e ma przypiêty skrypt "DeliveryBoothScript"
+        auto* scripts = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
+        if (scripts) {
+            for (size_t i = 0; i < scripts->dense.size(); ++i) {
+                for (auto& s : scripts->dense[i].Scripts) {
+                    if (s.Name == "DeliveryBoothScript") {
+                        targetEntity = scripts->reverse[i];
+                        break;
+                    }
+                }
+                if (targetEntity.id != std::numeric_limits<std::size_t>::max()) break;
+            }
+        }
+
+        // Zabezpieczenie awaryjne
+        if (targetEntity.id == std::numeric_limits<std::size_t>::max()) {
+            auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
+            if (tags) {
+                for (size_t i = 0; i < tags->dense.size(); ++i) {
+                    if (tags->dense[i].Tag == "naro¿nikPas") {
+                        targetEntity = tags->reverse[i];
+                        break;
+                    }
+                }
+            }
+        }
+        yOffset3D = 0.8f; // Ma³a budka jest malutka, obni¿amy punkt detekcji!
+    }
+
+    if (targetEntity.id == std::numeric_limits<std::size_t>::max()) return;
+
+    QuestData* activeQuest = GameManagerScript::s_Instance->GetCurrentQuest();
     if (!activeQuest) return;
 
-    std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
-    if (!activeScene || !activeScene->GetCamera()) return;
-
-    auto* transform = activeScene->GetWorld().GetComponent<TransformComponent>(DeliveryBoothScript::s_Instance->GetEntity());
+    auto* transform = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(targetEntity);
     if (!transform) return;
 
-    glm::vec3 boothGlobalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
-    boothGlobalPos.y += 2.5f;
+    glm::vec3 boothGlobalPos = transform->GetPosition();
+    boothGlobalPos.y += yOffset3D;
 
-    auto* camera = activeScene->GetCamera();
+    auto* camera = m_ActiveScene->GetCamera();
     glm::mat4 view = camera->GetViewMatrix();
     float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
     float orthoSize = camera->OrthoSize;
@@ -284,26 +330,34 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     glm::mat4 viewProjection3D = proj3D * view;
 
     glm::vec4 clipSpacePos = viewProjection3D * glm::vec4(boothGlobalPos, 1.0f);
-    if (clipSpacePos.w == 0.0f) return;
+    if (clipSpacePos.w <= 0.0f) return;
 
     glm::vec3 ndcSpacePos = glm::vec3(clipSpacePos) / clipSpacePos.w;
     float boothScreenX = gameX + (ndcSpacePos.x + 1.0f) * 0.5f * gameWidth;
     float boothScreenY = gameY + (1.0f - ndcSpacePos.y) * 0.5f * gameHeight;
 
-    glm::vec2 mousePos = Gui::GetMappedMousePos();
-    float hoverRadius = 90.0f * baseScale;
-    float dx = mousePos.x - boothScreenX;
-    float dy = mousePos.y - (boothScreenY + 60.0f * baseScale);
-    if ((dx * dx + dy * dy) > (hoverRadius * hoverRadius)) return;
-
-    Input::SetUICaptureMouse(true);
-
-    glm::vec2 cloudSize = { 340.0f * baseScale, 225.0f * baseScale };
+    glm::vec2 cloudSize = { 380.0f * baseScale, (state == QuestEventState::WaitingForAccept ? 260.0f : 200.0f) * baseScale };
     glm::vec2 cloudPos = { boothScreenX - cloudSize.x * 0.5f, boothScreenY - cloudSize.y };
 
     if (cloudPos.x < gameX + 10.0f) cloudPos.x = gameX + 10.0f;
     if (cloudPos.x + cloudSize.x > gameX + gameWidth - 10.0f) cloudPos.x = gameX + gameWidth - cloudSize.x;
     if (cloudPos.y < gameY + 10.0f) cloudPos.y = gameY + 10.0f;
+
+    // 2. Obs³uga najechania myszk¹
+    glm::vec2 mousePos = Gui::GetMappedMousePos();
+    float hoverRadius = (state == QuestEventState::WaitingForAccept ? 150.0f : 100.0f) * baseScale;
+    float dx = mousePos.x - boothScreenX;
+    float dy = mousePos.y - (boothScreenY + 30.0f * baseScale);
+
+    bool isHovering3D = ((dx * dx + dy * dy) <= (hoverRadius * hoverRadius));
+
+    float margin = 30.0f * baseScale;
+    bool isHoveringPanel = (mousePos.x >= cloudPos.x - margin && mousePos.x <= cloudPos.x + cloudSize.x + margin &&
+        mousePos.y >= cloudPos.y - margin && mousePos.y <= cloudPos.y + cloudSize.y + margin);
+
+    if (!isHovering3D && !isHoveringPanel) return;
+
+    Input::SetUICaptureMouse(true);
 
     Gui::Panel(cloudPos, cloudSize, { 0.08f, 0.08f, 0.1f, 0.96f }, 20.0f * baseScale);
 
@@ -318,10 +372,30 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 
     GuiUtils::DrawWrappedGuiText(activeQuest->Description, { textX, currentY }, 0.60f * baseScale, { 0.9f, 0.9f, 0.9f, 1.0f }, spacing, 30);
 
-    float footerY = cloudPos.y + cloudSize.y - 60.0f * baseScale;
-    std::string goalStr = "Wymagane: " + activeQuest->DishId + " (" + std::to_string(activeQuest->PortionsDelivered) + " / " + std::to_string(activeQuest->PortionsRequired) + " szt.)";
+    float footerY = cloudPos.y + cloudSize.y - (state == QuestEventState::WaitingForAccept ? 100.0f : 45.0f) * baseScale;
+
+    int delivered = GameManagerScript::s_Instance->GetQuestProgress();
+    std::string goalStr = "Wymagane: " + activeQuest->DishID + " (" + std::to_string(delivered) + " / " + std::to_string(activeQuest->Portions) + " szt.)";
     Gui::DrawGuiText(goalStr, { textX, footerY }, 0.60f * baseScale, { 0.3f, 1.0f, 0.4f, 1.0f });
-    Gui::DrawGuiText("Nagroda: " + activeQuest->Reward, { textX, footerY + 24.0f * baseScale }, 0.42f * baseScale, { 0.3f, 0.8f, 1.0f, 1.0f });
+    Gui::DrawGuiText("Nagroda: " + std::to_string(activeQuest->RewardCoins) + " monet", { textX, footerY + 24.0f * baseScale }, 0.42f * baseScale, { 0.3f, 0.8f, 1.0f, 1.0f });
+
+    if (state == QuestEventState::WaitingForAccept) {
+        float buttonWidth = 140.0f * baseScale;
+        float buttonHeight = 35.0f * baseScale;
+        float buttonY = cloudPos.y + cloudSize.y - 45.0f * baseScale;
+
+        if (Gui::Button("Zaakceptuj", { cloudPos.x + 10.0f * baseScale, buttonY }, { buttonWidth, buttonHeight })) {
+            GameManagerScript::s_Instance->AcceptQuest();
+        }
+
+        int skipsLeft = GameManagerScript::s_Instance->GetSkipsLeft();
+        std::string skipText = "Pomin (" + std::to_string(skipsLeft) + ")";
+        bool canSkip = skipsLeft > 0;
+
+        if (Gui::Button(skipText, { cloudPos.x + cloudSize.x - buttonWidth - 10.0f * baseScale, buttonY }, { buttonWidth, buttonHeight })) {
+            if (canSkip) GameManagerScript::s_Instance->SkipQuest();
+        }
+    }
 }
 
 void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
@@ -428,6 +502,8 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
     auto* scripts = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
     if (!tags || !scripts) return;
 
+    bool isPlaying = (m_ActiveScene->GetState() == SceneState::Play);
+
     for (auto it = m_ActiveOrderTickets.begin(); it != m_ActiveOrderTickets.end(); ) {
         auto* nsc = scripts->Get(*it);
         if (!nsc) {
@@ -443,9 +519,11 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
             }
         }
 
-        if (!custScript || custScript->IsServed || custScript->IsPendingDestroy) {
-            it = m_ActiveOrderTickets.erase(it);
-            continue;
+        if (isPlaying) {
+            if (!custScript || custScript->IsServed || custScript->IsPendingDestroy) {
+                it = m_ActiveOrderTickets.erase(it);
+                continue;
+            }
         }
         ++it;
     }
@@ -456,17 +534,8 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
     for (size_t i = 0; i < m_ActiveOrderTickets.size(); ++i) {
         Entity custEntity = m_ActiveOrderTickets[i];
         auto* tagComp = tags->Get(custEntity);
-        auto* nsc = scripts->Get(custEntity);
-        if (!tagComp || !nsc) continue;
 
-        CustomerScript* custScript = nullptr;
-        for (auto& s : nsc->Scripts) {
-            if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript") {
-                custScript = (CustomerScript*)s.Instance;
-                break;
-            }
-        }
-        if (!custScript) continue;
+        if (!tagComp) continue;
 
         bool isFirst = (i == 0);
         float ticketHeight = isFirst ? (220.0f * baseScale) : (140.0f * baseScale);
@@ -501,20 +570,15 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     Gui::UpdateDeltaTime(ts.GetSeconds());
     float dt = ts.GetSeconds();
 
-    if (s_NeedsQuestReload) {
-        ReloadQuests();
-        s_NeedsQuestReload = false;
-    }
-
     std::shared_ptr<Scene> activeScene = SceneManager::GetActiveScene();
     bool isPlayMode = (activeScene && activeScene->GetState() == SceneState::Play);
+    bool isGameActive = (activeScene && (activeScene->GetState() == SceneState::Play || activeScene->GetState() == SceneState::Pause));
 
     static Scene* lastSubscribedScene = nullptr;
-    static bool lastWasPlayMode = false;
+    static bool lastWasGameActive = false;
 
-    if (isPlayMode) {
-        if (activeScene.get() != lastSubscribedScene || !lastWasPlayMode) {
-
+    if (isGameActive) {
+        if (activeScene.get() != lastSubscribedScene || !lastWasGameActive) {
             if (lastSubscribedScene) {
                 auto& oldBus = lastSubscribedScene->GetWorld().GetEventBus();
                 if (m_InventorySubId != 0) oldBus.Unsubscribe<InventoryChangedEvent>(m_InventorySubId);
@@ -574,7 +638,7 @@ void GameGuiLayer::OnUpdate(Timestep ts) {
     else {
         lastSubscribedScene = nullptr;
     }
-    lastWasPlayMode = isPlayMode;
+    lastWasGameActive = isGameActive;
 
 #ifdef CS_DISTRIBUTION
     float gameX = 0.0f;
@@ -707,7 +771,7 @@ void GameGuiLayer::OnEvent(Event& e) {
             e.GetEventType() == EventType::MouseMoved ||
             e.GetEventType() == EventType::MouseScrolled)
         {
-            e.Handled = true; 
+            e.Handled = true;
         }
     }
 
@@ -737,10 +801,6 @@ void GameGuiLayer::OnEvent(Event& e) {
         return false;
         });
 
-    dispatcher.Dispatch<ScenePlayEvent>([this](ScenePlayEvent& ev) {
-        ReloadQuests();
-        return false;
-        });
 
     dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& ev) {
         if (ev.GetKeyCode() == 292) {
@@ -764,30 +824,6 @@ bool GameGuiLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e) {
     if (!activeScene || activeScene->GetState() != SceneState::Play) return false;
     if (Gui::WantCaptureMouse()) return true;
     return false;
-}
-
-void GameGuiLayer::ReloadQuests() {
-    m_CurrentQuests.clear();
-    std::vector<uint8_t> fileData = VFS::ReadFile("assets://wygenerowane_quests.json");
-
-    if (!fileData.empty()) {
-        try {
-            nlohmann::json data = nlohmann::json::parse(fileData);
-            for (auto& q : data) {
-                m_CurrentQuests.push_back({
-                    q.value("title", "Brak tytulu"),
-                    q.value("description", "Brak opisu"),
-                    q.value("portions", 0),
-                    q.value("reward", "Brak nagrody")
-                    });
-            }
-            m_CurrentQuestIndex = 0;
-            spdlog::info("GameUiLayer: Questy zaladowane responsywnie przez VFS.");
-        }
-        catch (...) {
-            spdlog::error("GameUiLayer: Blad JSON podczas parsowania z VFS.");
-        }
-    }
 }
 
 void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
@@ -870,8 +906,8 @@ void GameGuiLayer::DrawHoverCloudUI(const glm::vec2& screenPos, const std::share
 
     glm::vec4 textColor = (amount > 0) ? glm::vec4(0.118f, 0.737f, 0.451f, 1.0f) : glm::vec4(1.0f, 0.3f, 0.3f, 1.0f);
 
-    Gui::DrawGuiText(amountStr, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.1f, 0.1f, 0.1f, 0.6f }); 
-    Gui::DrawGuiText(amountStr, textPos, textScale, textColor); 
+    Gui::DrawGuiText(amountStr, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.1f, 0.1f, 0.1f, 0.6f });
+    Gui::DrawGuiText(amountStr, textPos, textScale, textColor);
 }
 
 void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt)
@@ -1005,7 +1041,7 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
         int amount = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(crateScript->m_CrateIngredient) : 0;
         DrawHoverCloudUI({ screenX, screenY }, iconToDraw, amount, baseScale);
     }
-} 
+}
 
 void GameGuiLayer::ActivateBuildMode()
 {
@@ -1024,7 +1060,7 @@ void GameGuiLayer::DeactivateBuildMode()
     spdlog::info("DeactivateBuildMode wywolane, m_IsBuildModeActive={}", m_IsBuildModeActive);
     if (!m_IsBuildModeActive) return;
 
-    m_IsBuildModeActive = false;  
+    m_IsBuildModeActive = false;
     m_HeldMachineIndex = -1;
 
     auto activeScene = SceneManager::GetActiveScene();
@@ -1052,7 +1088,7 @@ void GameGuiLayer::DeactivateBuildMode()
 void GameGuiLayer::DrawBuildModeButton(float gameX, float gameY, float gameWidth,
     float gameHeight, float baseScale, float dt)
 {
-    if (m_IsGamePaused && !m_IsBuildModeActive) return; 
+    if (m_IsGamePaused && !m_IsBuildModeActive) return;
     if (m_IsRecipeBookOpen) return;
 
     float bookCloudH = 210.0f * baseScale * 1.3f;
@@ -1259,7 +1295,7 @@ void GameGuiLayer::UpdateBuildModePlacement()
 
         auto rawMouse = Input::GetMousePosition();
         auto winSize = Input::GetWindowSize();
-        float viewportBottomInWindow = (float)winSize.second - 30.0f; 
+        float viewportBottomInWindow = (float)winSize.second - 30.0f;
         bool mouseOverPanel = (rawMouse.second >= viewportBottomInWindow - 130.0f);
 
         if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
@@ -1268,7 +1304,7 @@ void GameGuiLayer::UpdateBuildModePlacement()
         }
 
         m_JustSelectedFromPanel = false;
-        return;  
+        return;
     }
 
     if (m_HeldMachineIndex < 0 &&

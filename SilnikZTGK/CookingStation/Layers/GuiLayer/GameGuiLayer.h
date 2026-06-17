@@ -14,19 +14,13 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
+#include "CookingStation/Tools/QuestGenerator/QuestManager.h"
 
 class Scene;
 
 struct BubblyState {
     float scale = 1.0f;
     glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-};
-
-struct QuestData {
-    std::string Title;
-    std::string Description;
-    int Portions = 0;
-    std::string Reward;
 };
 
 class GameGuiLayer : public Layer {
@@ -43,9 +37,6 @@ public:
     virtual void OnDetach() override;
 
     void SetViewportFramebuffer(const std::shared_ptr<Framebuffer>& fbo) { m_ViewportFBO = fbo; }
-    void ReloadQuests();
-
-    static bool s_NeedsQuestReload;
 
 private:
     bool OnWindowResize(WindowResizeEvent& e);
@@ -177,8 +168,6 @@ private:
     int  m_CurrentRecipePage = 0;
     bool m_IsEventsPanelOpen = false;
 
-    std::vector<QuestData> m_CurrentQuests;
-    int m_CurrentQuestIndex = 0;
 
     bool m_ShowFPS = false;
 
