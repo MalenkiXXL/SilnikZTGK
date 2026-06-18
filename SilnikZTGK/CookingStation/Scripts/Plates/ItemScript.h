@@ -1,7 +1,7 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
-#include "CookingStation/Events/GameEvents.h" // Dodane do nasluchiwania!
+#include "CookingStation/Events/GameEvents.h" 
 #include <cmath>
 
 class ItemScript : public ScriptableEntity
@@ -29,8 +29,8 @@ public:
 
         m_ClickSubId = bus.Subscribe<EntityClickedEvent>([this](const EntityClickedEvent& e) {
             if (e.TargetEntity.id == m_Entity.id) {
-                if (this->m_CurrentConveyor) {
-                    this->m_CurrentConveyor->HandleClick();
+                if (!Input::IsUICapturingMouse()) {
+                    // Opcjonalna obsługa kliknięcia w przedmiot na taśmie
                 }
             }
             });
@@ -38,27 +38,12 @@ public:
 
     void OnDestroy() override
     {
+        ReleaseConveyors();
         auto* scene = GetScene();
         if (scene) {
-            auto& bus = scene->GetWorld().GetEventBus();
-            if (m_GrabbedSubId != 0) bus.Unsubscribe<PlateGrabbedEvent>(m_GrabbedSubId);
-            if (m_ClickSubId != 0) bus.Unsubscribe<EntityClickedEvent>(m_ClickSubId); 
+            scene->GetWorld().GetEventBus().Unsubscribe<PlateGrabbedEvent>(m_GrabbedSubId);
+            scene->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
         }
-
-        if (m_CurrentConveyor)
-        {
-            m_CurrentConveyor->IsOccupied = false;
-            m_CurrentConveyor->IsJammed = false;
-        }
-
-        if (m_TargetConveyor)
-        {
-            m_TargetConveyor->IsOccupied = false;
-            m_TargetConveyor->IsJammed = false;
-        }
-
-        m_CurrentConveyor = nullptr;
-        m_TargetConveyor = nullptr;
     }
 
     void ReleaseConveyors()
@@ -73,7 +58,6 @@ public:
             m_TargetConveyor->IsJammed = false;
             m_TargetConveyor = nullptr;
         }
-        m_IsMoving = false;
     }
 
     void OnUpdate(Timestep ts) override
@@ -83,42 +67,39 @@ public:
 
         glm::vec3 myPos = transform->GetPosition();
 
-        float distanceToMove = m_CurrentSpeed * ts.GetSeconds();
-        bool movedThisFrame = false;
-
         if (!m_IsMoving)
         {
-            if (!FindNextTarget(myPos))
+            if (FindNextTarget(myPos))
             {
-                if (m_CurrentConveyor) m_CurrentConveyor->IsJammed = true;
-                return;
+                m_IsMoving = true;
+                if (m_CurrentConveyor) m_CurrentConveyor->IsJammed = false;
             }
             else
             {
-                if (m_CurrentConveyor) m_CurrentConveyor->IsJammed = false;
+                // Przedmiot fizycznie stoi i czeka
+                if (m_CurrentConveyor) m_CurrentConveyor->IsJammed = true;
             }
         }
 
-        while (distanceToMove > 0.001f && m_IsMoving)
+        bool movedThisFrame = false;
+
+        if (m_IsMoving)
         {
+            float distanceToMove = m_CurrentSpeed * ts.GetSeconds();
             glm::vec3 diff = m_TargetPosition - myPos;
-            diff.y = 0.0f;
-            float distanceToTarget = glm::length(diff);
+            float distanceToTarget = glm::length(glm::vec2(diff.x, diff.z));
 
             if (distanceToTarget <= distanceToMove)
             {
-                myPos.x = m_TargetPosition.x;
-                myPos.z = m_TargetPosition.z;
+                myPos = m_TargetPosition;
 
-                distanceToMove -= distanceToTarget;
-
-                if (m_CurrentConveyor)
-                {
+                if (m_CurrentConveyor) {
                     m_CurrentConveyor->IsOccupied = false;
                     m_CurrentConveyor->IsJammed = false;
                 }
 
                 m_CurrentConveyor = m_TargetConveyor;
+                m_TargetConveyor = nullptr;
 
                 if (!FindNextTarget(myPos))
                 {
@@ -131,8 +112,6 @@ public:
                 glm::vec3 dir = diff / distanceToTarget;
                 myPos.x += dir.x * distanceToMove;
                 myPos.z += dir.z * distanceToMove;
-
-                distanceToMove = 0.0f;
             }
 
             movedThisFrame = true;
@@ -147,27 +126,53 @@ public:
 private:
     bool FindNextTarget(glm::vec3 currentPos)
     {
-        ConveyorScript* currentConveyor = GetScene()->GetConveyorAt(currentPos.x, currentPos.z);
-        if (!currentConveyor) return false;
-
+        // 1. Zabezpieczenie: jeśli pojawiliśmy się na taśmie (np. zrzucono nas)
         if (!m_CurrentConveyor) {
-            m_CurrentConveyor = currentConveyor;
-            m_CurrentConveyor->IsOccupied = true;
+            m_CurrentConveyor = GetScene()->GetConveyorAt(currentPos.x, currentPos.z);
+            if (m_CurrentConveyor) m_CurrentConveyor->IsOccupied = true;
+            else return false;
         }
 
-        glm::vec3 nextPos = currentPos + (currentConveyor->PushDirection * m_GridSize);
+        glm::vec3 nextPos = currentPos + (m_CurrentConveyor->PushDirection * m_GridSize);
         ConveyorScript* nextConveyor = GetScene()->GetConveyorAt(nextPos.x, nextPos.z);
 
         if (nextConveyor)
         {
+            // 2. Jeśli taśma melduje się jako wolna...
             if (!nextConveyor->IsOccupied)
             {
-                nextConveyor->IsOccupied = true;
-                m_TargetConveyor = nextConveyor;
-                m_TargetPosition = nextPos;
-                m_IsMoving = true;
+                // 3. FIZYCZNY RADAR - Ostatecznie sprawdzamy, czy nic tam fizycznie nie stoi!
+                bool isPhysicallyClear = true;
+                auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+                auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
 
-                return true;
+                if (transforms && tags) {
+                    for (size_t i = 0; i < transforms->dense.size(); ++i) {
+                        Entity e = transforms->reverse[i];
+                        if (e.id == m_Entity.id) continue;
+
+                        glm::vec3 otherPos = transforms->dense[i].GetPosition();
+
+                        // Skanujemy obszar przyszłego taśmociągu (i odrobinę przed nami)
+                        if (glm::distance(glm::vec2(otherPos.x, otherPos.z), glm::vec2(nextPos.x, nextPos.z)) < 1.4f)
+                        {
+                            auto* tag = tags->Get(e);
+                            if (tag && (tag->Tag.find("BeltItem") != std::string::npos || tag->Tag.find("Plate") != std::string::npos)) {
+                                isPhysicallyClear = false;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Wjeżdżamy tylko jeśli nowa taśma jest CAŁKOWICIE w 100% PUSTA
+                if (isPhysicallyClear)
+                {
+                    nextConveyor->IsOccupied = true;
+                    m_TargetConveyor = nextConveyor;
+                    m_TargetPosition = nextPos;
+                    return true;
+                }
             }
         }
 
