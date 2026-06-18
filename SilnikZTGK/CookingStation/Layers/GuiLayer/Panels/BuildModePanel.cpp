@@ -123,7 +123,7 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
     m_SlideY += (targetSlide - m_SlideY) * std::min(dt * 14.0f, 1.0f);
     if (m_SlideY <= 0.01f) return;
 
-    const float panelH = 160.0f * baseScale; // Podwy¿szony pod ceny
+    const float panelH = 200.0f * baseScale; // Podwy¿szony pod ceny
     float panelY = gameY + gameHeight - panelH * m_SlideY;
 
     auto bgTex = AssetManager::GetTexture("assets://UI/buildBackground.png");
