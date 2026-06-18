@@ -60,8 +60,9 @@ public:
     Entity m_TargetPlate = { std::numeric_limits<std::size_t>::max(), 0 };
     bool m_IsCarryingPlate = false;
 
+    // BEZWZGLĘDNA KOLEJKA FIFO (Żadnego omijania!)
     struct WaiterTask {
-        int Type; // 0 = ZBIERZ_ZAMOWIENIE
+        int Type; // 0 = Klient Usiadł (Zbierz zamówienie), 1 = Talerz Wyjechał (Wydaj Talerz)
         Entity Target;
     };
     std::vector<WaiterTask> m_TaskQueue;
@@ -69,8 +70,10 @@ public:
     std::vector<Entity> m_AwaitingFoodCustomers;
 
     std::size_t m_CustomerSubId = 0;
+    std::size_t m_PlateSubId = 0;
     std::size_t m_OrderTakenSubId = 0;
     std::size_t m_CustomerServedSubId = 0;
+    std::size_t m_PlateGrabbedSubId = 0;
 
     std::shared_ptr<Model> m_OriginalModel = nullptr;
     std::shared_ptr<Model> m_PageModel = nullptr;
@@ -92,16 +95,17 @@ public:
 
         auto& bus = GetScene()->GetWorld().GetEventBus();
 
+        // Dodawanie Zdarzeń zgodnie ze ścisłą osią czasu (1 do 1 jak wystąpiły w grze)
         m_CustomerSubId = bus.Subscribe<CustomerSeatedEvent>([this](const CustomerSeatedEvent& e) {
             m_TaskQueue.push_back({ 0, e.Customer });
             });
 
+        m_PlateSubId = bus.Subscribe<PlateReadyEvent>([this](const PlateReadyEvent& e) {
+            m_TaskQueue.push_back({ 1, e.Plate });
+            });
+
         m_OrderTakenSubId = bus.Subscribe<OrderTakenEvent>([this](const OrderTakenEvent& e) {
             m_AwaitingFoodCustomers.push_back(e.Customer);
-
-            m_TaskQueue.erase(std::remove_if(m_TaskQueue.begin(), m_TaskQueue.end(),
-                [&e](const WaiterTask& t) { return t.Type == 0 && t.Target.id == e.Customer.id; }),
-                m_TaskQueue.end());
             });
 
         m_CustomerServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
@@ -110,8 +114,13 @@ public:
                 m_AwaitingFoodCustomers.end());
             });
 
-        BuildObstacleMap();
+        m_PlateGrabbedSubId = bus.Subscribe<PlateGrabbedEvent>([this](const PlateGrabbedEvent& e) {
+            m_TaskQueue.erase(std::remove_if(m_TaskQueue.begin(), m_TaskQueue.end(),
+                [&e](const WaiterTask& t) { return t.Type == 1 && t.Target.id == e.Plate.id; }),
+                m_TaskQueue.end());
+            });
 
+        BuildObstacleMap();
     }
 
     void OnDestroy() override
@@ -120,9 +129,16 @@ public:
         if (scene) {
             auto& bus = scene->GetWorld().GetEventBus();
             if (m_CustomerSubId != 0) bus.Unsubscribe<CustomerSeatedEvent>(m_CustomerSubId);
+            if (m_PlateSubId != 0) bus.Unsubscribe<PlateReadyEvent>(m_PlateSubId);
             if (m_OrderTakenSubId != 0) bus.Unsubscribe<OrderTakenEvent>(m_OrderTakenSubId);
             if (m_CustomerServedSubId != 0) bus.Unsubscribe<CustomerServedEvent>(m_CustomerServedSubId);
+            if (m_PlateGrabbedSubId != 0) bus.Unsubscribe<PlateGrabbedEvent>(m_PlateGrabbedSubId);
         }
+    }
+
+    void CleanCustomersList() {
+        m_AwaitingFoodCustomers.erase(std::remove_if(m_AwaitingFoodCustomers.begin(), m_AwaitingFoodCustomers.end(),
+            [this](Entity c) { return !IsValidEntity(c); }), m_AwaitingFoodCustomers.end());
     }
 
     void PlayAnimation(const std::string& name)
@@ -145,9 +161,8 @@ public:
 
             if (m_CurrentState == State::IDLE)
             {
-                bool waitingForFood = IsValidEntity(FindCustomerWaitingForFood());
-
-                if (waitingForFood)
+                CleanCustomersList();
+                if (!m_AwaitingFoodCustomers.empty())
                 {
                     m_WaitAtPassTimer += ts.GetSeconds();
                     if (m_WaitAtPassTimer > 3.0f)
@@ -177,34 +192,30 @@ public:
                 Entity station = FindPickupStation();
                 if (!IsValidEntity(station)) { ReturnToIdle(); break; }
 
-                    auto* statTc = GetScene()->GetWorld().GetComponent<TransformComponent>(station);
+                auto* statTc = GetScene()->GetWorld().GetComponent<TransformComponent>(station);
+                glm::vec3 exactTarget = statTc->GetPosition() + m_WaveOffset;
 
-                    glm::vec3 exactTarget = statTc->GetPosition() + m_WaveOffset;
+                if (FlatDistanceToPosition(exactTarget) <= 0.1f) {
+                    m_CurrentState = State::WAVING_AT_STATION;
 
-                    if (FlatDistanceToPosition(exactTarget) <= 0.1f) {
-                        m_CurrentState = State::WAVING_AT_STATION;
+                    auto* tc = GetComponent<TransformComponent>();
+                    if (tc) {
+                        glm::vec3 lookDir = statTc->GetPosition() - tc->GetPosition();
+                        lookDir.y = 0.0f;
 
-                        auto* tc = GetComponent<TransformComponent>();
-                        if (tc) {
-                            glm::vec3 lookDir = statTc->GetPosition() - tc->GetPosition();
-                            lookDir.y = 0.0f;
-
-                            if (glm::length(lookDir) > 0.001f) {
-                                lookDir = glm::normalize(lookDir);
-
-                                float targetAngle = glm::degrees(std::atan2(lookDir.x, lookDir.z));
-
-                                targetAngle += 270.0f;
-
-                                tc->SetRotation({ 0.0f, targetAngle, 0.0f });
-                            }
+                        if (glm::length(lookDir) > 0.001f) {
+                            lookDir = glm::normalize(lookDir);
+                            float targetAngle = glm::degrees(std::atan2(lookDir.x, lookDir.z));
+                            targetAngle += 270.0f;
+                            tc->SetRotation({ 0.0f, targetAngle, 0.0f });
                         }
                     }
-                    else {
-                        MoveTowardsWaypoint(ts);
-                    }
                 }
-                break;
+                else {
+                    MoveTowardsWaypoint(ts);
+                }
+            }
+            break;
 
         case State::WAVING_AT_STATION:
             PlayAnimation("Wave");
@@ -306,6 +317,11 @@ private:
     void CancelDelivery()
     {
         if (IsValidEntity(m_TargetPlate)) GetScene()->GetWorld().DestroyEntity(m_TargetPlate);
+
+        if (IsValidEntity(m_TargetCustomer)) {
+            m_AwaitingFoodCustomers.insert(m_AwaitingFoodCustomers.begin(), m_TargetCustomer);
+        }
+
         ReturnToIdle();
     }
 
@@ -329,65 +345,60 @@ private:
         return { std::numeric_limits<std::size_t>::max(), 0 };
     }
 
-    // --- NOWA LOGIKA: Aktywne wyszukiwanie talerza z tagiem PlateReady w świecie ---
-    Entity FindReadyPlate()
-    {
-        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
-        if (!tags) return { std::numeric_limits<std::size_t>::max(), 0 };
-
-        for (size_t i = 0; i < tags->dense.size(); ++i)
-        {
-            if (tags->dense[i].Tag == "PlateReady")
-            {
-                Entity plate = tags->reverse[i];
-                if (IsValidEntity(plate)) return plate;
-            }
-        }
-        return { std::numeric_limits<std::size_t>::max(), 0 };
-    }
-
+    // ==========================================
+    // NOWY SILNIK ABSOLUTNEGO, SUROWEGO FIFO!
+    // ZERO OMIJANIA PĘTLAMI.
+    // ==========================================
     void CheckForTasks()
     {
-        // 1. Priorytet: Wydawanie jedzenia. Jeśli ktoś czeka na jedzenie...
-        Entity waitingCust = FindCustomerWaitingForFood();
-        if (IsValidEntity(waitingCust))
-        {
-            // ...kelner po prostu rozgląda się za gotowym talerzem. Żadnych gubiących się eventów!
-            Entity readyPlate = FindReadyPlate();
-            if (IsValidEntity(readyPlate))
-            {
-                // Rezerwujemy talerz, aby stacja i inne skrypty wiedziały, że kelner po niego idzie
-                auto* tag = GetScene()->GetWorld().GetComponent<TagComponent>(readyPlate);
-                if (tag) tag->Tag = "PlateAssigned";
+        if (m_TaskQueue.empty()) return;
 
-                m_TargetPlate = readyPlate;
-                m_TargetCustomer = waitingCust;
-                m_HasWaypoint = false;
-                m_CurrentState = State::MOVING_TO_FOOD;
+        auto task = m_TaskQueue.front();
+
+        if (task.Type == 0) // KLIENT USIADŁ (ZBIERZ ZAMÓWIENIE)
+        {
+            if (!IsValidEntity(task.Target)) {
+                m_TaskQueue.erase(m_TaskQueue.begin());
+                CheckForTasks(); // Jeśli podmiot usunięto, sprawdźmy następny z brzegu
                 return;
             }
-        }
 
-        // 2. Jeśli nie ma jedzenia do wydania, sprawdź kolejkę zamówień
-        auto it = m_TaskQueue.begin();
-        while (it != m_TaskQueue.end())
+            m_TargetCustomer = task.Target;
+            m_HasWaypoint = false;
+            m_CurrentState = State::MOVING_TO_TAKE_ORDER;
+            m_TaskQueue.erase(m_TaskQueue.begin());
+        }
+        else if (task.Type == 1) // TALERZ WYSZEDŁ NA WYDAWKĘ (WYDAJ JEDZENIE)
         {
-            auto task = *it;
-            if (task.Type == 0) // ZBIERZ ZAMOWIENIE
-            {
-                if (!IsValidEntity(task.Target)) {
-                    it = m_TaskQueue.erase(it);
-                    continue;
-                }
-                else {
-                    m_TargetCustomer = task.Target;
-                    m_HasWaypoint = false;
-                    m_CurrentState = State::MOVING_TO_TAKE_ORDER;
-                    m_TaskQueue.erase(it);
-                    return;
+            bool plateValid = IsValidEntity(task.Target);
+            if (plateValid) {
+                auto* pTag = GetScene()->GetWorld().GetComponent<TagComponent>(task.Target);
+                if (!pTag || (pTag->Tag != "PlateReady" && pTag->Tag != "PlateAssigned")) {
+                    plateValid = false;
                 }
             }
-            ++it;
+
+            if (!plateValid) {
+                m_TaskQueue.erase(m_TaskQueue.begin());
+                CheckForTasks(); // Gracz zjadł/wyrzucił talerz z wydawki, sprawdzamy następne polecenie
+                return;
+            }
+
+            // SZUKAMY KLIENTA GOTOWEGO DO JEDZENIA
+            Entity cust = FindCustomerWaitingForFood();
+            if (IsValidEntity(cust)) {
+                auto* pTag = GetScene()->GetWorld().GetComponent<TagComponent>(task.Target);
+                if (pTag) pTag->Tag = "PlateAssigned";
+
+                m_TargetPlate = task.Target;
+                m_TargetCustomer = cust;
+                m_HasWaypoint = false;
+                m_CurrentState = State::MOVING_TO_FOOD;
+                m_TaskQueue.erase(m_TaskQueue.begin());
+            }
+            // ZAUWAŻ: Brak else. 
+            // Jeśli kelner trafił na talerz, ale nie ma jeszcze komu go wydać, po prostu WYCHODZI Z FUNKCJI.
+            // Zablokuje się w trybie IDLE i będzie czekał na klienta w nieskończoność. CZYSTE FIFO.
         }
     }
 
@@ -557,7 +568,6 @@ private:
             if (!statTc) return;
             exactTargetPos = statTc->GetPosition() + m_WaveOffset;
             targetCell = GridSystem::WorldToCell(exactTargetPos);
-
             isObstacle = false;
         }
         else if (m_CurrentState == State::RETURNING)
