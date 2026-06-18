@@ -14,7 +14,10 @@ public:
     void DrawButton(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt, bool isBlocked);
     void DrawPanel(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt);
     void DrawOverlay(float gameW, float gameH, float baseScale);
-    void DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos);
+
+    // ZMIENIONE: Zamiast bool isValid, przyjmujemy teraz int hoverState (0=Niebieski, 1=Zielony, 2=Czerwony)
+    void DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos, int hoverState);
+    void DrawActiveGrid(std::shared_ptr<Scene>& activeScene);
 
     void UpdatePlacement(std::shared_ptr<Scene>& activeScene);
 
@@ -38,10 +41,16 @@ private:
     bool m_JustSelectedFromPanel = false;
 
     std::shared_ptr<Texture> m_CoinIcon;
+    std::shared_ptr<Scene> m_CurrentScene;
 
     std::vector<MachineEntry> m_MachineEntries;
     std::vector<std::pair<Entity, glm::vec3>> m_PreviewGroup;
     Entity m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     glm::vec3 m_MovingMachineOriginalPos = glm::vec3(0.0f);
     std::vector<std::pair<Entity, glm::vec3>> m_MovingGroup;
+
+    bool IsPlacementValid(std::shared_ptr<Scene>& activeScene, const glm::vec3& snappedPos);
+
+    // NOWE: Funkcja zwracaj¹ca stan kafelka (0=Pusty, 1=Maszyna do przeniesienia, 2=Zablokowany/Taœma)
+    int GetCellState(std::shared_ptr<Scene>& activeScene, const glm::vec3& snappedPos, Entity& outMachine);
 };
