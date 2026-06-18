@@ -37,7 +37,7 @@ public:
                 m_CrateIngredient = IngredientType::Baguette;
             else if (name.find("Milk") != std::string::npos || name.find("Mleko") != std::string::npos)
                 m_CrateIngredient = IngredientType::Milk;
-            else if (name.find("Flour") != std::string::npos || name.find("Maka") != std::string::npos || name.find("Maka") != std::string::npos)
+            else if (name.find("Flour") != std::string::npos || name.find("Maka") != std::string::npos)
                 m_CrateIngredient = IngredientType::Flour;
         }
 
@@ -74,13 +74,18 @@ public:
 
         if (m_HasStock)
         {
-            m_SpawnCooldown = 0.2f;
-            SpawnIngredientOnConveyor();
-            GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ m_CrateIngredient, 1 });
+            if (SpawnIngredientOnConveyor()) {
+                m_SpawnCooldown = 0.2f;
+                GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ m_CrateIngredient, 1 });
+            }
+            else {
+                TriggerErrorHighlight();
+            }
         }
         else
         {
             spdlog::warn("Skrzynka: Brak zapasow tego skladnika w magazynie (0 sztuk)!");
+            TriggerErrorHighlight();
         }
     }
 
@@ -104,18 +109,12 @@ public:
         if (m_IsInitialized && currentStock > m_LastStockCount) {
             if (m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                        m_VisualFood, glm::vec3(1.0f, 0.9f, 0.0f), 0.6f
-                });
+                        m_VisualFood, glm::vec3(1.0f, 0.9f, 0.0f), 0.6f, false
+                    });
             }
         }
 
         m_LastStockCount = currentStock;
-
-        if (!m_IsInitialized || shouldHaveStock != m_HasStock) {
-            m_HasStock = shouldHaveStock;
-            m_IsInitialized = true;
-            UpdateVisuals();
-        }
 
         auto* tf = GetComponent<TransformComponent>();
         if (!tf) return;
@@ -124,7 +123,7 @@ public:
         bool isGamepadSquare = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0);
 
         if ((isMouseClick || isGamepadSquare) && m_SpawnCooldown <= 0.0f && !Input::IsUICapturingMouse() && !MachineScript::GlobalIsMachineHeld) {
-            glm::vec3 cursorWorldPos = GetMouseWorldPosition(); // Teraz to samo wie, czy zwraca� pada czy mysz!
+            glm::vec3 cursorWorldPos = GetMouseWorldPosition();
 
             glm::vec2 cursor2D = { cursorWorldPos.x, cursorWorldPos.z };
             glm::vec2 crate2D = { tf->GetPosition().x, tf->GetPosition().z };
@@ -135,13 +134,18 @@ public:
                 {
                     if (m_HasStock)
                     {
-                        m_SpawnCooldown = 0.2f;
-                        SpawnIngredientOnConveyor();
-                        GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ m_CrateIngredient, 1 });
+                        if (SpawnIngredientOnConveyor()) {
+                            m_SpawnCooldown = 0.2f;
+                            GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ m_CrateIngredient, 1 });
+                        }
+                        else {
+                            TriggerErrorHighlight();
+                        }
                     }
                     else
                     {
                         spdlog::warn("Skrzynka: Brak zapasow tego skladnika w magazynie (0 sztuk)!");
+                        TriggerErrorHighlight();
                     }
                 }
             }
@@ -152,6 +156,13 @@ private:
 
     std::size_t m_ClickSubId = 0;
     int m_LastStockCount = 0;
+
+    void TriggerErrorHighlight()
+    {
+        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+            m_Entity, glm::vec3(1.0f, 0.0f, 0.0f), 0.4f, false
+            });
+    }
 
     bool IsClosestCrate(glm::vec2 mousePos2D)
     {
@@ -183,18 +194,6 @@ private:
 
     void UpdateVisuals()
     {
-        auto* crateMesh = GetComponent<MeshComponent>();
-        if (crateMesh) {
-            if (m_HasStock) {
-                // crateMesh->Color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-                // crateMesh->ShaderName = "ModelShader";
-            }
-            else {
-                // crateMesh->Color = glm::vec4(0.4f, 0.4f, 0.4f, 1.0f);
-                // crateMesh->ShaderName = "GrayShader"; 
-            }
-        }
-
         if (m_HasStock) {
             if (m_VisualFood.id == std::numeric_limits<std::size_t>::max()) {
                 SpawnVisualFoodInsideCrate();
@@ -243,11 +242,14 @@ private:
         m_VisualFood = builder.Build();
     }
 
-    void SpawnIngredientOnConveyor()
+    bool SpawnIngredientOnConveyor()
     {
         Entity closestConveyor = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 3.5f;
         glm::vec3 spawnPos = GetComponent<TransformComponent>()->GetPosition();
+
+        // NOWE: Przechwytujemy też wskaźnik na skrypt docelowego taśmociągu
+        ConveyorScript* targetConvScript = nullptr;
 
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
@@ -265,8 +267,8 @@ private:
                                 closestDist = dist;
                                 closestConveyor = conveyorEntity;
                                 spawnPos = conveyorTf->GetPosition();
-
                                 spawnPos.y += 1.3f;
+                                targetConvScript = static_cast<ConveyorScript*>(s.Instance);
                             }
                         }
                         break;
@@ -275,7 +277,59 @@ private:
             }
         }
 
-        if (closestConveyor.id != std::numeric_limits<std::size_t>::max()) {
+        if (closestConveyor.id != std::numeric_limits<std::size_t>::max() && targetConvScript) {
+
+            // 1. SYSTEM REZERWACJI: Czy inny pomidor już zaczął jechać na ten taśmociąg?
+            if (targetConvScript->IsOccupied) {
+                spdlog::warn("Skrzynka: Tasmociag jest wlasnie zajmowany przez wjezdzajacy obiekt!");
+                return false;
+            }
+
+            // 2. FIZYCZNY RADAR: Sprawdzamy czy coś już nie stoi na środku (dla pewności)
+            bool isOccupied = false;
+            for (size_t i = 0; i < transforms->dense.size(); ++i) {
+                Entity e = transforms->reverse[i];
+
+                if (e.id == m_Entity.id || e.id == m_VisualFood.id || e.id == closestConveyor.id) continue;
+
+                glm::vec3 otherPos = transforms->dense[i].GetPosition();
+
+                if (glm::distance(glm::vec2(otherPos.x, otherPos.z), glm::vec2(spawnPos.x, spawnPos.z)) < 1.2f) {
+                    auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(e);
+                    auto* tag = GetScene()->GetWorld().GetComponent<TagComponent>(e);
+
+                    bool isItem = false;
+
+                    if (tag && (tag->Tag.find("BeltItem") != std::string::npos || tag->Tag.find("Plate") != std::string::npos)) {
+                        isItem = true;
+                    }
+
+                    if (nsc) {
+                        for (auto& script : nsc->Scripts) {
+                            if (script.Name == "ItemScript" || script.Name == "PlateScript") {
+                                isItem = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (isItem) {
+                        isOccupied = true;
+                        break;
+                    }
+                }
+            }
+
+            if (isOccupied) {
+                spdlog::warn("Skrzynka: Tasmociag jest fizycznie zajety!");
+                return false;
+            }
+
+            // OBA TESTY ZALICZONE - WYPLUWAMY POMIDORA!
+
+            // 3. Natychmiast rezerwujemy taśmę, żeby przedmioty z tyłu się zatrzymały
+            targetConvScript->IsOccupied = true;
+
             spdlog::info("Skrzynka: Pomyslnie wyrzucono skladnik na tasmociag!");
 
             auto builder = GetScene()->GetWorld().BuildEntity();
@@ -302,9 +356,11 @@ private:
             builder.With<NativeScriptComponent>(nsc);
 
             builder.Build();
+            return true;
         }
         else {
             spdlog::warn("Skrzynka: Nie wykryto w poblizu zadnego tasmociagu!");
+            return false;
         }
     }
 
@@ -314,7 +370,7 @@ private:
         {
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_VisualFood, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
-            });
+                });
         }
     }
 };
