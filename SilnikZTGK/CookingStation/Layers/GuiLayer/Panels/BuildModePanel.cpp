@@ -23,6 +23,18 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  500 });
 }
 
+// NOWOŚĆ: Twardy reset by zmienne nie przenosiły się do nowych gier
+void BuildModePanel::ForceReset() {
+    m_IsActive = false;
+    m_HeldMachineIndex = -1;
+    m_SlideY = 0.0f;
+    m_ButtonScale = 1.0f;
+    m_PreviewGroup.clear();
+    m_MovingGroup.clear();
+    m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+    m_CurrentScene = nullptr;
+}
+
 void BuildModePanel::Activate() {
     if (m_IsActive) return;
     m_IsActive = true;
@@ -54,7 +66,6 @@ void BuildModePanel::Deactivate() {
         auto* tc = activeScene->GetWorld().GetComponent<TransformComponent>(m_MovingMachineEntity);
         if (tc) tc->SetPosition(m_MovingMachineOriginalPos);
 
-        // NAPRAWA: Zwracamy pozycję wszystkich obiektów pobocznych (np. jedzenia na maszynie)
         for (auto& [groupEnt, offset] : m_MovingGroup) {
             auto* groupTc = activeScene->GetWorld().GetComponent<TransformComponent>(groupEnt);
             if (groupTc) {
@@ -370,7 +381,6 @@ int BuildModePanel::GetCellState(std::shared_ptr<Scene>& activeScene, const glm:
 
             if (nsc) {
                 for (auto& s : nsc->Scripts) {
-                    // NAPRAWA: Dodanie CrateScript, żeby skrzynki świeciły się na zielono i dało się je przesunąć!
                     if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" || s.Name == "OvenScript" || s.Name == "CrateScript") {
                         isMachine = true;
                         break;
@@ -504,7 +514,6 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
             auto* tc = activeScene->GetWorld().GetComponent<TransformComponent>(m_MovingMachineEntity);
             if (tc) tc->SetPosition(m_MovingMachineOriginalPos);
 
-            // NAPRAWA: Zwracanie "dzieci" na odpowiednie miejsce po anulowaniu prawym przyciskiem myszy
             for (auto& [groupEnt, offset] : m_MovingGroup) {
                 auto* groupTc = activeScene->GetWorld().GetComponent<TransformComponent>(groupEnt);
                 if (groupTc) {

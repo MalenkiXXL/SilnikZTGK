@@ -72,6 +72,9 @@ void GameGuiLayer::OnAttach()
             m_ActiveOrderTickets.clear();
             m_LastMoney = -1;
 
+            // NOWOŒÆ: Twardy reset dla panelu budowania, kiedy w³¹czasz now¹ grê (¿eby zmienna nie pamiêta³a dawnego wyboru!)
+            m_BuildModePanel.ForceReset();
+
             if (m_ActiveScene) {
                 auto& newBus = m_ActiveScene->GetWorld().GetEventBus();
 
@@ -122,9 +125,17 @@ void GameGuiLayer::OnAttach()
     auto& appBus = Application::Get().GetEventBus();
     appBus.Subscribe<GamePausedEvent>([this](const GamePausedEvent&) { m_IsGamePaused = true; });
     appBus.Subscribe<GameResumedEvent>([this](const GameResumedEvent&) { m_IsGamePaused = false; });
+
     appBus.Subscribe<BuildModeToggledEvent>([this](const BuildModeToggledEvent& e) {
         if (!e.IsActive) m_BuildModePanel.Deactivate();
         else             m_BuildModePanel.Activate();
+        });
+
+    // NOWOŒÆ: Kiedy wychodzisz do menu g³ównego z poziomu zapauzowanej gry, automatycznie wy³¹cza Build Mode
+    appBus.Subscribe<ShowMainMenuEvent>([this](const ShowMainMenuEvent&) {
+        if (m_BuildModePanel.IsActive()) {
+            m_BuildModePanel.Deactivate();
+        }
         });
 }
 
@@ -342,17 +353,11 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
 
-    // =========================================================================
-    // RYSOWANIE SIATKI NA SAMYM SPODZIE
-    // =========================================================================
     if (m_BuildModePanel.IsActive() && m_PausePanel && !m_PausePanel->IsPaused()) {
         Renderer2D::BeginScene(uiProj);
         m_BuildModePanel.DrawOverlay(m_ViewportWidth, m_ViewportHeight, baseScale);
         Renderer2D::EndScene();
 
-        // NAPRAWA: Zabezpieczenie przed niewidzialnym GUI! 
-        // Siatka 3D w³¹czy³a Depth Test (Test G³êbi). Musimy go od razu ZABIC,
-        // inaczej p³askie chmurki UI w ogóle siê nie narysuj¹!
         glDisable(GL_DEPTH_TEST);
     }
 
@@ -571,7 +576,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     auto* camera = m_ActiveScene->GetCamera();
     glm::mat4 view = camera->GetViewMatrix();
     float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
-    float orthoSize = camera->OrthoSize;
+    float orthoSize = 10.0f * (camera->Zoom / 45.0f);
     glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
     glm::mat4 viewProj3D = proj3D * view;
 
@@ -878,7 +883,7 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
     auto* camera = m_ActiveScene->GetCamera();
     glm::mat4 view = camera->GetViewMatrix();
     float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
-    float orthoSize = camera->OrthoSize;
+    float orthoSize = 10.0f * (camera->Zoom / 45.0f);
     glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
     glm::mat4 viewProj = proj3D * view;
 
@@ -955,7 +960,7 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
     auto* camera = m_ActiveScene->GetCamera();
     glm::mat4 view = camera->GetViewMatrix();
     float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
-    float orthoSize = camera->OrthoSize;
+    float orthoSize = 10.0f * (camera->Zoom / 45.0f);
     glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
     glm::mat4 viewProj = proj3D * view;
     glm::vec2 mousePos = Gui::GetMappedMousePos();
@@ -1011,7 +1016,7 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
     auto* camera = m_ActiveScene->GetCamera();
     glm::mat4 view = camera->GetViewMatrix();
     float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
-    float orthoSize = camera->OrthoSize;
+    float orthoSize = 10.0f * (camera->Zoom / 45.0f);
     glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
     glm::mat4 viewProj = proj3D * view;
     glm::vec2 mousePos = Gui::GetMappedMousePos();

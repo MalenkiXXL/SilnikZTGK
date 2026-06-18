@@ -15,7 +15,6 @@ public:
     void DrawPanel(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt);
     void DrawOverlay(float gameW, float gameH, float baseScale);
 
-    // ZMIENIONE: Zamiast bool isValid, przyjmujemy teraz int hoverState (0=Niebieski, 1=Zielony, 2=Czerwony)
     void DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos, int hoverState);
     void DrawActiveGrid(std::shared_ptr<Scene>& activeScene);
 
@@ -23,6 +22,8 @@ public:
 
     void Activate();
     void Deactivate();
+    void ForceReset(); 
+
     void Toggle() { if (m_IsActive) Deactivate(); else Activate(); }
     bool IsActive() const { return m_IsActive; }
 
@@ -50,7 +51,5 @@ private:
     std::vector<std::pair<Entity, glm::vec3>> m_MovingGroup;
 
     bool IsPlacementValid(std::shared_ptr<Scene>& activeScene, const glm::vec3& snappedPos);
-
-    // NOWE: Funkcja zwracaj¹ca stan kafelka (0=Pusty, 1=Maszyna do przeniesienia, 2=Zablokowany/Taœma)
     int GetCellState(std::shared_ptr<Scene>& activeScene, const glm::vec3& snappedPos, Entity& outMachine);
 };
