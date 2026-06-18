@@ -19,6 +19,7 @@ private:
     // Zmienne dla dźwięków i muzyki
     bool m_PendingMusicEnabled = true;
     bool m_PendingSoundsEnabled = true;
+    bool m_PendingFullscreen = false;
 
     float m_BackBtnScale = 1.0f;
     float m_ApplyBtnScale = 1.0f;
@@ -32,6 +33,8 @@ private:
     float m_MusicRightBtnScale = 1.0f;
     float m_SoundsLeftBtnScale = 1.0f;
     float m_SoundsRightBtnScale = 1.0f;
+    float m_FsLeftBtnScale = 1.0f;  
+    float m_FsRightBtnScale = 1.0f;
 
     float m_DeltaTime = 0.0f;
 };
