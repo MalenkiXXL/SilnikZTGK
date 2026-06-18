@@ -120,13 +120,12 @@ void CameraLayer::OnEvent(Event &event) {
     );
 }
 
-bool CameraLayer::OnMouseScrolled(MouseScrolledEvent& e) {
+bool CameraLayer::OnMouseScrolled(MouseScrolledEvent &e) {
     if (m_IsGamePaused) return false;
     if (Gui::AnyItemActive()) return false;
 
-    // m_Camera.ProcessMouseScroll((float) e.GetYOffset());
-
-    return false;
+    m_Camera.ProcessMouseScroll((float) e.GetYOffset());
+    return false; 
 }
 
 bool CameraLayer::OnKeyPressed(KeyPressedEvent& e) {

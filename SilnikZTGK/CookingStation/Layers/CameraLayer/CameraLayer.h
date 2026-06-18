@@ -29,4 +29,6 @@ private:
     bool m_IsGamePaused = false;
     std::size_t m_GamePausedSubId = 0;
     std::size_t m_GameResumedSubId = 0;
+
+    bool m_IsBuildMode = false;
 };

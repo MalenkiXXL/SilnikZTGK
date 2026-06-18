@@ -9,7 +9,6 @@
 
 class BuildModePanel {
 public:
-    // NOWE: Funkcja inicjalizuj¹ca przyjmuje teraz teksturê monety
     void Init(std::shared_ptr<Texture> coinIcon);
 
     void DrawButton(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt, bool isBlocked);
@@ -29,7 +28,7 @@ private:
         std::string Label;
         std::string PrefabPath;
         std::shared_ptr<Texture> Icon;
-        int Price; // NOWE: Cena maszyny
+        int Price;
     };
 
     bool m_IsActive = false;
@@ -38,7 +37,6 @@ private:
     int m_HeldMachineIndex = -1;
     bool m_JustSelectedFromPanel = false;
 
-    // Ikona monety do rysowania w panelu
     std::shared_ptr<Texture> m_CoinIcon;
 
     std::vector<MachineEntry> m_MachineEntries;

@@ -18,10 +18,10 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_CoinIcon = coinIcon;
 
     // Ustawienie konkretnych cen dla maszyn 
-    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   100 });
-    m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/Flour.png"), 0 });
-    m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/pot.png"),   0 });
-    m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  0 });
+    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   250 });
+    m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/Flour.png"), 100 });
+    m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/pot.png"),   300 });
+    m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  500 });
 }
 
 void BuildModePanel::Activate() {
@@ -29,8 +29,13 @@ void BuildModePanel::Activate() {
     m_IsActive = true;
     m_HeldMachineIndex = -1;
     auto activeScene = SceneManager::GetActiveScene();
-    if (activeScene) activeScene->SetState(SceneState::Pause);
-    Application::Get().GetEventBus().Publish(GamePausedEvent{});
+
+    // 1. ZAMRO¯ENIE CZASU: U¿ywamy SceneState::Edit zamiast SceneState::Pause
+    // Silnik nie liczy fizyki ani skryptów, ale kamera wie, ¿e jesteœmy w trybie edycji.
+    if (activeScene) activeScene->SetState(SceneState::Edit);
+
+    // 2. ODCIÊCIE OD MENU PAUZY: Wyrzucono GamePausedEvent! 
+    Application::Get().GetEventBus().Publish(BuildModeToggledEvent{ true });
 }
 
 void BuildModePanel::Deactivate() {
@@ -53,8 +58,11 @@ void BuildModePanel::Deactivate() {
         m_MovingGroup.clear();
     }
 
+    // 3. WZNOWIENIE CZASU: Powrót do normalnej rozgrywki
     if (activeScene) activeScene->SetState(SceneState::Play);
-    Application::Get().GetEventBus().Publish(GameResumedEvent{});
+
+    // 4. ODCIÊCIE OD MENU PAUZY: Wyrzucono GameResumedEvent!
+    Application::Get().GetEventBus().Publish(BuildModeToggledEvent{ false });
 }
 
 void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt, bool isBlocked) {
@@ -160,6 +168,7 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         const bool inIcon = mouse.x >= ix && mouse.x <= ix + iconW && mouse.y >= iy && mouse.y <= iy + iconH;
         const bool isHeld = (m_HeldMachineIndex == i);
 
+        glm::vec4 bg = isHeld ? glm::vec4(0.30f, 0.60f, 1.00f, 0.50f) : (inIcon ? glm::vec4(1.00f, 1.00f, 1.00f, 0.18f) : glm::vec4(1.00f, 1.00f, 1.00f, 0.00f));
         glm::vec4 iconColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 
         // Szaro-czerwony odcieñ, gdy nas nie staæ
@@ -178,10 +187,15 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         else {
             if (inIcon) {
                 iconColor = unaffordableColorHover;
+                bg = glm::vec4(0.8f, 0.2f, 0.2f, 0.3f);
             }
             else {
                 iconColor = unaffordableColorNormal;
             }
+        }
+
+        if (bg.a > 0.0f) {
+            Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, bg, 8.0f * baseScale);
         }
 
         if (entry.Icon) {
@@ -189,11 +203,11 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         }
 
         // Cena i monetka
-        float priceTextScale = 0.8f * baseScale; 
+        float priceTextScale = 0.8f * baseScale;
         std::string priceStr = std::to_string(entry.Price);
         float tw = Gui::MeasureTextWidth(priceStr, priceTextScale);
 
-        float coinSize = 36.0f * baseScale; 
+        float coinSize = 36.0f * baseScale;
         float gap = 6.0f * baseScale;
         float totalPriceW = coinSize + gap + tw;
         float priceStartX = ix + (iconW - totalPriceW) * 0.5f;
@@ -208,14 +222,13 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
             Renderer2D::DrawQuad({ priceStartX, priceY - 6.0f * baseScale }, { coinSize, coinSize }, coinTint, coinSize * 0.5f);
         }
 
-		// Kolor tekstu : fioletowy gdy nas staæ, przyciemniony czerwony gdy nie
+        // Kolor tekstu : fioletowy gdy nas staæ, przyciemniony czerwony gdy nie
         glm::vec4 affordableTextColor = { 144.0f / 255.0f, 94.0f / 255.0f, 169.0f / 255.0f, 1.0f };
         glm::vec4 priceTextColor = canAfford ? affordableTextColor : coinTint;
 
         Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap + 1.5f * baseScale, priceY + 1.5f * baseScale }, priceTextScale, { 0.0f, 0.0f, 0.0f, 0.8f });
         Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap, priceY }, priceTextScale, priceTextColor);
 
-        // Wybór maszyny tylko gdy gracza staæ
         if (inIcon && m_IsActive) {
             Input::SetUICaptureMouse(true);
             if (Input::IsMouseButtonJustPressed(0) && m_HeldMachineIndex == -1) {
@@ -279,12 +292,6 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
 
     auto* camera = activeScene->GetCamera();
     if (!camera) return;
-
-    float moveSpeed = 0.35f * (camera->Zoom / 45.0f);
-    if (Input::IsKeyPressed(GLFW_KEY_W)) camera->Position.z -= moveSpeed;
-    if (Input::IsKeyPressed(GLFW_KEY_S)) camera->Position.z += moveSpeed;
-    if (Input::IsKeyPressed(GLFW_KEY_A)) camera->Position.x -= moveSpeed;
-    if (Input::IsKeyPressed(GLFW_KEY_D)) camera->Position.x += moveSpeed;
 
     float aspect = viewW / (viewH > 0.0f ? viewH : 1.0f);
     float orthoSize = 10.0f * (camera->Zoom / 45.0f);
@@ -399,8 +406,6 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
     DrawGrid(proj * view, camera->Position, snappedPos);
 
     if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
-
-        // NOWE: Odejmowanie pieniêdzy w momencie faktycznego zbudowania maszyny
         if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->GetMoney() >= entry.Price) {
             GameManagerScript::s_Instance->SpendMoney(entry.Price);
 
