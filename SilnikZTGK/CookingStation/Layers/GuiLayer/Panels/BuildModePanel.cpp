@@ -17,7 +17,7 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.clear();
     m_CoinIcon = coinIcon;
 
-    // Ustawienie konkretnych cen dla maszyn 
+    // Przywrócone poprawne ceny maszyn
     m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   0 });
     m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/cuttingBoardMachine.png"), 0 });
     m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   0 });
@@ -30,11 +30,11 @@ void BuildModePanel::Activate() {
     m_HeldMachineIndex = -1;
     auto activeScene = SceneManager::GetActiveScene();
 
-    // 1. ZAMRO�ENIE CZASU: U�ywamy SceneState::Edit zamiast SceneState::Pause
-    // Silnik nie liczy fizyki ani skrypt�w, ale kamera wie, �e jeste�my w trybie edycji.
+    // 1. ZAMROŻENIE CZASU: Używamy SceneState::Edit zamiast SceneState::Pause
+    // Silnik nie liczy fizyki ani skryptów, ale kamera wie, że jesteśmy w trybie edycji i WASD działa.
     if (activeScene) activeScene->SetState(SceneState::Edit);
 
-    // 2. ODCI�CIE OD MENU PAUZY: Wyrzucono GamePausedEvent! 
+    // 2. ODCIĘCIE OD MENU PAUZY: Używamy BuildModeToggledEvent
     Application::Get().GetEventBus().Publish(BuildModeToggledEvent{ true });
 }
 
@@ -58,10 +58,10 @@ void BuildModePanel::Deactivate() {
         m_MovingGroup.clear();
     }
 
-    // 3. WZNOWIENIE CZASU: Powr�t do normalnej rozgrywki
+    // 3. WZNOWIENIE CZASU: Powrót do normalnej rozgrywki
     if (activeScene) activeScene->SetState(SceneState::Play);
 
-    // 4. ODCI�CIE OD MENU PAUZY: Wyrzucono GameResumedEvent!
+    // 4. ODCIĘCIE OD MENU PAUZY
     Application::Get().GetEventBus().Publish(BuildModeToggledEvent{ false });
 }
 
@@ -131,11 +131,11 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
     m_SlideY += (targetSlide - m_SlideY) * std::min(dt * 14.0f, 1.0f);
     if (m_SlideY <= 0.01f) return;
 
-    // Wysoko�� panelu
+    // Wysokość panelu
     const float panelH = 200.0f * baseScale;
     float panelY = gameY + gameHeight - panelH * m_SlideY;
 
-    // T�o panelu
+    // Tło panelu
     auto bgTex = AssetManager::GetTexture("assets://UI/buildBackground.png");
     if (bgTex && bgTex->GetRendererID() != 0) {
         Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, panelH }, bgTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
@@ -147,8 +147,8 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
 
     // Parametry Siatki (Slots)
     const float iconH = 80.0f * baseScale;
-    const float slotW = 120.0f * baseScale; // Sztywna szeroko�� "stanowiska", u�atwia matematyczne centrowanie
-    const float spacing = 20.0f * baseScale; // Mniejszy odst�p z uwagi na szerszy slot
+    const float slotW = 120.0f * baseScale; // Sztywna szerokość "stanowiska", ułatwia matematyczne centrowanie
+    const float spacing = 20.0f * baseScale;
 
     const int count = (int)m_MachineEntries.size();
     const float totalW = count * slotW + (count - 1) * spacing;
@@ -170,15 +170,15 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
             actualIconW = iconH * aspect;
         }
 
-        // --- WYLICZANIE �RODKA SLOTU ---
+        // --- WYLICZANIE ŚRODKA SLOTU ---
         float slotStartX = startX + i * (slotW + spacing);
         float slotCenterX = slotStartX + slotW * 0.5f;
 
-        // Wy�rodkowanie ikony wewn�trz slotu
+        // Wyśrodkowanie ikony wewnątrz slotu
         float ix = slotCenterX - actualIconW * 0.5f;
         float iy = iconY;
 
-        // Margines wok� elementu dla hovera i klikni�cia
+        // Margines wokół elementu dla hovera i kliknięcia
         float padX = 15.0f * baseScale;
         float padY = 15.0f * baseScale;
 
@@ -187,47 +187,46 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
 
         const bool isHeld = (m_HeldMachineIndex == i);
 
-        glm::vec4 bg = isHeld ? glm::vec4(0.30f, 0.60f, 1.00f, 0.50f) : (inIcon ? glm::vec4(1.00f, 1.00f, 1.00f, 0.18f) : glm::vec4(1.00f, 1.00f, 1.00f, 0.00f));
         glm::vec4 iconColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-        // Szaro-czerwony odcie�, gdy nas nie sta�
+        // Szaro-czerwony odcień, gdy nas nie stać
         glm::vec4 unaffordableColorNormal = { 0.55f, 0.45f, 0.45f, 0.9f };
-        // Wyra�nie bardziej czerwony, gdy najedziemy
+        // Wyraźnie bardziej czerwony, gdy najedziemy
         glm::vec4 unaffordableColorHover = { 0.75f, 0.35f, 0.35f, 0.95f };
 
         glm::vec4 bg = { 0.0f, 0.0f, 0.0f, 0.0f }; // Przezroczyste na start
 
         if (canAfford) {
             if (isHeld) {
-                iconColor = { 0.5f, 0.7f, 1.0f, 1.0f }; // Niebieskawy odcie� gdy trzymana
-                bg = { 0.30f, 0.60f, 1.0f, 0.50f };     // Niebieskie t�o
+                iconColor = { 0.5f, 0.7f, 1.0f, 1.0f }; // Niebieskawy odcień gdy trzymana
+                bg = { 0.30f, 0.60f, 1.0f, 0.50f };     // Niebieskie tło
             }
             else if (inIcon) {
-                iconColor = { 0.8f, 0.8f, 0.8f, 1.0f }; // Przyciemnienie samego kszta�tu
-                bg = { 1.0f, 1.0f, 1.0f, 0.18f };       // Jasne t�o
+                iconColor = { 0.8f, 0.8f, 0.8f, 1.0f }; // Przyciemnienie samego kształtu na hover
+                bg = { 1.0f, 1.0f, 1.0f, 0.18f };       // Jasne tło
             }
         }
         else {
             if (inIcon) {
                 iconColor = unaffordableColorHover;
-                bg = { 0.8f, 0.2f, 0.2f, 0.3f };        // Czerwone t�o
+                bg = { 0.8f, 0.2f, 0.2f, 0.3f };        // Czerwone tło
             }
             else {
                 iconColor = unaffordableColorNormal;
             }
         }
 
-        // Rysowanie t�a (u�ywamy rzeczywistych wymiar�w ikony i dodajemy lekki padding dooko�a)
+        // Rysowanie tła (używamy rzeczywistych wymiarów ikony i dodajemy lekki padding dookoła)
         if (bg.a > 0.0f) {
             Renderer2D::DrawQuad({ ix - padX, iy - padY }, { actualIconW + padX * 2.0f, iconH + padY * 2.0f }, bg, 12.0f * baseScale);
         }
 
-        // Rysowanie ikony z zachowaniem oryginalnego kszta�tu
+        // Rysowanie ikony z zachowaniem oryginalnego kształtu
         if (entry.Icon) {
             Renderer2D::DrawQuad({ ix, iy }, { actualIconW, iconH }, entry.Icon, iconColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
 
-        // --- RYSOWANIE CENY I MONETY (Wy�rodkowane wzgl�dem slotu!) ---
+        // --- RYSOWANIE CENY I MONETY (Wyśrodkowane względem slotu!) ---
         float priceTextScale = 0.8f * baseScale;
         std::string priceStr = std::to_string(entry.Price);
         float tw = Gui::MeasureTextWidth(priceStr, priceTextScale);
@@ -236,9 +235,9 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         float gap = 6.0f * baseScale;
         float totalPriceW = coinSize + gap + tw;
 
-        // Wy�rodkowanie CA�EGO bloku cenowego pod ikon�
+        // Wyśrodkowanie CAŁEGO bloku cenowego pod ikoną
         float priceStartX = slotCenterX - totalPriceW * 0.5f;
-        float priceY = iy + iconH + 18.0f * baseScale; // Odsuni�cie lekko w d� za padding
+        float priceY = iy + iconH + 18.0f * baseScale; // Odsunięcie lekko w dół za padding
 
         glm::vec4 coinTint = canAfford ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : (inIcon ? unaffordableColorHover : unaffordableColorNormal);
 
@@ -249,13 +248,14 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
             Renderer2D::DrawQuad({ priceStartX, priceY - 6.0f * baseScale }, { coinSize, coinSize }, coinTint, coinSize * 0.5f);
         }
 
-        // Kolor tekstu: fioletowy gdy nas sta�, przyciemniony czerwony gdy nie
+        // Fioletowy kolor tekstu (#905ea9) wyliczony jako RGB w skali 0-1
         glm::vec4 affordableTextColor = { 144.0f / 255.0f, 94.0f / 255.0f, 169.0f / 255.0f, 1.0f };
         glm::vec4 priceTextColor = canAfford ? affordableTextColor : coinTint;
 
         Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap + 1.5f * baseScale, priceY + 1.5f * baseScale }, priceTextScale, { 0.0f, 0.0f, 0.0f, 0.8f });
         Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap, priceY }, priceTextScale, priceTextColor);
 
+        // Wybór maszyny tylko gdy gracza stać
         if (inIcon && m_IsActive) {
             Input::SetUICaptureMouse(true);
             if (Input::IsMouseButtonJustPressed(0) && m_HeldMachineIndex == -1) {
@@ -265,7 +265,7 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
                 }
                 else {
                     spdlog::warn("BuildMode: Nie stac cie na te maszyne!");
-                    // WYSY�ANIE SYGNA�U DO GAMEMANAGERSCRIPT
+                    // WYSYŁANIE SYGNAŁU DO GAMEMANAGERSCRIPT
                     if (GameManagerScript::s_Instance) {
                         GameManagerScript::s_Instance->TriggerMoneyWarning();
                     }
@@ -433,6 +433,8 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
     DrawGrid(proj * view, camera->Position, snappedPos);
 
     if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
+
+        // Odejmowanie pieniędzy w momencie faktycznego zbudowania maszyny
         if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->GetMoney() >= entry.Price) {
             GameManagerScript::s_Instance->SpendMoney(entry.Price);
 
@@ -451,7 +453,6 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
             m_PreviewGroup.clear();
             m_HeldMachineIndex = -1;
 
-            // WYSY�ANIE SYGNA�U DO GAMEMANAGERSCRIPT 
             if (GameManagerScript::s_Instance) {
                 GameManagerScript::s_Instance->TriggerMoneyWarning();
             }
