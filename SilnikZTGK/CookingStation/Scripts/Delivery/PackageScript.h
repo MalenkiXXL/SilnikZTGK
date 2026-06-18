@@ -85,6 +85,10 @@ public:
     IngredientType getType() const;
     int getIngredientAmount() const { return m_IngredientAmount; }
 
+    void OnHoverCursor() override {
+        m_IsHovered = true;
+    }
+
 private:
     float m_TimeAlive = 0.0f;
     bool m_IsHovered = false;

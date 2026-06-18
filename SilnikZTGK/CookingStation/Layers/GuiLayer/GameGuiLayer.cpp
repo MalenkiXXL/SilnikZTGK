@@ -13,6 +13,7 @@
 #include "CookingStation/Scripts/CustomerScript.h"
 #include "CookingStation/Scripts/CrateScript.h"
 #include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Core/Physics.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 
@@ -323,6 +324,49 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     bool isBookOpen = m_RecipeBookPanel.IsOpen();
     bool isPausedBlocked = m_IsGamePaused && !m_BuildModePanel.IsActive();
     bool isPlayMode = !m_IsGamePaused && !m_BuildModePanel.IsActive();
+
+    // hover logic for highlights
+    if (isPlayMode && !isBookOpen && m_ActiveScene) {
+        auto mousePos = Input::GetMousePosition();
+        float mouseX = mousePos.first;
+        float mouseY = mousePos.second;
+
+#ifndef CS_DISTRIBUTION
+        mouseX -= gameX;
+        mouseY -= gameY;
+#endif
+
+        auto* camera = m_ActiveScene->GetCamera();
+        if (camera && mouseX >= 0 && mouseY >= 0 && mouseX <= gameWidth && mouseY <= gameHeight) {
+            float aspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+            float orthoSize = 10.0f * (camera->Zoom / 45.0f);
+            glm::mat4 proj = glm::ortho(-aspect * orthoSize, aspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+            glm::mat4 view = camera->GetViewMatrix();
+
+            Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, gameWidth, gameHeight, proj, view);
+            Entity hoveredEntity = Physics::GetHoveredEntity(ray, m_ActiveScene, true, true);
+
+            if (hoveredEntity.id != std::numeric_limits<std::size_t>::max()) {
+                auto* nsc = m_ActiveScene->GetWorld().GetComponent<NativeScriptComponent>(hoveredEntity);
+
+                if (!nsc) {
+                    auto* rel = m_ActiveScene->GetWorld().GetComponent<RelationshipComponent>(hoveredEntity);
+                    if (rel && rel->Parent != std::numeric_limits<std::size_t>::max()) {
+                        Entity parentEntity = { rel->Parent, 0 };
+                        nsc = m_ActiveScene->GetWorld().GetComponent<NativeScriptComponent>(parentEntity);
+                    }
+                }
+
+                if (nsc) {
+                    for (auto& s : nsc->Scripts) {
+                        if (s.Instance) {
+                            s.Instance->OnHoverCursor();
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
     DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
