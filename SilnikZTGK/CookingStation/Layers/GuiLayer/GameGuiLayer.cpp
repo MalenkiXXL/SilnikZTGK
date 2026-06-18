@@ -26,7 +26,6 @@ void GameGuiLayer::OnAttach()
     }
 
     m_PausePanel = std::make_unique<PauseMenuPanel>();
-    m_BuildModePanel.Init();
     m_RecipeBookPanel.Init();
 
 #ifdef CS_DISTRIBUTION
@@ -52,6 +51,10 @@ void GameGuiLayer::OnAttach()
     m_QuestCloudTex = AssetManager::GetTexture("assets://UI/Events/ChooseEventCloud.png");
     m_AcceptButtonTex = AssetManager::GetTexture("assets://UI/Events/AcceptButton.png");
     m_SkipButtonTex = AssetManager::GetTexture("assets://UI/Events/SkipButton.png");
+
+    // NOWE: Przekazujemy wczytaną ikonę monety do panelu budowania
+    // UWAGA: Trzeba to wywołać po załadowaniu m_CoinIcon!
+    m_BuildModePanel.Init(m_CoinIcon);
 
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);

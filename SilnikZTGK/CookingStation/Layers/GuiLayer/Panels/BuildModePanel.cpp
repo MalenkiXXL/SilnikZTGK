@@ -9,16 +9,19 @@
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
 #include "CookingStation/Scene/SceneManager.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h" // POTRZEBNE DO PIENIÊDZY
 #include <spdlog/spdlog.h>
 #include <GLFW/glfw3.h>
 
-void BuildModePanel::Init() {
+void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.clear();
+    m_CoinIcon = coinIcon;
 
-    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png") });
-    m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/Flour.png") });
-    m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/pot.png") });
-    m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png") });
+    // NOWE: Ustawienie konkretnych cen dla maszyn (np. 250, 100, 300, 500)
+    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   250 });
+    m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/Flour.png"), 100 });
+    m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/pot.png"),   300 });
+    m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  500 });
 }
 
 void BuildModePanel::Activate() {
@@ -60,17 +63,14 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
     auto buildBtnTex = AssetManager::GetTexture("assets://UI/buildModeButton.png");
 
     float bookCloudH = 210.0f * baseScale * 1.3f;
-
-    // Ustawiamy docelow¹ wysokoœæ przycisku powiêkszon¹ 1.8 raza (85.0f * 1.8f = 153.0f)
     float btnHeight = 153.0f * baseScale;
-    glm::vec2 baseSize = { btnHeight * 2.5f, btnHeight }; // Opcja zapasowa, gdyby obrazek siê nie za³adowa³
+    glm::vec2 baseSize = { btnHeight * 2.5f, btnHeight };
 
     if (buildBtnTex && buildBtnTex->GetRendererID() != 0) {
         float aspect = (float)buildBtnTex->GetWidth() / (float)buildBtnTex->GetHeight();
         baseSize = { btnHeight * aspect, btnHeight };
     }
 
-    // TUTAJ ZMIANA: Zwiêkszona wartoœæ dla offsetu X (z 14.0f na 35.0f), by przesun¹æ przycisk w prawo
     glm::vec2 basePos = { gameX + 35.0f * baseScale, gameY + bookCloudH + 8.0f * baseScale };
 
     glm::vec2 mouse = Gui::GetMappedMousePos();
@@ -92,7 +92,6 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
             tint = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f);
         }
 
-        // Jeœli tryb budowy jest w³¹czony, zmieniamy lekko tint na zielonkawy ¿eby to odznaczyæ
         if (m_IsActive) {
             tint *= glm::vec4(0.75f, 1.0f, 0.75f, 1.0f);
         }
@@ -100,7 +99,6 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
         Renderer2D::DrawQuad(scaledPos, scaledSize, buildBtnTex->GetRendererID(), tint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     }
     else {
-        // Zapasowe renderowanie przycisku bez tekstury (fallback)
         glm::vec4 bgColor = m_IsActive ? glm::vec4(0.20f, 0.45f, 0.90f, 0.95f) : glm::vec4(0.10f, 0.12f, 0.20f, 0.82f);
         Renderer2D::DrawQuad(scaledPos, scaledSize, bgColor, 18.0f * baseScale * m_ButtonScale);
 
@@ -125,85 +123,86 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
     m_SlideY += (targetSlide - m_SlideY) * std::min(dt * 14.0f, 1.0f);
     if (m_SlideY <= 0.01f) return;
 
-    // Wysokoœæ panelu musi byæ odrobinê wiêksza, by zmieœciæ 2x wiêksz¹ monetê
-    const float panelH = 180.0f * baseScale;
+    const float panelH = 160.0f * baseScale; // Podwy¿szony pod ceny
     float panelY = gameY + gameHeight - panelH * m_SlideY;
 
-    // --- RYSOWANIE T£A PANELU Z OBRAZKA ---
     auto bgTex = AssetManager::GetTexture("assets://UI/buildBackground.png");
     if (bgTex && bgTex->GetRendererID() != 0) {
         Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, panelH }, bgTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     }
     else {
-        // Fallback jeœli obrazka nie ma
         Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, panelH }, { 0.06f, 0.08f, 0.14f, 0.94f }, 0.0f);
         Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, 2.0f * baseScale }, { 0.3f, 0.55f, 1.0f, 0.7f }, 0.0f);
     }
 
     const float iconH = 80.0f * baseScale;
     const float iconW = iconH;
-    const float spacing = 40.0f * baseScale; // Odstêp miêdzy maszynami
-    float coinSize = 70.0f * baseScale;      // Zmienione z 35 na 70! (2x wiêksze)
-
+    const float spacing = 50.0f * baseScale;
     const int count = (int)m_MachineEntries.size();
     const float totalW = count * iconW + (count - 1) * spacing;
     const float startX = gameX + (gameWidth - totalW) * 0.5f;
 
-    // Obliczamy idealny œrodek dla grupy "ikona + moneta" w pionie, ¿eby nigdzie nie obcina³o obrazka
-    const float iconY = panelY + (panelH - iconH - coinSize - 8.0f * baseScale) * 0.5f;
+    const float iconY = panelY + (panelH - iconH) * 0.5f - 15.0f * baseScale;
 
     glm::vec2 mouse = Gui::GetMappedMousePos();
-    auto coinTex = AssetManager::GetTexture("assets://UI/coin.png");
+    int currentMoney = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetMoney() : 0;
 
     for (int i = 0; i < count; ++i) {
         const float ix = startX + i * (iconW + spacing);
         const float iy = iconY;
 
+        auto& entry = m_MachineEntries[i];
+        bool canAfford = currentMoney >= entry.Price; // Sprawdzenie ekonomii
+
         const bool inIcon = mouse.x >= ix && mouse.x <= ix + iconW && mouse.y >= iy && mouse.y <= iy + iconH;
         const bool isHeld = (m_HeldMachineIndex == i);
 
-        glm::vec4 bg = isHeld ? glm::vec4(0.30f, 0.60f, 1.00f, 0.50f) : (inIcon ? glm::vec4(1.00f, 1.00f, 1.00f, 0.18f) : glm::vec4(1.00f, 1.00f, 1.00f, 0.00f)); // Transparentne jeœli nie hoverujemy
+        glm::vec4 bg = isHeld ? glm::vec4(0.30f, 0.60f, 1.00f, 0.50f) : (inIcon ? glm::vec4(1.00f, 1.00f, 1.00f, 0.18f) : glm::vec4(1.00f, 1.00f, 1.00f, 0.00f));
+
+        // Zabarwienie w tle na czerwono, je¿eli hoverujemy, ale nas nie staæ
+        if (inIcon && !canAfford) {
+            bg = glm::vec4(0.8f, 0.2f, 0.2f, 0.3f);
+        }
+
         if (bg.a > 0.0f) {
             Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, bg, 8.0f * baseScale);
         }
 
-        auto& entry = m_MachineEntries[i];
         if (entry.Icon) {
-            Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, entry.Icon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+            glm::vec4 iconColor = canAfford ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : glm::vec4(0.6f, 0.2f, 0.2f, 0.7f);
+            Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, entry.Icon, iconColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
 
-        // --- RYSOWANIE MONETY ---
-        float coinX = ix + (iconW - coinSize) * 0.5f; // Wyœrodkowana dok³adnie pod ikon¹
-        float coinY = iy + iconH + 8.0f * baseScale;
+        // --- RYSOWANIE CENY Z MONET¥ ---
+        float priceTextScale = 0.55f * baseScale;
+        std::string priceStr = std::to_string(entry.Price);
+        float tw = Gui::MeasureTextWidth(priceStr, priceTextScale);
 
-        if (coinTex && coinTex->GetRendererID() != 0) {
-            Renderer2D::DrawQuad({ coinX, coinY }, { coinSize, coinSize }, coinTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        float coinSize = 24.0f * baseScale;
+        float gap = 5.0f * baseScale;
+        float totalPriceW = coinSize + gap + tw;
+        float priceStartX = ix + (iconW - totalPriceW) * 0.5f;
+        float priceY = iy + iconH + 10.0f * baseScale;
+
+        if (m_CoinIcon) {
+            Renderer2D::DrawQuad({ priceStartX, priceY - 4.0f * baseScale }, { coinSize, coinSize }, m_CoinIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
-        else {
-            // Zapasowe ¿ó³te kó³ko, jeœli nie wczyta siê moneta
-            Renderer2D::DrawQuad({ coinX, coinY }, { coinSize, coinSize }, { 1.0f, 0.8f, 0.0f, 1.0f }, coinSize * 0.5f);
-        }
 
-        // --- RYSOWANIE KOSZTU ---
-        std::string costStr = "30";
-        float costScale = 0.85f * baseScale; // Tekst odpowiednio powiêkszony pod du¿¹ monetê
-        float cw = Gui::MeasureTextWidth(costStr, costScale);
-        float ch = Gui::MeasureTextHeight(costStr, costScale);
+        glm::vec4 priceColor = canAfford ? glm::vec4(1.0f, 0.95f, 0.3f, 1.0f) : glm::vec4(0.9f, 0.1f, 0.1f, 1.0f);
+        Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap + 1.5f * baseScale, priceY + 1.5f * baseScale }, priceTextScale, { 0.0f, 0.0f, 0.0f, 0.8f });
+        Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap, priceY }, priceTextScale, priceColor);
 
-        float coinTextX = coinX + (coinSize - cw) * 0.5f;
-        // ZMIANA: Skorygowane wyrównanie w pionie - odejmujemy lekk¹ poprawkê bazy, zamiast spychaæ w dó³
-        float coinTextY = coinY + (coinSize - ch) * 0.5f - ch * 0.15f;
-
-        // Delikatny cieñ tekstu dla lepszej czytelnoœci
-        Gui::DrawGuiText(costStr, { coinTextX + 1.5f * baseScale, coinTextY + 1.5f * baseScale }, costScale, { 0.0f, 0.0f, 0.0f, 0.8f });
-        // G³ówny tekst
-        Gui::DrawGuiText(costStr, { coinTextX, coinTextY }, costScale, { 1.0f, 1.0f, 1.0f, 1.0f });
-
+        // Wybór maszyny tylko gdy gracza staæ
         if (inIcon && m_IsActive) {
             Input::SetUICaptureMouse(true);
             if (Input::IsMouseButtonJustPressed(0) && m_HeldMachineIndex == -1) {
-                m_HeldMachineIndex = i;
-                m_JustSelectedFromPanel = true;
+                if (canAfford) {
+                    m_HeldMachineIndex = i;
+                    m_JustSelectedFromPanel = true;
+                }
+                else {
+                    spdlog::warn("BuildMode: Nie stac cie na te maszyne!");
+                }
             }
         }
     }
@@ -254,19 +253,16 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
     auto* camera = activeScene->GetCamera();
     if (!camera) return;
 
-    // --- RÊCZNE PRZESUWANIE KAMERY (WASD) W TRYBIE BUDOWANIA ---
-    float moveSpeed = 0.35f * (camera->Zoom / 45.0f); // Dopasowujemy prêdkoœæ do zooma
+    float moveSpeed = 0.35f * (camera->Zoom / 45.0f);
     if (Input::IsKeyPressed(GLFW_KEY_W)) camera->Position.z -= moveSpeed;
     if (Input::IsKeyPressed(GLFW_KEY_S)) camera->Position.z += moveSpeed;
     if (Input::IsKeyPressed(GLFW_KEY_A)) camera->Position.x -= moveSpeed;
     if (Input::IsKeyPressed(GLFW_KEY_D)) camera->Position.x += moveSpeed;
-    // -----------------------------------------------------------
 
     float aspect = viewW / (viewH > 0.0f ? viewH : 1.0f);
     float orthoSize = 10.0f * (camera->Zoom / 45.0f);
     glm::mat4 proj = glm::ortho(-aspect * orthoSize, aspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
 
-    // Poniewa¿ przed chwil¹ zmieniliœmy Position, GetViewMatrix wygeneruje od razu aktualn¹ macierz
     glm::mat4 view = camera->GetViewMatrix();
 
     Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, viewW, viewH, proj, view);
@@ -376,15 +372,27 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
     DrawGrid(proj * view, camera->Position, snappedPos);
 
     if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
-        for (auto& [ent, _] : m_PreviewGroup) world.GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
-        m_PreviewGroup.clear();
 
-        std::vector<Entity> placedEntities = PrefabSerializer::Deserialize(activeScene.get(), entry.PrefabPath, snappedPos);
-        for (Entity ent : placedEntities) {
-            auto* tagComp = world.GetComponent<TagComponent>(ent);
-            if (tagComp) tagComp->Tag = entry.Label;
+        // NOWE: Odejmowanie pieniêdzy w momencie faktycznego zbudowania maszyny
+        if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->GetMoney() >= entry.Price) {
+            GameManagerScript::s_Instance->SpendMoney(entry.Price);
+
+            for (auto& [ent, _] : m_PreviewGroup) world.GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
+            m_PreviewGroup.clear();
+
+            std::vector<Entity> placedEntities = PrefabSerializer::Deserialize(activeScene.get(), entry.PrefabPath, snappedPos);
+            for (Entity ent : placedEntities) {
+                auto* tagComp = world.GetComponent<TagComponent>(ent);
+                if (tagComp) tagComp->Tag = entry.Label;
+            }
+            m_HeldMachineIndex = -1;
         }
-        m_HeldMachineIndex = -1;
+        else {
+            // Sytuacja ekstremalna (np. klient zabra³ kasê podczas namyœlania siê)
+            for (auto& [ent, _] : m_PreviewGroup) world.GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
+            m_PreviewGroup.clear();
+            m_HeldMachineIndex = -1;
+        }
     }
     m_JustSelectedFromPanel = false;
 }
@@ -393,13 +401,8 @@ void BuildModePanel::DrawOverlay(float gameW, float gameH, float baseScale) {
     auto pausedTextTex = AssetManager::GetTexture("assets://UI/buildMode.png");
     if (pausedTextTex && pausedTextTex->GetRendererID() != 0) {
         float aspect = (float)pausedTextTex->GetWidth() / (float)pausedTextTex->GetHeight();
-
-        // Zmniejszony napis PAUSED (z 0.35 na 0.20 szerokoœci ekranu)
         glm::vec2 tSize = { gameW * 0.20f, (gameW * 0.20f) / aspect };
-
-        // Przesuniêty ni¿ej (z gameH * 0.08f na gameH * 0.18f)
         float yPos = gameH * 0.18f;
-
         Renderer2D::DrawQuad({ (gameW - tSize.x) * 0.5f, yPos }, tSize, pausedTextTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     }
 }
