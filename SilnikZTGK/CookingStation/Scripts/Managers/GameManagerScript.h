@@ -21,6 +21,10 @@ class GameManagerScript : public ScriptableEntity
 public:
     inline static GameManagerScript* s_Instance = nullptr;
 
+    // NOWE: Timer do trzęsienia monetą i funkcja go aktywująca
+    float m_MoneyWarningTimer = 0.0f;
+    void TriggerMoneyWarning() { m_MoneyWarningTimer = 0.6f; }
+
     void OnCreate() override;
     void OnDestroy() override;
     void OnUpdate(Timestep ts) override;
