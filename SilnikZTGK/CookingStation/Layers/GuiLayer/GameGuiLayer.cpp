@@ -109,6 +109,7 @@ void GameGuiLayer::OnAttach()
             }
 
             SetVisible(true);
+            m_IsGamePaused = false;
         }
     );
 

@@ -211,6 +211,8 @@ void MainMenuLayer::PlayGame()
 
         Application::Get().GetEventBus().Publish(GameStartedEvent{});
 
+        Application::Get().GetEventBus().Publish(GameResumedEvent{});
+
         spdlog::info("Pomyslnie zaladowano level02.json!");
     }
     else {
@@ -218,7 +220,6 @@ void MainMenuLayer::PlayGame()
         spdlog::error("Blad: Nie udalo sie wczytac level02.json");
     }
 }
-
 void MainMenuLayer::OnEvent(Event& e) {
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {
