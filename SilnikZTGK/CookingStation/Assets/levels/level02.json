@@ -81,38 +81,6 @@
       ]
     },
     {
-      "collider": {
-        "offset": [
-          -0.007773354649543762,
-          -0.010200273245573044,
-          -2.2351741790771484e-08
-        ],
-        "size": [
-          0.14416471123695374,
-          0.03434029594063759,
-          0.06162656843662262
-        ]
-      },
-      "id": 3,
-      "model_path": "assets://models/skladniki/bagietka/kanapka.gltf",
-      "name": "kanapka",
-      "position": [
-        -3.0,
-        0.0,
-        -7.0
-      ],
-      "rotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "scale": [
-        1.0,
-        1.0,
-        1.0
-      ]
-    },
-    {
       "id": 4,
       "model_path": "assets://models/wystroj/balony.gltf",
       "name": "balony1",
@@ -3460,114 +3428,6 @@
       ]
     },
     {
-      "collider": {
-        "offset": [
-          0.025017067790031433,
-          0.03550614416599274,
-          0.00471259281039238
-        ],
-        "size": [
-          0.13350066542625427,
-          0.04343120753765106,
-          0.05458884313702583
-        ]
-      },
-      "id": 119,
-      "model_path": "assets://models/skladniki/ser/ser-pokrojony.gltf",
-      "name": "ser-pokrojony",
-      "position": [
-        2.5974502563476563,
-        0.0,
-        -14.012020111083984
-      ],
-      "rotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "scale": [
-        1.0,
-        1.0,
-        1.0
-      ]
-    },
-    {
-      "collider": {
-        "offset": [
-          0.025017067790031433,
-          0.03550614416599274,
-          0.00471259281039238
-        ],
-        "size": [
-          0.13350066542625427,
-          0.04343120753765106,
-          0.05458884313702583
-        ]
-      },
-      "id": 120,
-      "model_path": "assets://models/skladniki/ser/ser-pokrojony.gltf",
-      "name": "ser-pokrojony",
-      "position": [
-        3.6500091552734375,
-        0.0,
-        -15.270267486572266
-      ],
-      "rotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "scale": [
-        1.0,
-        1.0,
-        1.0
-      ]
-    },
-    {
-      "collider": {
-        "offset": [
-          -0.007773354649543762,
-          -0.010200273245573044,
-          -2.2351741790771484e-08
-        ],
-        "size": [
-          0.14416471123695374,
-          0.03434029594063759,
-          0.06162656843662262
-        ]
-      },
-      "id": 121,
-      "model_path": "assets://models/skladniki/bagietka/kanapka.gltf",
-      "name": "kanapka",
-      "position": [
-        -1.0,
-        0.0,
-        -5.0
-      ],
-      "rotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "scale": [
-        1.0,
-        1.0,
-        1.0
-      ]
-    },
-    {
-      "collider": {
-        "offset": [
-          0.0,
-          0.0,
-          0.0
-        ],
-        "size": [
-          10.75,
-          3.1500000953674316,
-          14.600000381469727
-        ]
-      },
       "id": 122,
       "model_path": "assets://models/wystroj/podloga.gltf",
       "name": "Wielka_Podloga",
@@ -3585,70 +3445,6 @@
         1.0,
         1.0,
         1.2000000476837158
-      ]
-    },
-    {
-      "collider": {
-        "offset": [
-          0.025017067790031433,
-          0.03550614416599274,
-          0.00471259281039238
-        ],
-        "size": [
-          0.13350066542625427,
-          0.04343120753765106,
-          0.05458884313702583
-        ]
-      },
-      "id": 123,
-      "model_path": "assets://models/skladniki/ser/ser-pokrojony.gltf",
-      "name": "ser-pokrojony",
-      "position": [
-        1.8076095581054688,
-        0.0,
-        -13.608619689941406
-      ],
-      "rotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "scale": [
-        1.0,
-        1.0,
-        1.0
-      ]
-    },
-    {
-      "collider": {
-        "offset": [
-          0.025017067790031433,
-          0.03550614416599274,
-          0.00471259281039238
-        ],
-        "size": [
-          0.13350066542625427,
-          0.04343120753765106,
-          0.05458884313702583
-        ]
-      },
-      "id": 124,
-      "model_path": "assets://models/skladniki/ser/ser-pokrojony.gltf",
-      "name": "ser-pokrojony",
-      "position": [
-        2.9916839599609375,
-        0.0,
-        -15.284481048583984
-      ],
-      "rotation": [
-        0.0,
-        0.0,
-        0.0
-      ],
-      "scale": [
-        1.0,
-        1.0,
-        1.0
       ]
     },
     {
@@ -3701,7 +3497,7 @@
       "name": "podloga",
       "position": [
         -0.7000000476837158,
-        0.8000075817108154,
+        -0.8000075817108154,
         -28.549999237060547
       ],
       "rotation": [
@@ -3750,7 +3546,7 @@
     {
       "animator": {
         "clips": {
-          "Idle": "assets://models/animacje/grzybek/grzybek-stoi.gltf",
+          "Idle": "assets://models/animacje/grzybek/grzybek_idle.gltf",
           "Order": "assets://models/animacje/grzybek/grzybek-zamowienia.gltf",
           "Walk": "assets://models/animacje/grzybek/grzybek_walk.gltf",
           "Wave": "assets://models/animacje/grzybek/grzybek-macha.gltf"
@@ -3764,7 +3560,7 @@
       "name": "Pan Grzybek_1",
       "position": [
         -1.0,
-        0.5,
+        0.7,
         -13.0
       ],
       "rotation": [
@@ -3787,8 +3583,8 @@
       "model_path": "assets://models/wystroj/stolik.gltf",
       "name": "Table_1_2",
       "position": [
-        0.4500005841255188,
-        1.7999999523162842,
+        1.0,
+        0.0,
         -25.0
       ],
       "rotation": [
@@ -3849,9 +3645,9 @@
       "model_path": "assets://models/wystroj/stolik.gltf",
       "name": "Table_1_3",
       "position": [
-        -7.300000190734863,
-        1.7999999523162842,
-        -30.25
+        -7.0,
+        0.0,
+        -29.0
       ],
       "rotation": [
         0.0,
@@ -4368,9 +4164,9 @@
       "model_path": "assets://models/wystroj/stolik.gltf",
       "name": "Table_1_43",
       "position": [
-        5.700000286102295,
-        1.7999999523162842,
-        -30.100000381469727
+        5.0,
+        0.0,
+        -31.0
       ],
       "rotation": [
         0.0,

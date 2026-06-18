@@ -76,6 +76,9 @@ public:
     std::shared_ptr<Model> m_PageModel = nullptr;
     bool m_WasWavingState = false;
 
+    std::unordered_set<glm::ivec2, IVec2Hash> m_StaticObstacles;
+    glm::vec3 m_WaveOffset = glm::vec3(-2.0f, 0.0f, 3.0f);
+
     void OnCreate() override
     {
         auto* tc = GetComponent<TransformComponent>();
@@ -106,6 +109,9 @@ public:
                 [&e](Entity cust) { return cust.id == e.Customer.id; }),
                 m_AwaitingFoodCustomers.end());
             });
+
+        BuildObstacleMap();
+
     }
 
     void OnDestroy() override
@@ -171,14 +177,34 @@ public:
                 Entity station = FindPickupStation();
                 if (!IsValidEntity(station)) { ReturnToIdle(); break; }
 
-                if (FlatDistanceTo(station) <= m_InteractRange) {
-                    m_CurrentState = State::WAVING_AT_STATION;
+                    auto* statTc = GetScene()->GetWorld().GetComponent<TransformComponent>(station);
+
+                    glm::vec3 exactTarget = statTc->GetPosition() + m_WaveOffset;
+
+                    if (FlatDistanceToPosition(exactTarget) <= 0.1f) {
+                        m_CurrentState = State::WAVING_AT_STATION;
+
+                        auto* tc = GetComponent<TransformComponent>();
+                        if (tc) {
+                            glm::vec3 lookDir = statTc->GetPosition() - tc->GetPosition();
+                            lookDir.y = 0.0f;
+
+                            if (glm::length(lookDir) > 0.001f) {
+                                lookDir = glm::normalize(lookDir);
+
+                                float targetAngle = glm::degrees(std::atan2(lookDir.x, lookDir.z));
+
+                                targetAngle += 270.0f;
+
+                                tc->SetRotation({ 0.0f, targetAngle, 0.0f });
+                            }
+                        }
+                    }
+                    else {
+                        MoveTowardsWaypoint(ts);
+                    }
                 }
-                else {
-                    MoveTowardsWaypoint(ts);
-                }
-            }
-            break;
+                break;
 
         case State::WAVING_AT_STATION:
             PlayAnimation("Wave");
@@ -529,9 +555,10 @@ private:
             if (!IsValidEntity(station)) return;
             auto* statTc = GetScene()->GetWorld().GetComponent<TransformComponent>(station);
             if (!statTc) return;
-            exactTargetPos = statTc->GetPosition();
+            exactTargetPos = statTc->GetPosition() + m_WaveOffset;
             targetCell = GridSystem::WorldToCell(exactTargetPos);
-            isObstacle = true;
+
+            isObstacle = false;
         }
         else if (m_CurrentState == State::RETURNING)
         {
@@ -632,39 +659,7 @@ private:
 
     bool IsWalkable(glm::ivec2 cell)
     {
-        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
-        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
-
-        if (!transforms || !tags) return true;
-
-        for (size_t i = 0; i < transforms->dense.size(); ++i)
-        {
-            glm::ivec2 entityCell = GridSystem::WorldToCell(transforms->dense[i].GetPosition());
-
-            if (entityCell == cell)
-            {
-                Entity e = transforms->reverse[i];
-                auto* tagComp = tags->Get(e);
-                if (tagComp)
-                {
-                    std::string t = tagComp->Tag;
-                    if (t.find("Table") != std::string::npos ||
-                        t.find("Tasma") != std::string::npos ||
-                        t.find("tasma") != std::string::npos ||
-                        t.find("Chair") != std::string::npos ||
-                        t.find("krzeslo") != std::string::npos ||
-                        t.find("Krzeslo") != std::string::npos ||
-                        t.find("budka") != std::string::npos ||
-                        t.find("naroznik") != std::string::npos ||
-                        t.find("PlateSpawner") != std::string::npos ||
-                        t.find("Garnek") != std::string::npos)
-                    {
-                        return false;
-                    }
-                }
-            }
-        }
-        return true;
+        return m_StaticObstacles.find(cell) == m_StaticObstacles.end();
     }
 
     void SwapModel(bool usePageModel)
@@ -677,6 +672,72 @@ private:
         }
         else if (!usePageModel && m_OriginalModel) {
             meshComp->ModelPtr = m_OriginalModel;
+        }
+    }
+
+    void BuildObstacleMap()
+    {
+        m_StaticObstacles.clear();
+
+        auto& world = GetScene()->GetWorld();
+        auto* transforms = world.GetComponentVector<TransformComponent>();
+        auto* tags = world.GetComponentVector<TagComponent>();
+        auto* rels = world.GetComponentVector<RelationshipComponent>();
+
+        if (!transforms || !tags) return;
+
+        for (size_t i = 0; i < transforms->dense.size(); ++i)
+        {
+            Entity e = transforms->reverse[i];
+            auto* tagComp = tags->Get(e);
+
+            if (tagComp)
+            {
+                std::string t = tagComp->Tag;
+                if (t.find("Table") != std::string::npos ||
+                    t.find("Tasma") != std::string::npos ||
+                    t.find("tasma") != std::string::npos ||
+                    t.find("Chair") != std::string::npos ||
+                    t.find("krzeslo") != std::string::npos ||
+                    t.find("Krzeslo") != std::string::npos ||
+                    t.find("wydawka") != std::string::npos ||
+                    t.find("Wydawka") != std::string::npos ||
+                    t.find("naroznik") != std::string::npos ||
+                    t.find("PlateSpawner") != std::string::npos ||
+                    t.find("Garnek") != std::string::npos)
+                {
+                    glm::vec3 globalPos = transforms->dense[i].GetPosition();
+
+                    if (rels)
+                    {
+                        auto* relComp = rels->Get(e);
+                        if (relComp && relComp->Parent != std::numeric_limits<std::size_t>::max())
+                        {
+                            for (size_t j = 0; j < transforms->dense.size(); ++j)
+                            {
+                                if (transforms->reverse[j].id == relComp->Parent)
+                                {
+                                    globalPos += transforms->dense[j].GetPosition();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    glm::ivec2 entityCell = GridSystem::WorldToCell(globalPos);
+
+                    if (t.find("wydawka") != std::string::npos || t.find("Wydawka") != std::string::npos)
+                    {
+                        m_StaticObstacles.insert(entityCell);
+                        m_StaticObstacles.insert(entityCell + glm::ivec2(1, 0));
+                        m_StaticObstacles.insert(entityCell + glm::ivec2(-1, 0));
+                    }
+                    else
+                    {
+                        m_StaticObstacles.insert(entityCell);
+                    }
+                }
+            }
         }
     }
 };
