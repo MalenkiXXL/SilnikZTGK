@@ -16,6 +16,7 @@
 #include "CookingStation/Core/Physics.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
+#include <cmath> // Potrzebne do sin() przy trzęsieniu
 
 void GameGuiLayer::OnAttach()
 {
@@ -149,6 +150,18 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
 {
     if (!iconTex) return;
 
+    float shakeOffsetX = 0.0f;
+    glm::vec4 textColor = { 1.0f, 0.95f, 0.3f, 1.0f }; // Domyślny złoty kolor
+    bool isWarning = false;
+
+    // --- KIEDY GRACZ PROBUJE ZAKUPIC A NIE MA SRODKOW ---
+    if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->m_MoneyWarningTimer > 0.0f) {
+        isWarning = true;
+        // Obliczamy przesunięcie trzęsienia za pomocą fali sinus
+        shakeOffsetX = std::sin(GameManagerScript::s_Instance->m_MoneyWarningTimer * 40.0f) * (6.0f * baseScale);
+        textColor = { 0.75f, 0.35f, 0.35f, 1.0f }; // Kolor tekstu: Czerwony
+    }
+
     float coinH = 80.0f * baseScale;
     glm::vec2 coinSize = { coinH, coinH };
     float textWidth = Gui::MeasureTextWidth(text, textScale);
@@ -156,19 +169,32 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
     float baselineOffset = 32.0f * 0.8f * textScale;
     float textCenterY = textPos.y + baselineOffset - (textHeight * 0.5f);
     float spacing = 8.0f * baseScale;
-    glm::vec2 coinPos = { textPos.x - coinSize.x - spacing, textCenterY - (coinSize.y * 0.5f) };
+    
+    // Dodajemy shakeOffsetX do wektorów pozycjonowania chmurki i monety
+    glm::vec2 coinPos = { textPos.x - coinSize.x - spacing + shakeOffsetX, textCenterY - (coinSize.y * 0.5f) };
 
     float paddingX = 45.0f * baseScale;
     float paddingY = 30.0f * baseScale;
     glm::vec2 cloudSize = { coinSize.x + spacing + textWidth + (paddingX * 2.0f), std::max(coinSize.y, textHeight) + (paddingY * 2.0f) };
     glm::vec2 cloudPos = { coinPos.x - paddingX, textCenterY - (cloudSize.y * 0.5f) };
 
-    BubblyUI::DrawBubblyImage(m_BubblyStates, "CloudIcon", m_CoinCloudIcon, cloudPos, cloudSize, dt, false, 1.05f, false);
-    BubblyUI::DrawBubblyImage(m_BubblyStates, "CoinIcon", iconTex, coinPos, coinSize, dt, false, 1.05f, false);
+    if (isWarning) {
+        // Jeśli jest błąd, rysujemy klasyczne quady z czerwonym tintem
+        if (m_CoinCloudIcon)
+            Renderer2D::DrawQuad(cloudPos, cloudSize, m_CoinCloudIcon, { 0.95f, 0.85f, 0.85f, 0.95f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        Renderer2D::DrawQuad(coinPos, coinSize, iconTex, { 0.75f, 0.35f, 0.35f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    } else {
+        // Klasyczne animacje
+        BubblyUI::DrawBubblyImage(m_BubblyStates, "CloudIcon", m_CoinCloudIcon, cloudPos, cloudSize, dt, false, 1.05f, false);
+        BubblyUI::DrawBubblyImage(m_BubblyStates, "CoinIcon", iconTex, coinPos, coinSize, dt, false, 1.05f, false);
+    }
 
+    // Dodajemy shake również dla renderowania samego tekstu
+    float textDrawX = textPos.x + shakeOffsetX;
     float textDrawY = coinPos.y + (coinSize.y * 0.5f) - baselineOffset + (textHeight * 0.25f);
-    Gui::DrawGuiText(text, { std::floor(textPos.x + 3.0f), std::floor(textDrawY + 3.0f) }, textScale, { 0.0f, 0.0f, 0.0f, 0.6f });
-    Gui::DrawGuiText(text, { std::floor(textPos.x),        std::floor(textDrawY) }, textScale, { 1.0f, 0.95f, 0.3f, 1.0f });
+    
+    Gui::DrawGuiText(text, { std::floor(textDrawX + 3.0f), std::floor(textDrawY + 3.0f) }, textScale, { 0.0f, 0.0f, 0.0f, 0.6f });
+    Gui::DrawGuiText(text, { std::floor(textDrawX),        std::floor(textDrawY) }, textScale, textColor);
 }
 
 void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt)
@@ -385,6 +411,11 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
     if (m_CoinIcon) {
+        // Aktualizacja timera w dół, by trzęsienie po czasie się skończyło
+        if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->m_MoneyWarningTimer > 0.0f) {
+            GameManagerScript::s_Instance->m_MoneyWarningTimer -= dt;
+        }
+
         if (m_LastMoney == -1 && GameManagerScript::s_Instance)
             m_CurrentMoney = m_LastMoney = GameManagerScript::s_Instance->GetMoney();
         m_MoneyStr = std::to_string(m_CurrentMoney);

@@ -9,7 +9,7 @@
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
 #include "CookingStation/Scene/SceneManager.h"
-#include "CookingStation/Scripts/Managers/GameManagerScript.h" // POTRZEBNE DO PIENIÊDZY
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include <spdlog/spdlog.h>
 #include <GLFW/glfw3.h>
 
@@ -17,11 +17,11 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.clear();
     m_CoinIcon = coinIcon;
 
-    // NOWE: Ustawienie konkretnych cen dla maszyn (np. 250, 100, 300, 500)
-    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   250 });
-    m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/Flour.png"), 100 });
-    m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/pot.png"),   300 });
-    m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  500 });
+    // Ustawienie konkretnych cen dla maszyn 
+    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   100 });
+    m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/Flour.png"), 0 });
+    m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/pot.png"),   0 });
+    m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  0 });
 }
 
 void BuildModePanel::Activate() {
@@ -123,9 +123,11 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
     m_SlideY += (targetSlide - m_SlideY) * std::min(dt * 14.0f, 1.0f);
     if (m_SlideY <= 0.01f) return;
 
-    const float panelH = 200.0f * baseScale; // Podwy¿szony pod ceny
+    // Wysokoœæ panelu
+    const float panelH = 200.0f * baseScale;
     float panelY = gameY + gameHeight - panelH * m_SlideY;
 
+    // T³o panelu
     auto bgTex = AssetManager::GetTexture("assets://UI/buildBackground.png");
     if (bgTex && bgTex->GetRendererID() != 0) {
         Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, panelH }, bgTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
@@ -138,11 +140,12 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
     const float iconH = 80.0f * baseScale;
     const float iconW = iconH;
     const float spacing = 50.0f * baseScale;
+
     const int count = (int)m_MachineEntries.size();
     const float totalW = count * iconW + (count - 1) * spacing;
     const float startX = gameX + (gameWidth - totalW) * 0.5f;
 
-    const float iconY = panelY + (panelH - iconH) * 0.5f - 15.0f * baseScale;
+    const float iconY = panelY + (panelH - iconH) * 0.5f - 5.0f * baseScale;
 
     glm::vec2 mouse = Gui::GetMappedMousePos();
     int currentMoney = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetMoney() : 0;
@@ -152,45 +155,65 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         const float iy = iconY;
 
         auto& entry = m_MachineEntries[i];
-        bool canAfford = currentMoney >= entry.Price; // Sprawdzenie ekonomii
+        bool canAfford = currentMoney >= entry.Price;
 
         const bool inIcon = mouse.x >= ix && mouse.x <= ix + iconW && mouse.y >= iy && mouse.y <= iy + iconH;
         const bool isHeld = (m_HeldMachineIndex == i);
 
-        glm::vec4 bg = isHeld ? glm::vec4(0.30f, 0.60f, 1.00f, 0.50f) : (inIcon ? glm::vec4(1.00f, 1.00f, 1.00f, 0.18f) : glm::vec4(1.00f, 1.00f, 1.00f, 0.00f));
+        glm::vec4 iconColor = { 1.0f, 1.0f, 1.0f, 1.0f };
 
-        // Zabarwienie w tle na czerwono, je¿eli hoverujemy, ale nas nie staæ
-        if (inIcon && !canAfford) {
-            bg = glm::vec4(0.8f, 0.2f, 0.2f, 0.3f);
+        // Szaro-czerwony odcieñ, gdy nas nie staæ
+        glm::vec4 unaffordableColorNormal = { 0.55f, 0.45f, 0.45f, 0.9f };
+        // WyraŸnie bardziej czerwony, gdy najedziemy
+        glm::vec4 unaffordableColorHover = { 0.75f, 0.35f, 0.35f, 0.95f };
+
+        if (canAfford) {
+            if (isHeld) {
+                iconColor = { 0.5f, 0.7f, 1.0f, 1.0f }; // Niebieskawy odcieñ gdy trzymana
+            }
+            else if (inIcon) {
+                iconColor = { 0.8f, 0.8f, 0.8f, 1.0f }; // Przyciemnienie samego kszta³tu na hover
+            }
         }
-
-        if (bg.a > 0.0f) {
-            Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, bg, 8.0f * baseScale);
+        else {
+            if (inIcon) {
+                iconColor = unaffordableColorHover;
+            }
+            else {
+                iconColor = unaffordableColorNormal;
+            }
         }
 
         if (entry.Icon) {
-            glm::vec4 iconColor = canAfford ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : glm::vec4(0.6f, 0.2f, 0.2f, 0.7f);
             Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, entry.Icon, iconColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
 
-        // --- RYSOWANIE CENY Z MONET¥ ---
-        float priceTextScale = 0.55f * baseScale;
+        // Cena i monetka
+        float priceTextScale = 0.8f * baseScale; 
         std::string priceStr = std::to_string(entry.Price);
         float tw = Gui::MeasureTextWidth(priceStr, priceTextScale);
 
-        float coinSize = 24.0f * baseScale;
-        float gap = 5.0f * baseScale;
+        float coinSize = 36.0f * baseScale; 
+        float gap = 6.0f * baseScale;
         float totalPriceW = coinSize + gap + tw;
         float priceStartX = ix + (iconW - totalPriceW) * 0.5f;
-        float priceY = iy + iconH + 10.0f * baseScale;
+        float priceY = iy + iconH + 12.0f * baseScale;
 
-        if (m_CoinIcon) {
-            Renderer2D::DrawQuad({ priceStartX, priceY - 4.0f * baseScale }, { coinSize, coinSize }, m_CoinIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        glm::vec4 coinTint = canAfford ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : (inIcon ? unaffordableColorHover : unaffordableColorNormal);
+
+        if (m_CoinIcon && m_CoinIcon->GetRendererID() != 0) {
+            Renderer2D::DrawQuad({ priceStartX, priceY - 6.0f * baseScale }, { coinSize, coinSize }, m_CoinIcon, coinTint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        }
+        else {
+            Renderer2D::DrawQuad({ priceStartX, priceY - 6.0f * baseScale }, { coinSize, coinSize }, coinTint, coinSize * 0.5f);
         }
 
-        glm::vec4 priceColor = canAfford ? glm::vec4(1.0f, 0.95f, 0.3f, 1.0f) : glm::vec4(0.9f, 0.1f, 0.1f, 1.0f);
+		// Kolor tekstu : fioletowy gdy nas staæ, przyciemniony czerwony gdy nie
+        glm::vec4 affordableTextColor = { 144.0f / 255.0f, 94.0f / 255.0f, 169.0f / 255.0f, 1.0f };
+        glm::vec4 priceTextColor = canAfford ? affordableTextColor : coinTint;
+
         Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap + 1.5f * baseScale, priceY + 1.5f * baseScale }, priceTextScale, { 0.0f, 0.0f, 0.0f, 0.8f });
-        Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap, priceY }, priceTextScale, priceColor);
+        Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap, priceY }, priceTextScale, priceTextColor);
 
         // Wybór maszyny tylko gdy gracza staæ
         if (inIcon && m_IsActive) {
@@ -202,6 +225,10 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
                 }
                 else {
                     spdlog::warn("BuildMode: Nie stac cie na te maszyne!");
+                    // WYSY£ANIE SYGNA£U DO GAMEMANAGERSCRIPT
+                    if (GameManagerScript::s_Instance) {
+                        GameManagerScript::s_Instance->TriggerMoneyWarning();
+                    }
                 }
             }
         }
@@ -388,10 +415,14 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
             m_HeldMachineIndex = -1;
         }
         else {
-            // Sytuacja ekstremalna (np. klient zabra³ kasê podczas namyœlania siê)
             for (auto& [ent, _] : m_PreviewGroup) world.GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
             m_PreviewGroup.clear();
             m_HeldMachineIndex = -1;
+
+            // WYSY£ANIE SYGNA£U DO GAMEMANAGERSCRIPT 
+            if (GameManagerScript::s_Instance) {
+                GameManagerScript::s_Instance->TriggerMoneyWarning();
+            }
         }
     }
     m_JustSelectedFromPanel = false;
