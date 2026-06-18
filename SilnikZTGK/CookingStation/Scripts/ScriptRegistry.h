@@ -16,6 +16,7 @@
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
 #include "CookingStation/Scripts/SteamEmitterScript.h"
 #include "CookingStation/Scripts/DustEmitterScript.h"
+#include "CookingStation/Scripts/PoofEmitterScript.h"
 #include "CookingStation/Scripts/Delivery/DeliveryCarScript.h"
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Scripts/Quests/DeliveryBoothScript.h"
@@ -71,6 +72,7 @@ public:
         Register<CustomerScript>("CustomerScript");
         Register<SteamEmitterScript>("SteamEmitterScript");
         Register<DustEmitterScript>("DustEmitterScript");
+        Register<PoofEmitterScript>("PoofEmitterScript");
         Register<DeliveryCarScript>("DeliveryCarScript");
         Register<GameManagerScript>("GameManagerScript");
         Register<PackageScript>("PackageScript");

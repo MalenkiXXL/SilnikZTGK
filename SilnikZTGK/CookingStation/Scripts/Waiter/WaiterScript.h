@@ -5,6 +5,7 @@
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Renderer/Model.h"
+#include "CookingStation/Core/AudioEngine.h"
 #include <spdlog/spdlog.h>
 #include <vector>
 #include <queue>

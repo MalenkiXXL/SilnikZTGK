@@ -14,11 +14,11 @@ enum class DeliveryState {
 class DeliveryCarScript : public ScriptableEntity
 {
 public:
-    static inline const glm::vec3 m_StartPos = { -17.0f, 5.0f, 100.0f };
+    static inline const glm::vec3 m_StartPos = { -18.0f, 5.0f, 100.0f };
 
     DeliveryState m_State = DeliveryState::DRIVING_IN;
-    glm::vec3 m_DropPos  = { -17.0f, 5.0f, 5.0f };
-    glm::vec3 m_ExitPos  = { -17.0f, 5.0f, -120.0f };
+    glm::vec3 m_DropPos  = { -18.0f, 5.0f, 5.0f };
+    glm::vec3 m_ExitPos  = { -18.0f, 5.0f, -120.0f };
 
     float m_Speed = 8.0f;
     float m_AnimationTimer = 0.0f;

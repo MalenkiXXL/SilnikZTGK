@@ -2,6 +2,7 @@
 #define SILNIKZTGK_PACKAGESCRIPT_H
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Scripts/PoofEmitterScript.h"
 
 class PackageScript : public ScriptableEntity{
 public:
@@ -40,6 +41,36 @@ public:
     void OnUpdate(Timestep ts) override {
         m_TimeAlive += (float)ts;
 
+        if (m_IsPoofing)
+        {
+            m_PoofTimer -= ts.GetSeconds();
+
+            if (m_PoofTimer < 1.7f)
+            {
+                auto* mesh = GetComponent<MeshComponent>();
+
+                if (mesh && mesh->ModelPtr != nullptr)
+                {
+                    mesh->ModelPtr = nullptr;
+
+                    auto* nsc = GetComponent<NativeScriptComponent>();
+                    if (nsc) {
+                        for (auto& s : nsc->Scripts) {
+                            if (s.Name == "PoofEmitterScript" && s.Instance) {
+                                auto* emitter = static_cast<ParticleEmitterScript*>(s.Instance);
+                                emitter->Stop();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (m_PoofTimer <= 0.0f)
+            {
+                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
+            }
+        }
         auto* transform = GetComponent<TransformComponent>();
         auto* mesh = GetComponent<MeshComponent>();
 
@@ -85,6 +116,12 @@ public:
     IngredientType getType() const;
     int getIngredientAmount() const { return m_IngredientAmount; }
 
+    void OnHoverCursor() override {
+        m_IsHovered = true;
+    }
+
+    void StartPoof();
+
 private:
     float m_TimeAlive = 0.0f;
     bool m_IsHovered = false;
@@ -99,6 +136,10 @@ private:
 
     IngredientType m_Type = IngredientType::Tomato;
     int m_IngredientAmount = 5;
+
+    bool m_IsPoofing = false;
+    float m_PoofTimer = 0.0f;
+
 };
 
 

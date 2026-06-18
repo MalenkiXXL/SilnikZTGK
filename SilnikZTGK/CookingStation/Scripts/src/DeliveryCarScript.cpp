@@ -36,7 +36,9 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             glm::vec3 dir = m_DropPos - currentPos;
             float dist = glm::length(dir);
 
-            if (dist < 0.1f)
+            float stepDistance = m_Speed * (float)ts.GetSeconds();
+
+            if (dist < stepDistance)
             {
                 transform->SetPosition(m_DropPos);
 
@@ -144,8 +146,9 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
         {
             glm::vec3 dir = m_ExitPos - currentPos;
             float dist = glm::length(dir);
+            float stepDistance = m_Speed * (float)ts.GetSeconds();
 
-            if (dist < 0.1f)
+            if (dist < stepDistance)
             {
                 spdlog::info("Dostawczak opuścił mapę. Niszczenie encji...");
                 GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
