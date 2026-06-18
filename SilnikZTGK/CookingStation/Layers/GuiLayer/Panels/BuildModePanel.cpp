@@ -10,8 +10,10 @@
 #include "CookingStation/Scene/PrefabSerializer.h"
 #include "CookingStation/Scene/SceneManager.h"
 #include <spdlog/spdlog.h>
+#include <GLFW/glfw3.h>
+
 void BuildModePanel::Init() {
-    m_MachineEntries.clear(); 
+    m_MachineEntries.clear();
 
     m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png") });
     m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/Flour.png") });
@@ -55,15 +57,27 @@ void BuildModePanel::Deactivate() {
 void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt, bool isBlocked) {
     if (isBlocked && !m_IsActive) return;
 
+    auto buildBtnTex = AssetManager::GetTexture("assets://UI/buildModeButton.png");
+
     float bookCloudH = 210.0f * baseScale * 1.3f;
-    glm::vec2 baseSize = { 180.0f * baseScale, 70.0f * baseScale };
-    glm::vec2 basePos = { gameX + 14.0f * baseScale, gameY + bookCloudH + 8.0f * baseScale };
+
+    // Ustawiamy docelow¹ wysokoœæ przycisku powiêkszon¹ 1.8 raza (85.0f * 1.8f = 153.0f)
+    float btnHeight = 153.0f * baseScale;
+    glm::vec2 baseSize = { btnHeight * 2.5f, btnHeight }; // Opcja zapasowa, gdyby obrazek siê nie za³adowa³
+
+    if (buildBtnTex && buildBtnTex->GetRendererID() != 0) {
+        float aspect = (float)buildBtnTex->GetWidth() / (float)buildBtnTex->GetHeight();
+        baseSize = { btnHeight * aspect, btnHeight };
+    }
+
+    // TUTAJ ZMIANA: Zwiêkszona wartoœæ dla offsetu X (z 14.0f na 35.0f), by przesun¹æ przycisk w prawo
+    glm::vec2 basePos = { gameX + 35.0f * baseScale, gameY + bookCloudH + 8.0f * baseScale };
 
     glm::vec2 mouse = Gui::GetMappedMousePos();
     bool inBounds = mouse.x >= basePos.x && mouse.x <= basePos.x + baseSize.x &&
         mouse.y >= basePos.y && mouse.y <= basePos.y + baseSize.y;
 
-    float targetScale = inBounds ? 1.08f : 1.0f; 
+    float targetScale = inBounds ? 1.08f : 1.0f;
     m_ButtonScale += (targetScale - m_ButtonScale) * dt * 15.0f;
 
     glm::vec2 scaledSize = baseSize * m_ButtonScale;
@@ -72,43 +86,74 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
         basePos.y + (baseSize.y - scaledSize.y) * 0.5f
     };
 
-    glm::vec4 bgColor = m_IsActive ? glm::vec4(0.20f, 0.45f, 0.90f, 0.95f) : glm::vec4(0.10f, 0.12f, 0.20f, 0.82f);
-    Renderer2D::DrawQuad(scaledPos, scaledSize, bgColor, 18.0f * baseScale * m_ButtonScale);
+    if (buildBtnTex && buildBtnTex->GetRendererID() != 0) {
+        glm::vec4 tint = inBounds ? glm::vec4(0.85f, 0.85f, 0.85f, 1.0f) : glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
+        if (inBounds && Input::IsMouseButtonPressed(0)) {
+            tint = glm::vec4(0.65f, 0.65f, 0.65f, 1.0f);
+        }
 
-    std::string label = m_IsActive ? "[ BUILD ]" : "Build Mode";
-    float textScale = 0.55f * baseScale * m_ButtonScale;
-    float tw = Gui::MeasureTextWidth(label, textScale);
-    float th = Gui::MeasureTextHeight(label, textScale);
-    glm::vec2 textPos = { scaledPos.x + (scaledSize.x - tw) * 0.5f, scaledPos.y + (scaledSize.y - th) * 0.5f - th * 0.15f };
+        // Jeœli tryb budowy jest w³¹czony, zmieniamy lekko tint na zielonkawy ¿eby to odznaczyæ
+        if (m_IsActive) {
+            tint *= glm::vec4(0.75f, 1.0f, 0.75f, 1.0f);
+        }
 
-    Gui::DrawGuiText(label, { textPos.x + 1.5f, textPos.y + 1.5f }, textScale, { 0.0f, 0.0f, 0.0f, 0.55f });
-    Gui::DrawGuiText(label, textPos, textScale, m_IsActive ? glm::vec4(0.85f, 0.95f, 1.00f, 1.0f) : glm::vec4(0.70f, 0.80f, 1.00f, 1.0f));
+        Renderer2D::DrawQuad(scaledPos, scaledSize, buildBtnTex->GetRendererID(), tint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    }
+    else {
+        // Zapasowe renderowanie przycisku bez tekstury (fallback)
+        glm::vec4 bgColor = m_IsActive ? glm::vec4(0.20f, 0.45f, 0.90f, 0.95f) : glm::vec4(0.10f, 0.12f, 0.20f, 0.82f);
+        Renderer2D::DrawQuad(scaledPos, scaledSize, bgColor, 18.0f * baseScale * m_ButtonScale);
+
+        std::string label = m_IsActive ? "[ BUILD ]" : "Build Mode";
+        float textScale = 0.55f * baseScale * m_ButtonScale;
+        float tw = Gui::MeasureTextWidth(label, textScale);
+        float th = Gui::MeasureTextHeight(label, textScale);
+        glm::vec2 textPos = { scaledPos.x + (scaledSize.x - tw) * 0.5f, scaledPos.y + (scaledSize.y - th) * 0.5f - th * 0.15f };
+
+        Gui::DrawGuiText(label, { textPos.x + 1.5f, textPos.y + 1.5f }, textScale, { 0.0f, 0.0f, 0.0f, 0.55f });
+        Gui::DrawGuiText(label, textPos, textScale, m_IsActive ? glm::vec4(0.85f, 0.95f, 1.00f, 1.0f) : glm::vec4(0.70f, 0.80f, 1.00f, 1.0f));
+    }
 
     if (inBounds) {
         Input::SetUICaptureMouse(true);
         if (Input::IsMouseButtonJustPressed(0)) Toggle();
     }
 }
+
 void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
     float targetSlide = m_IsActive ? 1.0f : 0.0f;
     m_SlideY += (targetSlide - m_SlideY) * std::min(dt * 14.0f, 1.0f);
     if (m_SlideY <= 0.01f) return;
 
-    const float panelH = 130.0f * baseScale;
+    // Wysokoœæ panelu musi byæ odrobinê wiêksza, by zmieœciæ 2x wiêksz¹ monetê
+    const float panelH = 180.0f * baseScale;
     float panelY = gameY + gameHeight - panelH * m_SlideY;
 
-    Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, panelH }, { 0.06f, 0.08f, 0.14f, 0.94f }, 0.0f);
-    Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, 2.0f * baseScale }, { 0.3f, 0.55f, 1.0f, 0.7f }, 0.0f);
+    // --- RYSOWANIE T£A PANELU Z OBRAZKA ---
+    auto bgTex = AssetManager::GetTexture("assets://UI/buildBackground.png");
+    if (bgTex && bgTex->GetRendererID() != 0) {
+        Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, panelH }, bgTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    }
+    else {
+        // Fallback jeœli obrazka nie ma
+        Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, panelH }, { 0.06f, 0.08f, 0.14f, 0.94f }, 0.0f);
+        Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, 2.0f * baseScale }, { 0.3f, 0.55f, 1.0f, 0.7f }, 0.0f);
+    }
 
     const float iconH = 80.0f * baseScale;
     const float iconW = iconH;
-    const float spacing = 28.0f * baseScale;
+    const float spacing = 40.0f * baseScale; // Odstêp miêdzy maszynami
+    float coinSize = 70.0f * baseScale;      // Zmienione z 35 na 70! (2x wiêksze)
+
     const int count = (int)m_MachineEntries.size();
     const float totalW = count * iconW + (count - 1) * spacing;
     const float startX = gameX + (gameWidth - totalW) * 0.5f;
-    const float iconY = panelY + (panelH - iconH) * 0.5f;
+
+    // Obliczamy idealny œrodek dla grupy "ikona + moneta" w pionie, ¿eby nigdzie nie obcina³o obrazka
+    const float iconY = panelY + (panelH - iconH - coinSize - 8.0f * baseScale) * 0.5f;
 
     glm::vec2 mouse = Gui::GetMappedMousePos();
+    auto coinTex = AssetManager::GetTexture("assets://UI/coin.png");
 
     for (int i = 0; i < count; ++i) {
         const float ix = startX + i * (iconW + spacing);
@@ -117,17 +162,42 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         const bool inIcon = mouse.x >= ix && mouse.x <= ix + iconW && mouse.y >= iy && mouse.y <= iy + iconH;
         const bool isHeld = (m_HeldMachineIndex == i);
 
-        glm::vec4 bg = isHeld ? glm::vec4(0.30f, 0.60f, 1.00f, 0.50f) : (inIcon ? glm::vec4(1.00f, 1.00f, 1.00f, 0.18f) : glm::vec4(1.00f, 1.00f, 1.00f, 0.07f));
-        Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, bg, 8.0f * baseScale);
+        glm::vec4 bg = isHeld ? glm::vec4(0.30f, 0.60f, 1.00f, 0.50f) : (inIcon ? glm::vec4(1.00f, 1.00f, 1.00f, 0.18f) : glm::vec4(1.00f, 1.00f, 1.00f, 0.00f)); // Transparentne jeœli nie hoverujemy
+        if (bg.a > 0.0f) {
+            Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, bg, 8.0f * baseScale);
+        }
 
         auto& entry = m_MachineEntries[i];
         if (entry.Icon) {
             Renderer2D::DrawQuad({ ix, iy }, { iconW, iconH }, entry.Icon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
 
-        float ls = 0.42f * baseScale;
-        float lw = Gui::MeasureTextWidth(entry.Label, ls);
-        Gui::DrawGuiText(entry.Label, { ix + (iconW - lw) * 0.5f, iy + iconH + 5.0f * baseScale }, ls, { 0.80f, 0.90f, 1.00f, 1.0f });
+        // --- RYSOWANIE MONETY ---
+        float coinX = ix + (iconW - coinSize) * 0.5f; // Wyœrodkowana dok³adnie pod ikon¹
+        float coinY = iy + iconH + 8.0f * baseScale;
+
+        if (coinTex && coinTex->GetRendererID() != 0) {
+            Renderer2D::DrawQuad({ coinX, coinY }, { coinSize, coinSize }, coinTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        }
+        else {
+            // Zapasowe ¿ó³te kó³ko, jeœli nie wczyta siê moneta
+            Renderer2D::DrawQuad({ coinX, coinY }, { coinSize, coinSize }, { 1.0f, 0.8f, 0.0f, 1.0f }, coinSize * 0.5f);
+        }
+
+        // --- RYSOWANIE KOSZTU ---
+        std::string costStr = "30";
+        float costScale = 0.85f * baseScale; // Tekst odpowiednio powiêkszony pod du¿¹ monetê
+        float cw = Gui::MeasureTextWidth(costStr, costScale);
+        float ch = Gui::MeasureTextHeight(costStr, costScale);
+
+        float coinTextX = coinX + (coinSize - cw) * 0.5f;
+        // ZMIANA: Skorygowane wyrównanie w pionie - odejmujemy lekk¹ poprawkê bazy, zamiast spychaæ w dó³
+        float coinTextY = coinY + (coinSize - ch) * 0.5f - ch * 0.15f;
+
+        // Delikatny cieñ tekstu dla lepszej czytelnoœci
+        Gui::DrawGuiText(costStr, { coinTextX + 1.5f * baseScale, coinTextY + 1.5f * baseScale }, costScale, { 0.0f, 0.0f, 0.0f, 0.8f });
+        // G³ówny tekst
+        Gui::DrawGuiText(costStr, { coinTextX, coinTextY }, costScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
         if (inIcon && m_IsActive) {
             Input::SetUICaptureMouse(true);
@@ -184,9 +254,19 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
     auto* camera = activeScene->GetCamera();
     if (!camera) return;
 
+    // --- RÊCZNE PRZESUWANIE KAMERY (WASD) W TRYBIE BUDOWANIA ---
+    float moveSpeed = 0.35f * (camera->Zoom / 45.0f); // Dopasowujemy prêdkoœæ do zooma
+    if (Input::IsKeyPressed(GLFW_KEY_W)) camera->Position.z -= moveSpeed;
+    if (Input::IsKeyPressed(GLFW_KEY_S)) camera->Position.z += moveSpeed;
+    if (Input::IsKeyPressed(GLFW_KEY_A)) camera->Position.x -= moveSpeed;
+    if (Input::IsKeyPressed(GLFW_KEY_D)) camera->Position.x += moveSpeed;
+    // -----------------------------------------------------------
+
     float aspect = viewW / (viewH > 0.0f ? viewH : 1.0f);
     float orthoSize = 10.0f * (camera->Zoom / 45.0f);
     glm::mat4 proj = glm::ortho(-aspect * orthoSize, aspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+
+    // Poniewa¿ przed chwil¹ zmieniliœmy Position, GetViewMatrix wygeneruje od razu aktualn¹ macierz
     glm::mat4 view = camera->GetViewMatrix();
 
     Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, viewW, viewH, proj, view);
@@ -310,12 +390,17 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
 }
 
 void BuildModePanel::DrawOverlay(float gameW, float gameH, float baseScale) {
-    Renderer2D::DrawQuad({ 0.0f, 0.0f }, { gameW, gameH }, { 0.05f, 0.05f, 0.05f, 0.15f }, 0.0f);
-    auto pausedTextTex = AssetManager::GetTexture("assets://UI/pausedText.png");
+    auto pausedTextTex = AssetManager::GetTexture("assets://UI/buildMode.png");
     if (pausedTextTex && pausedTextTex->GetRendererID() != 0) {
         float aspect = (float)pausedTextTex->GetWidth() / (float)pausedTextTex->GetHeight();
-        glm::vec2 tSize = { gameW * 0.35f, (gameW * 0.35f) / aspect };
-        Renderer2D::DrawQuad({ (gameW - tSize.x) * 0.5f, gameH * 0.08f }, tSize, pausedTextTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+        // Zmniejszony napis PAUSED (z 0.35 na 0.20 szerokoœci ekranu)
+        glm::vec2 tSize = { gameW * 0.20f, (gameW * 0.20f) / aspect };
+
+        // Przesuniêty ni¿ej (z gameH * 0.08f na gameH * 0.18f)
+        float yPos = gameH * 0.18f;
+
+        Renderer2D::DrawQuad({ (gameW - tSize.x) * 0.5f, yPos }, tSize, pausedTextTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     }
 }
 
