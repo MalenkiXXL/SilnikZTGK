@@ -7,9 +7,7 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-# ==========================================
 # KONFIGURACJA I BEZPIECZNE KLUCZE
-# ==========================================
 load_dotenv()
 
 api_my_key = os.getenv("SERPAPI_KEY")
@@ -28,9 +26,7 @@ ALLOWED_DISHES = [
 
 client = genai.Client(api_key=gemini_key)
 
-# ==========================================
 # 1. FUNKCJE POMOCNICZE
-# ==========================================
 def remove_polish_chars(text):
     """Fallback chroniący silnik C++ przed błędami kodowania w stringach."""
     replacements = {'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n', 'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z',
@@ -52,7 +48,6 @@ def get_news():
         params = {
             "engine": "google_news",
             "q": "(bizarre OR weird OR funny OR unexpected OR lifestyle) -politics -election -stock -market -economy -finance -government",
-            "gl": "us", 
             "hl": "en", 
             "api_key": api_my_key
         }
@@ -66,16 +61,14 @@ def get_news():
         print(f"[Błąd API] Nie udało się pobrać newsów: {e}")
         return None
 
-# ==========================================
 # 2. GENERATOR (LLM)
-# ==========================================
 def generate_quests(news_context, feedback=""):
     print("[Generator] Tworzenie wstepnego zadania...")
     feedback_instruction = f"\nLAST ATTEMPT REJECTED. FIX THESE ERRORS: {feedback}\n" if feedback else ""
 
     prompt = f"""
     You are a brilliant comedy writer for an absurd, cozy cooking game (Monty Python style).
-    You will receive a list of real news headlines. Use them as inspiration to generate exactly 5 culinary quests in English.
+    You will receive a list of real news headlines. Use them as inspiration to generate exactly 15 culinary quests in English.
     
     TONE GUIDELINES:
     - The humor must make logical sense within its own absurd premise.
@@ -85,7 +78,7 @@ def generate_quests(news_context, feedback=""):
     ENGINE RESTRICTIONS:
     1. Language: English only.
     2. "dish_id" MUST be exactly from this list: {ALLOWED_DISHES}.
-    3. Determine the country of origin of the news event and provide its 2-letter ISO code in "reward_flag" (e.g., "US", "GB", "JP"). If it's space-related or unknown, use "UN".
+    3. "reward_flag" MUST be a 2-letter ISO country code. CRITICAL RULE: You must use at least 10 DIFFERENT country codes across the 15 quests. Do NOT use "US" or "UN" more than twice per batch. If the news origin is unknown, creatively invent a funny international destination for the order!
     4. "reward_coins" must be an integer.
     5. Output valid JSON (an array of objects).
 
@@ -124,9 +117,7 @@ def generate_quests(news_context, feedback=""):
         print(f"[Błąd Generatora] {e}")
         return None
 
-# ==========================================
 # 3. SĘDZIA (LLM-As-A-Judge)
-# ==========================================
 def evaluate_quests_with_judge(quests_json, news_context):
     print("[Sedzia] Trwa ewaluacja semantyczna zadania...")
     
@@ -172,9 +163,7 @@ def evaluate_quests_with_judge(quests_json, news_context):
         print(f"[Blad Sedziego] {e}")
         return {"passed": False, "feedback": "Judge API is not responding."}
 
-# ==========================================
 # 4. GŁÓWNA PĘTLA (Self-Correction Loop)
-# ==========================================
 if __name__ == "__main__":
     print("\n--- INICJALIZACJA SYSTEMU PCG ---")
     
@@ -194,14 +183,12 @@ if __name__ == "__main__":
     while attempts < max_retries:
         print(f"\n--- PRÓBA {attempts + 1}/{max_retries} ---")
         
-        # Generacja
         quests_json_str = generate_quests(news_text, current_feedback)
         if not quests_json_str:
             attempts += 1
             time.sleep(2)
             continue
             
-        # Twarda walidacja Python (Format JSON + Reguły Gry)
         try:
             quests_obj = json.loads(quests_json_str)
             logic_failed = False
@@ -226,7 +213,6 @@ if __name__ == "__main__":
             attempts += 1
             continue
 
-        # Ewaluacja Sędziego
         evaluation = evaluate_quests_with_judge(quests_json_str, news_text)
         
         if evaluation["passed"]:
@@ -238,9 +224,7 @@ if __name__ == "__main__":
             current_feedback = evaluation["feedback"]
             attempts += 1
 
-    # ==========================================
-    # 5. ZAPIS ATOMOWY (Ochrona Silnika ECS)
-    # ==========================================
+    # 5. ZAPIS ATOMOWY
     output_dir = "CookingStation/Assets"
     os.makedirs(output_dir, exist_ok=True)
     final_path = os.path.join(output_dir, "wygenerowane_quests.json")
