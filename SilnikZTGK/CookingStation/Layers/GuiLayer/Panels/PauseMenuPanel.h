@@ -16,6 +16,9 @@ public:
 
 private:
     bool m_IsPaused = false;
+
+    bool m_IsBuildMode = false;
+
     float m_DeltaTime = 0.0f;
 
     float m_SettingsBtnCarrotScale = 1.0f;
