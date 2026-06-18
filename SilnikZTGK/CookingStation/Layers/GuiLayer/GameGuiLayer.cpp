@@ -16,8 +16,7 @@
 #include "CookingStation/Core/Physics.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
-#include <cmath> // Potrzebne do sin() przy trzęsieniu
-
+#include <cmath> 
 void GameGuiLayer::OnAttach()
 {
     m_ActiveScene = SceneManager::GetActiveScene();
@@ -54,8 +53,6 @@ void GameGuiLayer::OnAttach()
     m_AcceptButtonTex = AssetManager::GetTexture("assets://UI/Events/AcceptButton.png");
     m_SkipButtonTex = AssetManager::GetTexture("assets://UI/Events/SkipButton.png");
 
-    // NOWE: Przekazujemy wczytaną ikonę monety do panelu budowania
-    // UWAGA: Trzeba to wywołać po załadowaniu m_CoinIcon!
     m_BuildModePanel.Init(m_CoinIcon);
 
     m_IngredientsCarousel.Init(true);
@@ -151,15 +148,15 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
     if (!iconTex) return;
 
     float shakeOffsetX = 0.0f;
-    glm::vec4 textColor = { 1.0f, 0.95f, 0.3f, 1.0f }; // Domyślny złoty kolor
+    glm::vec4 textColor = { 1.0f, 0.95f, 0.3f, 1.0f };
     bool isWarning = false;
 
-    // --- KIEDY GRACZ PROBUJE ZAKUPIC A NIE MA SRODKOW ---
+
     if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->m_MoneyWarningTimer > 0.0f) {
         isWarning = true;
-        // Obliczamy przesunięcie trzęsienia za pomocą fali sinus
+  
         shakeOffsetX = std::sin(GameManagerScript::s_Instance->m_MoneyWarningTimer * 40.0f) * (6.0f * baseScale);
-        textColor = { 0.75f, 0.35f, 0.35f, 1.0f }; // Kolor tekstu: Czerwony
+        textColor = { 0.75f, 0.35f, 0.35f, 1.0f };
     }
 
     float coinH = 80.0f * baseScale;
@@ -170,7 +167,7 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
     float textCenterY = textPos.y + baselineOffset - (textHeight * 0.5f);
     float spacing = 8.0f * baseScale;
     
-    // Dodajemy shakeOffsetX do wektorów pozycjonowania chmurki i monety
+  
     glm::vec2 coinPos = { textPos.x - coinSize.x - spacing + shakeOffsetX, textCenterY - (coinSize.y * 0.5f) };
 
     float paddingX = 45.0f * baseScale;
@@ -179,17 +176,17 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
     glm::vec2 cloudPos = { coinPos.x - paddingX, textCenterY - (cloudSize.y * 0.5f) };
 
     if (isWarning) {
-        // Jeśli jest błąd, rysujemy klasyczne quady z czerwonym tintem
+     
         if (m_CoinCloudIcon)
             Renderer2D::DrawQuad(cloudPos, cloudSize, m_CoinCloudIcon, { 0.95f, 0.85f, 0.85f, 0.95f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         Renderer2D::DrawQuad(coinPos, coinSize, iconTex, { 0.75f, 0.35f, 0.35f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     } else {
-        // Klasyczne animacje
+       
         BubblyUI::DrawBubblyImage(m_BubblyStates, "CloudIcon", m_CoinCloudIcon, cloudPos, cloudSize, dt, false, 1.05f, false);
         BubblyUI::DrawBubblyImage(m_BubblyStates, "CoinIcon", iconTex, coinPos, coinSize, dt, false, 1.05f, false);
     }
 
-    // Dodajemy shake również dla renderowania samego tekstu
+  
     float textDrawX = textPos.x + shakeOffsetX;
     float textDrawY = coinPos.y + (coinSize.y * 0.5f) - baselineOffset + (textHeight * 0.25f);
     
@@ -215,7 +212,7 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
 
     bool isPlaying = (m_ActiveScene->GetState() == SceneState::Play);
 
-    // 1. Czyszczenie starych/usuniętych klientów
+ 
     for (auto it = m_ActiveOrderTickets.begin(); it != m_ActiveOrderTickets.end(); ) {
         auto* nsc = scripts->Get(*it);
         if (!nsc) {
@@ -243,7 +240,7 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
     float currentY = gameY + (15.0f * baseScale);
     float rightMargin = 20.0f * baseScale;
 
-    // 2. Rysowanie aktywnych kartek
+   
     for (size_t i = 0; i < m_ActiveOrderTickets.size(); ++i) {
         Entity custEntity = m_ActiveOrderTickets[i];
         auto* tagComp = tags->Get(custEntity);
@@ -270,7 +267,7 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
             glm::vec2 ticketSize = GuiUtils::CalculateAspectSize(ticketTex, ticketHeight);
             glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin, currentY };
 
-            // Tło kartki
+            
             Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
             if (custScript) {
@@ -298,7 +295,7 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                     Renderer2D::DrawQuad(iconPos, iconSize, iconToDraw, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
                     if (!isHelper) {
-                        // NOWE: Dynamiczne czytanie ceny z klienta i zamiana jej na tekst
+                     
                         std::string rewardText = std::to_string((int)custScript->OrderPrice);
                         float textScale = isFirst ? (0.75f * baseScale) : (0.55f * baseScale);
                         float textWidth = Gui::MeasureTextWidth(rewardText, textScale);
@@ -357,7 +354,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     bool isPausedBlocked = m_IsGamePaused && !m_BuildModePanel.IsActive();
     bool isPlayMode = !m_IsGamePaused && !m_BuildModePanel.IsActive();
 
-    // hover logic for highlights
+    
     if (isPlayMode && !isBookOpen && m_ActiveScene) {
         auto mousePos = Input::GetMousePosition();
         float mouseX = mousePos.first;
@@ -403,15 +400,14 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
     DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     m_RecipeBookPanel.Draw(gameX, gameY, gameWidth, gameHeight, baseScale, dt, m_IsGamePaused);
-    DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);  // Kartki nad klientami
-    DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);    // Bilety po prawej
+    DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);  
+    DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);  
     DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
     m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
     if (m_CoinIcon) {
-        // Aktualizacja timera w dół, by trzęsienie po czasie się skończyło
         if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->m_MoneyWarningTimer > 0.0f) {
             GameManagerScript::s_Instance->m_MoneyWarningTimer -= dt;
         }
@@ -439,7 +435,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
         std::string fpsText = "FPS: " + std::to_string(s_LastFPS);
         float textScale = 0.65f * baseScale;
-        glm::vec2 textPos = { gameX + 15.0f * baseScale, gameY + 25.0f * baseScale }; // Lewy górny róg
+        glm::vec2 textPos = { gameX + 15.0f * baseScale, gameY + 25.0f * baseScale }; 
 
         Gui::DrawGuiText(fpsText, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.8f });
         Gui::DrawGuiText(fpsText, textPos, textScale, { 0.2f, 0.9f, 0.2f, 1.0f });
@@ -608,12 +604,12 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 
     if (state == QuestEventState::QuestActive)
     {
-        // 1. Ładowanie tekstury w locie (tylko raz)
+        
         static std::shared_ptr<Texture> s_EventCloudTex = AssetManager::GetTexture("assets://UI/Events/EventCloud.png");
         static std::shared_ptr<Texture> s_EventRewardTex = AssetManager::GetTexture("assets://UI/Events/EventReward.png");
         if (!s_EventCloudTex) return;
 
-        // 2. Skalowanie z zachowaniem proporcji nowego pliku
+        
         float cloudW = 300.0f * baseScale;
         float cloudAspect = (float)s_EventCloudTex->GetHeight() / (float)s_EventCloudTex->GetWidth();
         float cloudH = cloudW * cloudAspect;
@@ -623,24 +619,23 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         if (newCloudPos.x + cloudW > gameX + gameWidth - 10.0f) newCloudPos.x = gameX + gameWidth - cloudW - 10.0f;
         if (newCloudPos.y < gameY + 10.0f) newCloudPos.y = gameY + 10.0f;
 
-        // Rysowanie tła nowej chmury
+     
         Renderer2D::DrawQuad(newCloudPos, { cloudW, cloudH }, s_EventCloudTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
-        // Kolory
+        
         glm::vec4 titleColor = { 0.42f, 0.24f, 0.46f, 1.0f };
         glm::vec4 descColor = { 0.56f, 0.37f, 0.66f, 1.0f };
         glm::vec4 circleColor = { 0.58f, 0.35f, 0.65f, 1.0f };
 
-        // Ponieważ mini-chmurka z nagrodą jest dorysowana po lewej stronie obrazka, 
-        // fizyczny środek głównej chmury jest lekko przesunięty w prawo (na oko 55% szerokości całego obrazka).
+        
         float mainCenterX = newCloudPos.x + cloudW * 0.55f;
 
-        // 3. TYTUŁ
+       
         float titleScale = 0.78f * baseScale;
         float titleW = Gui::MeasureTextWidth(activeQuest->Title, titleScale);
         Gui::DrawGuiText(activeQuest->Title, { mainCenterX - titleW * 0.61f, newCloudPos.y + cloudH * 0.24f }, titleScale, titleColor);
 
-        // 4. OPIS (Zawijany tekst)
+     
         float descScale = 0.78f * baseScale;
         float descMaxW = cloudW * 0.75f;
 
@@ -658,7 +653,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
                 if (c == ' ' || ci == desc.size()) {
                     std::string testLine = line.empty() ? word : (line + " " + word);
                     if (Gui::MeasureTextWidth(testLine, descScale) > descMaxW && !line.empty()) {
-                        // Zwróć uwagę: teraz używamy myCustomCenterX zamiast mainCenterX!
+                       
                         Gui::DrawGuiText(line, { myCustomCenterX - Gui::MeasureTextWidth(line, descScale) * 0.5f, curY }, descScale, descColor);
                         curY += descLineH;
                         line = word;
@@ -673,39 +668,37 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
                 }
             }
             if (!line.empty())
-                // Tutaj też zmienione na myCustomCenterX!
+               
                 Gui::DrawGuiText(line, { myCustomCenterX - Gui::MeasureTextWidth(line, descScale) * 0.5f, curY }, descScale, descColor);
         }
 
-        // 5. IKONA POTRAWY (Bez fioletowego tła)
+      
         float slotSize = cloudH * 0.28f;
-        // Ustawiamy niewidzialny slot lekko z lewej strony środka
+        
         glm::vec2 slotPos = { mainCenterX - slotSize * 1.2f, newCloudPos.y + cloudH * 0.58f };
 
-        // Wczytywanie odpowiedniej potrawy!
-        // UWAGA: Upewnij się, że wpisujesz poprawne ścieżki do obrazków potraw!
+        
         std::shared_ptr<Texture> dishIcon = m_QuestionMarkIcon;
-        if (activeQuest->DishID == "pomidorowa")      dishIcon = AssetManager::GetTexture("assets://UI/TomatoSoup.png"); // Podmień ścieżkę!
+        if (activeQuest->DishID == "pomidorowa")      dishIcon = AssetManager::GetTexture("assets://UI/TomatoSoup.png");
         else if (activeQuest->DishID == "kanapka")    dishIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
-        else if (activeQuest->DishID == "kopytka")    dishIcon = AssetManager::GetTexture("assets://UI/Gnocchi.png"); // Podmień ścieżkę!
-        else if (activeQuest->DishID == "babeczka")   dishIcon = AssetManager::GetTexture("assets://UI/Cupcake.png"); // Podmień ścieżkę!
+        else if (activeQuest->DishID == "kopytka")    dishIcon = AssetManager::GetTexture("assets://UI/Gnocchi.png");
+        else if (activeQuest->DishID == "babeczka")   dishIcon = AssetManager::GetTexture("assets://UI/Cupcake.png"); 
 
         if (dishIcon) {
             float iconPadding = slotSize * 0.15f;
             float maxIconSize = slotSize - iconPadding * 2.0f;
 
-            // Zabezpieczenie przed "rozdeptaniem" - pobieramy oryginalne proporcje
+            
             float texAspect = (float)dishIcon->GetWidth() / (float)dishIcon->GetHeight();
             glm::vec2 drawSize = { maxIconSize, maxIconSize };
 
             if (texAspect > 1.0f) {
-                drawSize.y = maxIconSize / texAspect; // Obrazek szerszy niż wyższy
+                drawSize.y = maxIconSize / texAspect; 
             }
             else {
-                drawSize.x = maxIconSize * texAspect; // Obrazek wyższy niż szerszy
+                drawSize.x = maxIconSize * texAspect;
             }
 
-            // Idealne wyśrodkowanie
             glm::vec2 iconPos = {
                 slotPos.x + (slotSize - drawSize.x) * 0.5f,
                 slotPos.y + (slotSize - drawSize.y) * 0.5f
@@ -714,7 +707,6 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
             Renderer2D::DrawQuad(iconPos, drawSize, dishIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
 
-        // 6. LICZNIK POSTĘPU OBOK IKONY (x/y)
         int delivered = GameManagerScript::s_Instance->GetQuestProgress();
         std::string progressStr = std::to_string(delivered) + "/" + std::to_string(activeQuest->Portions);
         float progressScale = 1.25f * baseScale;
@@ -722,7 +714,6 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 
         Gui::DrawGuiText(progressStr, { slotPos.x + slotSize + 10.0f * baseScale, progressY }, progressScale, circleColor);
 
-        // 7. MINI-CHMURKA "REWARD" (Lewy górny róg)
         
         if (s_EventRewardTex) {
             float rewardAspect = (float)s_EventRewardTex->GetWidth() / (float)s_EventRewardTex->GetHeight();
@@ -733,26 +724,21 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 
             Renderer2D::DrawQuad(rewardPos, { rewardW, rewardH }, s_EventRewardTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
-            // Kwota na monecie (z cieniem tak samo jak w menu akceptacji)
             std::string coinsStr = std::to_string(activeQuest->RewardCoins);
             float coinsScale = 0.8f * baseScale;
             float coinsW = Gui::MeasureTextWidth(coinsStr, coinsScale);
 
-            // Te wartości celują w monetę na NOWYM obrazku EventReward.png
             float bakedCoinCenterX = rewardPos.x + rewardW * 0.33f;
             float bakedCoinCenterY = rewardPos.y + rewardH * 0.52f;
 
-            // Najpierw cień, potem właściwy tekst
             Gui::DrawGuiText(coinsStr, { bakedCoinCenterX - coinsW * 0.5f + 1.5f, bakedCoinCenterY + 1.5f }, coinsScale, { 0.0f, 0.0f, 0.0f, 0.6f });
             Gui::DrawGuiText(coinsStr, { bakedCoinCenterX - coinsW * 0.5f, bakedCoinCenterY }, coinsScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-            // Kod kraju pod flagą
             std::string flagText = activeQuest->RewardFlag;
             glm::vec4 flagTextColor = { 0.88f, 0.75f, 0.93f, 1.0f };
             float flagTextScale = 0.8f * baseScale;
             float flagTextW = Gui::MeasureTextWidth(flagText, flagTextScale);
 
-            // Te wartości celują pod flagę na NOWYM obrazku EventReward.png
             float bakedFlagCenterX = rewardPos.x + rewardW * 0.8f;
             float bakedFlagBottomY = rewardPos.y + rewardH * 0.6f;
             Gui::DrawGuiText(flagText, { bakedFlagCenterX - flagTextW * 0.5f, bakedFlagBottomY }, flagTextScale, flagTextColor);
@@ -761,23 +747,18 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         return;
     }
 
-    // --- WaitingForAccept - nowy styl z assetami ---
-// --- WaitingForAccept - nowy styl z assetami ---
     if (!m_QuestCloudTex) return;
 
-    // Szersza chmura, żeby zmieścić wszystko tak jak na referencji
     float cloudW = 500.0f * baseScale;
-    float cloudH = cloudW * (435.0f / 500.0f); // zachowanie oryginalnych proporcji tekstury
+    float cloudH = cloudW * (435.0f / 500.0f); 
 
     glm::vec2 newCloudPos = { boothScreenX - cloudW * 0.5f, boothScreenY - cloudH };
     if (newCloudPos.x < gameX + 10.0f) newCloudPos.x = gameX + 10.0f;
     if (newCloudPos.x + cloudW > gameX + gameWidth - 10.0f) newCloudPos.x = gameX + gameWidth - cloudW - 10.0f;
     if (newCloudPos.y < gameY + 10.0f) newCloudPos.y = gameY + 10.0f;
 
-    // Rysowanie tła chmury
     Renderer2D::DrawQuad(newCloudPos, { cloudW, cloudH }, m_QuestCloudTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
-    // 1. TYTUŁ - Wyśrodkowany, pod "New Event", ciemny fiolet żeby było widać!
     float titleScale = 1.3f * baseScale;
     float titleW = Gui::MeasureTextWidth(activeQuest->Title, titleScale);
     glm::vec4 titleColor = { 0.42f, 0.24f, 0.46f, 1.0f };
@@ -785,7 +766,6 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 
 
 
-    // 2. OPIS - Wyśrodkowany, zawijany tekst
     float descScale = 1.1f * baseScale;
     glm::vec4 descColor = { 0.56f, 0.37f, 0.66f, 1.0f };
     float descMaxW = cloudW * 0.70f;
@@ -802,7 +782,6 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
             if (c == ' ' || ci == desc.size()) {
                 std::string testLine = line.empty() ? word : (line + " " + word);
                 if (Gui::MeasureTextWidth(testLine, descScale) > descMaxW && !line.empty()) {
-                    // Rysujemy wyśrodkowaną linię
                     Gui::DrawGuiText(line, { newCloudPos.x + (cloudW - Gui::MeasureTextWidth(line, descScale)) * 0.5f, curY }, descScale, descColor);
                     curY += descLineH;
                     line = word;
@@ -820,9 +799,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
             Gui::DrawGuiText(line, { newCloudPos.x + (cloudW - Gui::MeasureTextWidth(line, descScale)) * 0.5f, curY }, descScale, descColor);
     }
 
-    // 3. PRZYCISKI - Pełna niezależna kontrola (TERAZ Z ANIMACJĄ HOVERA!)
 
-    // Obliczamy najpierw wymiary BAZOWE (bez powiększenia)
     float acceptScaleFactor = 0.075f;
     float acceptBaseH = cloudH * acceptScaleFactor;
     float acceptAspect = m_AcceptButtonTex ? (float)m_AcceptButtonTex->GetWidth() / (float)m_AcceptButtonTex->GetHeight() : 1.0f;
@@ -835,24 +812,19 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 
     float buttonsCenterY = newCloudPos.y + cloudH * 0.72f;
 
-    // Bazowe pozycje
     glm::vec2 acceptBasePos = { newCloudPos.x + 30.0f * baseScale, buttonsCenterY - acceptBaseH * 0.5f };
     glm::vec2 skipBasePos = { newCloudPos.x + cloudW - skipBaseW - 35.0f * baseScale, buttonsCenterY - skipBaseH * 0.5f };
 
-    // Hit testy sprawdzamy ZAWSZE na bazowych rozmiarach, by uniknąć migotania na krawędziach
     glm::vec2 mouse = Gui::GetMappedMousePos();
     bool acceptHit = (mouse.x >= acceptBasePos.x && mouse.x <= acceptBasePos.x + acceptBaseW && mouse.y >= acceptBasePos.y && mouse.y <= acceptBasePos.y + acceptBaseH);
     bool skipHit = (mouse.x >= skipBasePos.x && mouse.x <= skipBasePos.x + skipBaseW && mouse.y >= skipBasePos.y && mouse.y <= skipBasePos.y + skipBaseH);
 
-    // Zmienne statyczne do zachowania stanu płynnej animacji (interpolacja)
     static float s_accScale = 1.0f;
     static float s_skipScale = 1.0f;
 
-    // ZMIENIONE Z 1.05f NA 1.15f - TERAZ BĘDĄ MOCNO PUCHNĄĆ!
     s_accScale += ((acceptHit ? 1.15f : 1.0f) - s_accScale) * 0.2f;
     s_skipScale += ((skipHit ? 1.15f : 1.0f) - s_skipScale) * 0.2f;
 
-    // Nowe, powiększone wymiary i skorygowana pozycja (rosną od środka)
     float acceptW = acceptBaseW * s_accScale;
     float acceptH = acceptBaseH * s_accScale;
     glm::vec2 acceptPos = acceptBasePos - glm::vec2((acceptW - acceptBaseW) * 0.5f, (acceptH - acceptBaseH) * 0.5f);
@@ -861,10 +833,8 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     float skipH = skipBaseH * s_skipScale;
     glm::vec2 skipPos = skipBasePos - glm::vec2((skipW - skipBaseW) * 0.5f, (skipH - skipBaseH) * 0.5f);
 
-    // DOKŁADNIE TAKA SAMA LOGIKA KOLORÓW JAK W TWOIM MENU:
     glm::vec4 acceptTint = { 1.0f, 1.0f, 1.0f, 1.0f };
     if (acceptHit) {
-        // 0.65f przy wciśnięciu, 0.85f przy samym najechaniu
         acceptTint = Input::IsMouseButtonPressed(0) ? glm::vec4(0.65f, 0.65f, 0.65f, 1.0f) : glm::vec4(0.85f, 0.85f, 0.85f, 1.0f);
     }
 
@@ -878,35 +848,27 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     if (m_SkipButtonTex)
         Renderer2D::DrawQuad(skipPos, { skipW, skipH }, m_SkipButtonTex, skipTint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
-    // 4. LICZNIK POMINIĘĆ
     int skipsLeft = GameManagerScript::s_Instance->GetSkipsLeft();
     std::string skipsStr = "(" + std::to_string(skipsLeft) + ")";
 
-    // Mnożymy bazową wielkość przez s_skipScale, żeby cyfra rosła RAZEM z przyciskiem
     float skipsScale = 0.7f * baseScale * s_skipScale;
     float skipsW = Gui::MeasureTextWidth(skipsStr, skipsScale);
 
-    // Używamy aktualnego, "puchnącego" skipPos i skipW, 
-    // oraz mnożymy przesunięcie w dół (19.0f) przez s_skipScale
     float skipsX = skipPos.x + skipW * 0.63f;
     float skipsY = skipPos.y + (19.0f * baseScale * s_skipScale);
 
     glm::vec4 skipsColor = { 157.0f / 255.0f, 113.0f / 255.0f, 180.0f / 255.0f, 1.0f };
     Gui::DrawGuiText(skipsStr, { skipsX, skipsY }, skipsScale, skipsColor);
 
-    // 5. KWOTA NA MONECIE (TERAZ Z CIENIEM)
     std::string coinsStr = std::to_string(activeQuest->RewardCoins);
     float coinsScale = 0.75f * baseScale;
     float coinsW = Gui::MeasureTextWidth(coinsStr, coinsScale);
     float bakedCoinCenterX = newCloudPos.x + cloudW * 0.40f;
     float bakedCoinCenterY = newCloudPos.y + cloudH * 0.78f;
 
-    // Najpierw rysujemy cień lekko przesunięty w prawo i w dół (kolor czarny, 60% przezroczystości)
     Gui::DrawGuiText(coinsStr, { bakedCoinCenterX - coinsW * 0.5f + 1.5f, bakedCoinCenterY + 1.5f }, coinsScale, { 0.0f, 0.0f, 0.0f, 0.6f });
-    // Potem właściwy tekst "na wierzch"
     Gui::DrawGuiText(coinsStr, { bakedCoinCenterX - coinsW * 0.5f, bakedCoinCenterY }, coinsScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-    // 6. TEKST KRAJU POD FLAGĄ
     std::string flagText = activeQuest->RewardFlag;
     glm::vec4 flagTextColor = { 0.88f, 0.75f, 0.93f, 1.0f };
     float flagTextScale = 0.76f * baseScale;
@@ -915,7 +877,6 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     float bakedFlagBottomY = newCloudPos.y + cloudH * 0.78f;
     Gui::DrawGuiText(flagText, { bakedFlagCenterX - flagTextW * 0.5f, bakedFlagBottomY }, flagTextScale, flagTextColor);
 
-    // 7. Hit testy i funkcjonalność (używamy acceptHit / skipHit wyliczonych na górze z bazy)
     if (acceptHit && Input::IsMouseButtonJustPressed(0))
         GameManagerScript::s_Instance->AcceptQuest();
 

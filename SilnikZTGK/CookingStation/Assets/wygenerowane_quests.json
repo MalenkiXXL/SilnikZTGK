@@ -1,92 +1,137 @@
 [
   {
-    "title": "Beach Snack Panic",
-    "description": "Sand is crunchy, but this snack is crunchier. Add tomato.",
+    "title": "Early's Digital Stew",
+    "description": "The internet is too weird. Make soup to calm the servers.",
     "dish_id": "pomidorowa",
     "portions": 1,
-    "frequency": 5,
-    "reward_coins": 50,
-    "reward_flag": "US"
-  },
-  {
-    "title": "Ringo's Pizza Hut",
-    "description": "The drummer wants a sandwich. Make it crusty and bizarre.",
-    "dish_id": "kanapka",
-    "portions": 2,
-    "frequency": 1,
+    "frequency": 2,
     "reward_coins": 100,
     "reward_flag": "GB"
   },
   {
-    "title": "Ninja Theory Soup",
-    "description": "The hero is hungry. Serve soup to unlock the next level.",
-    "dish_id": "pomidorowa",
-    "portions": 8,
-    "frequency": 4,
-    "reward_coins": 200,
-    "reward_flag": "GB"
-  },
-  {
-    "title": "Padres Power Lunch",
-    "description": "The pitcher is weak. A heavy sandwich helps him hit homers.",
-    "dish_id": "kanapka",
-    "portions": 5,
-    "frequency": 3,
-    "reward_coins": 150,
-    "reward_flag": "US"
-  },
-  {
-    "title": "Moms Demand Soup",
-    "description": "Service is busy! Soup keeps the mothers from rioting.",
-    "dish_id": "pomidorowa",
-    "portions": 20,
-    "frequency": 6,
-    "reward_coins": 300,
-    "reward_flag": "US"
-  },
-  {
-    "title": "Hockey Combine Grub",
-    "description": "Athletes answer weird questions better with a sandwich.",
-    "dish_id": "kanapka",
-    "portions": 4,
-    "frequency": 2,
-    "reward_coins": 120,
-    "reward_flag": "CA"
-  },
-  {
-    "title": "Audrey's Red Soup",
-    "description": "Lipstick stains on the bowl. Make it classy and red.",
+    "title": "Paint-Chip Picnic",
+    "description": "The room is too gloomy. Paint the wall with soup colors.",
     "dish_id": "pomidorowa",
     "portions": 1,
     "frequency": 1,
-    "reward_coins": 500,
-    "reward_flag": "US"
+    "reward_coins": 50,
+    "reward_flag": "FR"
   },
   {
-    "title": "Mystics Lineup Fix",
-    "description": "The team has a headache. A giant sandwich cures all ailments.",
-    "dish_id": "kanapka",
-    "portions": 10,
+    "title": "Cavalier Broth",
+    "description": "The 80s engine is stalling! Pour soup into the manifold.",
+    "dish_id": "pomidorowa",
+    "portions": 1,
+    "frequency": 3,
+    "reward_coins": 200,
+    "reward_flag": "DE"
+  },
+  {
+    "title": "Healthy Stir",
+    "description": "Stir in extra vitamins to keep the lifestyle balanced.",
+    "dish_id": "pomidorowa",
+    "portions": 1,
     "frequency": 5,
+    "reward_coins": 75,
+    "reward_flag": "JP"
+  },
+  {
+    "title": "Country Kitchen Jam",
+    "description": "Toby Keith needs a snack. Serve a sandwich with twang.",
+    "dish_id": "pomidorowa",
+    "portions": 1,
+    "frequency": 4,
+    "reward_coins": 150,
+    "reward_flag": "AU"
+  },
+  {
+    "title": "Bartender's Brew",
+    "description": "Nelson German is mixing soup cocktails. Shake it hard!",
+    "dish_id": "pomidorowa",
+    "portions": 1,
+    "frequency": 2,
+    "reward_coins": 120,
+    "reward_flag": "BR"
+  },
+  {
+    "title": "Grandpa's Gift",
+    "description": "Grandfatherhood is hungry work. Deliver a warm treat.",
+    "dish_id": "pomidorowa",
+    "portions": 1,
+    "frequency": 1,
+    "reward_coins": 90,
+    "reward_flag": "CA"
+  },
+  {
+    "title": "Mossy Morsels",
+    "description": "Scientists found magic in moss. Add it to the base.",
+    "dish_id": "pomidorowa",
+    "portions": 1,
+    "frequency": 10,
+    "reward_coins": 300,
+    "reward_flag": "SE"
+  },
+  {
+    "title": "Rookie Starter Soup",
+    "description": "The Bengals rookie needs fuel. Feed him a touchdown meal.",
+    "dish_id": "pomidorowa",
+    "portions": 1,
+    "frequency": 2,
     "reward_coins": 250,
     "reward_flag": "US"
   },
   {
-    "title": "Monaco Racer Fuel",
-    "description": "The car is slow. Pour soup in the tank for extra velocity.",
+    "title": "Light Bulb Lunch",
+    "description": "The bulb is flickering! Feed it soup to see better.",
     "dish_id": "pomidorowa",
-    "portions": 6,
-    "frequency": 4,
-    "reward_coins": 400,
-    "reward_flag": "MC"
+    "portions": 1,
+    "frequency": 6,
+    "reward_coins": 80,
+    "reward_flag": "IT"
   },
   {
-    "title": "The Divine Sandwich",
-    "description": "God works in mysterious ways, especially with ham and cheese.",
-    "dish_id": "kanapka",
+    "title": "Early Bird Special",
+    "description": "John Early is confused by lunch. Make it stranger.",
+    "dish_id": "pomidorowa",
     "portions": 1,
+    "frequency": 3,
+    "reward_coins": 110,
+    "reward_flag": "MX"
+  },
+  {
+    "title": "Gloomy Room Relief",
+    "description": "The walls look sad. Slap some tomato soup on them.",
+    "dish_id": "pomidorowa",
+    "portions": 1,
+    "frequency": 2,
+    "reward_coins": 130,
+    "reward_flag": "NO"
+  },
+  {
+    "title": "Cavalier Fuel",
+    "description": "The Chevy is hungry for soup. Change the oil to broth.",
+    "dish_id": "pomidorowa",
+    "portions": 1,
+    "frequency": 4,
+    "reward_coins": 190,
+    "reward_flag": "CH"
+  },
+  {
+    "title": "Moss Mystery",
+    "description": "The moss is glowing. Serve it in a bowl of soup.",
+    "dish_id": "pomidorowa",
+    "portions": 1,
+    "frequency": 5,
+    "reward_coins": 210,
+    "reward_flag": "FI"
+  },
+  {
+    "title": "Touchdown Toast",
+    "description": "The rookie is winning. Make a sandwich of victory.",
+    "dish_id": "kanapka",
+    "portions": 11,
     "frequency": 1,
-    "reward_coins": 75,
+    "reward_coins": 280,
     "reward_flag": "US"
   }
 ]

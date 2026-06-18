@@ -37,14 +37,12 @@ void GameManagerScript::OnCreate()
         }
     );
 
-    // Rejestrowanie Historii Dań
     m_DishCreatedSubId = bus.Subscribe<DishCreatedEvent>(
         [this](const DishCreatedEvent& e) {
             m_DishMemory[e.FoodEntity.id] = e.History;
         }
     );
 
-    // Weryfikacja zamówień przez system
     m_ValidateOrderSubId = bus.Subscribe<ValidateOrderRequestEvent>(
         [this](const ValidateOrderRequestEvent& e) {
             bool isCorrect = false;
@@ -95,7 +93,6 @@ void GameManagerScript::OnCreate()
     AddIngredients(IngredientType::Flour, 5);
     AddIngredients(IngredientType::Egg, 5);
 
-    // --- Rejestracja i ukrywanie elementów Questowych ---
 
     auto findEntityByName = [&](const std::string& targetName) -> Entity {
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -109,7 +106,6 @@ void GameManagerScript::OnCreate()
         return { std::numeric_limits<std::size_t>::max(), 0 };
         };
 
-    // 1. Grupa Wyspy Eventowej (Przylatuje z BOKU po osi X)
     std::vector<std::string> eventIslandNames = { "event_78", "event-detal", "balony1", "balony2", "balony3", "balony4" };
     for (const auto& name : eventIslandNames) {
         Entity e = findEntityByName(name);
@@ -118,17 +114,15 @@ void GameManagerScript::OnCreate()
         if (transform) {
             if (name == "budka" && transform->GetPosition().x > -20.0f) continue;
 
-            // UWAGA: Dla wyspy eventowej w pair.second zapisujemy teraz oryginalną pozycję X!
             float origX = transform->GetPosition().x;
             m_EventIslandGroup.push_back({ e, origX });
 
             glm::vec3 pos = transform->GetPosition();
-            pos.x = origX - 60.0f; // Schowaj 60 jednostek w lewo poza mapę
+            pos.x = origX - 60.0f; 
             transform->SetPosition(pos);
         }
     }
 
-    // 2. Grupa Głównej Wyspy (Przylatuje z GÓRY)
     std::vector<std::string> mainIslandNames = {
             "tasma_questy_1", "tasma_questy_2", "tasma_questy_3", "event-detal2", "tasma_switch_quest"
     };
@@ -141,7 +135,7 @@ void GameManagerScript::OnCreate()
             m_MainIslandQuestGroup.push_back({ e, origY });
 
             glm::vec3 pos = transform->GetPosition();
-            pos.y = origY + 30.0f; // Schowaj 30 jednostek w GÓRĘ (w niebo)
+            pos.y = origY + 30.0f; 
             transform->SetPosition(pos);
         }
     }
@@ -152,14 +146,13 @@ void GameManagerScript::OnCreate()
             for (auto& s : scripts->dense[i].Scripts) {
                 if (s.Name == "DeliveryBoothScript" && s.Instance) {
                     auto* booth = static_cast<DeliveryBoothScript*>(s.Instance);
-                    booth->m_DirectionOffset = { 0.0f, 0.0f, 2.0f }; // nasłuchuj na +Z czyli [-9,0,-7]
+                    booth->m_DirectionOffset = { 0.0f, 0.0f, 2.0f };
                     break;
                 }
             }
         }
     }
 
-    // 3. Element wymieniany (Znika dopiero jak quest dojedzie)
     std::vector<std::string> replacedNames = { "tasma_17" };
     for (const auto& name : replacedNames) {
         Entity e = findEntityByName(name);
@@ -241,13 +234,44 @@ void GameManagerScript::OnOrderFulfilled(const OrderFulfilledEvent& e)
 
 void GameManagerScript::OnUpdate(Timestep ts)
 {
-    // === 1. AKTUALIZACJA TIMERA BRAKU PIENIĘDZY ===
-    // Musi być przed returnem od questów, żeby działało w BuildMode nawet bez aktywnego questa!
     if (m_MoneyWarningTimer > 0.0f) {
         m_MoneyWarningTimer -= ts;
     }
 
-    // === 2. LOGIKA QUESTÓW ===
+    static float s_PythonCooldown = 0.0f;
+    if (s_PythonCooldown > 0.0f) s_PythonCooldown -= ts;
+
+    if (Input::IsKeyPressed(80) && s_PythonCooldown <= 0.0f) {
+        spdlog::warn("KLAWISZ P: Wymuszono generacje nowych questow AI! (Gra moze na chwile zaciac...)");
+        system("python CookingStation\\Tools\\QuestGenerator\\main.py");
+        m_AvailableQuests = QuestManager::LoadQuests("assets://wygenerowane_quests.json");
+        m_CurrentQuestIndex = 0;
+        s_PythonCooldown = 10.0f;
+        spdlog::info("Gotowe! Nowe questy wczytane do gry.");
+    }
+
+    /*
+    //finaly 
+
+    if (m_NewQuestsReady) {
+        m_AvailableQuests = QuestManager::LoadQuests("assets://wygenerowane_quests.json");
+        m_NewQuestsReady = false;
+        m_IsGeneratingQuests = false;
+        spdlog::info("Nowe questy pobrane w tle i zaladowane do gry bez scinki!");
+    }
+
+    if (Input::IsKeyPressed(80) && s_PythonCooldown <= 0.0f && !m_IsGeneratingQuests) {
+        spdlog::warn("KLAWISZ P: Odpalam generator questow w tle...");
+        m_IsGeneratingQuests = true;
+        s_PythonCooldown = 10.0f;
+
+        std::thread([](GameManagerScript* manager) {
+            system("python CookingStation\\Tools\\QuestGenerator\\main.py");
+            manager->m_NewQuestsReady = true;
+        }, this).detach();
+    }
+    */
+
     if (m_AvailableQuests.empty()) return;
 
     switch (m_CurrentQuestState)
@@ -270,7 +294,6 @@ void GameManagerScript::OnUpdate(Timestep ts)
 
         float easeOut = 1.0f - (1.0f - m_AnimationProgress) * (1.0f - m_AnimationProgress);
 
-        // Wyspa przylatuje z lewej strony (od -60 do 0 po osi X)
         float xOffset = -60.0f * (1.0f - easeOut);
 
         for (auto& pair : m_EventIslandGroup) {
@@ -289,14 +312,13 @@ void GameManagerScript::OnUpdate(Timestep ts)
     }
     case QuestEventState::WaitingForAccept:
     {
-        // Oczekujemy na UI
         break;
     }
     case QuestEventState::QuestActive:
     {
         if (m_AnimationProgress < 1.0f) {
             m_AnimationProgress += ts * 0.5f;
-            bool finishedNow = false; // Flaga sprawdzająca czy animacja W TYM MOMENCIE dobiła do końca
+            bool finishedNow = false; 
             if (m_AnimationProgress >= 1.0f) {
                 m_AnimationProgress = 1.0f;
                 finishedNow = true;
@@ -304,7 +326,6 @@ void GameManagerScript::OnUpdate(Timestep ts)
 
             float easeOut = 1.0f - (1.0f - m_AnimationProgress) * (1.0f - m_AnimationProgress);
 
-            // 1. Dobudówka zlatuje z góry
             float yOffset = 30.0f * (1.0f - easeOut);
             for (auto& pair : m_MainIslandQuestGroup) {
                 auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
@@ -315,7 +336,6 @@ void GameManagerScript::OnUpdate(Timestep ts)
                 }
             }
 
-            // 2. Opóźnione znikanie starej taśmy
             float hideProgress = std::max(0.0f, (m_AnimationProgress - 0.8f) / 0.2f);
             float hideOffset = -30.0f * hideProgress;
 
@@ -328,13 +348,11 @@ void GameManagerScript::OnUpdate(Timestep ts)
                 }
             }
 
-            // 3. Jeśli to była ostatnia klatka animacji, PRZEBUDUJ MAPĘ TAŚM!
             if (finishedNow) {
                 for (auto& pair : m_ReplacedByQuestGroup) {
                     Entity e = pair.first;
                     if (e.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->DestroyEntity(e);
-                        // Czyścimy ID, żeby nie próbować jej usuwać ponownie
                         pair.first.id = std::numeric_limits<std::size_t>::max();
                     }
                 }
@@ -349,7 +367,6 @@ void GameManagerScript::OnUpdate(Timestep ts)
 
         float easeIn = m_AnimationProgress * m_AnimationProgress;
 
-        // 1. Wyspa eventowa odlatuje w lewo (od 0 do -60 po osi X)
         float xOffset = -60.0f * easeIn;
         for (auto& pair : m_EventIslandGroup) {
             auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
@@ -360,7 +377,6 @@ void GameManagerScript::OnUpdate(Timestep ts)
             }
         }
 
-        // 2. Budka questowa odlatuje z powrotem do góry (od 0 do +30)
         float yOffsetMain = 30.0f * easeIn;
         for (auto& pair : m_MainIslandQuestGroup) {
             auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
@@ -371,10 +387,8 @@ void GameManagerScript::OnUpdate(Timestep ts)
             }
         }
 
-        // 3. Stara, zwykła taśma natychmiastowo wraca z dołu na górę (od -30 do 0)
-        // Robimy to w pierwszych 20% animacji odlotu, żeby od razu zakryła dziurę.
         float showProgress = std::min(1.0f, m_AnimationProgress / 0.2f);
-        float showOffset = -500.0f * (1.0f - showProgress);
+        float showOffset = -30.0f * (1.0f - showProgress);
 
         for (auto& pair : m_ReplacedByQuestGroup) {
             auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
@@ -386,56 +400,8 @@ void GameManagerScript::OnUpdate(Timestep ts)
         }
 
         if (m_AnimationProgress >= 1.0f) {
-            m_QuestTimer = QUEST_INTERVAL; // Reset timera
+            m_QuestTimer = QUEST_INTERVAL; 
             m_CurrentQuestState = QuestEventState::WaitingForTimer;
-
-            // RESPRAWN STAREJ TAŚMY!
-            for (auto& pair : m_ReplacedByQuestGroup) {
-                // Skoro ją usunęliśmy, to jest martwa, musimy zbudować nową
-                auto builder = GetScene()->GetWorld().BuildEntity();
-
-                TransformComponent tc;
-                tc.SetPosition(glm::vec3(-9.0f, pair.second, -1.0f)); // Oryginalna pozycja Y zapisana wcześniej
-                tc.SetRotation(glm::vec3(0.0f, glm::radians(180.0f), 0.0f)); // Twój kąt z JSON
-                builder.With<TransformComponent>(tc);
-
-                MeshComponent mesh;
-                mesh.ModelPtr = AssetManager::GetModel("assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf");
-                builder.With<MeshComponent>(mesh);
-
-                BoxColliderComponent collider;
-                collider.Offset = glm::vec3(0.0f, 0.5f, 0.0f);
-                collider.Size = glm::vec3(1.0f, 0.5f, 1.0f);
-                builder.With<BoxColliderComponent>(collider);
-
-                NativeScriptComponent nsc;
-                nsc.AddScript<ConveyorScript>("ConveyorScript");
-                builder.With<NativeScriptComponent>(nsc);
-
-                builder.With<TagComponent>({ "tasma_17" });
-
-                Entity newBelt = builder.Build();
-
-                // Dodanie animowanego pasa transmisyjnego jako child
-                auto beltBuilder = GetScene()->GetWorld().BuildEntity();
-                TransformComponent btc;
-                btc.SetPosition(glm::vec3(0.0f, 0.01f, 0.0f));
-                beltBuilder.With<TransformComponent>(btc);
-                MeshComponent bmesh;
-                bmesh.ModelPtr = AssetManager::GetModel("assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf");
-                beltBuilder.With<MeshComponent>(bmesh);
-                NativeScriptComponent bnsc;
-                bnsc.AddScript<BeltVisualScript>("BeltVisualScript");
-                beltBuilder.With<NativeScriptComponent>(bnsc);
-                Entity visualBelt = beltBuilder.Build();
-
-                GetScene()->SetParent(visualBelt, newBelt);
-
-                // Zapisujemy nowe ID, na wypadek kolejnego questa
-                pair.first = newBelt;
-            }
-
-            GetScene()->RebuildConveyorCache();
             spdlog::info("Koniec cyklu Questa. Zwykle tasmy przywrocone (respawn).");
         }
         break;
@@ -459,14 +425,28 @@ void GameManagerScript::SkipQuest()
     if (m_CurrentQuestState == QuestEventState::WaitingForAccept) {
         if (m_SkipsLeft > 0) {
             m_SkipsLeft--;
+
             m_CurrentQuestIndex++;
-            if (m_CurrentQuestIndex >= m_AvailableQuests.size()) m_CurrentQuestIndex = 0; // Zapętlenie listy
+            if (m_CurrentQuestIndex >= m_AvailableQuests.size()) m_CurrentQuestIndex = 0;
+
+            /*
+            // finaly
+            // if (!m_AvailableQuests.empty()) m_AvailableQuests.erase(m_AvailableQuests.begin());
+            //
+            // if (m_AvailableQuests.empty() && !m_IsGeneratingQuests) {
+            //     spdlog::warn("Pula questow pusta po pominieciu! Odpalam generator w tle...");
+            //     m_IsGeneratingQuests = true;
+            //     std::thread([](GameManagerScript* manager) {
+            //         system("python CookingStation\\Tools\\QuestGenerator\\main.py");
+            //         manager->m_NewQuestsReady = true;
+            //     }, this).detach();
+            // }
+            */
+
             spdlog::info("Quest pominiety! Pozostalo pominięc: {}", m_SkipsLeft);
-            // Tutaj w następnym etapie odświeżymy wizualnie HUD z nowym zadaniem
         }
         else {
             spdlog::warn("Brak pominiec!");
-            // Ewentualnie wymuszamy QuestActive
         }
     }
 }
@@ -484,9 +464,67 @@ void GameManagerScript::CompleteQuest()
         m_CurrentQuestIndex++;
         if (m_CurrentQuestIndex >= m_AvailableQuests.size()) m_CurrentQuestIndex = 0;
 
+        /*
+        //finaly
+        // if (!m_AvailableQuests.empty()) m_AvailableQuests.erase(m_AvailableQuests.begin());
+        //
+        // if (m_AvailableQuests.empty() && !m_IsGeneratingQuests) {
+        //     spdlog::warn("Pula questow pusta! Odpalam generator w tle...");
+        //     m_IsGeneratingQuests = true;
+        //     std::thread([](GameManagerScript* manager) {
+        //         system("python CookingStation\\Tools\\QuestGenerator\\main.py");
+        //         manager->m_NewQuestsReady = true;
+        //     }, this).detach();
+        // }
+        */
+
         m_CurrentQuestState = QuestEventState::IslandLeaving;
         SpawnCollectibleFlag(currentQuest.RewardFlag);
         m_CurrentQuestProgress = 0;
+
+        for (auto& pair : m_ReplacedByQuestGroup) {
+            auto builder = GetScene()->GetWorld().BuildEntity();
+
+            TransformComponent tc;
+            tc.SetPosition(glm::vec3(-9.0f, pair.second - 30.0f, -1.0f));
+            tc.SetRotation(glm::vec3(0.0f, glm::radians(90.0f), 0.0f));
+            builder.With<TransformComponent>(tc);
+
+            MeshComponent mesh;
+            mesh.ModelPtr = AssetManager::GetModel("assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf");
+            builder.With<MeshComponent>(mesh);
+
+            BoxColliderComponent collider;
+            collider.Offset = glm::vec3(0.0f, 0.5f, 0.0f);
+            collider.Size = glm::vec3(1.0f, 0.5f, 1.0f);
+            builder.With<BoxColliderComponent>(collider);
+
+            NativeScriptComponent nsc;
+            nsc.AddScript<ConveyorScript>("ConveyorScript");
+            builder.With<NativeScriptComponent>(nsc);
+
+            builder.With<TagComponent>({ "tasma_17" });
+
+            Entity newBelt = builder.Build();
+
+            auto beltBuilder = GetScene()->GetWorld().BuildEntity();
+            TransformComponent btc;
+            btc.SetPosition(glm::vec3(0.0f, 0.01f, 0.0f));
+            beltBuilder.With<TransformComponent>(btc);
+            MeshComponent bmesh;
+            bmesh.ModelPtr = AssetManager::GetModel("assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf");
+            beltBuilder.With<MeshComponent>(bmesh);
+            NativeScriptComponent bnsc;
+            bnsc.AddScript<BeltVisualScript>("BeltVisualScript");
+            beltBuilder.With<NativeScriptComponent>(bnsc);
+            Entity visualBelt = beltBuilder.Build();
+
+            GetScene()->SetParent(visualBelt, newBelt);
+
+            pair.first = newBelt;
+        }
+
+        GetScene()->RebuildConveyorCache();
     }
 }
 
@@ -505,7 +543,6 @@ void GameManagerScript::DeliverQuestPortion()
 
 void GameManagerScript::SpawnCollectibleFlag(const std::string& countryCode)
 {
-    // Znajdź wydawkę po tagu
     auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
     Entity wydawkaEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     if (tags) {
@@ -517,20 +554,27 @@ void GameManagerScript::SpawnCollectibleFlag(const std::string& countryCode)
         }
     }
 
-    glm::vec3 spawnPos = { 12.0f, 1.5f, -9.0f }; // Twardy fallback obok wydawki
+    glm::vec3 spawnPos = { 12.0f, 1.0f, -9.0f }; 
 
     if (wydawkaEntity.id != std::numeric_limits<std::size_t>::max()) {
         auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(wydawkaEntity);
-        // Przesunięcie o +3.0 w osi X (w prawo) i +1.5 w osi Y (żeby nie wbijała się w ziemię)
-        if (tf) spawnPos = tf->GetPosition() + glm::vec3(3.0f, 1.5f, 0.0f);
+        if (tf) {
+            int flagsPerRow = 3; 
+            int row = (m_CollectedFlagsCount / flagsPerRow) % 2;
+            int col = m_CollectedFlagsCount % flagsPerRow;
+
+            
+            float startX = tf->GetPosition().x - 1.2f;
+            float spacingX = 1.2f; 
+            float startZ = tf->GetPosition().z + 0.8f;
+            float spacingZ = -0.8f; 
+
+            spawnPos.x = startX + (col * spacingX);
+            spawnPos.y = 3.76f;
+            spawnPos.z = startZ + (row * spacingZ);
+        }
     }
 
-    // Usuń poprzednią flagę jeśli istnieje
-    if (m_ActiveFlagEntity.id != std::numeric_limits<std::size_t>::max()) {
-        GetScene()->GetWorld().GetEventBus().Publish(
-            EntityDestroyRequestEvent{ m_ActiveFlagEntity });
-        m_ActiveFlagEntity = { std::numeric_limits<std::size_t>::max(), 0 };
-    }
 
     auto& world = GetScene()->GetWorld();
     auto builder = world.BuildEntity();
@@ -539,7 +583,8 @@ void GameManagerScript::SpawnCollectibleFlag(const std::string& countryCode)
 
     TransformComponent tc;
     tc.SetPosition(spawnPos);
-    tc.SetScale(glm::vec3(1.0f));
+    tc.SetScale(glm::vec3(0.80f)); 
+    tc.SetRotation(glm::vec3(0.0f, glm::radians(20.0f), 0.0f));
     builder.With<TransformComponent>(tc);
 
     MeshComponent mesh;
@@ -550,14 +595,11 @@ void GameManagerScript::SpawnCollectibleFlag(const std::string& countryCode)
     nsc.AddScript<FlagScript>("FlagScript");
     builder.With<NativeScriptComponent>(nsc);
 
-    m_ActiveFlagEntity = builder.Build();
+    Entity newFlagEntity = builder.Build();
 
-    // Ustaw teksturę flagi - potrzebujemy dostępu do FlagScript po spawnie
-    // FlagScript::OnCreate zostanie wywołany w następnej klatce przez Scene::OnUpdateRuntime
-    // Zamiast tego, przechowaj kod kraju żeby FlagScript mógł go użyć w OnCreate
-    // Najprostsze rozwiązanie: tag zawiera kod kraju
-    auto* tagComp = world.GetComponent<TagComponent>(m_ActiveFlagEntity);
+    auto* tagComp = world.GetComponent<TagComponent>(newFlagEntity);
     if (tagComp) tagComp->Tag = "CollectibleFlag_" + countryCode;
 
     spdlog::info("[GameManager] Spawning flag for country: {}", countryCode);
+    m_CollectedFlagsCount++;
 }

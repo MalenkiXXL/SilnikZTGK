@@ -8,6 +8,10 @@
 #include <utility>
 #include "CookingStation/Tools/QuestGenerator/QuestManager.h"
 
+// finaly
+// #include <thread>
+// #include <atomic>
+
 enum class QuestEventState {
     WaitingForTimer,    // odliczanie 3 minut
     IslandArriving,     // wyspa i stoisko przylatują 
@@ -21,7 +25,6 @@ class GameManagerScript : public ScriptableEntity
 public:
     inline static GameManagerScript* s_Instance = nullptr;
 
-    // NOWE: Timer do trzęsienia monetą i funkcja go aktywująca
     float m_MoneyWarningTimer = 0.0f;
     void TriggerMoneyWarning() { m_MoneyWarningTimer = 0.6f; }
 
@@ -42,7 +45,6 @@ public:
     void CompleteQuest();
     void SpawnCollectibleFlag(const std::string& countryCode);
 
-    // TE 3 FUNKCJE NAPRAWIAJĄ BŁĘDY W GUI:
     QuestEventState GetQuestState() const { return m_CurrentQuestState; }
     int GetSkipsLeft() const { return m_SkipsLeft; }
     QuestData* GetCurrentQuest() {
@@ -59,7 +61,6 @@ private:
     int money = 0;
     std::unordered_map<IngredientType, int> m_Inventory;
 
-    // System Pamięci Potraw
     std::unordered_map<std::size_t, DishHistory> m_DishMemory;
 
     std::size_t m_IngredientUsedSubId = 0;
@@ -83,5 +84,10 @@ private:
 
     int m_CurrentQuestProgress = 0;
 
-    Entity m_ActiveFlagEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+    int m_CollectedFlagsCount = 0;
+
+
+    // finaly
+    // std::atomic<bool> m_NewQuestsReady{false};
+    // bool m_IsGeneratingQuests = false;
 };
