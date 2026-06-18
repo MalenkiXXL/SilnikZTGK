@@ -50,7 +50,6 @@ public:
                     if (isItem && tagComp->Tag != "PlateReady" && tagComp->Tag != "PlateCarried" && tagComp->Tag != "PlateAssigned")
                     {
                         tagComp->Tag = "PlateReady";
-
                         GetScene()->GetWorld().GetEventBus().Publish(PlateReadyEvent{ entity });
                     }
                 }
