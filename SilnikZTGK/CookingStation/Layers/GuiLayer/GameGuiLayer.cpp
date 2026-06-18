@@ -345,6 +345,24 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
     }
 
+    if (m_ShowFPS) {
+        static float s_FpsUpdateTimer = 0.0f;
+        static int s_LastFPS = 0;
+
+        s_FpsUpdateTimer += dt;
+        if (s_FpsUpdateTimer > 0.5f) { 
+            s_LastFPS = (int)(1.0f / dt);
+            s_FpsUpdateTimer = 0.0f;
+        }
+
+        std::string fpsText = "FPS: " + std::to_string(s_LastFPS);
+        float textScale = 0.65f * baseScale;
+        glm::vec2 textPos = { gameX + 15.0f * baseScale, gameY + 25.0f * baseScale }; // Lewy górny róg
+
+        Gui::DrawGuiText(fpsText, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.8f });
+        Gui::DrawGuiText(fpsText, textPos, textScale, { 0.2f, 0.9f, 0.2f, 1.0f });
+    }
+
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
 
@@ -403,8 +421,8 @@ void GameGuiLayer::OnEvent(Event& e)
         });
 
     dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& ev) {
-        if (ev.GetKeyCode() == 292 && ev.GetRepeatCode() == 0) m_ShowFPS = !m_ShowFPS; // F1
-        if (ev.GetKeyCode() == 258 && ev.GetRepeatCode() == 0) { // TAB
+        if (ev.GetKeyCode() == 292 && ev.GetRepeatCode() == 0) m_ShowFPS = !m_ShowFPS; 
+        if (ev.GetKeyCode() == 258 && ev.GetRepeatCode() == 0) { 
             m_BuildModePanel.Toggle();
             return true;
         }
