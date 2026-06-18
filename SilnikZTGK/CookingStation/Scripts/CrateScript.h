@@ -67,6 +67,11 @@ public:
         }
     }
 
+    bool isMIsHovered() const {
+        return m_IsHovered;
+    }
+
+
     void HandleClick()
     {
         if (m_CrateIngredient == IngredientType::None) return;
@@ -116,39 +121,24 @@ public:
 
         m_LastStockCount = currentStock;
 
-        auto* tf = GetComponent<TransformComponent>();
-        if (!tf) return;
-
-        bool isMouseClick = Input::IsMouseButtonJustPressed(0);
         bool isGamepadSquare = Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0);
 
-        if ((isMouseClick || isGamepadSquare) && m_SpawnCooldown <= 0.0f && !Input::IsUICapturingMouse() && !MachineScript::GlobalIsMachineHeld) {
-            glm::vec3 cursorWorldPos = GetMouseWorldPosition();
+        if (isGamepadSquare && m_IsHovered && m_SpawnCooldown <= 0.0f && !Input::IsUICapturingMouse() && !MachineScript::GlobalIsMachineHeld) {
+            HandleClick();
+        }
 
-            glm::vec2 cursor2D = { cursorWorldPos.x, cursorWorldPos.z };
-            glm::vec2 crate2D = { tf->GetPosition().x, tf->GetPosition().z };
+        m_IsHovered = false;
+    }
 
-            if (glm::distance(cursor2D, crate2D) < 1.2f)
-            {
-                if (IsClosestCrate(cursor2D))
-                {
-                    if (m_HasStock)
-                    {
-                        if (SpawnIngredientOnConveyor()) {
-                            m_SpawnCooldown = 0.2f;
-                            GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ m_CrateIngredient, 1 });
-                        }
-                        else {
-                            TriggerErrorHighlight();
-                        }
-                    }
-                    else
-                    {
-                        spdlog::warn("Skrzynka: Brak zapasow tego skladnika w magazynie (0 sztuk)!");
-                        TriggerErrorHighlight();
-                    }
-                }
-            }
+    void OnHoverCursor() override
+    {
+        m_IsHovered = true;
+
+        if (m_HasStock && m_VisualFood.id != std::numeric_limits<std::size_t>::max())
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                    m_VisualFood, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
+            });
         }
     }
 
@@ -156,40 +146,13 @@ private:
 
     std::size_t m_ClickSubId = 0;
     int m_LastStockCount = 0;
+    bool m_IsHovered = false;
 
     void TriggerErrorHighlight()
     {
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
             m_Entity, glm::vec3(1.0f, 0.0f, 0.0f), 0.4f, false
             });
-    }
-
-    bool IsClosestCrate(glm::vec2 mousePos2D)
-    {
-        auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
-        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
-        if (!scripts || !transforms) return true;
-
-        float myDist = glm::distance(mousePos2D, glm::vec2(GetComponent<TransformComponent>()->GetPosition().x, GetComponent<TransformComponent>()->GetPosition().z));
-
-        for (size_t i = 0; i < scripts->dense.size(); ++i) {
-            auto& nsc = scripts->dense[i];
-            for (auto& s : nsc.Scripts) {
-                if (s.Name == "CrateScript") {
-                    Entity otherEntity = scripts->reverse[i];
-                    if (otherEntity.id == m_Entity.id) continue;
-
-                    auto* tf = transforms->Get(otherEntity);
-                    if (tf) {
-                        float otherDist = glm::distance(mousePos2D, glm::vec2(tf->GetPosition().x, tf->GetPosition().z));
-                        if (otherDist < myDist) {
-                            return false;
-                        }
-                    }
-                }
-            }
-        }
-        return true;
     }
 
     void UpdateVisuals()
@@ -364,13 +327,4 @@ private:
         }
     }
 
-    void OnHoverCursor() override
-    {
-        if (m_HasStock && m_VisualFood.id != std::numeric_limits<std::size_t>::max())
-        {
-            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    m_VisualFood, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
-                });
-        }
-    }
 };

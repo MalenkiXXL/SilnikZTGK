@@ -1071,8 +1071,6 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
     float orthoSize = camera->OrthoSize;
     glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
     glm::mat4 viewProj = proj3D * view;
-    glm::vec2 mousePos = Gui::GetMappedMousePos();
-    float hoverRadiusSq = (55.0f * baseScale) * (55.0f * baseScale);
 
     for (size_t i = 0; i < scripts->dense.size(); ++i) {
         auto& nsc = scripts->dense[i];
@@ -1080,7 +1078,8 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
         for (auto& s : nsc.Scripts) {
             if (s.Name == "CrateScript") { crateScript = (CrateScript*)s.Instance; break; }
         }
-        if (!crateScript || crateScript->m_CrateIngredient == IngredientType::None) continue;
+
+        if (!crateScript || crateScript->m_CrateIngredient == IngredientType::None || !crateScript->isMIsHovered()) continue;
 
         Entity crateEnt = scripts->reverse[i];
         auto* tf = transforms->Get(crateEnt);
@@ -1093,9 +1092,6 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
 
         float screenX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
         float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
-        float dx = mousePos.x - screenX;
-        float dy = mousePos.y - (screenY + 40.0f * baseScale);
-        if ((dx * dx + dy * dy) > hoverRadiusSq) continue;
 
         std::shared_ptr<Texture> iconToDraw = nullptr;
         switch (crateScript->m_CrateIngredient) {
