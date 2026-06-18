@@ -286,7 +286,7 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
             for (auto& scriptComp : scriptStorage->dense) {
                 for (auto& scriptEl : scriptComp.Scripts) {
-                    if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript" || scriptEl.Name == "DustEmitterScript") && scriptEl.Instance) {
+                    if ((scriptEl.Name == "ParticleEmitterScript" || scriptEl.Name == "SteamEmitterScript" || scriptEl.Name == "DustEmitterScript" || scriptEl.Name == "PoofEmitterScript") && scriptEl.Instance) {
                         ParticleEmitterScript* emitter = dynamic_cast<ParticleEmitterScript*>(scriptEl.Instance);
                         if (emitter) {
                             for (const auto& particle : emitter->GetParticles()) {
