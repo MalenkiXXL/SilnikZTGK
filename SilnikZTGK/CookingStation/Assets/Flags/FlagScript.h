@@ -35,6 +35,8 @@ public:
             // Definiujemy œcie¿kê w VFS do pliku z flag¹
             std::string texturePath = "assets://textures/flags/" + fileName + ".png";
 
+            spdlog::error("Proba wczytania flagi z pliku: '{}'", texturePath);
+
             // £adujemy now¹ teksturê bezpoœrednio z dysku
             auto newTexture = std::make_shared<Texture2D>(texturePath);
 
@@ -44,7 +46,7 @@ public:
 
             if (!instancedModel->meshes.empty())
             {
-                int targetMeshIndex = 2;
+                int targetMeshIndex = 1;
 
                 if (!instancedModel->meshes[targetMeshIndex].textures.empty()) {
                     instancedModel->meshes[targetMeshIndex].textures[0].Texture2DPtr = newTexture;
