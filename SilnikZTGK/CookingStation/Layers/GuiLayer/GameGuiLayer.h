@@ -74,6 +74,9 @@ private:
     std::shared_ptr<Texture> m_CustomerOrderTex;
     std::shared_ptr<Texture> m_HelperOrderTex;
     std::shared_ptr<Texture> m_BookCloudIcon;
+    std::shared_ptr<Texture> m_QuestCloudTex;
+    std::shared_ptr<Texture> m_AcceptButtonTex;
+    std::shared_ptr<Texture> m_SkipButtonTex;
 
     std::size_t m_GameStartedSubId = 0;
     std::size_t m_InventorySubId = 0;
