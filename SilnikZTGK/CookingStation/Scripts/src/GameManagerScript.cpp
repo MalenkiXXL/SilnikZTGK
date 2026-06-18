@@ -66,7 +66,7 @@ void GameManagerScript::OnCreate()
             GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderResponseEvent{
                     e.Customer,
                     isCorrect
-            });
+                });
         }
     );
 
@@ -110,7 +110,7 @@ void GameManagerScript::OnCreate()
         };
 
     // 1. Grupa Wyspy Eventowej (Przylatuje z BOKU po osi X)
-    std::vector<std::string> eventIslandNames = { "event_78", "event-detal", "balony1", "balony2", "balony3", "balony4"};
+    std::vector<std::string> eventIslandNames = { "event_78", "event-detal", "balony1", "balony2", "balony3", "balony4" };
     for (const auto& name : eventIslandNames) {
         Entity e = findEntityByName(name);
         auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
@@ -160,7 +160,7 @@ void GameManagerScript::OnCreate()
     }
 
     // 3. Element wymieniany (Znika dopiero jak quest dojedzie)
-    std::vector<std::string> replacedNames = { "tasma_17" }; 
+    std::vector<std::string> replacedNames = { "tasma_17" };
     for (const auto& name : replacedNames) {
         Entity e = findEntityByName(name);
         auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
@@ -241,6 +241,13 @@ void GameManagerScript::OnOrderFulfilled(const OrderFulfilledEvent& e)
 
 void GameManagerScript::OnUpdate(Timestep ts)
 {
+    // === 1. AKTUALIZACJA TIMERA BRAKU PIENIĘDZY ===
+    // Musi być przed returnem od questów, żeby działało w BuildMode nawet bez aktywnego questa!
+    if (m_MoneyWarningTimer > 0.0f) {
+        m_MoneyWarningTimer -= ts;
+    }
+
+    // === 2. LOGIKA QUESTÓW ===
     if (m_AvailableQuests.empty()) return;
 
     switch (m_CurrentQuestState)
@@ -441,8 +448,8 @@ void GameManagerScript::AcceptQuest()
 {
     if (m_CurrentQuestState == QuestEventState::WaitingForAccept) {
         spdlog::info("Quest Zaakceptowany! Rozbudowuje glowna wyspe.");
-        m_AnimationProgress = 0.0f; 
-        m_CurrentQuestProgress = 0; 
+        m_AnimationProgress = 0.0f;
+        m_CurrentQuestProgress = 0;
         m_CurrentQuestState = QuestEventState::QuestActive;
     }
 }
