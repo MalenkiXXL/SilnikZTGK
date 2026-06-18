@@ -10,6 +10,9 @@
 
 PauseMenuPanel::PauseMenuPanel() {
     m_SettingsPanel = std::make_unique<SettingsMenuPanel>();
+    Application::Get().GetEventBus().Subscribe<GameStartedEvent>([this](const GameStartedEvent&) {
+        m_IsPaused = false;
+        });
 }
 
 void PauseMenuPanel::TogglePause() {
