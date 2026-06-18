@@ -225,11 +225,11 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
 
     spdlog::info("AudioEngine: Podpinam pelna liste eventow audio!");
 
-    eventBus.Subscribe<GamePausedEvent>([](const GamePausedEvent& e) {
+    eventBus.Subscribe<PlayPauseSoundEvent>([](const PlayPauseSoundEvent& e) {
         AudioEngine::Play("assets://sounds/pause.mp3");
         });
 
-    eventBus.Subscribe<GameResumedEvent>([](const GameResumedEvent& e) {
+    eventBus.Subscribe<PlayUnpauseSoundEvent>([](const PlayUnpauseSoundEvent& e) {
         AudioEngine::Play("assets://sounds/unpause.mp3");
         });
 
@@ -250,7 +250,7 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
         });
 
     eventBus.Subscribe<CustomerSeatedEvent>([](const CustomerSeatedEvent& e) {
-        AudioEngine::Play("assets://sounds/footstep09.mp3");
+        AudioEngine::Play("assets://sounds/pushing-a-chair.mp3");
         });
 
     eventBus.Subscribe<CustomerServedEvent>([](const CustomerServedEvent& e) {
@@ -261,7 +261,7 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
             AudioEngine::Play("assets://sounds/happy_customer.mp3");
         }
         else {
-            AudioEngine::Play("assets://sounds/angry_customer.mp3");
+            AudioEngine::Play("assets://sounds/angry_customer.wav");
         }
         });
 
