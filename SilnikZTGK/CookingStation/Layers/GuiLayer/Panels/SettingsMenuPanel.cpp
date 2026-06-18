@@ -31,6 +31,7 @@ void SettingsMenuPanel::SyncWithEngine() {
 
     m_PendingMusicEnabled = AudioEngine::IsMusicEnabled();
     m_PendingSoundsEnabled = AudioEngine::AreSoundsEnabled();
+    m_PendingFullscreen = gs.Fullscreen;
 }
 
 void SettingsMenuPanel::OnUpdate(float dt) {
@@ -44,7 +45,6 @@ void SettingsMenuPanel::Draw(float baseScale) {
     float screenW = (float)windowSize.first;
     float screenH = (float)windowSize.second;
 
-    // --- ŁADOWANIE TEKSTUR ---
     auto boardTex = AssetManager::GetTexture("assets://UI/cuttingBoard.png");
     auto backBtnTex = AssetManager::GetTexture("assets://UI/backButton.png");
     auto applyBtnTex = AssetManager::GetTexture("assets://UI/applyButton.png");
@@ -62,11 +62,8 @@ void SettingsMenuPanel::Draw(float baseScale) {
         return { targetHeight * 3.0f, targetHeight };
         };
 
-    // --- TŁO: DESKA DO KROJENIA ---
-    float boardHeight = 750.0f * baseScale;
+    float boardHeight = 850.0f * baseScale;
     glm::vec2 boardSize = getAspectSize(boardTex, boardHeight);
-
-    // Zabezpieczenie minimalnej szerokości, żeby elementy się zmieściły
     if (boardSize.x < 850.0f * baseScale) boardSize.x = 850.0f * baseScale;
 
     glm::vec2 panelPos = { (screenW - boardSize.x) * 0.5f, (screenH - boardSize.y) * 0.5f };
@@ -78,12 +75,10 @@ void SettingsMenuPanel::Draw(float baseScale) {
         Gui::Panel(panelPos, boardSize, { 0.12f, 0.12f, 0.15f, 0.95f }, 20.0f * baseScale);
     }
 
-    // --- TYTUŁ ---
-    float titleScale = 1.6f * baseScale; // Powiększony tytuł (wcześniej 1.2f)
+    float titleScale = 1.6f * baseScale;
     float titleW = Gui::MeasureTextWidth("SETTINGS", titleScale);
-    Gui::DrawGuiText("SETTINGS", { panelPos.x + (boardSize.x - titleW) * 0.5f, panelPos.y + 80.0f * baseScale }, titleScale, { 1.0f, 1.0f, 1.0f, 1.0f }); // Zmieniony kolor na biały
+    Gui::DrawGuiText("SETTINGS", { panelPos.x + (boardSize.x - titleW) * 0.5f, panelPos.y + 80.0f * baseScale }, titleScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-    // --- LOGIKA MYSZKI I PRZYCISKÓW GRAFICZNYCH ---
     glm::vec2 mouse = Gui::GetMappedMousePos();
     auto isHov = [&](glm::vec2 p, glm::vec2 s) {
         return mouse.x >= p.x && mouse.x <= p.x + s.x && mouse.y >= p.y && mouse.y <= p.y + s.y;
@@ -93,7 +88,6 @@ void SettingsMenuPanel::Draw(float baseScale) {
     bool currentMouseState = Input::IsMouseButtonPressed(0);
     bool mouseClicked = currentMouseState && !s_LastMouseStateSettings;
 
-    // Funkcja lambdy rysująca grafikę przycisku (Z TINTEM I HOVEREM)
     auto drawImageBtn = [&](std::shared_ptr<Texture> tex, glm::vec2 basePos, glm::vec2 baseSize, float& scaleVar, bool hovered) {
         float targetScale = hovered ? 1.05f : 1.0f;
         scaleVar += (targetScale - scaleVar) * 15.0f * m_DeltaTime;
@@ -117,23 +111,18 @@ void SettingsMenuPanel::Draw(float baseScale) {
         return hovered && mouseClicked;
         };
 
-    // --- POZYCJONOWANIE OPCJI USTAWIEŃ ---
-    float startY = panelPos.y + 200.0f * baseScale;
-    float rowGap = 100.0f * baseScale;
+    float startY = panelPos.y + 180.0f * baseScale;
+    float rowGap = 85.0f * baseScale;
 
     float leftColX = panelPos.x + boardSize.x * 0.15f;
     float rightColX = panelPos.x + boardSize.x * 0.48f;
-    float textScale = 1.0f * baseScale; // Powiększone napisy
+    float textScale = 1.0f * baseScale;
 
     glm::vec2 arrowSize = { 50.0f * baseScale, 50.0f * baseScale };
     float distanceBetweenArrows = 300.0f * baseScale;
-
-    // --- WYLICZENIE WSPÓLNEGO ŚRODKA DLA RZĘDU ---
-    // Strzałki są centrowane względem swojego środka, napisy względem swojego top/baseline
     float arrowYOffset = arrowSize.y * 0.5f;
-    float textYOffset = 18.0f * baseScale; // <-- ZMIENIAJ TĘ WARTOŚĆ, JEŚLI TEKST JEST MINIMALNIE ZA WYSOKO LUB ZA NISKO!
+    float textYOffset = 18.0f * baseScale;
 
-    // Funkcja wyśrodkowująca tekst idealnie między strzałkami < > oraz w pionie
     auto drawCenteredValue = [&](const std::string& text, float rowCenterY) {
         float textW = Gui::MeasureTextWidth(text, textScale);
         float centerX = rightColX + arrowSize.x + (distanceBetweenArrows - arrowSize.x) * 0.5f;
@@ -143,16 +132,13 @@ void SettingsMenuPanel::Draw(float baseScale) {
     // --- RZĄD 1: ROZDZIELCZOŚĆ ---
     float row1Y = startY;
     Gui::DrawGuiText("Resolution:", { leftColX, row1Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
-
     glm::vec2 resLeftPos = { rightColX, row1Y - arrowYOffset };
     bool hovResL = isHov(resLeftPos, arrowSize);
     if (drawImageBtn(leftArrowTex, resLeftPos, arrowSize, m_ResLeftBtnScale, hovResL)) {
         m_PendingResIndex = (m_PendingResIndex - 1 + GraphicsSettings::ResolutionCount) % GraphicsSettings::ResolutionCount;
     }
-
     std::string resText = std::to_string(GraphicsSettings::Resolutions[m_PendingResIndex].first) + " x " + std::to_string(GraphicsSettings::Resolutions[m_PendingResIndex].second);
     drawCenteredValue(resText, row1Y);
-
     glm::vec2 resRightPos = { rightColX + distanceBetweenArrows, row1Y - arrowYOffset };
     bool hovResR = isHov(resRightPos, arrowSize);
     if (drawImageBtn(rightArrowTex, resRightPos, arrowSize, m_ResRightBtnScale, hovResR)) {
@@ -162,75 +148,79 @@ void SettingsMenuPanel::Draw(float baseScale) {
     // --- RZĄD 2: ANTI-ALIASING ---
     float row2Y = startY + rowGap;
     Gui::DrawGuiText("Antialiasing:", { leftColX, row2Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
-
     glm::vec2 msaaLeftPos = { rightColX, row2Y - arrowYOffset };
     bool hovMsaaL = isHov(msaaLeftPos, arrowSize);
     if (drawImageBtn(leftArrowTex, msaaLeftPos, arrowSize, m_MsaaLeftBtnScale, hovMsaaL)) {
         m_PendingMsaaIndex = (m_PendingMsaaIndex - 1 + m_MsaaOptions.size()) % m_MsaaOptions.size();
     }
-
     std::string msaaText = m_MsaaOptions[m_PendingMsaaIndex] == 1 ? "Off" : "MSAA x" + std::to_string(m_MsaaOptions[m_PendingMsaaIndex]);
     drawCenteredValue(msaaText, row2Y);
-
     glm::vec2 msaaRightPos = { rightColX + distanceBetweenArrows, row2Y - arrowYOffset };
     bool hovMsaaR = isHov(msaaRightPos, arrowSize);
     if (drawImageBtn(rightArrowTex, msaaRightPos, arrowSize, m_MsaaRightBtnScale, hovMsaaR)) {
         m_PendingMsaaIndex = (m_PendingMsaaIndex + 1) % m_MsaaOptions.size();
     }
 
-    // --- RZĄD 3: MUZYKA (Tło) ---
-    float row3Y = row2Y + rowGap;
-    Gui::DrawGuiText("Music:", { leftColX, row3Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+    // --- RZĄD 3: FULLSCREEN ---
+    float row3Y = startY + rowGap * 2.0f;
+    Gui::DrawGuiText("Fullscreen:", { leftColX, row3Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+    glm::vec2 fsLeftPos = { rightColX, row3Y - arrowYOffset };
+    bool hovFsL = isHov(fsLeftPos, arrowSize);
+    if (drawImageBtn(leftArrowTex, fsLeftPos, arrowSize, m_FsLeftBtnScale, hovFsL)) {
+        m_PendingFullscreen = !m_PendingFullscreen;
+    }
+    std::string fsText = m_PendingFullscreen ? "ON" : "OFF";
+    drawCenteredValue(fsText, row3Y);
+    glm::vec2 fsRightPos = { rightColX + distanceBetweenArrows, row3Y - arrowYOffset };
+    bool hovFsR = isHov(fsRightPos, arrowSize);
+    if (drawImageBtn(rightArrowTex, fsRightPos, arrowSize, m_FsRightBtnScale, hovFsR)) {
+        m_PendingFullscreen = !m_PendingFullscreen;
+    }
 
-    glm::vec2 musLeftPos = { rightColX, row3Y - arrowYOffset };
+    // --- RZĄD 4: MUZYKA ---
+    float row4Y = startY + rowGap * 3.0f;
+    Gui::DrawGuiText("Music:", { leftColX, row4Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+    glm::vec2 musLeftPos = { rightColX, row4Y - arrowYOffset };
     bool hovMusL = isHov(musLeftPos, arrowSize);
     if (drawImageBtn(leftArrowTex, musLeftPos, arrowSize, m_MusicLeftBtnScale, hovMusL)) {
         m_PendingMusicEnabled = !m_PendingMusicEnabled;
     }
-
     std::string musText = m_PendingMusicEnabled ? "ON" : "OFF";
-    drawCenteredValue(musText, row3Y);
-
-    glm::vec2 musRightPos = { rightColX + distanceBetweenArrows, row3Y - arrowYOffset };
+    drawCenteredValue(musText, row4Y);
+    glm::vec2 musRightPos = { rightColX + distanceBetweenArrows, row4Y - arrowYOffset };
     bool hovMusR = isHov(musRightPos, arrowSize);
     if (drawImageBtn(rightArrowTex, musRightPos, arrowSize, m_MusicRightBtnScale, hovMusR)) {
         m_PendingMusicEnabled = !m_PendingMusicEnabled;
     }
 
-    // --- RZĄD 4: DŹWIĘKI (SFX) ---
-    float row4Y = row3Y + rowGap;
-    Gui::DrawGuiText("Sounds:", { leftColX, row4Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
-
-    glm::vec2 sndLeftPos = { rightColX, row4Y - arrowYOffset };
+    // --- RZĄD 5: DŹWIĘKI ---
+    float row5Y = startY + rowGap * 4.0f;
+    Gui::DrawGuiText("Sounds:", { leftColX, row5Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+    glm::vec2 sndLeftPos = { rightColX, row5Y - arrowYOffset };
     bool hovSndL = isHov(sndLeftPos, arrowSize);
     if (drawImageBtn(leftArrowTex, sndLeftPos, arrowSize, m_SoundsLeftBtnScale, hovSndL)) {
         m_PendingSoundsEnabled = !m_PendingSoundsEnabled;
     }
-
     std::string sndText = m_PendingSoundsEnabled ? "ON" : "OFF";
-    drawCenteredValue(sndText, row4Y);
-
-    glm::vec2 sndRightPos = { rightColX + distanceBetweenArrows, row4Y - arrowYOffset };
+    drawCenteredValue(sndText, row5Y);
+    glm::vec2 sndRightPos = { rightColX + distanceBetweenArrows, row5Y - arrowYOffset };
     bool hovSndR = isHov(sndRightPos, arrowSize);
     if (drawImageBtn(rightArrowTex, sndRightPos, arrowSize, m_SoundsRightBtnScale, hovSndR)) {
         m_PendingSoundsEnabled = !m_PendingSoundsEnabled;
     }
 
-    // --- DOLNY PANEL (PRZYCISKI BACK / APPLY) ---
+    // --- DOLNY PANEL ---
     float btnHeight = 90.0f * baseScale;
     glm::vec2 backBtnSize = getAspectSize(backBtnTex, btnHeight);
     glm::vec2 applyBtnSize = getAspectSize(applyBtnTex, btnHeight);
-
     float bottomY = panelPos.y + boardSize.y - btnHeight - 70.0f * baseScale;
 
-    // Przycisk BACK
     glm::vec2 backPos = { panelPos.x + boardSize.x * 0.12f, bottomY };
     bool hovBack = isHov(backPos, backBtnSize);
     if (drawImageBtn(backBtnTex, backPos, backBtnSize, m_BackBtnScale, hovBack)) {
         SetVisible(false);
     }
 
-    // Przycisk APPLY
     glm::vec2 applyPos = { panelPos.x + boardSize.x * 0.88f - applyBtnSize.x, bottomY };
     bool hovApply = isHov(applyPos, applyBtnSize);
     if (drawImageBtn(applyBtnTex, applyPos, applyBtnSize, m_ApplyBtnScale, hovApply)) {
@@ -245,15 +235,15 @@ void SettingsMenuPanel::Draw(float baseScale) {
         int newHeight = GraphicsSettings::Resolutions[m_PendingResIndex].second;
         int newMsaa = m_MsaaOptions[m_PendingMsaaIndex];
 
-        if (gs.WindowWidth != newWidth || gs.WindowHeight != newHeight || gs.MsaaSamples != newMsaa) {
+        if (gs.WindowWidth != newWidth || gs.WindowHeight != newHeight || gs.MsaaSamples != newMsaa || gs.Fullscreen != m_PendingFullscreen) {
             gs.WindowWidth = newWidth;
             gs.WindowHeight = newHeight;
             gs.MsaaSamples = newMsaa;
+            gs.Fullscreen = m_PendingFullscreen;
 
             Application::Get().ApplyGraphicsSettings();
         }
     }
 
-    // Zapis stanu myszki na koniec klatki (obsługa blokowania spamu kliknięć)
     s_LastMouseStateSettings = currentMouseState;
 }

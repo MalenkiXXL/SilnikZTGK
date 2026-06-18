@@ -147,7 +147,23 @@ void Application::ApplyGraphicsSettings()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	glfwSetWindowSize((GLFWwindow*)m_Window->GetNativeWindow(), width, height);
+	// TA LINIJKA WYWOŁYWAŁA BŁĄD, JEŚLI ZOSTAŁA POMINIĘTA PRZY KOPIOWANIU!
+	GLFWwindow* nativeWindow = (GLFWwindow*)m_Window->GetNativeWindow();
+
+	if (settings.Fullscreen) {
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		glfwSetWindowMonitor(nativeWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
+		width = mode->width;
+		height = mode->height;
+	}
+	else {
+		GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+		const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+		int xpos = (mode->width - width) / 2;
+		int ypos = (mode->height - height) / 2;
+		glfwSetWindowMonitor(nativeWindow, nullptr, xpos, ypos, width, height, 0);
+	}
 
 	glViewport(0, 0, width, height);
 
@@ -170,8 +186,8 @@ void Application::ApplyGraphicsSettings()
 		activeScene->SetViewportSize(width, height);
 	}
 
-	spdlog::info("GraphicsSettings: Zastosowano MSAA x{} @ {}x{}",
-		settings.MsaaSamples, width, height);
+	spdlog::info("GraphicsSettings: Zastosowano MSAA x{} @ {}x{} (Fullscreen: {})",
+		settings.MsaaSamples, width, height, settings.Fullscreen);
 }
 
 void Application::Run()

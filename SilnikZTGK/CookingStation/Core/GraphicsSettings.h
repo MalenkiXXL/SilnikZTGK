@@ -5,6 +5,7 @@ struct GraphicsSettings {
     int MsaaSamples = 4;  
     int WindowWidth = 1280;
     int WindowHeight = 720;
+    bool Fullscreen = false;
 
     static constexpr int ResolutionCount = 4;
     static constexpr std::pair<int, int> Resolutions[ResolutionCount] = {
