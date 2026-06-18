@@ -532,6 +532,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     {
         // 1. Ładowanie tekstury w locie (tylko raz)
         static std::shared_ptr<Texture> s_EventCloudTex = AssetManager::GetTexture("assets://UI/Events/EventCloud.png");
+        static std::shared_ptr<Texture> s_EventRewardTex = AssetManager::GetTexture("assets://UI/Events/EventReward.png");
         if (!s_EventCloudTex) return;
 
         // 2. Skalowanie z zachowaniem proporcji nowego pliku
@@ -557,17 +558,17 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         float mainCenterX = newCloudPos.x + cloudW * 0.55f;
 
         // 3. TYTUŁ
-        float titleScale = 0.75f * baseScale;
+        float titleScale = 0.78f * baseScale;
         float titleW = Gui::MeasureTextWidth(activeQuest->Title, titleScale);
-        Gui::DrawGuiText(activeQuest->Title, { mainCenterX - titleW * 0.61f, newCloudPos.y + cloudH * 0.36f }, titleScale, titleColor);
+        Gui::DrawGuiText(activeQuest->Title, { mainCenterX - titleW * 0.61f, newCloudPos.y + cloudH * 0.24f }, titleScale, titleColor);
 
         // 4. OPIS (Zawijany tekst)
-        float descScale = 0.72f * baseScale;
+        float descScale = 0.78f * baseScale;
         float descMaxW = cloudW * 0.75f;
 
         float myCustomCenterX = mainCenterX - (15.0f * baseScale);
 
-        float curY = newCloudPos.y + cloudH * 0.47f;
+        float curY = newCloudPos.y + cloudH * 0.35f;
         float descLineH = Gui::MeasureTextHeight("A", descScale) * 1.3f;
 
         {
@@ -599,9 +600,9 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         }
 
         // 5. IKONA POTRAWY (Bez fioletowego tła)
-        float slotSize = cloudH * 0.225f;
+        float slotSize = cloudH * 0.28f;
         // Ustawiamy niewidzialny slot lekko z lewej strony środka
-        glm::vec2 slotPos = { mainCenterX - slotSize * 1.4f, newCloudPos.y + cloudH * 0.65f };
+        glm::vec2 slotPos = { mainCenterX - slotSize * 1.2f, newCloudPos.y + cloudH * 0.58f };
 
         // Wczytywanie odpowiedniej potrawy!
         // UWAGA: Upewnij się, że wpisujesz poprawne ścieżki do obrazków potraw!
@@ -638,32 +639,46 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         // 6. LICZNIK POSTĘPU OBOK IKONY (x/y)
         int delivered = GameManagerScript::s_Instance->GetQuestProgress();
         std::string progressStr = std::to_string(delivered) + "/" + std::to_string(activeQuest->Portions);
-        float progressScale = 1.1f * baseScale;
-        float progressY = slotPos.y + slotSize * 0.9f - Gui::MeasureTextHeight(progressStr, progressScale) * 1.5f;
+        float progressScale = 1.25f * baseScale;
+        float progressY = slotPos.y + slotSize * 0.7f - Gui::MeasureTextHeight(progressStr, progressScale) * 1.1f;
 
-        Gui::DrawGuiText(progressStr, { slotPos.x + slotSize + 17.0f * baseScale, progressY }, progressScale, circleColor);
+        Gui::DrawGuiText(progressStr, { slotPos.x + slotSize + 10.0f * baseScale, progressY }, progressScale, circleColor);
 
         // 7. MINI-CHMURKA "REWARD" (Lewy górny róg)
         
-        // Kwota na monecie
-        std::string coinsStr = std::to_string(activeQuest->RewardCoins);
-        float coinsScale = 0.45f * baseScale;
-        float coinsW = Gui::MeasureTextWidth(coinsStr, coinsScale);
-        
-        // Te wartości wycelowują w środek namalowanej monety (dostrój w razie potrzeby)
-        float bakedCoinCenterX = newCloudPos.x + cloudW * 0.10f; 
-        float bakedCoinCenterY = newCloudPos.y + cloudH * 0.16f; 
-        Gui::DrawGuiText(coinsStr, { bakedCoinCenterX - coinsW * 0.5f, bakedCoinCenterY }, coinsScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+        if (s_EventRewardTex) {
+            float rewardAspect = (float)s_EventRewardTex->GetWidth() / (float)s_EventRewardTex->GetHeight();
+            float rewardH = cloudH * 0.6f;
+            float rewardW = rewardH * rewardAspect;
 
-        std::string flagText = activeQuest->RewardFlag;
-        float flagTextScale = 0.42f * baseScale;
-        float flagTextW = Gui::MeasureTextWidth(flagText, flagTextScale);
-        glm::vec4 flagTextColor = { 0.88f, 0.75f, 0.93f, 1.0f };
+            glm::vec2 rewardPos = { newCloudPos.x + cloudW - rewardW * 2.3f, newCloudPos.y - rewardH * 0.6f };
 
-        // Zmniejszyłem 0.22f na 0.18f, żeby podciągnąć napis GB w górę!
-        float bakedFlagCenterX = newCloudPos.x + cloudW * 0.205f;
-        float bakedFlagBottomY = newCloudPos.y + cloudH * 0.18f;
-        Gui::DrawGuiText(flagText, { bakedFlagCenterX - flagTextW * 0.5f, bakedFlagBottomY }, flagTextScale, flagTextColor);
+            Renderer2D::DrawQuad(rewardPos, { rewardW, rewardH }, s_EventRewardTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+            // Kwota na monecie (z cieniem tak samo jak w menu akceptacji)
+            std::string coinsStr = std::to_string(activeQuest->RewardCoins);
+            float coinsScale = 0.8f * baseScale;
+            float coinsW = Gui::MeasureTextWidth(coinsStr, coinsScale);
+
+            // Te wartości celują w monetę na NOWYM obrazku EventReward.png
+            float bakedCoinCenterX = rewardPos.x + rewardW * 0.33f;
+            float bakedCoinCenterY = rewardPos.y + rewardH * 0.52f;
+
+            // Najpierw cień, potem właściwy tekst
+            Gui::DrawGuiText(coinsStr, { bakedCoinCenterX - coinsW * 0.5f + 1.5f, bakedCoinCenterY + 1.5f }, coinsScale, { 0.0f, 0.0f, 0.0f, 0.6f });
+            Gui::DrawGuiText(coinsStr, { bakedCoinCenterX - coinsW * 0.5f, bakedCoinCenterY }, coinsScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
+            // Kod kraju pod flagą
+            std::string flagText = activeQuest->RewardFlag;
+            glm::vec4 flagTextColor = { 0.88f, 0.75f, 0.93f, 1.0f };
+            float flagTextScale = 0.8f * baseScale;
+            float flagTextW = Gui::MeasureTextWidth(flagText, flagTextScale);
+
+            // Te wartości celują pod flagę na NOWYM obrazku EventReward.png
+            float bakedFlagCenterX = rewardPos.x + rewardW * 0.8f;
+            float bakedFlagBottomY = rewardPos.y + rewardH * 0.6f;
+            Gui::DrawGuiText(flagText, { bakedFlagCenterX - flagTextW * 0.5f, bakedFlagBottomY }, flagTextScale, flagTextColor);
+        }
 
         return;
     }
