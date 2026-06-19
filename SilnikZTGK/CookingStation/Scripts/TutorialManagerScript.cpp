@@ -4,10 +4,9 @@
 #include "CookingStation/Core/Input.h" 
 #include "CookingStation/Scripts/PoofEmitterScript.h"
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
-// KONIECZNE DO ZNALEZIENIA POMIDORA:
 #include "CookingStation/Scripts/CrateScript.h" 
 #include <algorithm>
-#include <limits> // Do sprawdzenia, czy pomidor istnieje
+#include <limits> 
 
 Entity TutorialManagerScript::FindEntityByName(const std::string& name) {
     auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -41,6 +40,9 @@ void TutorialManagerScript::RestorePosition(Entity e, glm::vec3 originalPos) {
 
 void TutorialManagerScript::OnCreate() {
     GameManagerScript::s_IsTutorialMode = true;
+
+    // Zabieramy domyœlne pomidory z magazynu gracza na start
+    GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ IngredientType::Tomato, 5 });
 
     glm::vec4 walterColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f);
     glm::vec4 playerColor = glm::vec4(1.0f, 0.4f, 0.8f, 1.0f);
@@ -150,6 +152,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
             m_State = TutorialState::CameraResetting;
             m_StateTimer = 0.0f;
+            m_DialogIndex = 0;
         }
         break;
     }
@@ -160,7 +163,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             camera->Zoom += (32.0f - camera->Zoom) * 4.0f * ts.GetSeconds();
         }
 
-        if (m_StateTimer > 1.5f && m_StateTimer <= 1.52f) {
+        if (m_StateTimer > 1.5f && m_DialogIndex == 0) {
             glm::vec3 poofPos = glm::vec3(-7.0f, 2.2f, 1.0f);
             RestorePosition(m_Poof, poofPos);
 
@@ -168,32 +171,34 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             if (nsc) {
                 for (auto& s : nsc->Scripts) {
                     if (s.Name == "PoofEmitterScript" && s.Instance) {
-                        auto* emitter = static_cast<ParticleEmitterScript*>(s.Instance);
-                        emitter->Play();
+                        static_cast<ParticleEmitterScript*>(s.Instance)->Play();
                         break;
                     }
                 }
             }
+            m_DialogIndex = 1;
         }
 
-        if (m_StateTimer > 2.0f && m_StateTimer <= 2.02f) {
+        if (m_StateTimer > 1.9f && m_DialogIndex == 1) {
             glm::vec3 spawnerPos = glm::vec3(-7.0f, 1.2f, 1.0f);
             RestorePosition(m_PlateSpawner, spawnerPos);
+            m_DialogIndex = 2;
         }
 
-        if (m_StateTimer > 2.8f) {
+        if (m_StateTimer > 2.4f && m_DialogIndex == 2) {
             if (m_Poof.id != NULL_ENTITY) {
                 HideUnderground(m_Poof);
             }
             m_State = TutorialState::WaitForCrateSpawn;
             m_StateTimer = 0.0f;
+            m_DialogIndex = 0;
         }
         break;
     }
 
     case TutorialState::WaitForCrateSpawn: {
-        if (m_StateTimer > 2.0f && m_StateTimer <= 2.02f) {
 
+        if (m_StateTimer > 2.5f && m_DialogIndex == 0) {
             glm::vec3 poofPos = m_CrateOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f);
             RestorePosition(m_Poof, poofPos);
 
@@ -206,12 +211,12 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                     }
                 }
             }
+            m_DialogIndex = 1;
+        }
 
-            // Skrzynka wje¿d¿a z powrotem na blat!
+        if (m_StateTimer > 2.8f && m_DialogIndex == 1) {
             RestorePosition(m_TomatoCrate, m_CrateOriginalPos);
 
-            // --- ROZWI¥ZANIE PROBLEMU NR 1 ---
-            // Niewa¿ne ile masz w magazynie, wyrównujemy na zero lub zdejmujemy nadmiar, tak by dodaæ RÓWNE 1!
             if (GameManagerScript::s_Instance) {
                 int currentTomatoes = GameManagerScript::s_Instance->GetIngredientCount(IngredientType::Tomato);
                 if (currentTomatoes > 1) {
@@ -222,42 +227,83 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 }
             }
 
-            // --- ROZWI¥ZANIE PROBLEMU NR 2 ---
-            // Siêgamy do skrzynki i ka¿emy modelowi pomidora do niej wróciæ!
+            TriggerHighlightEvent ev;
+            ev.TargetEntity = m_TomatoCrate;
+            ev.Color = glm::vec3(1.0f, 0.8f, 0.0f);
+            ev.IsInfinite = true;
+            GetScene()->GetWorld().GetEventBus().Publish(ev);
+
+            m_DialogIndex = 2;
+        }
+
+        if (m_StateTimer > 2.8f && m_DialogIndex == 2) {
             auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_TomatoCrate);
             if (nsc) {
                 for (auto& s : nsc->Scripts) {
                     if (s.Name == "CrateScript" && s.Instance) {
                         auto* crateScript = static_cast<CrateScript*>(s.Instance);
                         if (crateScript->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
-                            // Teleportujemy model na œrodek skrzynki (+0.4 w osi Y tak jak napisa³aœ w klasie Crate)
                             RestorePosition(crateScript->m_VisualFood, m_CrateOriginalPos + glm::vec3(0.0f, 0.4f, 0.0f));
+                            m_DialogIndex = 3;
                         }
                     }
                 }
             }
-
-            TriggerHighlightEvent ev;
-            ev.TargetEntity = m_TomatoCrate;
-            ev.Color = glm::vec3(1.0f, 0.8f, 0.0f);
-            ev.IsInfinite = true;
-            GetScene()->GetWorld().GetEventBus().Publish(ev);
         }
 
-        if (m_StateTimer > 2.8f) {
+        if (m_DialogIndex == 3) {
+            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_TomatoCrate);
+            if (nsc) {
+                for (auto& s : nsc->Scripts) {
+                    if (s.Name == "CrateScript" && s.Instance) {
+                        auto* crateScript = static_cast<CrateScript*>(s.Instance);
+                        if (crateScript->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                            TriggerHighlightEvent evFood;
+                            evFood.TargetEntity = crateScript->m_VisualFood;
+                            evFood.Color = glm::vec3(1.0f, 0.9f, 0.0f);
+                            // ZMIANA: Wolniejsze przejœcie animacji (cykl 2 sekundy zamiast natychmiastowego)
+                            evFood.Duration = 8.0f;
+                            evFood.IsInfinite = true;
+                            GetScene()->GetWorld().GetEventBus().Publish(evFood);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (m_StateTimer > 3.3f && m_DialogIndex == 3) {
             HideUnderground(m_Poof);
             m_State = TutorialState::WaitForCrateClick;
             m_StateTimer = 0.0f;
+            m_DialogIndex = 0;
         }
         break;
     }
 
     case TutorialState::WaitForCrateClick: {
+
+        auto* crateNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_TomatoCrate);
+        if (crateNsc) {
+            for (auto& s : crateNsc->Scripts) {
+                if (s.Name == "CrateScript" && s.Instance) {
+                    auto* crateScript = static_cast<CrateScript*>(s.Instance);
+                    if (crateScript->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                        TriggerHighlightEvent evFood;
+                        evFood.TargetEntity = crateScript->m_VisualFood;
+                        evFood.Color = glm::vec3(1.0f, 0.9f, 0.0f);
+                        // ZMIANA: Zsynchronizowane wolniejsze tempo pulsowania
+                        evFood.Duration = 8.0f;
+                        evFood.IsInfinite = true;
+                        GetScene()->GetWorld().GetEventBus().Publish(evFood);
+                    }
+                }
+            }
+        }
+
         bool tomatoFound = false;
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         if (tags) {
             for (const auto& tagComp : tags->dense) {
-                // POPRAWKA: Twój CrateScript oznacza wyjête itemy tagiem "BeltItem_X", a nie "Pomidor"!
                 if (tagComp.Tag.find("BeltItem") != std::string::npos) {
                     tomatoFound = true;
                     break;
