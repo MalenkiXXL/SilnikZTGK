@@ -39,6 +39,8 @@ public:
                 m_CrateIngredient = IngredientType::Milk;
             else if (name.find("Flour") != std::string::npos || name.find("Maka") != std::string::npos)
                 m_CrateIngredient = IngredientType::Flour;
+            else if (name.find("Egg") != std::string::npos || name.find("Jajko") != std::string::npos)
+                m_CrateIngredient = IngredientType::Egg;
         }
 
         if (m_CrateIngredient == IngredientType::None) {
@@ -179,6 +181,7 @@ private:
         case IngredientType::Baguette: return "assets://models/skladniki/bagietka/bagietka.gltf";
         case IngredientType::Milk: return "assets://models/skladniki/mleko/milk.gltf";
         case IngredientType::Flour: return "assets://models/skladniki/maka/maka.gltf";
+        case IngredientType::Egg: return "assets://models/skladniki/jajko_bez/egg_withoutshell.gltf";
         default: return "";
         }
     }

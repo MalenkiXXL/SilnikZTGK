@@ -49,6 +49,8 @@
     <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\SettingsMenuPanel.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\PauseMenuPanel.cpp" />
     <ClCompile Include="CookingStation\Scripts\src\DeliveryManagerScript.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\BuildModePanel.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Core\AudioEngine.h" />
@@ -135,6 +137,10 @@
     <ClInclude Include="CookingStation\Assets\Flags\FlagData.h" />
     <ClInclude Include="CookingStation\Assets\Flags\FlagTextureGenerator.h" />
     <ClInclude Include="CookingStation\Assets\Flags\FlagScript.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Panels\BuildModePanel.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Utils\BubblyUI.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\PanScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />
@@ -150,5 +156,7 @@
     <None Include="CookingStation\Assets\prefabs\board_station.json" />
     <None Include="CookingStation\Assets\prefabs\cuttingboard.json" />
     <None Include="CookingStation\Assets\prefabs\pot_station.json" />
+    <None Include="CookingStation\Assets\prefabs\pan_station.json" />
+    <None Include="CookingStation\Assets\prefabs\SkrzynkaJajko.json" />
   </ItemGroup>
 </Project>
