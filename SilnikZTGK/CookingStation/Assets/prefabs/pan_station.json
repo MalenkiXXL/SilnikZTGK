@@ -1,0 +1,21 @@
+[
+  {
+    "name": "Patelnia",
+    "model_path": "assets://models/przybory_kuchenne/patelka/pan.gltf",
+    "position": [ 0.0, 1.0, 0.0 ],
+    "rotation": [ 0.0, 0.0, 0.0 ],
+    "scale": [ 0.7, 0.7, 0.7 ],
+    "collider": {
+      "size": [ 0.7, 0.7, 0.7 ],
+      "offset": [ 0.0, 0.0, 0.0 ]
+    },
+    "scripts": [ "PanScript", "SteamEmitterScript" ]
+  },
+  {
+    "name": "Palnik",
+    "model_path": "assets://models/wystroj/palnik/palnik.gltf",
+    "position": [ 0.0, 0.0, 0.0 ],
+    "rotation": [ 0.0, 0.0, 0.0 ],
+    "scale": [ 1.0, 1.0, 1.0 ]
+  }
+]
