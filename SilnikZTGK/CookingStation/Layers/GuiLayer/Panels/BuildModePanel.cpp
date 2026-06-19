@@ -17,8 +17,8 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.clear();
     m_CoinIcon = coinIcon;
 
-    // Przywrócone stare tekstury oraz darmowe ceny (0)
-    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   0 });
+    // Przywróciłem ceny > 0, aby było fizycznie widać pobieranie pieniędzy podczas stawiania!
+    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),    });
     m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/cuttingBoardMachine.png"), 0 });
     m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   0 });
     m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  0 });
@@ -57,7 +57,8 @@ void BuildModePanel::Deactivate() {
     auto activeScene = SceneManager::GetActiveScene();
     if (!m_PreviewGroup.empty() && activeScene) {
         for (auto& [ent, offset] : m_PreviewGroup) {
-            activeScene->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
+            // TWARDE USUNIĘCIE ZAMIAST ZDARZENIA (bo w Edit Mode zdarzenia nie są przetwarzane!)
+            activeScene->GetWorld().DestroyEntity(ent);
         }
         m_PreviewGroup.clear();
     }
@@ -163,7 +164,7 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
 
     // Parametry Siatki (Slots)
     const float iconH = 80.0f * baseScale;
-    const float slotW = 120.0f * baseScale; // Sztywna szerokość "stanowiska", ułatwia matematyczne centrowanie
+    const float slotW = 120.0f * baseScale; // Sztywna szerokość "stanowiska"
     const float spacing = 20.0f * baseScale;
 
     const int count = (int)m_MachineEntries.size();
@@ -271,7 +272,7 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap + 1.5f * baseScale, priceY + 1.5f * baseScale }, priceTextScale, { 0.0f, 0.0f, 0.0f, 0.8f });
         Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap, priceY }, priceTextScale, priceTextColor);
 
-        // Wybór maszyny tylko gdy gracza stać
+        // Pieniądze NIE są tutaj pobierane! Zostaje samo "wybranie" maszyny do ręki.
         if (inIcon && m_IsActive) {
             Input::SetUICaptureMouse(true);
             if (Input::IsMouseButtonJustPressed(0) && m_HeldMachineIndex == -1) {
@@ -281,7 +282,6 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
                 }
                 else {
                     spdlog::warn("BuildMode: Nie stac cie na te maszyne!");
-                    // WYSYŁANIE SYGNAŁU DO GAMEMANAGERSCRIPT
                     if (GameManagerScript::s_Instance) {
                         GameManagerScript::s_Instance->TriggerMoneyWarning();
                     }
@@ -536,10 +536,12 @@ void BuildModePanel::DrawOverlay(float gameW, float gameH, float baseScale) {
 void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
     if (!activeScene) return;
 
-    if (Input::IsMouseButtonJustPressed(1)) {
+    // NOWOŚĆ: Prawidłowe reagowanie na PPM i klawisz TAB. TWARDE USUWANIE.
+    if (Input::IsMouseButtonJustPressed(1) || Input::IsKeyPressed(GLFW_KEY_TAB)) {
         if (!m_PreviewGroup.empty()) {
             for (auto& [ent, offset] : m_PreviewGroup) {
-                activeScene->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
+                // Twarde usunięcie zapobiega pozostawaniu "duchów" po wciśnięciu PPM
+                activeScene->GetWorld().DestroyEntity(ent);
             }
             m_PreviewGroup.clear();
         }
@@ -683,12 +685,16 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
         }
     }
 
+    // NOWOŚĆ: Po postawieniu usuwamy twardo modele preview i potrącamy pieniądze Z KREDYTÓW!
     if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
         if (IsPlacementValid(activeScene, snappedPos)) {
             if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->GetMoney() >= entry.Price) {
-                GameManagerScript::s_Instance->SpendMoney(entry.Price);
 
-                for (auto& [ent, _] : m_PreviewGroup) world.GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
+                GameManagerScript::s_Instance->SpendMoney(entry.Price); // <-- Pobieramy opłatę dopiero w tym miejscu!
+
+                for (auto& [ent, _] : m_PreviewGroup) {
+                    world.DestroyEntity(ent); // Twarde usunięcie
+                }
                 m_PreviewGroup.clear();
 
                 std::vector<Entity> placedEntities = PrefabSerializer::Deserialize(activeScene.get(), entry.PrefabPath, snappedPos);
@@ -699,7 +705,9 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
                 m_HeldMachineIndex = -1;
             }
             else {
-                for (auto& [ent, _] : m_PreviewGroup) world.GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
+                for (auto& [ent, _] : m_PreviewGroup) {
+                    world.DestroyEntity(ent); // Twarde usunięcie
+                }
                 m_PreviewGroup.clear();
                 m_HeldMachineIndex = -1;
 
