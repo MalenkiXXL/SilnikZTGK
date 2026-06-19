@@ -96,6 +96,16 @@ void PlateSpawnerScript::UpdateVisualStack(int targetCount)
 
 void PlateSpawnerScript::OnUpdate(Timestep ts)
 {
+
+    auto* transform = GetComponent<TransformComponent>();
+    if (transform && transform->GetPosition().y < -50.0f) {
+        while (!m_VisualStack.empty()) {
+            GetScene()->DestroyEntity(m_VisualStack.back());
+            m_VisualStack.pop_back();
+        }
+        return;
+    }
+
     if (m_PendingGoldFlash) {
         for (auto entity : m_VisualStack) {
             TriggerHighlightEvent ev;
