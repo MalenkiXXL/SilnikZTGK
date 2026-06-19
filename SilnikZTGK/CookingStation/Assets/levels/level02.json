@@ -3428,13 +3428,25 @@
       ]
     },
     {
+      "collider": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          15.0,
+          0.8,
+          15.0
+        ]
+      },
       "id": 122,
       "model_path": "assets://models/wystroj/podloga.gltf",
       "name": "Wielka_Podloga",
       "position": [
-        -1.149999976158142,
-        -0.800000011920929,
-        0.050000011920928955
+        -1.0,
+        -0.8,
+        0.0
       ],
       "rotation": [
         0.0,
@@ -3487,18 +3499,18 @@
           0.0
         ],
         "size": [
-          15.0,
-          0.7900000214576721,
-          15.0
+          13.0,
+          0.8,
+          13.0
         ]
       },
       "id": 126,
       "model_path": "assets://models/wystroj/podloga.gltf",
       "name": "podloga",
       "position": [
-        -0.7000000476837158,
-        -0.8000075817108154,
-        -28.549999237060547
+        -0.7,
+        -0.8,
+        -31.0
       ],
       "rotation": [
         0.0,
@@ -3506,7 +3518,7 @@
         0.0
       ],
       "scale": [
-        0.800000011920929,
+        0.8,
         1.0,
         0.5
       ]
@@ -3514,23 +3526,23 @@
     {
       "collider": {
         "offset": [
-          2.5661211013793945,
-          -0.15514135360717773,
-          0.024744749069213867
+          0.0,
+          0.0,
+          0.0
         ],
         "size": [
-          5.605338096618652,
-          3.5434746742248535,
-          2.648688554763794
+          5.6,
+          3.89,
+          0.2
         ]
-      },
+    },
       "id": 127,
       "model_path": "assets://models/wystroj/chmura.gltf",
       "name": "chmura",
       "position": [
-        -3.950000524520874,
-        2.1500000953674316,
-        -16.5
+        -7.0,
+        0.0,
+        -19.5
       ],
       "rotation": [
         0.0,
@@ -3539,8 +3551,8 @@
       ],
       "scale": [
         0.5,
-        0.25,
-        0.44999998807907104
+        0.3,
+        0.45
       ]
     },
     {
@@ -3580,12 +3592,12 @@
     },
     {
       "id": 129,
-      "model_path": "assets://models/wystroj/stolik.gltf",
+      "model_path": "assets://models/wystroj/stoliki-nowe/stolik.gltf",
       "name": "Table_1_2",
       "position": [
         1.0,
         0.0,
-        -25.0
+        -27.0
       ],
       "rotation": [
         0.0,
@@ -3642,12 +3654,12 @@
     },
     {
       "id": 132,
-      "model_path": "assets://models/wystroj/stolik.gltf",
+      "model_path": "assets://models/wystroj/stoliki-nowe/stolik.gltf",
       "name": "Table_1_3",
       "position": [
         -7.0,
         0.0,
-        -29.0
+        -31.0
       ],
       "rotation": [
         0.0,
@@ -4161,12 +4173,12 @@
     },
     {
       "id": 149,
-      "model_path": "assets://models/wystroj/stolik.gltf",
+      "model_path": "assets://models/wystroj/stoliki-nowe/stolik.gltf",
       "name": "Table_1_43",
       "position": [
         5.0,
         0.0,
-        -31.0
+        -33.0
       ],
       "rotation": [
         0.0,
