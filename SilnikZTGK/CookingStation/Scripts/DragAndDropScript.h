@@ -4,6 +4,7 @@
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Core/GridSystem.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
+#include "CookingStation/Scripts/Machines/PanScript.h"
 #include "CookingStation/Scripts/Machines/MachineScript.h"
 #include "CookingStation/Scripts/Machines/PotScript.h"
 #include "CookingStation/Events/GameEvents.h"
@@ -63,7 +64,7 @@ public:
                 auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Hovered3DEntity);
                 if (nsc) {
                     for (auto& s : nsc->Scripts) {
-                        if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" || s.Name == "OvenScript") {
+                        if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" || s.Name == "OvenScript" || s.Name == "PanScript") {
                             MachineScript* mScript = static_cast<MachineScript*>(s.Instance);
                             if (mScript && mScript->CanAcceptIngredient(CurrentIngredient)) {
                                 TriggerInfiniteHighlight(m_Hovered3DEntity);
@@ -232,7 +233,7 @@ private:
 
             auto neighbor = FindClosestNeighbor(itemTf->GetPosition(), [hoveredType](const std::string& name, ScriptableEntity* instance) {
                 MachineScript* mScript = dynamic_cast<MachineScript*>(instance);
-                if (!mScript || mScript->m_IsReady) return false;
+                if (!mScript || (mScript->m_IsReady && name != "PanScript")) return false;
 
                 if (name == "CuttingBoardScript") {
                     return mScript->m_Ingredients.empty() &&
@@ -248,6 +249,11 @@ private:
                 }
                 else if (name == "OvenScript") {
                     return mScript->m_Ingredients.empty() && (hoveredType == IngredientType::RawDough);
+                }
+                else if (name == "PanScript") {
+                    bool hasEgg = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), IngredientType::Egg) != mScript->m_Ingredients.end();
+                    bool hasHam = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), IngredientType::ChoppedHam) != mScript->m_Ingredients.end();
+                    return mScript->m_Ingredients.size() < 2 && ((hoveredType == IngredientType::Egg && !hasEgg) || (hoveredType == IngredientType::ChoppedHam && !hasHam));
                 }
                 return false;
                 });
@@ -278,7 +284,7 @@ private:
             auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Hovered3DEntity);
             if (nsc) {
                 for (auto& s : nsc->Scripts) {
-                    if (s.Name == "CuttingBoardScript" || s.Name == "PotScript" || s.Name == "MixerScript" || s.Name == "OvenScript") {
+                    if (s.Name == "CuttingBoardScript" || s.Name == "PotScript" || s.Name == "MixerScript" || s.Name == "OvenScript" || s.Name == "PanScript") {
                         hoveredMachineEntity = m_Hovered3DEntity;
                         hoveredMachineScript = dynamic_cast<MachineScript*>(s.Instance);
                         machineName = s.Name;
@@ -288,7 +294,7 @@ private:
             }
         }
 
-        if (hoveredMachineScript && !hoveredMachineScript->m_IsReady) {
+        if (hoveredMachineScript && (!hoveredMachineScript->m_IsReady || machineName == "PanScript")) {
             Entity closestBeltItem = { std::numeric_limits<std::size_t>::max(), 0 };
             float closestDist = 999.0f;
             IngredientType foundType = IngredientType::None;
@@ -323,6 +329,11 @@ private:
                                 }
                                 else if (machineName == "OvenScript" && hoveredMachineScript->m_Ingredients.empty()) {
                                     canAccept = (type == IngredientType::RawDough);
+                                }
+                                else if (machineName == "PanScript" && hoveredMachineScript->m_Ingredients.size() < 2) {
+                                    bool hasEgg = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), IngredientType::Egg) != hoveredMachineScript->m_Ingredients.end();
+                                    bool hasHam = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), IngredientType::ChoppedHam) != hoveredMachineScript->m_Ingredients.end();
+                                    canAccept = ((type == IngredientType::Egg && !hasEgg) || (type == IngredientType::ChoppedHam && !hasHam));
                                 }
 
                                 if (canAccept) {
@@ -409,7 +420,7 @@ private:
             auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Hovered3DEntity);
             if (nsc) {
                 for (auto& s : nsc->Scripts) {
-                    if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" || s.Name == "OvenScript") {
+                    if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" || s.Name == "OvenScript" || s.Name == "PanScript") {
                         hoveredMachineEntity = m_Hovered3DEntity;
                         hoveredMachineScript = dynamic_cast<MachineScript*>(s.Instance);
                         machineName = s.Name;
@@ -419,7 +430,7 @@ private:
             }
         }
 
-        if (hoveredMachineScript && !hoveredMachineScript->m_IsReady) {
+        if (hoveredMachineScript && (!hoveredMachineScript->m_IsReady || machineName == "PanScript")) {
             auto* machineTf = GetScene()->GetWorld().GetComponent<TransformComponent>(hoveredMachineEntity);
             if (!machineTf) return;
 
@@ -442,6 +453,11 @@ private:
                 }
                 else if (machineName == "OvenScript" && hoveredMachineScript->m_Ingredients.empty()) {
                     return topIngredient == IngredientType::RawDough;
+                }
+                else if (machineName == "PanScript" && hoveredMachineScript->m_Ingredients.size() < 2) {
+                    bool hasEgg = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), IngredientType::Egg) != hoveredMachineScript->m_Ingredients.end();
+                    bool hasHam = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), IngredientType::ChoppedHam) != hoveredMachineScript->m_Ingredients.end();
+                    return ((topIngredient == IngredientType::Egg && !hasEgg) || (topIngredient == IngredientType::ChoppedHam && !hasHam));
                 }
                 return false;
                 });
@@ -495,7 +511,7 @@ private:
 
             auto neighbor = FindClosestNeighbor(plateTf->GetPosition(), [topIngredient](const std::string& name, ScriptableEntity* instance) {
                 MachineScript* mScript = dynamic_cast<MachineScript*>(instance);
-                if (!mScript || mScript->m_IsReady) return false;
+                if (!mScript || (mScript->m_IsReady && name != "PanScript")) return false;
 
                 if (name == "PotScript") {
                     return mScript->m_Ingredients.size() < 2 && topIngredient == IngredientType::ChoppedTomato;
@@ -509,6 +525,11 @@ private:
                 }
                 else if (name == "OvenScript") {
                     return mScript->m_Ingredients.empty() && topIngredient == IngredientType::RawDough;
+                }
+                else if (name == "PanScript") {
+                    bool hasEgg = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), IngredientType::Egg) != mScript->m_Ingredients.end();
+                    bool hasHam = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), IngredientType::ChoppedHam) != mScript->m_Ingredients.end();
+                    return mScript->m_Ingredients.size() < 2 && ((topIngredient == IngredientType::Egg && !hasEgg) || (topIngredient == IngredientType::ChoppedHam && !hasHam));
                 }
                 return false;
             });
@@ -562,7 +583,7 @@ private:
                     float dist = glm::distance(dropPos, transform->GetPosition());
                     if (dist < closestDist) {
                         if (scriptElement.Name == "PotScript" || scriptElement.Name == "CuttingBoardScript" ||
-                            scriptElement.Name == "MixerScript" || scriptElement.Name == "OvenScript")
+                            scriptElement.Name == "MixerScript" || scriptElement.Name == "OvenScript" || scriptElement.Name == "PanScript")
                         {
                             closestDist = dist;
                             closestMachine = entity;

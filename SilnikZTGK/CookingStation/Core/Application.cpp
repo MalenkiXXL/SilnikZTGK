@@ -133,8 +133,10 @@ Application::~Application()
 
 
 	AssetManager::Clean();
-
+	
+	glFinish();
 	delete m_Window;
+	glfwTerminate();
 
 	spdlog::shutdown();
 }

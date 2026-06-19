@@ -51,7 +51,6 @@ private:
 	bool OnWindowResize(WindowResizeEvent& e);
 	bool OnKeyPressed(KeyPressedEvent& e);
 
-	Window* m_Window; 
 	bool m_Running = true;
 	bool m_IgnoreNextResize = true; 
 
@@ -61,4 +60,5 @@ private:
 	std::shared_ptr<Framebuffer> m_MsaaFBO;
 
 	EventBus m_EventBus;
+	Window* m_Window;
 };

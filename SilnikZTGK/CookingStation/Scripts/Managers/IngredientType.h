@@ -84,6 +84,9 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
     case IngredientType::Sandwich:
         return { glm::vec3(6.0f), glm::vec3(0.0f) };
 
+    case IngredientType::Egg:
+        return { glm::vec3(0.4f), glm::vec3(0.0f) };
+
     default:
         return { glm::vec3(1.0f), glm::vec3(0.0f) };
     }
