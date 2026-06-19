@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <cmath>
 #include <limits>
+#include <fstream>
+#include <algorithm>
 
 struct AStarNode
 {
@@ -289,7 +291,9 @@ public:
         m_WasWavingState = isWavingOrNoting;
     }
 
-private:
+protected:
+    std::unordered_set<glm::ivec2, IVec2Hash> m_WalkableTiles;
+
     float FlatDistance(const glm::vec3& a, const glm::vec3& b)
     {
         return glm::length(glm::vec2(a.x, a.z) - glm::vec2(b.x, b.z));
@@ -670,7 +674,10 @@ private:
 
     bool IsWalkable(glm::ivec2 cell)
     {
-        return m_StaticObstacles.find(cell) == m_StaticObstacles.end();
+        bool hasFloor = m_WalkableTiles.find(cell) != m_WalkableTiles.end();
+        bool isObstacle = m_StaticObstacles.find(cell) != m_StaticObstacles.end();
+
+        return hasFloor && !isObstacle;
     }
 
     void SwapModel(bool usePageModel)
@@ -689,13 +696,18 @@ private:
     void BuildObstacleMap()
     {
         m_StaticObstacles.clear();
+        m_WalkableTiles.clear();
 
         auto& world = GetScene()->GetWorld();
         auto* transforms = world.GetComponentVector<TransformComponent>();
         auto* tags = world.GetComponentVector<TagComponent>();
         auto* rels = world.GetComponentVector<RelationshipComponent>();
+        auto* colliders = world.GetComponentVector<BoxColliderComponent>();
 
-        if (!transforms || !tags) return;
+        if (!transforms || !tags)
+        {
+            return;
+        }
 
         for (size_t i = 0; i < transforms->dense.size(); ++i)
         {
@@ -705,6 +717,52 @@ private:
             if (tagComp)
             {
                 std::string t = tagComp->Tag;
+
+                if (t.find("Podloga") != std::string::npos ||
+                    t.find("podloga") != std::string::npos ||
+                    t.find("chmura") != std::string::npos ||
+                    t.find("Bridge") != std::string::npos)
+                {
+                    glm::vec3 globalPos = transforms->dense[i].GetPosition();
+                    glm::vec3 globalScale = transforms->dense[i].GetScale();
+                    glm::vec3 globalRot = transforms->dense[i].GetRotation();
+
+                    glm::vec3 colSize = globalScale;
+                    glm::vec3 colOffset = glm::vec3(0.0f);
+
+                    if (colliders && colliders->Get(e) != nullptr) {
+                        auto* boxColl = colliders->Get(e);
+                        colSize = boxColl->Size * globalScale;
+                        colOffset = boxColl->Offset * globalScale;
+                    }
+
+                    float angleY = std::abs(globalRot.y);
+                    float remainder = std::fmod(angleY, 180.0f);
+
+                    if (remainder > 45.0f && remainder < 135.0f) {
+                        std::swap(colSize.x, colSize.z);
+                        std::swap(colOffset.x, colOffset.z);
+                        colOffset.x = -colOffset.x;
+                    }
+
+                    glm::vec3 center = globalPos + colOffset;
+                    glm::vec3 halfSize = colSize;
+
+                    glm::vec3 minBound = center - halfSize;
+                    glm::vec3 maxBound = center + halfSize;
+
+                    glm::ivec2 minCell = GridSystem::WorldToCell(minBound);
+                    glm::ivec2 maxCell = GridSystem::WorldToCell(maxBound);
+
+                    for (int x = minCell.x; x <= maxCell.x; ++x)
+                    {
+                        for (int z = minCell.y; z <= maxCell.y; ++z)
+                        {
+                            m_WalkableTiles.insert(glm::ivec2(x, z));
+                        }
+                    }
+                }
+
                 if (t.find("Table") != std::string::npos ||
                     t.find("Tasma") != std::string::npos ||
                     t.find("tasma") != std::string::npos ||
@@ -750,5 +808,71 @@ private:
                 }
             }
         }
+        ExportGridToFile();
     }
+
+    // funkcja pokazująca mapę dla kelnera
+    void ExportGridToFile()
+    {
+#ifndef CS_DISTRIBUTION
+        if (m_WalkableTiles.empty() && m_StaticObstacles.empty()) return;
+
+    int minX = 9999, maxX = -9999;
+    int minZ = 9999, maxZ = -9999;
+
+    for (const auto& tile : m_WalkableTiles) {
+        minX = std::min(minX, tile.x);
+        maxX = std::max(maxX, tile.x);
+        minZ = std::min(minZ, tile.y);
+        maxZ = std::max(maxZ, tile.y);
+    }
+    for (const auto& tile : m_StaticObstacles) {
+        minX = std::min(minX, tile.x);
+        maxX = std::max(maxX, tile.x);
+        minZ = std::min(minZ, tile.y);
+        maxZ = std::max(maxZ, tile.y);
+    }
+
+    minX -= 2; maxX += 2;
+    minZ -= 2; maxZ += 2;
+
+    std::ofstream file("MapaNawigacji.txt");
+    if (!file.is_open()) {
+        spdlog::error("Nie mozna utworzyc pliku MapaNawigacji.txt!");
+        return;
+    }
+
+    file << "LEGENDA:\n";
+    file << "@ = Podloga / Most (Chodliwe)\n";
+    file << "X = Przeszkoda (Zablokowane)\n";
+    file << "- = Przepasc (Pustka)\n\n";
+
+    file << "OS Z (od " << minZ << " do " << maxZ << ")\n";
+    file << "------------------------------------------\n";
+
+    for (int z = minZ; z <= maxZ; ++z) {
+        if (z >= 0 && z < 10) file << " ";
+        file << "Z:" << z << "\t| ";
+
+        for (int x = minX; x <= maxX; ++x) {
+            glm::ivec2 cell(x, z);
+
+            if (m_StaticObstacles.find(cell) != m_StaticObstacles.end()) {
+                file << "X ";
+            }
+            else if (m_WalkableTiles.find(cell) != m_WalkableTiles.end()) {
+                file << "@ ";
+            }
+            else {
+                file << "- ";
+            }
+        }
+        file << "\n";
+    }
+
+    file.close();
+    spdlog::info("Zapisano wizualizacje mapy do 'MapaNawigacji.txt'!");
+#endif
+    }
+
 };

@@ -8,6 +8,7 @@
 #include "../Utils/GuiUtils.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Renderer2D.h"
+#include <GLFW/glfw3.h> // Wymagane do sprawdzenia rozdzielczości monitora
 
 SettingsMenuPanel::SettingsMenuPanel() {
     SyncWithEngine();
@@ -15,6 +16,22 @@ SettingsMenuPanel::SettingsMenuPanel() {
 
 void SettingsMenuPanel::SyncWithEngine() {
     auto& gs = GraphicsSettings::Get();
+
+    // Sprawdzamy natywną rozdzielczość monitora użytkownika
+    GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+    const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
+    int monitorWidth = mode->width;
+    int monitorHeight = mode->height;
+
+    // Szukamy największego indeksu, który mieści się na tym ekranie
+    m_MaxResIndex = 0;
+    for (int i = 0; i < GraphicsSettings::ResolutionCount; i++) {
+        if (GraphicsSettings::Resolutions[i].first <= monitorWidth &&
+            GraphicsSettings::Resolutions[i].second <= monitorHeight) {
+            m_MaxResIndex = i;
+        }
+    }
+
     for (int i = 0; i < GraphicsSettings::ResolutionCount; i++) {
         if (GraphicsSettings::Resolutions[i].first == gs.WindowWidth &&
             GraphicsSettings::Resolutions[i].second == gs.WindowHeight) {
@@ -22,6 +39,12 @@ void SettingsMenuPanel::SyncWithEngine() {
             break;
         }
     }
+
+    // Blokada przed wejściem wyżej niż pozwala monitor
+    if (m_PendingResIndex > m_MaxResIndex) {
+        m_PendingResIndex = m_MaxResIndex;
+    }
+
     for (size_t i = 0; i < m_MsaaOptions.size(); i++) {
         if (m_MsaaOptions[i] == gs.MsaaSamples) {
             m_PendingMsaaIndex = (int)i;
@@ -88,7 +111,17 @@ void SettingsMenuPanel::Draw(float baseScale) {
     bool currentMouseState = Input::IsMouseButtonPressed(0);
     bool mouseClicked = currentMouseState && !s_LastMouseStateSettings;
 
-    auto drawImageBtn = [&](std::shared_ptr<Texture> tex, glm::vec2 basePos, glm::vec2 baseSize, float& scaleVar, bool hovered) {
+    auto drawImageBtn = [&](std::shared_ptr<Texture> tex, glm::vec2 basePos, glm::vec2 baseSize, float& scaleVar, bool hovered, bool active = true) {
+        if (!active) {
+            if (tex && tex->GetRendererID() != 0) {
+                Renderer2D::DrawQuad(basePos, baseSize, tex->GetRendererID(), { 0.5f, 0.5f, 0.5f, 0.3f }, uv0, uv1);
+            }
+            else {
+                Gui::Panel(basePos, baseSize, { 0.5f, 0.5f, 0.5f, 0.3f }, 10.0f * baseScale);
+            }
+            return false;
+        }
+
         float targetScale = hovered ? 1.05f : 1.0f;
         scaleVar += (targetScale - scaleVar) * 15.0f * m_DeltaTime;
 
@@ -132,81 +165,106 @@ void SettingsMenuPanel::Draw(float baseScale) {
     // --- RZĄD 1: ROZDZIELCZOŚĆ ---
     float row1Y = startY;
     Gui::DrawGuiText("Resolution:", { leftColX, row1Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
     glm::vec2 resLeftPos = { rightColX, row1Y - arrowYOffset };
-    bool hovResL = isHov(resLeftPos, arrowSize);
-    if (drawImageBtn(leftArrowTex, resLeftPos, arrowSize, m_ResLeftBtnScale, hovResL)) {
-        m_PendingResIndex = (m_PendingResIndex - 1 + GraphicsSettings::ResolutionCount) % GraphicsSettings::ResolutionCount;
+    bool canGoLeft = m_PendingResIndex > 0;
+    bool hovResL = isHov(resLeftPos, arrowSize) && canGoLeft;
+    if (drawImageBtn(leftArrowTex, resLeftPos, arrowSize, m_ResLeftBtnScale, hovResL, canGoLeft)) {
+        m_PendingResIndex--;
     }
+
     std::string resText = std::to_string(GraphicsSettings::Resolutions[m_PendingResIndex].first) + " x " + std::to_string(GraphicsSettings::Resolutions[m_PendingResIndex].second);
     drawCenteredValue(resText, row1Y);
+
     glm::vec2 resRightPos = { rightColX + distanceBetweenArrows, row1Y - arrowYOffset };
-    bool hovResR = isHov(resRightPos, arrowSize);
-    if (drawImageBtn(rightArrowTex, resRightPos, arrowSize, m_ResRightBtnScale, hovResR)) {
-        m_PendingResIndex = (m_PendingResIndex + 1) % GraphicsSettings::ResolutionCount;
+    bool canGoRight = m_PendingResIndex < m_MaxResIndex;
+    bool hovResR = isHov(resRightPos, arrowSize) && canGoRight;
+    if (drawImageBtn(rightArrowTex, resRightPos, arrowSize, m_ResRightBtnScale, hovResR, canGoRight)) {
+        m_PendingResIndex++;
     }
 
     // --- RZĄD 2: ANTI-ALIASING ---
     float row2Y = startY + rowGap;
     Gui::DrawGuiText("Antialiasing:", { leftColX, row2Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
     glm::vec2 msaaLeftPos = { rightColX, row2Y - arrowYOffset };
-    bool hovMsaaL = isHov(msaaLeftPos, arrowSize);
-    if (drawImageBtn(leftArrowTex, msaaLeftPos, arrowSize, m_MsaaLeftBtnScale, hovMsaaL)) {
-        m_PendingMsaaIndex = (m_PendingMsaaIndex - 1 + m_MsaaOptions.size()) % m_MsaaOptions.size();
+    bool canMsaaGoLeft = m_PendingMsaaIndex > 0;
+    bool hovMsaaL = isHov(msaaLeftPos, arrowSize) && canMsaaGoLeft;
+    if (drawImageBtn(leftArrowTex, msaaLeftPos, arrowSize, m_MsaaLeftBtnScale, hovMsaaL, canMsaaGoLeft)) {
+        m_PendingMsaaIndex--;
     }
+
     std::string msaaText = m_MsaaOptions[m_PendingMsaaIndex] == 1 ? "Off" : "MSAA x" + std::to_string(m_MsaaOptions[m_PendingMsaaIndex]);
     drawCenteredValue(msaaText, row2Y);
+
     glm::vec2 msaaRightPos = { rightColX + distanceBetweenArrows, row2Y - arrowYOffset };
-    bool hovMsaaR = isHov(msaaRightPos, arrowSize);
-    if (drawImageBtn(rightArrowTex, msaaRightPos, arrowSize, m_MsaaRightBtnScale, hovMsaaR)) {
-        m_PendingMsaaIndex = (m_PendingMsaaIndex + 1) % m_MsaaOptions.size();
+    bool canMsaaGoRight = m_PendingMsaaIndex < (int)m_MsaaOptions.size() - 1;
+    bool hovMsaaR = isHov(msaaRightPos, arrowSize) && canMsaaGoRight;
+    if (drawImageBtn(rightArrowTex, msaaRightPos, arrowSize, m_MsaaRightBtnScale, hovMsaaR, canMsaaGoRight)) {
+        m_PendingMsaaIndex++;
     }
 
     // --- RZĄD 3: FULLSCREEN ---
     float row3Y = startY + rowGap * 2.0f;
     Gui::DrawGuiText("Fullscreen:", { leftColX, row3Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
     glm::vec2 fsLeftPos = { rightColX, row3Y - arrowYOffset };
-    bool hovFsL = isHov(fsLeftPos, arrowSize);
-    if (drawImageBtn(leftArrowTex, fsLeftPos, arrowSize, m_FsLeftBtnScale, hovFsL)) {
-        m_PendingFullscreen = !m_PendingFullscreen;
+    bool canFsGoLeft = m_PendingFullscreen == true; // Lewa strzałka = chcemy wyłączyć (czyli musi być aktualnie włączony)
+    bool hovFsL = isHov(fsLeftPos, arrowSize) && canFsGoLeft;
+    if (drawImageBtn(leftArrowTex, fsLeftPos, arrowSize, m_FsLeftBtnScale, hovFsL, canFsGoLeft)) {
+        m_PendingFullscreen = false;
     }
+
     std::string fsText = m_PendingFullscreen ? "ON" : "OFF";
     drawCenteredValue(fsText, row3Y);
+
     glm::vec2 fsRightPos = { rightColX + distanceBetweenArrows, row3Y - arrowYOffset };
-    bool hovFsR = isHov(fsRightPos, arrowSize);
-    if (drawImageBtn(rightArrowTex, fsRightPos, arrowSize, m_FsRightBtnScale, hovFsR)) {
-        m_PendingFullscreen = !m_PendingFullscreen;
+    bool canFsGoRight = m_PendingFullscreen == false; // Prawa strzałka = chcemy włączyć
+    bool hovFsR = isHov(fsRightPos, arrowSize) && canFsGoRight;
+    if (drawImageBtn(rightArrowTex, fsRightPos, arrowSize, m_FsRightBtnScale, hovFsR, canFsGoRight)) {
+        m_PendingFullscreen = true;
     }
 
     // --- RZĄD 4: MUZYKA ---
     float row4Y = startY + rowGap * 3.0f;
     Gui::DrawGuiText("Music:", { leftColX, row4Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
     glm::vec2 musLeftPos = { rightColX, row4Y - arrowYOffset };
-    bool hovMusL = isHov(musLeftPos, arrowSize);
-    if (drawImageBtn(leftArrowTex, musLeftPos, arrowSize, m_MusicLeftBtnScale, hovMusL)) {
-        m_PendingMusicEnabled = !m_PendingMusicEnabled;
+    bool canMusGoLeft = m_PendingMusicEnabled == true;
+    bool hovMusL = isHov(musLeftPos, arrowSize) && canMusGoLeft;
+    if (drawImageBtn(leftArrowTex, musLeftPos, arrowSize, m_MusicLeftBtnScale, hovMusL, canMusGoLeft)) {
+        m_PendingMusicEnabled = false;
     }
+
     std::string musText = m_PendingMusicEnabled ? "ON" : "OFF";
     drawCenteredValue(musText, row4Y);
+
     glm::vec2 musRightPos = { rightColX + distanceBetweenArrows, row4Y - arrowYOffset };
-    bool hovMusR = isHov(musRightPos, arrowSize);
-    if (drawImageBtn(rightArrowTex, musRightPos, arrowSize, m_MusicRightBtnScale, hovMusR)) {
-        m_PendingMusicEnabled = !m_PendingMusicEnabled;
+    bool canMusGoRight = m_PendingMusicEnabled == false;
+    bool hovMusR = isHov(musRightPos, arrowSize) && canMusGoRight;
+    if (drawImageBtn(rightArrowTex, musRightPos, arrowSize, m_MusicRightBtnScale, hovMusR, canMusGoRight)) {
+        m_PendingMusicEnabled = true;
     }
 
     // --- RZĄD 5: DŹWIĘKI ---
     float row5Y = startY + rowGap * 4.0f;
     Gui::DrawGuiText("Sounds:", { leftColX, row5Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
+
     glm::vec2 sndLeftPos = { rightColX, row5Y - arrowYOffset };
-    bool hovSndL = isHov(sndLeftPos, arrowSize);
-    if (drawImageBtn(leftArrowTex, sndLeftPos, arrowSize, m_SoundsLeftBtnScale, hovSndL)) {
-        m_PendingSoundsEnabled = !m_PendingSoundsEnabled;
+    bool canSndGoLeft = m_PendingSoundsEnabled == true;
+    bool hovSndL = isHov(sndLeftPos, arrowSize) && canSndGoLeft;
+    if (drawImageBtn(leftArrowTex, sndLeftPos, arrowSize, m_SoundsLeftBtnScale, hovSndL, canSndGoLeft)) {
+        m_PendingSoundsEnabled = false;
     }
+
     std::string sndText = m_PendingSoundsEnabled ? "ON" : "OFF";
     drawCenteredValue(sndText, row5Y);
+
     glm::vec2 sndRightPos = { rightColX + distanceBetweenArrows, row5Y - arrowYOffset };
-    bool hovSndR = isHov(sndRightPos, arrowSize);
-    if (drawImageBtn(rightArrowTex, sndRightPos, arrowSize, m_SoundsRightBtnScale, hovSndR)) {
-        m_PendingSoundsEnabled = !m_PendingSoundsEnabled;
+    bool canSndGoRight = m_PendingSoundsEnabled == false;
+    bool hovSndR = isHov(sndRightPos, arrowSize) && canSndGoRight;
+    if (drawImageBtn(rightArrowTex, sndRightPos, arrowSize, m_SoundsRightBtnScale, hovSndR, canSndGoRight)) {
+        m_PendingSoundsEnabled = true;
     }
 
     // --- DOLNY PANEL ---
