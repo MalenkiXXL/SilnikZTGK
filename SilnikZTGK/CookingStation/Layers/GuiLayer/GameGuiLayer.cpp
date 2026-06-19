@@ -44,7 +44,7 @@ void GameGuiLayer::OnAttach()
     m_HamIcon = AssetManager::GetTexture("assets://UI/ham.png");
     m_CoinIcon = AssetManager::GetTexture("assets://UI/coin.png");
     m_CoinCloudIcon = AssetManager::GetTexture("assets://UI/coinCloud.png");
-    m_MilkIcon = AssetManager::GetTexture("assets://UI/pot.png");
+    m_MilkIcon = AssetManager::GetTexture("assets://UI/milk.png");
     m_FlourIcon = AssetManager::GetTexture("assets://UI/Flour.png");
     m_QuestionMarkIcon = AssetManager::GetTexture("assets://UI/QuestionMark.png");
     m_CustomerOrderTex = AssetManager::GetTexture("assets://UI/customerOrder.png");
