@@ -6,7 +6,9 @@
 enum class TutorialState {
     Start,
     WaiterIntro,
-    CameraResetting,     // NOWY STAN: Czekanie a¿ kamera wróci na miejsce
+    CameraResetting,
+    WaitForCrateSpawn,   // NOWOŒÆ: Przerwa po talerzach, przed skrzynk¹
+    WaitForCrateClick,   // NOWOŒÆ: Czekamy a¿ gracz weŸmie pomidora!
     WaitForPotPlacement,
     BurnedSaladDialog,
     WaitForCooking,
@@ -44,6 +46,8 @@ private:
     Entity m_PlateSpawner;
     Entity m_Waiter;
     Entity m_Poof;
+
+    glm::vec3 m_CrateOriginalPos;
 
     Entity FindEntityByName(const std::string& name);
     void HideUnderground(Entity e);

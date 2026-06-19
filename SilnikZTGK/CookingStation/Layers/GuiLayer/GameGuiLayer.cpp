@@ -409,6 +409,8 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         }
     }
 
+    DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+
     if (!GameManagerScript::s_IsTutorialMode)
     {
         DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
@@ -417,7 +419,6 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);
         DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);
         DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
-        DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
         m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
         m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 

@@ -19,6 +19,11 @@ void PlateSpawnerScript::OnDestroy()
 
 int PlateSpawnerScript::CalculateMaxPlates()
 {
+    if (GameManagerScript::s_IsTutorialMode) {
+        return 1;
+    }
+
+    // --- Oryginalna logika dla normalnych map ---
     int maxPlates = 6;
 
     if (GameManagerScript::s_Instance) {
