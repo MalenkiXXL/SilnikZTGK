@@ -22,7 +22,23 @@
     },
     {
       "name": "kanapka",
-      "path": "CookingStation/Assets/models/skladniki/bagietka/kanapka.gltf"
+      "path": "CookingStation/Assets/models/skladniki/kanapki/kanapka.gltf"
+    },
+    {
+      "name": "kanapka_pomidor_ser",
+      "path": "CookingStation/Assets/models/skladniki/kanapki/kanapka_pomidor_ser.gltf"
+    },
+    {
+      "name": "kanapka_szynka_pomidor",
+      "path": "CookingStation/Assets/models/skladniki/kanapki/kanapka_szynka_pomidor.gltf"
+    },
+    {
+      "name": "kanapka_szynka_ser",
+      "path": "CookingStation/Assets/models/skladniki/kanapki/kanapka_szynka_ser.gltf"
+    },
+    {
+      "name": "kanapka_z_jajkiem",
+      "path": "CookingStation/Assets/models/skladniki/kanapki/kanapka_z_jajkiem.gltf"
     },
     {
       "name": "ciastka",
@@ -461,12 +477,48 @@
       "path": "CookingStation/Assets/models/skladniki/pizza/pizza.gltf"
     },
     {
+      "name": "pizza_pieczarki",
+      "path": "CookingStation/Assets/models/skladniki/pizza/pizza_pieczarki.gltf"
+    },
+    {
+      "name": "pizza_upieczona",
+      "path": "CookingStation/Assets/models/skladniki/pizza/pizza_upieczona.gltf"
+    },
+    {
+      "name": "pizza_z_serem",
+      "path": "CookingStation/Assets/models/skladniki/pizza/pizza_z_serem.gltf"
+    },
+    {
+      "name": "pizza_z_sosem",
+      "path": "CookingStation/Assets/models/skladniki/pizza/pizza_z_sosem.gltf"
+    },
+    {
+      "name": "pizza_z_szynka",
+      "path": "CookingStation/Assets/models/skladniki/pizza/pizza_z_szynka.gltf"
+    },
+    {
+      "name": "pizza_z_szynka_pieczarki",
+      "path": "CookingStation/Assets/models/skladniki/pizza/pizza_z_szynka_pieczarki.gltf"
+    },
+    {
+      "name": "pizza_z_szynka_pieczarki_pomidor",
+      "path": "CookingStation/Assets/models/skladniki/pizza/pizza_z_szynka_pieczarki_pomidor.gltf"
+    },
+    {
       "name": "ramen",
       "path": "CookingStation/Assets/models/skladniki/ramen/ramen.gltf"
     },
     {
       "name": "spagetti",
       "path": "CookingStation/Assets/models/skladniki/spagetti/spagetti.gltf"
+    },
+    {
+      "name": "ciasto_do_bagietki",
+      "path": "CookingStation/Assets/models/skladniki/ciasta_nieupieczone/ciasto.gltf"
+    },
+    {
+      "name": "ciasto_pizza",
+      "path": "CookingStation/Assets/models/skladniki/ciasta_nieupieczone/ciasto-pizza.gltf"
     }
   ]
 }

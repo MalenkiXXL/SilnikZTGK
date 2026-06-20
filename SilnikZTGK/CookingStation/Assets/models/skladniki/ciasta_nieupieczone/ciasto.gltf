@@ -15,25 +15,24 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Sphere.001"
+			"name":"Sphere"
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material.002",
+			"name":"Material.001",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
 				},
-				"metallicFactor":0.20000000298023224,
-				"roughnessFactor":0.7862069010734558
+				"metallicFactor":0
 			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"Sphere.001",
+			"name":"Sphere",
 			"primitives":[
 				{
 					"attributes":{
@@ -57,81 +56,81 @@
 		{
 			"mimeType":"image/png",
 			"name":"palette",
-			"uri": "../../../textures/palette.png",
+			"uri": "../../../textures/palette.png"
 		}
 	],
 	"accessors":[
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":445,
+			"count":2490,
 			"max":[
-				1.0208684206008911,
-				2.4761805534362793,
-				1.0242077112197876
+				0.683464765548706,
+				1.0407875776290894,
+				0.6050600409507751
 			],
 			"min":[
-				-1.0249658823013306,
-				-0.003177046775817871,
-				-0.9962141513824463
+				-0.615126371383667,
+				-0.0019374191761016846,
+				-0.6661919951438904
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":445,
+			"count":2490,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":445,
+			"count":2490,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":2082,
+			"count":12114,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":5340,
+			"byteLength":29880,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5340,
-			"byteOffset":5340,
+			"byteLength":29880,
+			"byteOffset":29880,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3560,
-			"byteOffset":10680,
+			"byteLength":19920,
+			"byteOffset":59760,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4164,
-			"byteOffset":14240,
+			"byteLength":24228,
+			"byteOffset":79680,
 			"target":34963
 		}
 	],
 	"samplers":[
 		{
-			"magFilter":9729,
-			"minFilter":9987
+			"magFilter":9728,
+			"minFilter":9984
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":18404,
-			"uri":"egg_withshell.bin"
+			"byteLength":103908,
+			"uri":"ciasto.bin"
 		}
 	]
 }
