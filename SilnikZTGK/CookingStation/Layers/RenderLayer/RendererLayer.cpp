@@ -25,6 +25,7 @@ void RendererLayer::OnAttach() {
     m_ShaderLibrary.Load("HighlightShader", "shaders://vsShaders/highlight.vert", "shaders://fragShaders/highlight.frag");
     m_ShaderLibrary.Load("ShadowMap", "shaders://vsShaders/shadow.vert", "shaders://fragShaders/shadow.frag");
     m_ShaderLibrary.Load("CloudShader", "shaders://vsShaders/shader.vert", "shaders://fragShaders/cloud.frag");
+    m_ShaderLibrary.Load("Floor", "shaders://vsShaders/shader.vert", "shaders://fragShaders/floor.frag");
 
     m_ShaderLibrary.Load("BloomExtract", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_extract.frag");
     m_ShaderLibrary.Load("BloomBlur", "shaders://vsShaders/postprocess.vert", "shaders://fragShaders/bloom_blur.frag");

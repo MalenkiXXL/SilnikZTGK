@@ -3442,6 +3442,7 @@
       },
       "id": 122,
       "model_path": "assets://models/wystroj/podloga.gltf",
+      "shader_name": "Floor",
       "name": "Wielka_Podloga",
       "position": [
         -1.0,
