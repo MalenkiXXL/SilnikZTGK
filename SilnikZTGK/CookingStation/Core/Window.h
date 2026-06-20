@@ -42,15 +42,26 @@ public:
 	static void WindowResizeCallback(GLFWwindow* window, int width, int height);
 	void ProcessWindowResize(int width, int height);
 
+	static void WindowMaximizeCallback(GLFWwindow* window, int maximized);
+	void ProcessWindowMaximize(int maximized);
+
 	static void CharCallback(GLFWwindow* window, unsigned int keycode);
 	void ProcessCharInput(unsigned int keycode);
 
 	inline GLFWwindow* GetNativeWindow() const { return window; };
+
+	static bool EnsureGLFWInitialized();
+
+	inline bool IsValid() const { return window != nullptr; }
+	inline void SetDecorated(bool decorated) {
+		if (window) glfwSetWindowAttrib(window, GLFW_DECORATED, decorated ? GLFW_TRUE : GLFW_FALSE);
+	}
 private:
-	GLFWwindow* window;
-	unsigned int screenWidth;
-	unsigned int screenHeight;
-	const std::string screenName;
+	unsigned int screenWidth, screenHeight;
+	std::string screenName;
+
+	GLFWwindow* window = nullptr;
 
 	EventCallbackFn m_EventCallbackFn;
+
 };

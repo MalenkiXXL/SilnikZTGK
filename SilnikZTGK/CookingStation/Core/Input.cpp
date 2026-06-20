@@ -1,6 +1,7 @@
 #include "Input.h"
 #include "Application.h"
 #include "CookingStation/Events/GamepadEvent.h"	
+#include <spdlog/spdlog.h>
 
 #include <GLFW/glfw3.h>
 
@@ -15,10 +16,32 @@ float Input::s_PreviousGamepadAxes[6] = { 0.0f };
 
 bool Input::s_UICapturesMouse = false;
 
+// POPRAWKA: centralny "straznik" - jesli natywne okno GLFW jest nullptr
+// (np. bo glfwCreateWindow sie nie powiodlo), kazda funkcja Input:: zwraca
+// bezpieczna wartosc domyslna zamiast wywolywac glfw*(nullptr, ...), co
+// powodowalo Access Violation w glfw3.dll. Log wypisuje sie tylko RAZ,
+// zeby nie zaspamowac konsoli (te funkcje sa wolane co klatke).
+static GLFWwindow* GetSafeNativeWindow()
+{
+	auto window = Application::Get().GetWindow().GetNativeWindow();
+	if (!window)
+	{
+		static bool s_AlreadyWarned = false;
+		if (!s_AlreadyWarned)
+		{
+			spdlog::error("Input: natywne okno GLFW jest NULL! Wejscie z klawiatury/myszy nie bedzie dzialac, dopoki okno nie zostanie poprawnie utworzone.");
+			s_AlreadyWarned = true;
+		}
+	}
+	return window;
+}
+
 
 bool Input::IsKeyPressed(int keycode)
 {
-	auto window = Application::Get().GetWindow().GetNativeWindow();
+	auto window = GetSafeNativeWindow();
+	if (!window) return false;
+
 	int state = glfwGetKey(window, keycode);
 
 	if (state == GLFW_PRESS || state == GLFW_REPEAT)
@@ -85,7 +108,9 @@ bool Input::IsMouseButtonJustReleased(int button) {
 
 bool Input::IsMouseButtonPressed(int button)
 {
-	auto window = Application::Get().GetWindow().GetNativeWindow();
+	auto window = GetSafeNativeWindow();
+	if (!window) return false;
+
 	int state = glfwGetMouseButton(window, button);
 
 	if (state == GLFW_PRESS)
@@ -142,17 +167,19 @@ float Input::GetGamepadAxis(int axis, int gamepadId) {
 
 std::pair<float, float> Input::GetMousePosition()
 {
-	auto window = Application::Get().GetWindow().GetNativeWindow();
-	double xpos, ypos;
+	auto window = GetSafeNativeWindow();
+	if (!window) return { 0.0f, 0.0f };
 
+	double xpos, ypos;
 	glfwGetCursorPos(window, &xpos, &ypos);
 	return { (float)xpos, (float)ypos };
 }
 
 std::pair<float, float> Input::GetWindowSize() {
-	auto window = Application::Get().GetWindow().GetNativeWindow();
+	auto window = GetSafeNativeWindow();
+	if (!window) return { 1920.0f, 1080.0f }; // bezpieczna wartosc domyslna, by aspect ratio nie wybuchal dzieleniem przez 0
+
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);
 	return { (float)width, (float)height };
 }
-
