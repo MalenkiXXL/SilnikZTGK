@@ -154,6 +154,10 @@ struct TriggerHighlightEvent {
     bool IsInfinite = false;
 };
 
+struct DeliveryMushroomAppearedEvent{
+    glm::vec3 WorldPosition;
+};
+
 struct AudioSettingsChangedEvent {
     bool MusicEnabled;
     bool SoundsEnabled;

@@ -46,6 +46,8 @@ private:
     void DrawHoverCloudUI(const glm::vec2& screenPos, const std::shared_ptr<Texture>& icon, int amount, float baseScale);
     void DrawCrateHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
     void DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
+    void DrawMushroomBubble(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale);
+
 
 private:
     bool m_IsVisible = false;
@@ -84,9 +86,17 @@ private:
     std::size_t m_OrderTakenSubId = 0;
     std::size_t m_GamePausedSubId = 0;
     std::size_t m_GameResumedSubId = 0;
+    uint32_t m_MushroomAppearedSubId = 0;
+    uint32_t m_DeliveryCollectedSubId = 0;
 
     std::unordered_map<std::string, int> m_IngredientCounts;
     std::unordered_map<std::string, BubblyState> m_BubblyStates;
+
+    glm::vec3 m_MushroomPos3D = {0.0f, 0.0f, 0.0f};
+
+    glm::vec4 descColor = { 0.56f, 0.37f, 0.66f, 1.0f };
+    glm::vec4 titleColor = { 0.42f, 0.24f, 0.46f, 1.0f };
+    glm::vec4 circleColor = { 0.58f, 0.35f, 0.65f, 1.0f };
 
     int m_CurrentTomatoes = 0;
     int m_CurrentMoney = 0;
@@ -96,4 +106,6 @@ private:
     std::vector<Entity> m_ActiveOrderTickets;
     bool m_ShowFPS = false;
     bool m_IsGamePaused = false;
+    bool m_ShowMushroomBubble = false;
+
 };

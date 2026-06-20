@@ -66,13 +66,15 @@ void GameGuiLayer::OnAttach()
                 if (m_InventorySubId != 0) { oldBus.Unsubscribe<InventoryChangedEvent>(m_InventorySubId); m_InventorySubId = 0; }
                 if (m_MoneySubId != 0) { oldBus.Unsubscribe<MoneyChangedEvent>(m_MoneySubId);         m_MoneySubId = 0; }
                 if (m_OrderTakenSubId != 0) { oldBus.Unsubscribe<OrderTakenEvent>(m_OrderTakenSubId);      m_OrderTakenSubId = 0; }
+                if (m_MushroomAppearedSubId != 0) { oldBus.Unsubscribe<DeliveryMushroomAppearedEvent>(m_MushroomAppearedSubId); m_MushroomAppearedSubId = 0; }
+                if (m_DeliveryCollectedSubId != 0) { oldBus.Unsubscribe<DeliveryCollectedEvent>(m_DeliveryCollectedSubId); m_DeliveryCollectedSubId = 0; }
             }
 
             m_ActiveScene = SceneManager::GetActiveScene();
             m_ActiveOrderTickets.clear();
             m_LastMoney = -1;
 
-            // NOWOŒÆ: Twardy reset dla panelu budowania, kiedy w³¹czasz now¹ grê (¿eby zmienna nie pamiêta³a dawnego wyboru!)
+            // NOWOï¿½ï¿½: Twardy reset dla panelu budowania, kiedy wï¿½ï¿½czasz nowï¿½ grï¿½ (ï¿½eby zmienna nie pamiï¿½taï¿½a dawnego wyboru!)
             m_BuildModePanel.ForceReset();
 
             if (m_ActiveScene) {
@@ -115,6 +117,19 @@ void GameGuiLayer::OnAttach()
                         }
                     }
                 );
+
+                m_MushroomAppearedSubId = newBus.Subscribe<DeliveryMushroomAppearedEvent>(
+                        [this](const DeliveryMushroomAppearedEvent& e) {
+                            m_ShowMushroomBubble = true;
+                            m_MushroomPos3D = e.WorldPosition;
+                        }
+                );
+
+                m_DeliveryCollectedSubId = newBus.Subscribe<DeliveryCollectedEvent>(
+                        [this](const DeliveryCollectedEvent&) {
+                            m_ShowMushroomBubble = false;
+                        }
+                );
             }
 
             SetVisible(true);
@@ -131,7 +146,6 @@ void GameGuiLayer::OnAttach()
         else             m_BuildModePanel.Activate();
         });
 
-    // NOWOŒÆ: Kiedy wychodzisz do menu g³ównego z poziomu zapauzowanej gry, automatycznie wy³¹cza Build Mode
     appBus.Subscribe<ShowMainMenuEvent>([this](const ShowMainMenuEvent&) {
         if (m_BuildModePanel.IsActive()) {
             m_BuildModePanel.Deactivate();
@@ -148,6 +162,8 @@ void GameGuiLayer::OnDetach()
         if (m_InventorySubId != 0) { bus.Unsubscribe<InventoryChangedEvent>(m_InventorySubId);  m_InventorySubId = 0; }
         if (m_MoneySubId != 0) { bus.Unsubscribe<MoneyChangedEvent>(m_MoneySubId);          m_MoneySubId = 0; }
         if (m_OrderTakenSubId != 0) { bus.Unsubscribe<OrderTakenEvent>(m_OrderTakenSubId);       m_OrderTakenSubId = 0; }
+        if (m_MushroomAppearedSubId != 0) { bus.Unsubscribe<DeliveryMushroomAppearedEvent>(m_MushroomAppearedSubId); m_MushroomAppearedSubId = 0; }
+        if (m_DeliveryCollectedSubId != 0) { bus.Unsubscribe<DeliveryCollectedEvent>(m_DeliveryCollectedSubId); m_DeliveryCollectedSubId = 0; }
     }
 
     if (m_GameStartedSubId != 0)
@@ -416,6 +432,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);
     DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+    DrawMushroomBubble(gameX, gameY, gameWidth, gameHeight, baseScale);
     m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
     m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
@@ -622,10 +639,6 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         if (newCloudPos.y < gameY + 10.0f) newCloudPos.y = gameY + 10.0f;
 
         Renderer2D::DrawQuad(newCloudPos, { cloudW, cloudH }, s_EventCloudTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-
-        glm::vec4 titleColor = { 0.42f, 0.24f, 0.46f, 1.0f };
-        glm::vec4 descColor = { 0.56f, 0.37f, 0.66f, 1.0f };
-        glm::vec4 circleColor = { 0.58f, 0.35f, 0.65f, 1.0f };
 
         float mainCenterX = newCloudPos.x + cloudW * 0.55f;
 
@@ -1058,4 +1071,62 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
         int amount = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(crateScript->m_CrateIngredient) : 0;
         DrawHoverCloudUI({ screenX, screenY }, iconToDraw, amount, baseScale);
     }
+}
+
+
+
+void GameGuiLayer::DrawMushroomBubble(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
+{
+    if (!m_ShowMushroomBubble) return;
+    if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
+    if (!m_CoinCloudIcon) return;
+
+    auto* camera = m_ActiveScene->GetCamera();
+    glm::mat4 view = camera->GetViewMatrix();
+    float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+    float orthoSize = 10.0f * (camera->Zoom / 45.0f);
+    glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+    glm::mat4 viewProj = proj3D * view;
+
+    glm::vec3 dymekOffset = glm::vec3(0.0f, 1.5f, 0.0f);
+    glm::vec4 clipSpace = viewProj * glm::vec4(m_MushroomPos3D + dymekOffset, 1.0f);
+
+    if (clipSpace.w <= 0.0f) return;
+    glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
+
+    float screenX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
+    float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
+
+    screenX += 180.0f * baseScale;
+
+    float cloudW = 250.0f * baseScale;
+    float cloudAspect = (float)m_CoinCloudIcon->GetHeight() / (float)m_CoinCloudIcon->GetWidth();
+    float cloudH = cloudW * cloudAspect;
+
+    glm::vec2 cloudPos = { screenX - cloudW * 0.5f, screenY - cloudH };
+    Renderer2D::DrawQuad(cloudPos, { cloudW, cloudH }, m_CoinCloudIcon, { 1.0f, 1.0f, 1.0f, 0.95f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+    std::string line1 = "Choose one,";
+    std::string line2 = "I get to keep the other";
+
+    float textScale = 0.85f * baseScale;
+    float line1W = Gui::MeasureTextWidth(line1, textScale);
+    float line2W = Gui::MeasureTextWidth(line2, textScale);
+    float textHeight = Gui::MeasureTextHeight("A", textScale);
+
+    float textOffsetX = 0.0f * baseScale;
+    float textOffsetY = -25.0f * baseScale;
+
+    glm::vec2 line1Pos = {
+            cloudPos.x + (cloudW - line1W) * 0.5f + textOffsetX,
+            cloudPos.y + (cloudH * 0.5f) + textOffsetY
+    };
+
+    glm::vec2 line2Pos = {
+            cloudPos.x + (cloudW - line2W) * 0.5f + textOffsetX,
+            line1Pos.y + textHeight * 1.3f
+    };
+
+    Gui::DrawGuiText(line1, line1Pos, textScale, titleColor);
+    Gui::DrawGuiText(line2, line2Pos, textScale, titleColor);
 }
