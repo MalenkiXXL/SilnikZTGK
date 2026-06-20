@@ -43,6 +43,7 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/cuttingBoardMachine.png"), 0 });
     m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   0 });
     m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  0 });
+    m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/oven.png"), 0 });
 }
 
 void BuildModePanel::ForceReset() {

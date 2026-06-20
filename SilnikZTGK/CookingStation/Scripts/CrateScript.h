@@ -41,6 +41,8 @@ public:
                 m_CrateIngredient = IngredientType::Flour;
             else if (name.find("Egg") != std::string::npos || name.find("Jajko") != std::string::npos)
                 m_CrateIngredient = IngredientType::Egg;
+            else if (name.find("Mozzarella") != std::string::npos || name.find("Mozzarela") != std::string::npos)
+                m_CrateIngredient = IngredientType::Mozzarella;
         }
 
         if (m_CrateIngredient == IngredientType::None) {
@@ -105,6 +107,7 @@ public:
         }
 
         int currentStock = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(m_CrateIngredient) : 0;
+
         bool shouldHaveStock = (currentStock > 0);
 
         if (!m_IsInitialized || shouldHaveStock != m_HasStock) {
@@ -113,7 +116,7 @@ public:
             UpdateVisuals();
         }
 
-        if (m_IsInitialized && currentStock > m_LastStockCount) {
+        if (!GameManagerScript::s_IsTutorialMode && m_IsInitialized && currentStock > m_LastStockCount) {
             if (m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                         m_VisualFood, glm::vec3(1.0f, 0.9f, 0.0f), 0.6f, false
@@ -140,7 +143,7 @@ public:
         {
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_VisualFood, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
-            });
+                });
         }
     }
 
@@ -181,7 +184,8 @@ private:
         case IngredientType::Baguette: return "assets://models/skladniki/bagietka/bagietka.gltf";
         case IngredientType::Milk: return "assets://models/skladniki/mleko/milk.gltf";
         case IngredientType::Flour: return "assets://models/skladniki/maka/maka.gltf";
-        case IngredientType::Egg: return "assets://models/skladniki/jajko_bez/egg_withoutshell.gltf";
+        case IngredientType::Egg: return "assets://models/skladniki/jajko_w_skorupce/egg_withshell.gltf";
+        case IngredientType::Mozzarella: return "assets://models/skladniki/pomidor/mozzarella.gltf";
         default: return "";
         }
     }
@@ -210,11 +214,11 @@ private:
 
     bool SpawnIngredientOnConveyor()
     {
+        // ... (reszta Twojej oryginalnej metody SpawnIngredientOnConveyor - jest bezbłędna)
         Entity closestConveyor = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 3.5f;
         glm::vec3 spawnPos = GetComponent<TransformComponent>()->GetPosition();
 
-        // NOWE: Przechwytujemy też wskaźnik na skrypt docelowego taśmociągu
         ConveyorScript* targetConvScript = nullptr;
 
         auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
@@ -245,13 +249,11 @@ private:
 
         if (closestConveyor.id != std::numeric_limits<std::size_t>::max() && targetConvScript) {
 
-            // 1. SYSTEM REZERWACJI: Czy inny pomidor już zaczął jechać na ten taśmociąg?
             if (targetConvScript->IsOccupied) {
                 spdlog::warn("Skrzynka: Tasmociag jest wlasnie zajmowany przez wjezdzajacy obiekt!");
                 return false;
             }
 
-            // 2. FIZYCZNY RADAR: Sprawdzamy czy coś już nie stoi na środku (dla pewności)
             bool isOccupied = false;
             for (size_t i = 0; i < transforms->dense.size(); ++i) {
                 Entity e = transforms->reverse[i];
@@ -291,15 +293,10 @@ private:
                 return false;
             }
 
-            // OBA TESTY ZALICZONE - WYPLUWAMY POMIDORA!
-
-            // 3. Natychmiast rezerwujemy taśmę, żeby przedmioty z tyłu się zatrzymały
             targetConvScript->IsOccupied = true;
-
             spdlog::info("Skrzynka: Pomyslnie wyrzucono skladnik na tasmociag!");
 
             auto builder = GetScene()->GetWorld().BuildEntity();
-
             builder.With<TagComponent>({ "BeltItem_" + std::to_string((int)m_CrateIngredient) });
 
             TransformComponent tc;
@@ -329,5 +326,4 @@ private:
             return false;
         }
     }
-
 };

@@ -16,6 +16,9 @@
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
 
 void RendererLayer::OnAttach() {
+    auto windowSize = Input::GetWindowSize();
+    m_ViewportWidth = windowSize.first;
+    m_ViewportHeight = windowSize.second;
     m_ShaderLibrary.Load("Standard", "shaders://vsShaders/shader.vert", "shaders://fragShaders/shader.frag");
     m_ShaderLibrary.Load("RAMP", "shaders://vsShaders/shader.vert", "shaders://fragShaders/RAMP.frag");
     m_ShaderLibrary.Load("FakeBRDF", "shaders://vsShaders/shader.vert", "shaders://fragShaders/FakeBRDF.frag");

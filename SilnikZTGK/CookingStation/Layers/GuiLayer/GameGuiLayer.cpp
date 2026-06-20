@@ -433,31 +433,157 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         }
     }
 
-    DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
-    DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
-    m_RecipeBookPanel.Draw(gameX, gameY, gameWidth, gameHeight, baseScale, dt, m_IsGamePaused);
-    DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);
-    DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);
-    DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
     DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
-    DrawMushroomBubble(gameX, gameY, gameWidth, gameHeight, baseScale);
-    m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
-    m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+ 
+    if (!GameManagerScript::s_IsTutorialMode)
+    {
+        DrawMushroomBubble(gameX, gameY, gameWidth, gameHeight, baseScale);
+        m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
+        m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+        DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
+        DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+        m_RecipeBookPanel.Draw(gameX, gameY, gameWidth, gameHeight, baseScale, dt, m_IsGamePaused);
+        DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);
+        DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);
+        DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+        m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
+        m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
-    if (m_CoinIcon) {
-        if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->m_MoneyWarningTimer > 0.0f) {
-            GameManagerScript::s_Instance->m_MoneyWarningTimer -= dt;
+        if (m_CoinIcon) {
+            if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->m_MoneyWarningTimer > 0.0f) {
+                GameManagerScript::s_Instance->m_MoneyWarningTimer -= dt;
+            }
+
+            if (m_LastMoney == -1 && GameManagerScript::s_Instance)
+                m_CurrentMoney = m_LastMoney = GameManagerScript::s_Instance->GetMoney();
+            m_MoneyStr = std::to_string(m_CurrentMoney);
+            float textScale = 2.0f * baseScale;
+            glm::vec2 textPos = {
+                gameX + (gameWidth - (80.0f * baseScale + 8.0f * baseScale + Gui::MeasureTextWidth(m_MoneyStr, textScale))) * 0.5f + 88.0f * baseScale,
+                gameY + 55.0f * baseScale
+            };
+            DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
+        }
+    }
+
+    if (GameManagerScript::s_IsTutorialMode && GameManagerScript::s_ShowTutorialDialog)
+    {
+        float textScale = 1.6f * baseScale;
+        std::string speaker = GameManagerScript::s_TutorialSpeaker;
+        std::string fullText = GameManagerScript::s_TutorialText;
+        int revealedCount = GameManagerScript::s_TutorialCharsRevealed;
+
+        float maxLineWidth = gameWidth * 0.70f;
+        float dialogY = GameManagerScript::s_TutorialDialogIsBottom ?
+            (gameY + gameHeight * 0.75f) :
+            (gameY + gameHeight * 0.15f);
+
+        float speakerScale = 2.0f * baseScale;
+        float speakerWidth = Gui::MeasureTextWidth(speaker, speakerScale);
+        float speakerX = gameX + (gameWidth - speakerWidth) * 0.5f;
+
+        Gui::DrawGuiText(speaker, { speakerX + 2.0f, dialogY - 50.0f * baseScale + 2.0f }, speakerScale, { 0.0f, 0.0f, 0.0f, 0.4f });
+        Gui::DrawGuiText(speaker, { speakerX, dialogY - 50.0f * baseScale }, speakerScale, GameManagerScript::s_TutorialSpeakerColor);
+
+        std::vector<std::string> lines;
+        std::string currentLine = "";
+        std::string currentWord = "";
+
+        for (size_t i = 0; i <= fullText.size(); ++i) {
+            char c = (i < fullText.size()) ? fullText[i] : ' ';
+            if (c == ' ' || i == fullText.size()) {
+                std::string testLine = currentLine.empty() ? currentWord : (currentLine + " " + currentWord);
+                if (Gui::MeasureTextWidth(testLine, textScale) > maxLineWidth) {
+                    lines.push_back(currentLine);
+                    currentLine = currentWord;
+                }
+                else {
+                    currentLine = testLine;
+                }
+                currentWord = "";
+            }
+            else {
+                currentWord += c;
+            }
+        }
+        if (!currentLine.empty()) lines.push_back(currentLine);
+
+        float currentY = dialogY;
+        float lineHeight = Gui::MeasureTextHeight("A", textScale) * 1.5f;
+        int charsLeftToDraw = revealedCount;
+
+        float maxActualWidth = 0.0f; 
+        float lastLineY = currentY;
+
+        for (const auto& line : lines) {
+            if (charsLeftToDraw <= 0) break;
+
+            int charsInThisLine = std::min((int)line.length(), charsLeftToDraw);
+            std::string drawnLine = line.substr(0, charsInThisLine);
+            charsLeftToDraw -= charsInThisLine;
+
+            float totalLineWidth = Gui::MeasureTextWidth(line, textScale);
+            float lineStartX = gameX + (gameWidth - totalLineWidth) * 0.5f;
+
+            Gui::DrawGuiText(drawnLine, { lineStartX + 2.0f, currentY + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.5f });
+            Gui::DrawGuiText(drawnLine, { lineStartX, currentY }, textScale, glm::vec4(1.0f));
+
+            // Rejestrujemy najwiêksz¹ szerokoœæ!
+            if (totalLineWidth > maxActualWidth) {
+                maxActualWidth = totalLineWidth;
+            }
+
+            lastLineY = currentY;
+            currentY += lineHeight;
+
+            if (charsInThisLine < line.length() || charsLeftToDraw <= 0) break;
+            charsLeftToDraw--;
         }
 
-        if (m_LastMoney == -1 && GameManagerScript::s_Instance)
-            m_CurrentMoney = m_LastMoney = GameManagerScript::s_Instance->GetMoney();
-        m_MoneyStr = std::to_string(m_CurrentMoney);
-        float textScale = 2.0f * baseScale;
-        glm::vec2 textPos = {
-            gameX + (gameWidth - (80.0f * baseScale + 8.0f * baseScale + Gui::MeasureTextWidth(m_MoneyStr, textScale))) * 0.5f + 88.0f * baseScale,
-            gameY + 55.0f * baseScale
-        };
-        DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
+        if (GameManagerScript::s_TutorialIconAlpha > 0.0f) {
+            static std::shared_ptr<Texture> s_LMBIcon = AssetManager::GetTexture("assets://UI/leftMouse.png");
+            if (s_LMBIcon) {
+                float iconSizeY = 80.0f * baseScale;
+                glm::vec2 iconSize = GuiUtils::CalculateAspectSize(s_LMBIcon, iconSizeY);
+
+                float blockRightEdge = gameX + (gameWidth + maxActualWidth) * 0.5f;
+                float blockCenterY = (dialogY + lastLineY) * 0.5f;
+
+                glm::vec2 iconPos = {
+                    blockRightEdge + 25.0f * baseScale,
+                    blockCenterY + (lineHeight * 0.3f) - (iconSize.y * 0.5f)
+                };
+
+                float timeNow = glfwGetTime();
+                iconPos.y += std::sin(timeNow * 5.0f) * 5.0f * baseScale;
+
+                Renderer2D::DrawQuad(iconPos, iconSize, s_LMBIcon, { 1.0f, 1.0f, 1.0f, GameManagerScript::s_TutorialIconAlpha }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+                Renderer2D::EndScene();
+
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+                Renderer2D::BeginScene(uiProj);
+
+                float wave = (std::sin(timeNow * 4.0f) + 1.0f) * 0.5f;
+                float flashSpike = std::pow(wave, 16.0f); 
+
+                float glowScale = 1.0f + (flashSpike * 0.1f);
+                glm::vec2 glowSize = iconSize * glowScale;
+                glm::vec2 glowPos = {
+                    iconPos.x - (glowSize.x - iconSize.x) * 0.5f,
+                    iconPos.y - (glowSize.y - iconSize.y) * 0.5f
+                };
+
+                glm::vec4 flashColor = { 1.0f, 1.0f, 1.0f, flashSpike * GameManagerScript::s_TutorialIconAlpha };
+
+                Renderer2D::DrawQuad(glowPos, glowSize, s_LMBIcon, flashColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+                Renderer2D::EndScene();
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                Renderer2D::BeginScene(uiProj);
+            }
+        }
     }
 
     if (m_ShowFPS) {

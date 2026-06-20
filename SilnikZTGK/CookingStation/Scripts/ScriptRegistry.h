@@ -35,6 +35,7 @@
 #include "PlateScript.h"
 #include "CookingStation/Scripts/Delivery/DeliveryMushroomScript.h"
 #include "CrateScript.h"
+#include "TutorialManagerScript.h"  
 
 class ScriptRegistry
 {
@@ -86,6 +87,7 @@ public:
         Register<PlateScript>("PlateScript");
         Register<DeliveryMushroomScript>("DeliveryMushroomScript");
         Register<CrateScript>("CrateScript");
+        Register<TutorialManagerScript>("TutorialManagerScript");
         Register<PanScript>("PanScript");
     }
 

@@ -112,6 +112,7 @@ void DeliveryManagerScript::OnUpdate(Timestep ts)
 
 void DeliveryManagerScript::RunDeliveryDecisionTree()
 {
+    if (GameManagerScript::s_IsTutorialMode) return;
 
     if (m_IsDeliveryOnTheWay) return;
 

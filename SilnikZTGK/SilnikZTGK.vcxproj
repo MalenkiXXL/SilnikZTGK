@@ -261,6 +261,7 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClCompile Include="CookingStation\Scripts\src\GameManagerScript.cpp" />
     <ClCompile Include="CookingStation\Scripts\src\PackageScript.cpp" />
     <ClCompile Include="CookingStation\Scripts\src\PlateSpawnerScript.cpp" />
+    <ClCompile Include="CookingStation\Scripts\TutorialManagerScript.cpp" />
     <ClCompile Include="CookingStation\stb_image_impl.cpp" />
     <ClCompile Include="CookingStation\Scene\ecs.cpp" />
     <ClCompile Include="CookingStation\Layers\EditorLayer\EditorLayer.cpp" />
@@ -372,6 +373,7 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClInclude Include="CookingStation\Layers\HudLayer\HUDLayer.h" />
     <ClInclude Include="CookingStation\Scripts\ScriptRegistry.h" />
     <ClInclude Include="CookingStation\Scripts\SteamEmitterScript.h" />
+    <ClInclude Include="CookingStation\Scripts\TutorialManagerScript.h" />
     <ClInclude Include="CookingStation\Scripts\Waiter\WaiterPickupStationScript.h" />
     <ClInclude Include="CookingStation\Scripts\Waiter\WaiterScript.h" />
   </ItemGroup>

@@ -67,6 +67,7 @@ private:
         case IngredientType::Baguette:      return "assets://models/skladniki/bagietka/bagietka.gltf";
         case IngredientType::Flour:         return "assets://models/skladniki/maka/maka.gltf";
         case IngredientType::Milk:          return "assets://models/skladniki/mleko/milk.gltf";
+        case IngredientType::ChoppedMozzarella: return "assets://models/skladniki/pomidor/mozzarella-pokrojona.gltf";
         default: return "";
         }
     }
@@ -86,6 +87,9 @@ private:
         case IngredientType::Baguette:      return "Baguette";
         case IngredientType::Flour:         return "Flour";
         case IngredientType::Milk:          return "Milk";
+        case IngredientType::Mozzarella:
+        case IngredientType::ChoppedMozzarella: return "Mozzarella";
+        case IngredientType::Caprese:           return "Caprese";
         default: return "Unknown";
         }
     }
@@ -155,6 +159,16 @@ private:
             IngredientType::ChoppedCheese,
             IngredientType::ChoppedTomato
         };
+
+        std::vector<IngredientType> capreseRecipe = {
+            IngredientType::ChoppedTomato,
+            IngredientType::ChoppedMozzarella
+        };
+
+        if (MatchesRecipe(capreseRecipe))
+        {
+            TransformIntoDish(IngredientType::Caprese, "assets://models/skladniki/pomidor/caprese.gltf");
+        }
 
         if (MatchesRecipe(sandwichRecipe))
         {
