@@ -33,6 +33,7 @@ private:
     std::size_t m_CollectedSubId = 0;
     bool m_ArePackagesCollected = false;
 
+    std::size_t m_MushroomSubId = 0;
     bool m_MushroomSpawned = false;
     Entity m_MushroomEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 };

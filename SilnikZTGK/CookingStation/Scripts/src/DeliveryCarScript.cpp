@@ -9,11 +9,17 @@ void DeliveryCarScript::OnCreate()
                 this->m_ArePackagesCollected = true;
             }
     );
+
+    m_MushroomSubId = GetScene()->GetWorld().GetEventBus().Subscribe<DeliveryMushroomAppearedEvent>(
+            [this](const DeliveryMushroomAppearedEvent& e) {
+            }
+    );
 }
 
 void DeliveryCarScript::OnDestroy()
 {
     GetScene()->GetWorld().GetEventBus().Unsubscribe<DeliveryCollectedEvent>(m_CollectedSubId);
+    GetScene()->GetWorld().GetEventBus().Unsubscribe<DeliveryMushroomAppearedEvent>(m_MushroomSubId);
 }
 
 void DeliveryCarScript::OnUpdate(Timestep ts)
@@ -89,6 +95,19 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             {
                 m_State = DeliveryState::DROPPING;
                 //if (animator) animator->IsPlaying = false;
+
+                if (!m_ArePackagesCollected)
+                {
+                    glm::vec3 mushroomWorldPos = {0.0f, 0.0f, 0.0f};
+                    auto* mushTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_MushroomEntity);
+
+                    if (mushTransform && transform) {
+                        glm::vec3 localPos = mushTransform->GetPosition();
+                        mushroomWorldPos = glm::vec3(transform->GetLocalMatrix() * glm::vec4(localPos, 1.0f));
+                    }
+
+                    GetScene()->GetWorld().GetEventBus().Publish(DeliveryMushroomAppearedEvent{ mushroomWorldPos });
+                }
                 spdlog::info("[DeliveryCar] Klapa w pełni otwarta. Grzyb na pozycji.");
             }
             break;

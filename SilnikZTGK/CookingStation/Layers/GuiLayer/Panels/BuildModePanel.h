@@ -22,7 +22,7 @@ public:
 
     void Activate();
     void Deactivate();
-    void ForceReset(); 
+    void ForceReset();
 
     void Toggle() { if (m_IsActive) Deactivate(); else Activate(); }
     bool IsActive() const { return m_IsActive; }
