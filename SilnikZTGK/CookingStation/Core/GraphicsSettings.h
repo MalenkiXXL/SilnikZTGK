@@ -10,12 +10,13 @@ struct GraphicsSettings {
     int WindowHeight;
     bool Fullscreen = false;
 
-    static constexpr int ResolutionCount = 4;
+    static constexpr int ResolutionCount = 5;
     static constexpr std::pair<int, int> Resolutions[ResolutionCount] = {
         {1280, 720},
         {1600, 900},
         {1920, 1080},
-        {2560, 1440}
+        {2560, 1440},
+        {2560, 1600}
     };
 
     
@@ -36,7 +37,6 @@ struct GraphicsSettings {
 
 private:
     GraphicsSettings() {
-    
         int monitorWidth = 1920;
         int monitorHeight = 1080;
 
