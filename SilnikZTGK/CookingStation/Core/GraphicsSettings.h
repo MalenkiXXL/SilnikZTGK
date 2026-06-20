@@ -6,9 +6,9 @@ struct GraphicsSettingsChangedEvent {};
 
 struct GraphicsSettings {
     int MsaaSamples = 4;
-    int WindowWidth;
-    int WindowHeight;
-    bool Fullscreen = false;
+    int WindowWidth = 1280;   // Domyślne wartości zapasowe przed maksymalizacją
+    int WindowHeight = 720;
+    bool Fullscreen = true;
 
     static constexpr int ResolutionCount = 5;
     static constexpr std::pair<int, int> Resolutions[ResolutionCount] = {
@@ -19,7 +19,6 @@ struct GraphicsSettings {
         {2560, 1600}
     };
 
-    
     static int FindBestResolutionIndex(int monitorWidth, int monitorHeight) {
         int bestIndex = 0;
         for (int i = 0; i < ResolutionCount; i++) {
@@ -37,18 +36,6 @@ struct GraphicsSettings {
 
 private:
     GraphicsSettings() {
-        int monitorWidth = 1920;
-        int monitorHeight = 1080;
-
-        if (GLFWmonitor* monitor = glfwGetPrimaryMonitor()) {
-            if (const GLFWvidmode* mode = glfwGetVideoMode(monitor)) {
-                monitorWidth = mode->width;
-                monitorHeight = mode->height;
-            }
-        }
-
-        int bestIndex = FindBestResolutionIndex(monitorWidth, monitorHeight);
-        WindowWidth = Resolutions[bestIndex].first;
-        WindowHeight = Resolutions[bestIndex].second;
+     
     }
 };

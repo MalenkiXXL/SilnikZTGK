@@ -169,33 +169,43 @@ void Application::ApplyGraphicsSettings()
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
-	// NOWE: jesli wybrana przez gracza rozdzielczosc jest dokladnie
-	// rowna natywnej rozdzielczosci monitora, automatycznie traktujemy
-	// to jako "windowed fullscreen" (borderless) - bez wzgledu na to,
-	// czy checkbox Fullscreen jest wlaczony. Zwykle zdekorowane okno o
-	// rozmiarze calego ekranu i tak by sie nie zmiescilo (pasek tytulu +
-	// ramki + pasek zadan), co dawalo brakujacy gorny pasek i
-	// rozjezdzajaca sie geometrie.
-	bool nativeResSelected = (width == mode->width && height == mode->height);
-	bool useBorderless = settings.Fullscreen || nativeResSelected;
-
-	if (useBorderless) {
-		// Borderless fullscreen window: bez dekoracji, pelny rozmiar
-		// monitora, pozycja (0,0). Monitor NIE zmienia fizycznego trybu
-		// wideo (w przeciwienstwie do exclusive fullscreen) - dzieki
-		// temu brak migania przy alt-tab.
+	if (settings.Fullscreen) {
+		// 1. Prawdziwy Fullscreen (Exclusive)
+		// NAJPIERW przejmujemy monitor, POTEM zdejmujemy ramki
+		glfwSetWindowMonitor(nativeWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 		m_Window->SetDecorated(false);
-		glfwSetWindowMonitor(nativeWindow, nullptr, 0, 0, mode->width, mode->height, 0);
-		width = mode->width;
-		height = mode->height;
 	}
 	else {
-		// Zwykle okno z dekoracjami, wysrodkowane na ekranie.
+		// 2. Zwykłe okno Z RAMKAMI
+		int workX, workY, workW, workH;
+		glfwGetMonitorWorkarea(monitor, &workX, &workY, &workW, &workH);
+
+		// NAJPIERW wyjście z Fullscreena (przekazanie nullptr) i nadanie wstępnego rozmiaru
+		glfwSetWindowMonitor(nativeWindow, nullptr, workX, workY, width, height, 0);
+
+		// DOPIERO TERAZ przywracamy ramki (jest to teraz bezpieczne, bo okno jest już "zwykłe")
 		m_Window->SetDecorated(true);
-		int xpos = (mode->width - width) / 2;
-		int ypos = (mode->height - height) / 2;
-		glfwSetWindowMonitor(nativeWindow, nullptr, xpos, ypos, width, height, 0);
+
+		// Sprawdzamy, czy okno nie jest za duże dla obszaru roboczego
+		if (width >= workW || height >= workH) {
+			glfwMaximizeWindow(nativeWindow);
+		}
+		else {
+			glfwRestoreWindow(nativeWindow);
+			int xpos = workX + (workW - width) / 2;
+			int ypos = workY + (workH - height) / 2;
+
+			// Używamy SetWindowPos do wyśrodkowania, bo SetWindowMonitor zostało już wywołane wyżej
+			glfwSetWindowPos(nativeWindow, xpos, ypos);
+		}
 	}
+
+	// Pobieramy FAKTYCZNY rozmiar obszaru roboczego okna po decyzjach systemu (odjęcie ramek itp.)
+	int actualWidth, actualHeight;
+	glfwGetFramebufferSize(nativeWindow, &actualWidth, &actualHeight);
+
+	width = actualWidth;
+	height = actualHeight;
 
 	glViewport(0, 0, width, height);
 
@@ -218,8 +228,8 @@ void Application::ApplyGraphicsSettings()
 		activeScene->SetViewportSize(width, height);
 	}
 
-	spdlog::info("GraphicsSettings: Zastosowano MSAA x{} @ {}x{} (Fullscreen: {}, Borderless: {})",
-		settings.MsaaSamples, width, height, settings.Fullscreen, useBorderless);
+	spdlog::info("GraphicsSettings: Zastosowano MSAA x{} | FAKTYCZNY ROZMIAR: {}x{} (Fullscreen: {})",
+		settings.MsaaSamples, width, height, settings.Fullscreen);
 }
 
 void Application::Run()

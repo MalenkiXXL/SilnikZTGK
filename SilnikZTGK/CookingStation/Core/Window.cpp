@@ -154,6 +154,10 @@ void Window::WindowResizeCallback(GLFWwindow* window, int width, int height)
 
 void Window::ProcessWindowResize(int width, int height)
 {
+
+    screenWidth = width;
+    screenHeight = height;
+
     WindowResizeEvent event(width, height);
     m_EventCallbackFn(event);
 }

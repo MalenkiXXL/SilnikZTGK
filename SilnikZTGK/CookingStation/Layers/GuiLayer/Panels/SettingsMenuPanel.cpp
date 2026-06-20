@@ -157,8 +157,14 @@ void SettingsMenuPanel::Draw(float baseScale) {
     float row1Y = startY;
     Gui::DrawGuiText("Resolution:", { leftColX, row1Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
+    // NOWE: Jeśli włączono Fullscreen, wymuszamy najwyższą obsługiwaną rozdzielczość
+    if (m_PendingFullscreen) {
+        m_PendingResIndex = m_MaxResIndex;
+    }
+
     glm::vec2 resLeftPos = { rightColX, row1Y - arrowYOffset };
-    bool canGoLeft = m_PendingResIndex > 0;
+    // Zablokowanie zmiany w lewo, gdy jest Fullscreen
+    bool canGoLeft = (m_PendingResIndex > 0) && !m_PendingFullscreen;
     bool hovResL = isHov(resLeftPos, arrowSize) && canGoLeft;
     if (drawImageBtn(leftArrowTex, resLeftPos, arrowSize, m_ResLeftBtnScale, hovResL, canGoLeft)) {
         m_PendingResIndex--;
@@ -168,7 +174,8 @@ void SettingsMenuPanel::Draw(float baseScale) {
     drawCenteredValue(resText, row1Y);
 
     glm::vec2 resRightPos = { rightColX + distanceBetweenArrows, row1Y - arrowYOffset };
-    bool canGoRight = m_PendingResIndex < m_MaxResIndex;
+    // Zablokowanie zmiany w prawo, gdy jest Fullscreen
+    bool canGoRight = (m_PendingResIndex < m_MaxResIndex) && !m_PendingFullscreen;
     bool hovResR = isHov(resRightPos, arrowSize) && canGoRight;
     if (drawImageBtn(rightArrowTex, resRightPos, arrowSize, m_ResRightBtnScale, hovResR, canGoRight)) {
         m_PendingResIndex++;
@@ -285,17 +292,19 @@ void SettingsMenuPanel::Draw(float baseScale) {
         int newMsaa = m_MsaaOptions[m_PendingMsaaIndex];
 
         bool resOrMsaaChanged = (gs.WindowWidth != newWidth || gs.WindowHeight != newHeight || gs.MsaaSamples != newMsaa);
+        bool fsChanged = (gs.Fullscreen != m_PendingFullscreen);
 
-        if (resOrMsaaChanged) {
+        // Wykonujemy aktualizację grafiki TYLKO gdy faktycznie zaszła jakaś zmiana
+        if (resOrMsaaChanged || fsChanged) {
             gs.WindowWidth = newWidth;
             gs.WindowHeight = newHeight;
             gs.MsaaSamples = newMsaa;
-        }
 
-      
-        Application::Get().SetFullscreen(m_PendingFullscreen);
+            // UWAGA: Zmieniamy Fullscreen bezpośrednio w zmiennej! 
+            // Omijamy Application::SetFullscreen, by uniknąć pętli podwójnego wywoływania w jednej klatce
+            gs.Fullscreen = m_PendingFullscreen;
 
-        if (resOrMsaaChanged) {
+            // Wywołujemy nakładanie grafiki dokładnie RAZ
             Application::Get().ApplyGraphicsSettings();
         }
     }
