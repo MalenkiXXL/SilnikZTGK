@@ -38,6 +38,7 @@ void PauseMenuPanel::TogglePause() {
             else {
                 activeScene->SetState(m_IsBuildMode ? SceneState::Edit : SceneState::Play);
                 Application::Get().GetEventBus().Publish(GameResumedEvent{});
+                activeScene->GetWorld().GetEventBus().Publish(PlayUnpauseSoundEvent{});
             }
 
         }
