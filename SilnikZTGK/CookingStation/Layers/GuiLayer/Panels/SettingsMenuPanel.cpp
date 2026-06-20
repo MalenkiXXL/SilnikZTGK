@@ -17,20 +17,12 @@ SettingsMenuPanel::SettingsMenuPanel() {
 void SettingsMenuPanel::SyncWithEngine() {
     auto& gs = GraphicsSettings::Get();
 
-    // Sprawdzamy natywną rozdzielczość monitora użytkownika
     GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(primaryMonitor);
     int monitorWidth = mode->width;
     int monitorHeight = mode->height;
 
-    // Szukamy największego indeksu, który mieści się na tym ekranie
-    m_MaxResIndex = 0;
-    for (int i = 0; i < GraphicsSettings::ResolutionCount; i++) {
-        if (GraphicsSettings::Resolutions[i].first <= monitorWidth &&
-            GraphicsSettings::Resolutions[i].second <= monitorHeight) {
-            m_MaxResIndex = i;
-        }
-    }
+    m_MaxResIndex = GraphicsSettings::FindBestResolutionIndex(monitorWidth, monitorHeight);
 
     for (int i = 0; i < GraphicsSettings::ResolutionCount; i++) {
         if (GraphicsSettings::Resolutions[i].first == gs.WindowWidth &&
@@ -40,7 +32,6 @@ void SettingsMenuPanel::SyncWithEngine() {
         }
     }
 
-    // Blokada przed wejściem wyżej niż pozwala monitor
     if (m_PendingResIndex > m_MaxResIndex) {
         m_PendingResIndex = m_MaxResIndex;
     }
@@ -293,12 +284,18 @@ void SettingsMenuPanel::Draw(float baseScale) {
         int newHeight = GraphicsSettings::Resolutions[m_PendingResIndex].second;
         int newMsaa = m_MsaaOptions[m_PendingMsaaIndex];
 
-        if (gs.WindowWidth != newWidth || gs.WindowHeight != newHeight || gs.MsaaSamples != newMsaa || gs.Fullscreen != m_PendingFullscreen) {
+        bool resOrMsaaChanged = (gs.WindowWidth != newWidth || gs.WindowHeight != newHeight || gs.MsaaSamples != newMsaa);
+
+        if (resOrMsaaChanged) {
             gs.WindowWidth = newWidth;
             gs.WindowHeight = newHeight;
             gs.MsaaSamples = newMsaa;
-            gs.Fullscreen = m_PendingFullscreen;
+        }
 
+      
+        Application::Get().SetFullscreen(m_PendingFullscreen);
+
+        if (resOrMsaaChanged) {
             Application::Get().ApplyGraphicsSettings();
         }
     }

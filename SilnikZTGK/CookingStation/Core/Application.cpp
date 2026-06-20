@@ -27,7 +27,14 @@ Application* Application::s_Instance = nullptr;
 Application::Application()
 {
 	s_Instance = this;
-	m_Window = new Window(800, 600, "Silnik");
+
+	Window::EnsureGLFWInitialized();
+
+	auto& gs = GraphicsSettings::Get();
+	int startWidth = gs.WindowWidth;
+	int startHeight = gs.WindowHeight;
+
+	m_Window = new Window(startWidth, startHeight, "Cooking Station");
 	m_Window->Init();
 	m_Window->SetEventCallback([this](Event& e) { OnEvent(e); });
 
@@ -43,7 +50,7 @@ Application::Application()
 	FramebufferSpecification msaaSpec;
 	msaaSpec.Width = m_Window->GetWidth();
 	msaaSpec.Height = m_Window->GetHeight();
-	msaaSpec.Samples = 4;
+	msaaSpec.Samples = gs.MsaaSamples; // Aktualizacja MSAA na start
 	msaaSpec.HDR = true;
 	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
 
@@ -69,6 +76,11 @@ Application::Application()
 		AudioEngine::SetMusicEnabled(e.MusicEnabled);
 		AudioEngine::SetSoundsEnabled(e.SoundsEnabled);
 		spdlog::info("Zaktualizowano audio (Muzyka: {}, Dzwieki: {})", e.MusicEnabled, e.SoundsEnabled);
+		});
+
+	// Subskrypcja na zmianę grafiki (np. po wciśnięciu fullscreen / ustawień w menu)
+	GetEventBus().Subscribe<GraphicsSettingsChangedEvent>([this](const GraphicsSettingsChangedEvent&) {
+		ApplyGraphicsSettings();
 		});
 
 #ifdef CS_DISTRIBUTION
@@ -112,6 +124,9 @@ Application::Application()
 	auto mainMenuLayer = new MainMenuLayer();
 	PushLayer(mainMenuLayer);
 #endif
+
+	// Aplikujemy domyślne ustawienia (np. Fullscreen) od razu przy starcie
+	ApplyGraphicsSettings();
 }
 
 Application::~Application()
@@ -127,16 +142,18 @@ Application::~Application()
 	m_MsaaFBO.reset();
 	Renderer2D::Shutdown();
 	Renderer::Shutdown();
-	Gui::Shutdown();         
+	Gui::Shutdown();
 	SceneManager::Shutdown();
 	AudioEngine::Shutdown();
 
-
 	AssetManager::Clean();
-	
+
 	glFinish();
-	delete m_Window;
-	glfwTerminate();
+
+	// UWAGA: Celowo zakomentowane! Pozwala to systemowi operacyjnemu bezpiecznie
+	// zniszczyć pamięć okna, eliminując problem z crashem sterownika NVIDIA.
+	// delete m_Window;
+	// glfwTerminate();
 
 	spdlog::shutdown();
 }
@@ -149,7 +166,6 @@ void Application::ApplyGraphicsSettings()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// TA LINIJKA WYWOŁYWAŁA BŁĄD, JEŚLI ZOSTAŁA POMINIĘTA PRZY KOPIOWANIU!
 	GLFWwindow* nativeWindow = (GLFWwindow*)m_Window->GetNativeWindow();
 
 	if (settings.Fullscreen) {
@@ -217,7 +233,14 @@ void Application::Run()
 			}
 		}
 
-		m_Window->OnUpdate();
+		m_Window->OnUpdate(); 
+
+
+		if (m_GraphicsSettingsDirty)
+		{
+			m_GraphicsSettingsDirty = false;
+			ApplyGraphicsSettings();
+		}
 
 		Input::Update();
 	}
@@ -292,4 +315,14 @@ bool Application::OnWindowResize(WindowResizeEvent& e)
 bool Application::OnKeyPressed(KeyPressedEvent& e)
 {
 	return false;
+}
+
+void Application::SetFullscreen(bool enabled)
+{
+	auto& gs = GraphicsSettings::Get();
+	if (gs.Fullscreen == enabled) return; 
+
+	gs.Fullscreen = enabled;
+
+	m_GraphicsSettingsDirty = true;
 }

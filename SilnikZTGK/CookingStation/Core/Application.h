@@ -45,6 +45,7 @@ public:
 
 	void ApplyGraphicsSettings();
 	inline void Close() { m_Running = false; }
+	void SetFullscreen(bool enabled);
 
 private:
 	bool OnWindowClose(WindowCloseEvent& e);
@@ -53,6 +54,7 @@ private:
 
 	bool m_Running = true;
 	bool m_IgnoreNextResize = true; 
+	bool m_GraphicsSettingsDirty = false;
 
 	float m_LastFrameTime = 0.0f;
 	std::shared_ptr<Framebuffer> m_ViewportFBO;

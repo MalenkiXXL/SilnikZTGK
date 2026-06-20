@@ -42,15 +42,28 @@ public:
 	static void WindowResizeCallback(GLFWwindow* window, int width, int height);
 	void ProcessWindowResize(int width, int height);
 
+	// NOWE: Callback dla maksymalizacji okna (kwadracik)
+	static void WindowMaximizeCallback(GLFWwindow* window, int maximized);
+	void ProcessWindowMaximize(int maximized);
+
 	static void CharCallback(GLFWwindow* window, unsigned int keycode);
 	void ProcessCharInput(unsigned int keycode);
 
 	inline GLFWwindow* GetNativeWindow() const { return window; };
+
+	static bool EnsureGLFWInitialized();
+
+	// NOWE: Pozwala sprawdzic z zewnatrz, czy okno zostalo poprawnie utworzone
+	inline bool IsValid() const { return window != nullptr; }
 private:
-	GLFWwindow* window;
-	unsigned int screenWidth;
-	unsigned int screenHeight;
-	const std::string screenName;
+	unsigned int screenWidth, screenHeight;
+	std::string screenName;
+
+	// POPRAWKA: domyslna inicjalizacja na nullptr.
+	// Wczesniej "window" mial niezdefiniowana wartosc do momentu wywolania Init(),
+	// co przy nieudanym Init() mogloby prowadzic do odczytu garbage-pointera.
+	GLFWwindow* window = nullptr;
 
 	EventCallbackFn m_EventCallbackFn;
+
 };
