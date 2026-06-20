@@ -14,9 +14,6 @@
 #include <GLFW/glfw3.h>
 #include <algorithm>
 
-// =========================================================================
-// USTAWIENIA GRANIC PODŁOGI (Zmień te wartości, by idealnie pasowały do mapy)
-// =========================================================================
 static const float FLOOR_MIN_X = -15.0f;
 static const float FLOOR_MAX_X = 14.0f;
 static const float FLOOR_MIN_Z = -18.0f;
@@ -35,7 +32,6 @@ static glm::vec3 ClampToBuildArea(const glm::vec3& pos) {
     if (clamped.z > FLOOR_MAX_Z) clamped.z = FLOOR_MAX_Z;
     return clamped;
 }
-// =========================================================================
 
 void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.clear();
