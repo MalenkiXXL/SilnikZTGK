@@ -9,18 +9,14 @@ Window::Window(unsigned int width, unsigned int height, const std::string name)
 	: screenWidth(width), screenHeight(height), screenName(name)
 {
 }
-
 Window::~Window()
 {
-    // 2. Grzecznie i rêcznie niszczymy okno (jeœli nadal istnieje)
     if (window)
     {
+        glfwMakeContextCurrent(nullptr); 
         glfwDestroyWindow(window);
         window = nullptr;
     }
-
-    // 3. Dopiero teraz, gdy wszystko jest czyste, wy³¹czamy GLFW
-    glfwTerminate();
 }
 void Window::Init()
 {

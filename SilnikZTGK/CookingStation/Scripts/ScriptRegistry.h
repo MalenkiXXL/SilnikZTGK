@@ -30,6 +30,7 @@
 #include "Waiter/WaiterScript.h"
 #include "Machines/CuttingBoardScript.h"
 #include "Machines/MixerScript.h"
+#include "Machines/PanScript.h"
 #include "Machines/OvenScript.h"
 #include "PlateScript.h"
 #include "CookingStation/Scripts/Delivery/DeliveryMushroomScript.h"
@@ -85,6 +86,7 @@ public:
         Register<PlateScript>("PlateScript");
         Register<DeliveryMushroomScript>("DeliveryMushroomScript");
         Register<CrateScript>("CrateScript");
+        Register<PanScript>("PanScript");
     }
 
     static void AddScriptToComponent(NativeScriptComponent& nsc, const std::string& name)

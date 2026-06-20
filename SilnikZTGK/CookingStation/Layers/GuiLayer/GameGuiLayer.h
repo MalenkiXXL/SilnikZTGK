@@ -80,12 +80,17 @@ private:
     std::shared_ptr<Texture> m_AcceptButtonTex;
     std::shared_ptr<Texture> m_SkipButtonTex;
 
+    std::shared_ptr<Texture> m_EventCloudTex;
+    std::shared_ptr<Texture> m_EventRewardTex;
+
     std::size_t m_GameStartedSubId = 0;
     std::size_t m_InventorySubId = 0;
     std::size_t m_MoneySubId = 0;
     std::size_t m_OrderTakenSubId = 0;
     std::size_t m_GamePausedSubId = 0;
     std::size_t m_GameResumedSubId = 0;
+    std::size_t m_BuildModeToggledSubId = 0;
+    std::size_t m_ShowMainMenuSubId = 0;
     uint32_t m_MushroomAppearedSubId = 0;
     uint32_t m_DeliveryCollectedSubId = 0;
 

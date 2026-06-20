@@ -54,6 +54,10 @@ void GameGuiLayer::OnAttach()
     m_AcceptButtonTex = AssetManager::GetTexture("assets://UI/Events/AcceptButton.png");
     m_SkipButtonTex = AssetManager::GetTexture("assets://UI/Events/SkipButton.png");
 
+    // NOWE: �adowanie poprawnie wyci�gni�te do OnAttach
+    m_EventCloudTex = AssetManager::GetTexture("assets://UI/Events/EventCloud.png");
+    m_EventRewardTex = AssetManager::GetTexture("assets://UI/Events/EventReward.png");
+
     m_BuildModePanel.Init(m_CoinIcon);
 
     m_IngredientsCarousel.Init(true);
@@ -74,7 +78,6 @@ void GameGuiLayer::OnAttach()
             m_ActiveOrderTickets.clear();
             m_LastMoney = -1;
 
-            // NOWO��: Twardy reset dla panelu budowania, kiedy w��czasz now� gr� (�eby zmienna nie pami�ta�a dawnego wyboru!)
             m_BuildModePanel.ForceReset();
 
             if (m_ActiveScene) {
@@ -138,15 +141,15 @@ void GameGuiLayer::OnAttach()
     );
 
     auto& appBus = Application::Get().GetEventBus();
-    appBus.Subscribe<GamePausedEvent>([this](const GamePausedEvent&) { m_IsGamePaused = true; });
-    appBus.Subscribe<GameResumedEvent>([this](const GameResumedEvent&) { m_IsGamePaused = false; });
+    m_GamePausedSubId = appBus.Subscribe<GamePausedEvent>([this](const GamePausedEvent&) { m_IsGamePaused = true; });
+    m_GameResumedSubId = appBus.Subscribe<GameResumedEvent>([this](const GameResumedEvent&) { m_IsGamePaused = false; });
 
-    appBus.Subscribe<BuildModeToggledEvent>([this](const BuildModeToggledEvent& e) {
+    m_BuildModeToggledSubId = appBus.Subscribe<BuildModeToggledEvent>([this](const BuildModeToggledEvent& e) {
         if (!e.IsActive) m_BuildModePanel.Deactivate();
         else             m_BuildModePanel.Activate();
         });
 
-    appBus.Subscribe<ShowMainMenuEvent>([this](const ShowMainMenuEvent&) {
+    m_ShowMainMenuSubId = appBus.Subscribe<ShowMainMenuEvent>([this](const ShowMainMenuEvent&) {
         if (m_BuildModePanel.IsActive()) {
             m_BuildModePanel.Deactivate();
         }
@@ -166,8 +169,12 @@ void GameGuiLayer::OnDetach()
         if (m_DeliveryCollectedSubId != 0) { bus.Unsubscribe<DeliveryCollectedEvent>(m_DeliveryCollectedSubId); m_DeliveryCollectedSubId = 0; }
     }
 
-    if (m_GameStartedSubId != 0)
-        Application::Get().GetEventBus().Unsubscribe<GameStartedEvent>(m_GameStartedSubId);
+    auto& appBus = Application::Get().GetEventBus();
+    if (m_GameStartedSubId != 0) { appBus.Unsubscribe<GameStartedEvent>(m_GameStartedSubId);             m_GameStartedSubId = 0; }
+    if (m_GamePausedSubId != 0) { appBus.Unsubscribe<GamePausedEvent>(m_GamePausedSubId);               m_GamePausedSubId = 0; }
+    if (m_GameResumedSubId != 0) { appBus.Unsubscribe<GameResumedEvent>(m_GameResumedSubId);             m_GameResumedSubId = 0; }
+    if (m_BuildModeToggledSubId != 0) { appBus.Unsubscribe<BuildModeToggledEvent>(m_BuildModeToggledSubId);   m_BuildModeToggledSubId = 0; }
+    if (m_ShowMainMenuSubId != 0) { appBus.Unsubscribe<ShowMainMenuEvent>(m_ShowMainMenuSubId);           m_ShowMainMenuSubId = 0; }
 }
 
 void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_ptr<Texture>& iconTex,
@@ -625,12 +632,10 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 
     if (state == QuestEventState::QuestActive)
     {
-        static std::shared_ptr<Texture> s_EventCloudTex = AssetManager::GetTexture("assets://UI/Events/EventCloud.png");
-        static std::shared_ptr<Texture> s_EventRewardTex = AssetManager::GetTexture("assets://UI/Events/EventReward.png");
-        if (!s_EventCloudTex) return;
+        if (!m_EventCloudTex) return;
 
         float cloudW = 300.0f * baseScale;
-        float cloudAspect = (float)s_EventCloudTex->GetHeight() / (float)s_EventCloudTex->GetWidth();
+        float cloudAspect = (float)m_EventCloudTex->GetHeight() / (float)m_EventCloudTex->GetWidth();
         float cloudH = cloudW * cloudAspect;
 
         glm::vec2 newCloudPos = { boothScreenX - cloudW * 0.5f, boothScreenY - cloudH * 1.2f };
@@ -638,7 +643,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         if (newCloudPos.x + cloudW > gameX + gameWidth - 10.0f) newCloudPos.x = gameX + gameWidth - cloudW - 10.0f;
         if (newCloudPos.y < gameY + 10.0f) newCloudPos.y = gameY + 10.0f;
 
-        Renderer2D::DrawQuad(newCloudPos, { cloudW, cloudH }, s_EventCloudTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        Renderer2D::DrawQuad(newCloudPos, { cloudW, cloudH }, m_EventCloudTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
         float mainCenterX = newCloudPos.x + cloudW * 0.55f;
 
@@ -718,14 +723,14 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
 
         Gui::DrawGuiText(progressStr, { slotPos.x + slotSize + 10.0f * baseScale, progressY }, progressScale, circleColor);
 
-        if (s_EventRewardTex) {
-            float rewardAspect = (float)s_EventRewardTex->GetWidth() / (float)s_EventRewardTex->GetHeight();
+        if (m_EventRewardTex) {
+            float rewardAspect = (float)m_EventRewardTex->GetWidth() / (float)m_EventRewardTex->GetHeight();
             float rewardH = cloudH * 0.6f;
             float rewardW = rewardH * rewardAspect;
 
             glm::vec2 rewardPos = { newCloudPos.x + cloudW - rewardW * 2.3f, newCloudPos.y - rewardH * 0.6f };
 
-            Renderer2D::DrawQuad(rewardPos, { rewardW, rewardH }, s_EventRewardTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+            Renderer2D::DrawQuad(rewardPos, { rewardW, rewardH }, m_EventRewardTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
             std::string coinsStr = std::to_string(activeQuest->RewardCoins);
             float coinsScale = 0.8f * baseScale;

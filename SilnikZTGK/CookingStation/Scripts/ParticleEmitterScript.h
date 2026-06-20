@@ -8,9 +8,10 @@
 // Definiuje parametry startowe
 struct ParticleProps
 {
-    glm::vec3 PositionOffset = { 0.0f, 0.0f, 0.0f }; // Sk�d wylatuje (wzgl�dem obiektu)
-    glm::vec3 Velocity = { 0.0f, 1.0f, 0.0f };       // Bazowy kierunek
-    glm::vec3 VelocityVariation = { 0.5f, 0.5f, 0.5f }; // Rozrzut na boki
+    glm::vec3 PositionOffset = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 PositionVariation = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 Velocity = { 0.0f, 1.0f, 0.0f };
+    glm::vec3 VelocityVariation = { 0.5f, 0.5f, 0.5f };
 
     glm::vec4 ColorBegin = { 1.0f, 1.0f, 1.0f, 1.0f };
     glm::vec4 ColorEnd = { 1.0f, 1.0f, 1.0f, 0.0f };
@@ -18,7 +19,6 @@ struct ParticleProps
     float SizeBegin = 0.5f, SizeVariation = 0.1f, SizeEnd = 0.0f;
     float LifeTime = 1.0f;
 
-    // Kolekcja tekstur 
     std::vector<std::shared_ptr<Texture2D>> Textures;
 };
 
@@ -125,6 +125,9 @@ private:
         }
 
         particle.Position = globalPos + ParticleTemplate.PositionOffset;
+        particle.Position.x += ParticleTemplate.PositionVariation.x * RandomFloat();
+        particle.Position.y += ParticleTemplate.PositionVariation.y * RandomFloat();
+        particle.Position.z += ParticleTemplate.PositionVariation.z * RandomFloat();
 
         particle.Velocity = ParticleTemplate.Velocity;
         particle.Velocity.x += ParticleTemplate.VelocityVariation.x * RandomFloat();

@@ -192,7 +192,7 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
     }
 
     if (DrawImageButton(m_ExitBtnTex, exitPos, exitSize, m_ExitBtnScale, baseScale, hoverExit)) {
-        Application::Get().Close();
+        Application::Get().GetWindow().ProcessWindowClose();
     }
 }
 

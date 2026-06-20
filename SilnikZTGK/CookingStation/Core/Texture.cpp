@@ -11,21 +11,18 @@
 #ifndef GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT
 #define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
 #endif
-
-Texture::Texture(const std::string& path) : m_FilePath(path) {
+Texture::Texture(const std::string& path) : m_FilePath(path), m_RendererID(0) {
     int width, height, channels;
-
     stbi_set_flip_vertically_on_load(1);
 
     std::vector<uint8_t> fileData = VFS::ReadFile(path);
     if (fileData.empty()) {
         spdlog::error("[Texture_GUI] Brak pliku lub blad VFS dla tekstury: {}", path);
-        return;
+        return; // m_RendererID = 0, bezpiecznie
     }
 
     unsigned char* data = stbi_load_from_memory(
-        fileData.data(),
-        static_cast<int>(fileData.size()),
+        fileData.data(), static_cast<int>(fileData.size()),
         &width, &height, &channels, 4);
 
     if (data) {
@@ -37,15 +34,12 @@ Texture::Texture(const std::string& path) : m_FilePath(path) {
         glGenTextures(1, &m_RendererID);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_RendererID);
-
         glTexImage2D(GL_TEXTURE_2D, 0, m_InternalFormat, m_Width, m_Height,
             0, m_DataFormat, GL_UNSIGNED_BYTE, data);
-
         glGenerateMipmap(GL_TEXTURE_2D);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
@@ -93,10 +87,13 @@ void Texture::SetData(void* data, uint32_t size) {
 }
 
 Texture::~Texture() {
-    glDeleteTextures(1, &m_RendererID);
+    if (m_RendererID != 0) {
+        glDeleteTextures(1, &m_RendererID);
+    }
 }
 
 void Texture::Bind(uint32_t slot) const {
+    if (m_RendererID == 0) return;
     glActiveTexture(GL_TEXTURE0 + slot);
     glBindTexture(GL_TEXTURE_2D, m_RendererID);
 }
