@@ -225,6 +225,7 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
 
     spdlog::info("AudioEngine: Podpinam pelna liste eventow audio!");
 
+    //UI
     eventBus.Subscribe<PlayPauseSoundEvent>([](const PlayPauseSoundEvent& e) {
         AudioEngine::Play("assets://sounds/pause.mp3");
         });

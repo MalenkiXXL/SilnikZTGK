@@ -11,6 +11,7 @@
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/GuiLayer/Panels/SettingsMenuPanel.h" 
+#include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 #include <algorithm>
 #include <string>
 
@@ -78,7 +79,23 @@ bool MainMenuLayer::DrawImageButton(const std::shared_ptr<Texture>& tex, glm::ve
         Gui::Panel(scaledPos, scaledSize, tint, 15.0f * baseScale_);
     }
 
-    return hovered && Input::IsMouseButtonJustPressed(0);
+    static std::unordered_map<void*, bool> lastHoverStates;
+    void* btnId = tex.get();
+
+    bool wasHoveredLastFrame = lastHoverStates[btnId];
+
+    if (hovered && !wasHoveredLastFrame) {
+        AudioEngine::Play(AudioConfig::ButtonHoverSound);
+    }
+
+    lastHoverStates[btnId] = hovered;
+
+    bool isClicked = hovered && Input::IsMouseButtonJustPressed(0);
+    if (isClicked) {
+        AudioEngine::Play(AudioConfig::ButtonClickSound);
+    }
+
+    return isClicked;
 }
 
 void MainMenuLayer::OnUpdate(Timestep ts) {

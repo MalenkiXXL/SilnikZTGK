@@ -76,6 +76,11 @@ bool SceneSerializer::Deserialize(const std::string& path) {
                 model = AssetManager::GetModel(modelPath);
                 MeshComponent meshComp;
                 meshComp.ModelPtr = model;
+
+                if (item.contains("shader_name")) {
+                    meshComp.ShaderName = item["shader_name"].get<std::string>();
+                }
+
                 builder.With<MeshComponent>(meshComp);
             }
 
@@ -188,6 +193,10 @@ void SceneSerializer::Serialize(const std::string& filepath) {
             auto* mesh = meshStorage->Get(entity);
             if (mesh && mesh->ModelPtr) {
                 item["model_path"] = mesh->ModelPtr->FilePath;
+            }
+
+            if (!mesh->ShaderName.empty() && mesh->ShaderName != "ModelShader") {
+                item["shader_name"] = mesh->ShaderName;
             }
         }
 

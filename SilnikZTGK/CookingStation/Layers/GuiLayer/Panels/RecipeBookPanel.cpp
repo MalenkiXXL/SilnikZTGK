@@ -2,6 +2,8 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/GuiLayer/Utils/GuiUtils.h"
 #include "CookingStation/Core/GameProgress.h"
+#include "CookingStation/Core/AudioEngine.h"
+#include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 
 void RecipeBookPanel::Init() {
     m_BookCloudIcon = AssetManager::GetTexture("assets://UI/bookCloud.png");
@@ -40,7 +42,10 @@ void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float game
         glm::vec2 bookSize = cloudSize * 1.1f;
         glm::vec2 bookPos = { cloudPos.x + (actualCloudSize.x - bookSize.x) * 0.5f, cloudPos.y + (actualCloudSize.y - bookSize.y) * 0.5f };
 
-        if (BubblyUI::DrawBubblyImage(m_BubblyStates, "BookIcon", m_BookIcon, bookPos, bookSize, dt, isBlocked, 1.15f, true, 0.35f)) m_IsOpen = true;
+        if (BubblyUI::DrawBubblyImage(m_BubblyStates, "BookIcon", m_BookIcon, bookPos, bookSize, dt, isBlocked, 1.15f, true, 0.35f)) {
+            m_IsOpen = true;
+            AudioEngine::Play(AudioConfig::BookOpenSound);
+        }
         if (m_BookStarsIcon) BubblyUI::DrawBubblyImage(m_BubblyStates, "BookStars", m_BookStarsIcon, cloudPos, actualCloudSize, dt, isBlocked, 1.15f, false);
     }
     else {
@@ -54,7 +59,10 @@ void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float game
         glm::vec2 xPos = { insidePos.x + insideSize.x - xSize.x * 2.6f, insidePos.y + xSize.y * 2.6f };
 
         if (m_BookXIcon) {
-            if (BubblyUI::DrawBubblyImage(m_BubblyStates, "BookX", m_BookXIcon, xPos, xSize, dt, false, 1.2f, true, 0.4f)) m_IsOpen = false;
+            if (BubblyUI::DrawBubblyImage(m_BubblyStates, "BookX", m_BookXIcon, xPos, xSize, dt, false, 1.2f, true, 0.4f)) {
+                m_IsOpen = false;
+                AudioEngine::Play(AudioConfig::BookCloseSound);
+            }
         }
 
         float recipeH = 120.0f * baseScale;

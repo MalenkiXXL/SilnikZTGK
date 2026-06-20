@@ -60,6 +60,16 @@ void main()
         baseColor = mix(baseColor, trueColor, lum * tex2Sample.a);
     }
 
+    float gridSize = 2.0;
+    float cellX = floor(FragPos.x / gridSize);
+    float cellZ = floor(FragPos.z / gridSize);
+
+    float checker = mod(cellX + cellZ, 2.0);
+    if (checker > 0.5)
+    {
+        baseColor *= 0.90;
+    }
+
     float ambientStrength = 0.55; 
     vec3 ambient = ambientStrength * vec3(1.0); 
 
