@@ -84,6 +84,8 @@ public:
 
     std::unordered_set<glm::ivec2, IVec2Hash> m_StaticObstacles;
     glm::vec3 m_WaveOffset = glm::vec3(-2.0f, 0.0f, 3.0f);
+    glm::vec3 m_TrayOffset = glm::vec3(1.0f, 1.1f, 0.0f);
+
 
     void OnCreate() override
     {
@@ -437,6 +439,12 @@ protected:
         auto* tag = GetScene()->GetWorld().GetComponent<TagComponent>(m_TargetPlate);
         if (tag) tag->Tag = "PlateCarried";
 
+        auto* plateTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetPlate);
+        if (plateTc)
+        {
+            plateTc->SetScale(plateTc->GetScale() * 0.5f);
+        }
+
         m_IsCarryingPlate = true;
         m_HasWaypoint = false;
         m_CurrentState = State::MOVING_TO_CUSTOMER;
@@ -500,7 +508,19 @@ protected:
             auto* plateTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetPlate);
             if (tc && plateTc)
             {
-                plateTc->SetPosition(tc->GetPosition() + glm::vec3(0.0f, 1.5f, 0.0f));
+                float yaw = glm::radians(tc->GetRotation().y);
+
+                float sinY = std::sin(yaw);
+                float cosY = std::cos(yaw);
+
+                glm::vec3 rotatedOffset;
+                rotatedOffset.x = m_TrayOffset.x * cosY + m_TrayOffset.z * sinY;
+                rotatedOffset.y = m_TrayOffset.y;
+                rotatedOffset.z = -m_TrayOffset.x * sinY + m_TrayOffset.z * cosY;
+
+                plateTc->SetPosition(tc->GetPosition() + rotatedOffset);
+
+                plateTc->SetRotation(tc->GetRotation());
             }
         }
     }
