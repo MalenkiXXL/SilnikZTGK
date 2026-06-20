@@ -13,7 +13,7 @@ enum class IngredientType : uint32_t
     Mozzarella, ChoppedMozzarella,
     Milk, Flour, Egg, Potato,
     RawDough, Baguette, CutBaguette,
-    Sandwich
+    Sandwich, Caprese,
 };
 
 // Struktura trzymająca metadane składnika
@@ -43,6 +43,7 @@ inline std::string IngredientTypeToString(IngredientType type)
         case IngredientType::Baguette:          return "Baguette";
         case IngredientType::CutBaguette:       return "CutBaguette";
         case IngredientType::Sandwich:          return "Sandwich";
+        case IngredientType::Caprese:           return "Caprese";
         default:                                return "Unknown";
     }
 }
@@ -64,6 +65,10 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
 
     case IngredientType::Ham:
         return { glm::vec3(7.5f), glm::vec3(glm::radians(90.0f), 0.0f, 0.0f) };
+    case IngredientType::Mozzarella:
+        return { glm::vec3(0.5f), glm::vec3(0.0f) };
+    case IngredientType::ChoppedMozzarella:
+        return { glm::vec3(0.5f), glm::vec3(0.0f) };
     case IngredientType::ChoppedHam:
         return { glm::vec3(7.5f), glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f) };
 
@@ -86,7 +91,8 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
 
     case IngredientType::Egg:
         return { glm::vec3(0.4f), glm::vec3(0.0f) };
-
+    case IngredientType::Caprese:
+        return { glm::vec3(0.5f), glm::vec3(0.0f) };
     default:
         return { glm::vec3(1.0f), glm::vec3(0.0f) };
     }
