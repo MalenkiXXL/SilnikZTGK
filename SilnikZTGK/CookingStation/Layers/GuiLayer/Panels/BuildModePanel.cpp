@@ -12,17 +12,39 @@
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include <spdlog/spdlog.h>
 #include <GLFW/glfw3.h>
+#include <algorithm>
+
+// =========================================================================
+// USTAWIENIA GRANIC PODŁOGI (Zmień te wartości, by idealnie pasowały do mapy)
+// =========================================================================
+static const float FLOOR_MIN_X = -15.0f;
+static const float FLOOR_MAX_X = 14.0f;
+static const float FLOOR_MIN_Z = -18.0f;
+static const float FLOOR_MAX_Z = 18.0f;
+
+static bool IsWithinBuildArea(const glm::vec3& pos) {
+    return (pos.x >= FLOOR_MIN_X - 0.01f && pos.x <= FLOOR_MAX_X + 0.01f &&
+        pos.z >= FLOOR_MIN_Z - 0.01f && pos.z <= FLOOR_MAX_Z + 0.01f);
+}
+
+static glm::vec3 ClampToBuildArea(const glm::vec3& pos) {
+    glm::vec3 clamped = pos;
+    if (clamped.x < FLOOR_MIN_X) clamped.x = FLOOR_MIN_X;
+    if (clamped.x > FLOOR_MAX_X) clamped.x = FLOOR_MAX_X;
+    if (clamped.z < FLOOR_MIN_Z) clamped.z = FLOOR_MIN_Z;
+    if (clamped.z > FLOOR_MAX_Z) clamped.z = FLOOR_MAX_Z;
+    return clamped;
+}
+// =========================================================================
 
 void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.clear();
     m_CoinIcon = coinIcon;
 
-    // Przywróciłem ceny > 0, aby było fizycznie widać pobieranie pieniędzy podczas stawiania!
-    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),    });
+    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   0 });
     m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/cuttingBoardMachine.png"), 0 });
     m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   0 });
     m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  0 });
-    m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/oven.png"), 0 });
 }
 
 void BuildModePanel::ForceReset() {
@@ -58,8 +80,7 @@ void BuildModePanel::Deactivate() {
     auto activeScene = SceneManager::GetActiveScene();
     if (!m_PreviewGroup.empty() && activeScene) {
         for (auto& [ent, offset] : m_PreviewGroup) {
-            // TWARDE USUNIĘCIE ZAMIAST ZDARZENIA (bo w Edit Mode zdarzenia nie są przetwarzane!)
-            activeScene->GetWorld().DestroyEntity(ent);
+            activeScene->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ ent });
         }
         m_PreviewGroup.clear();
     }
@@ -149,11 +170,9 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
     m_SlideY += (targetSlide - m_SlideY) * std::min(dt * 14.0f, 1.0f);
     if (m_SlideY <= 0.01f) return;
 
-    // Wysokość panelu
     const float panelH = 200.0f * baseScale;
     float panelY = gameY + gameHeight - panelH * m_SlideY;
 
-    // Tło panelu
     auto bgTex = AssetManager::GetTexture("assets://UI/buildBackground.png");
     if (bgTex && bgTex->GetRendererID() != 0) {
         Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, panelH }, bgTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
@@ -163,9 +182,8 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         Renderer2D::DrawQuad({ gameX, panelY }, { gameWidth, 2.0f * baseScale }, { 0.3f, 0.55f, 1.0f, 0.7f }, 0.0f);
     }
 
-    // Parametry Siatki (Slots)
     const float iconH = 80.0f * baseScale;
-    const float slotW = 120.0f * baseScale; // Sztywna szerokość "stanowiska"
+    const float slotW = 120.0f * baseScale;
     const float spacing = 20.0f * baseScale;
 
     const int count = (int)m_MachineEntries.size();
@@ -181,22 +199,18 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         auto& entry = m_MachineEntries[i];
         bool canAfford = currentMoney >= entry.Price;
 
-        // --- SKALOWANIE IKONY Z ZACHOWANIEM ASPECT RATIO ---
-        float actualIconW = iconH; // fallback dla braku tekstury
+        float actualIconW = iconH;
         if (entry.Icon && entry.Icon->GetRendererID() != 0) {
             float aspect = (float)entry.Icon->GetWidth() / (float)entry.Icon->GetHeight();
             actualIconW = iconH * aspect;
         }
 
-        // --- WYLICZANIE ŚRODKA SLOTU ---
         float slotStartX = startX + i * (slotW + spacing);
         float slotCenterX = slotStartX + slotW * 0.5f;
 
-        // Wyśrodkowanie ikony wewnątrz slotu
         float ix = slotCenterX - actualIconW * 0.5f;
         float iy = iconY;
 
-        // Margines wokół elementu dla hovera i kliknięcia
         float padX = 15.0f * baseScale;
         float padY = 15.0f * baseScale;
 
@@ -206,45 +220,38 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         const bool isHeld = (m_HeldMachineIndex == i);
 
         glm::vec4 iconColor = { 1.0f, 1.0f, 1.0f, 1.0f };
-
-        // Szaro-czerwony odcień, gdy nas nie stać
         glm::vec4 unaffordableColorNormal = { 0.55f, 0.45f, 0.45f, 0.9f };
-        // Wyraźnie bardziej czerwony, gdy najedziemy
         glm::vec4 unaffordableColorHover = { 0.75f, 0.35f, 0.35f, 0.95f };
-
-        glm::vec4 bg = { 0.0f, 0.0f, 0.0f, 0.0f }; // Przezroczyste na start
+        glm::vec4 bg = { 0.0f, 0.0f, 0.0f, 0.0f };
 
         if (canAfford) {
             if (isHeld) {
-                iconColor = { 0.5f, 0.7f, 1.0f, 1.0f }; // Niebieskawy odcień gdy trzymana
-                bg = { 0.30f, 0.60f, 1.0f, 0.50f };     // Niebieskie tło
+                iconColor = { 0.5f, 0.7f, 1.0f, 1.0f };
+                bg = { 0.30f, 0.60f, 1.0f, 0.50f };
             }
             else if (inIcon) {
-                iconColor = { 0.8f, 0.8f, 0.8f, 1.0f }; // Przyciemnienie samego kształtu na hover
-                bg = { 1.0f, 1.0f, 1.0f, 0.18f };       // Jasne tło
+                iconColor = { 0.8f, 0.8f, 0.8f, 1.0f };
+                bg = { 1.0f, 1.0f, 1.0f, 0.18f };
             }
         }
         else {
             if (inIcon) {
                 iconColor = unaffordableColorHover;
-                bg = { 0.8f, 0.2f, 0.2f, 0.3f };        // Czerwone tło
+                bg = { 0.8f, 0.2f, 0.2f, 0.3f };
             }
             else {
                 iconColor = unaffordableColorNormal;
             }
         }
 
-        // Rysowanie tła (używamy rzeczywistych wymiarów ikony i dodajemy lekki padding dookoła)
         if (bg.a > 0.0f) {
             Renderer2D::DrawQuad({ ix - padX, iy - padY }, { actualIconW + padX * 2.0f, iconH + padY * 2.0f }, bg, 12.0f * baseScale);
         }
 
-        // Rysowanie ikony z zachowaniem oryginalnego kształtu
         if (entry.Icon) {
             Renderer2D::DrawQuad({ ix, iy }, { actualIconW, iconH }, entry.Icon, iconColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
 
-        // --- RYSOWANIE CENY I MONETY (Wyśrodkowane względem slotu!) ---
         float priceTextScale = 0.8f * baseScale;
         std::string priceStr = std::to_string(entry.Price);
         float tw = Gui::MeasureTextWidth(priceStr, priceTextScale);
@@ -253,9 +260,8 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         float gap = 6.0f * baseScale;
         float totalPriceW = coinSize + gap + tw;
 
-        // Wyśrodkowanie CAŁEGO bloku cenowego pod ikoną
         float priceStartX = slotCenterX - totalPriceW * 0.5f;
-        float priceY = iy + iconH + 18.0f * baseScale; // Odsunięcie lekko w dół za padding
+        float priceY = iy + iconH + 18.0f * baseScale;
 
         glm::vec4 coinTint = canAfford ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : (inIcon ? unaffordableColorHover : unaffordableColorNormal);
 
@@ -266,14 +272,12 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
             Renderer2D::DrawQuad({ priceStartX, priceY - 6.0f * baseScale }, { coinSize, coinSize }, coinTint, coinSize * 0.5f);
         }
 
-        // Fioletowy kolor tekstu (#905ea9) wyliczony jako RGB w skali 0-1
         glm::vec4 affordableTextColor = { 144.0f / 255.0f, 94.0f / 255.0f, 169.0f / 255.0f, 1.0f };
         glm::vec4 priceTextColor = canAfford ? affordableTextColor : coinTint;
 
         Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap + 1.5f * baseScale, priceY + 1.5f * baseScale }, priceTextScale, { 0.0f, 0.0f, 0.0f, 0.8f });
         Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap, priceY }, priceTextScale, priceTextColor);
 
-        // Pieniądze NIE są tutaj pobierane! Zostaje samo "wybranie" maszyny do ręki.
         if (inIcon && m_IsActive) {
             Input::SetUICaptureMouse(true);
             if (Input::IsMouseButtonJustPressed(0) && m_HeldMachineIndex == -1) {
@@ -305,15 +309,20 @@ bool BuildModePanel::IsPlacementValid(std::shared_ptr<Scene>& activeScene, const
 
     if (m_HeldMachineIndex >= 0) {
         for (auto& [ent, offset] : m_PreviewGroup) {
-            targetCells.push_back(GridSystem::WorldToCell(snappedPos + offset));
+            glm::vec3 pos = snappedPos + offset;
+            if (!IsWithinBuildArea(pos)) return false;
+            targetCells.push_back(GridSystem::WorldToCell(pos));
             ignoredEntities.push_back(ent);
         }
     }
     else if (m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max()) {
+        if (!IsWithinBuildArea(snappedPos)) return false;
         targetCells.push_back(GridSystem::WorldToCell(snappedPos));
         ignoredEntities.push_back(m_MovingMachineEntity);
         for (auto& [ent, offset] : m_MovingGroup) {
-            targetCells.push_back(GridSystem::WorldToCell(snappedPos + offset));
+            glm::vec3 pos = snappedPos + offset;
+            if (!IsWithinBuildArea(pos)) return false;
+            targetCells.push_back(GridSystem::WorldToCell(pos));
             ignoredEntities.push_back(ent);
         }
     }
@@ -499,7 +508,10 @@ void BuildModePanel::DrawActiveGrid(std::shared_ptr<Scene>& activeScene) {
     if (std::abs(ray.Direction.y) > 1e-6f && !mouseOverPanel) {
         float t = -ray.Origin.y / ray.Direction.y;
         if (t > 0.0f) {
-            snappedPos = GridSystem::SnapToGrid(ray.Origin + t * ray.Direction);
+            glm::vec3 rawHit = ray.Origin + t * ray.Direction;
+
+            rawHit = ClampToBuildArea(rawHit);
+            snappedPos = GridSystem::SnapToGrid(rawHit);
 
             if (m_HeldMachineIndex >= 0 || m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max()) {
                 hoverState = IsPlacementValid(activeScene, snappedPos) ? 1 : 2;
@@ -537,11 +549,9 @@ void BuildModePanel::DrawOverlay(float gameW, float gameH, float baseScale) {
 void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
     if (!activeScene) return;
 
-    // NOWOŚĆ: Prawidłowe reagowanie na PPM i klawisz TAB. TWARDE USUWANIE.
     if (Input::IsMouseButtonJustPressed(1) || Input::IsKeyPressed(GLFW_KEY_TAB)) {
         if (!m_PreviewGroup.empty()) {
             for (auto& [ent, offset] : m_PreviewGroup) {
-                // Twarde usunięcie zapobiega pozostawaniu "duchów" po wciśnięciu PPM
                 activeScene->GetWorld().DestroyEntity(ent);
             }
             m_PreviewGroup.clear();
@@ -592,7 +602,11 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
     glm::vec3 snappedPos(0.0f);
     if (std::abs(ray.Direction.y) > 1e-6f) {
         float t = -ray.Origin.y / ray.Direction.y;
-        if (t > 0.0f) snappedPos = GridSystem::SnapToGrid(ray.Origin + t * ray.Direction);
+        if (t > 0.0f) {
+            glm::vec3 rawHit = ray.Origin + t * ray.Direction;
+            rawHit = ClampToBuildArea(rawHit);
+            snappedPos = GridSystem::SnapToGrid(rawHit);
+        }
     }
 
     auto rawMouse = Input::GetMousePosition();
@@ -686,15 +700,13 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
         }
     }
 
-    // NOWOŚĆ: Po postawieniu usuwamy twardo modele preview i potrącamy pieniądze Z KREDYTÓW!
     if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
         if (IsPlacementValid(activeScene, snappedPos)) {
             if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->GetMoney() >= entry.Price) {
-
-                GameManagerScript::s_Instance->SpendMoney(entry.Price); // <-- Pobieramy opłatę dopiero w tym miejscu!
+                GameManagerScript::s_Instance->SpendMoney(entry.Price);
 
                 for (auto& [ent, _] : m_PreviewGroup) {
-                    world.DestroyEntity(ent); // Twarde usunięcie
+                    world.DestroyEntity(ent);
                 }
                 m_PreviewGroup.clear();
 
@@ -707,7 +719,7 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
             }
             else {
                 for (auto& [ent, _] : m_PreviewGroup) {
-                    world.DestroyEntity(ent); // Twarde usunięcie
+                    world.DestroyEntity(ent);
                 }
                 m_PreviewGroup.clear();
                 m_HeldMachineIndex = -1;
@@ -747,14 +759,17 @@ void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camP
     int startZ = (int)std::floor((camPos.z - range) / cell);
     int endZ = (int)std::ceil((camPos.z + range) / cell);
 
-    float minX = startX * cell, maxX = endX * cell;
-    float minZ = startZ * cell, maxZ = endZ * cell;
-    float lenX = maxX - minX, lenZ = maxZ - minZ;
-    float cX = (minX + maxX) * 0.5f;
-    float cZ = (minZ + maxZ) * 0.5f;
+    int floorStartX = (int)std::floor(FLOOR_MIN_X / cell);
+    int floorEndX = (int)std::ceil(FLOOR_MAX_X / cell);
+    int floorStartZ = (int)std::floor(FLOOR_MIN_Z / cell);
+    int floorEndZ = (int)std::ceil(FLOOR_MAX_Z / cell);
 
-    glm::ivec2 hCell = GridSystem::WorldToCell(hoverPos);
-    glm::vec3  hCenter = { (hCell.x + 0.5f) * cell, 0.01f, (hCell.y + 0.5f) * cell };
+    startX = std::max(startX, floorStartX);
+    endX = std::min(endX, floorEndX);
+    startZ = std::max(startZ, floorStartZ);
+    endZ = std::min(endZ, floorEndZ);
+
+    if (startX > endX || startZ > endZ) return;
 
     auto FlatQuad = [](const glm::vec3& center, float sx, float sz) -> glm::mat4 {
         return glm::translate(glm::mat4(1.0f), center) * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 1.f, 0.f, 0.f }) * glm::scale(glm::mat4(1.0f), { sx, sz, 1.f }) * glm::translate(glm::mat4(1.0f), { -0.5f, -0.5f, 0.f });
@@ -766,9 +781,31 @@ void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camP
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    Renderer2D::DrawQuad(FlatQuad(hCenter, cell, cell), hoverColor);
-    for (int cz = startZ; cz <= endZ; ++cz) Renderer2D::DrawQuad(FlatQuad({ cX, 0.01f, cz * cell }, lenX, t), lineColor);
-    for (int cx = startX; cx <= endX; ++cx) Renderer2D::DrawQuad(FlatQuad({ cx * cell, 0.01f, cZ }, t, lenZ), lineColor);
+    // Kursor siatki (Kwadrat) rysujemy tylko na obszarze podłogi
+    if (hoverPos.x < 90000.0f && IsWithinBuildArea(hoverPos)) {
+        glm::ivec2 hCell = GridSystem::WorldToCell(hoverPos);
+        glm::vec3  hCenter = { (hCell.x + 0.5f) * cell, 0.01f, (hCell.y + 0.5f) * cell };
+        Renderer2D::DrawQuad(FlatQuad(hCenter, cell, cell), hoverColor);
+    }
+
+    // Rysowanie obciętych linii siatki
+    float realMinX = startX * cell;
+    float realMaxX = endX * cell;
+    float lenX = realMaxX - realMinX;
+    float cX = (realMinX + realMaxX) * 0.5f;
+
+    for (int cz = startZ; cz <= endZ; ++cz) {
+        Renderer2D::DrawQuad(FlatQuad({ cX, 0.01f, cz * cell }, lenX, t), lineColor);
+    }
+
+    float realMinZ = startZ * cell;
+    float realMaxZ = endZ * cell;
+    float lenZ = realMaxZ - realMinZ;
+    float cZ = (realMinZ + realMaxZ) * 0.5f;
+
+    for (int cx = startX; cx <= endX; ++cx) {
+        Renderer2D::DrawQuad(FlatQuad({ cx * cell, 0.01f, cZ }, t, lenZ), lineColor);
+    }
 
     Renderer2D::EndScene();
     glEnable(GL_DEPTH_TEST);
