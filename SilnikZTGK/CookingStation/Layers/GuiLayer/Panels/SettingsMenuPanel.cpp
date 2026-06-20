@@ -9,6 +9,8 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Renderer2D.h"
 #include <GLFW/glfw3.h> // Wymagane do sprawdzenia rozdzielczości monitora
+#include "CookingStation/Core/AudioEngine.h"
+#include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 
 SettingsMenuPanel::SettingsMenuPanel() {
     SyncWithEngine();
@@ -141,7 +143,22 @@ void SettingsMenuPanel::Draw(float baseScale) {
             Gui::Panel(finalPos, scaledSize, tint, 10.0f * baseScale);
         }
 
-        return hovered && mouseClicked;
+        static std::unordered_map<float*, bool> lastHoverStates;
+
+        bool wasHoveredLastFrame = lastHoverStates[&scaleVar];
+
+        if (hovered && !wasHoveredLastFrame) {
+            AudioEngine::Play(AudioConfig::ButtonHoverSound);
+        }
+
+        lastHoverStates[&scaleVar] = hovered;
+
+        bool isClicked = hovered && mouseClicked;
+        if (isClicked) {
+            AudioEngine::Play(AudioConfig::ButtonClickSound);
+        }
+
+        return isClicked;
         };
 
     float startY = panelPos.y + 180.0f * baseScale;

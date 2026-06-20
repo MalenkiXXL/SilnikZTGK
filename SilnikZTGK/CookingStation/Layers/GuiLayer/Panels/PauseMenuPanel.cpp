@@ -7,7 +7,9 @@
 #include "../Utils/GuiUtils.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Renderer2D.h"
-#include "CookingStation/Events/GameEvents.h" 
+#include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Core/AudioEngine.h"
+#include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 
 PauseMenuPanel::PauseMenuPanel() {
     m_SettingsPanel = std::make_unique<SettingsMenuPanel>();
@@ -171,7 +173,22 @@ void PauseMenuPanel::Draw(float baseScale) {
             Gui::Panel(finalPos, scaledSize, tint, 10.0f);
         }
 
-        return hovered && mouseClicked;
+        static std::unordered_map<float*, bool> lastHoverStates;
+
+        bool wasHoveredLastFrame = lastHoverStates[&scaleVar];
+
+        if (hovered && !wasHoveredLastFrame) {
+            AudioEngine::Play(AudioConfig::ButtonHoverSound);
+        }
+
+        lastHoverStates[&scaleVar] = hovered;
+
+        bool isClicked = hovered && mouseClicked;
+        if (isClicked) {
+            AudioEngine::Play(AudioConfig::ButtonClickSound);
+        }
+
+        return isClicked;
         };
 
     float retX = (windowSize.first - playSize.x) * 0.5f;

@@ -14,6 +14,7 @@
 #include "CookingStation/Scripts/CrateScript.h"
 #include "CookingStation/Events/GameEvents.h"
 #include "CookingStation/Core/Physics.h"
+#include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cmath> 
@@ -530,6 +531,7 @@ void GameGuiLayer::OnEvent(Event& e)
         if (ev.GetKeyCode() == 292 && ev.GetRepeatCode() == 0) m_ShowFPS = !m_ShowFPS;
         if (ev.GetKeyCode() == 258 && ev.GetRepeatCode() == 0) {
             m_BuildModePanel.Toggle();
+            AudioEngine::Play(AudioConfig::BuildModeSound);
             return true;
         }
         return false;

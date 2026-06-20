@@ -13,6 +13,8 @@
 #include <spdlog/spdlog.h>
 #include <GLFW/glfw3.h>
 #include <algorithm>
+#include "CookingStation/Core/AudioEngine.h"
+#include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 
 static const float FLOOR_MIN_X = -15.0f;
 static const float FLOOR_MAX_X = 14.0f;
@@ -157,7 +159,10 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
 
     if (inBounds) {
         Input::SetUICaptureMouse(true);
-        if (Input::IsMouseButtonJustPressed(0)) Toggle();
+        if (Input::IsMouseButtonJustPressed(0)){
+            Toggle();
+            AudioEngine::Play(AudioConfig::BuildModeSound);
+        }
     }
 }
 
