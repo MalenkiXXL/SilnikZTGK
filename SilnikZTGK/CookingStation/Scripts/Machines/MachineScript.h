@@ -36,12 +36,8 @@ public:
 
     virtual void TryTransferToPlate()
     {
-        spdlog::info("DEBUG Transfer: m_LastHighlightedPlate ID={}", m_LastHighlightedPlate.id);
-
-        Entity targetPlate = m_LastHighlightedPlate;
-
-        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
-            targetPlate = GetClosestAvailablePlate();
+        // NAPRAWA: Przeliczenie matematyczne siatki w momencie transferu
+        Entity targetPlate = GetClosestAvailablePlate();
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())
         {
@@ -51,7 +47,7 @@ public:
         }
         else
         {
-            spdlog::warn("Brak podswietlonego talerza - najedz na danie przed kliknieciem!");
+            spdlog::warn("Brak talerza w bezpiecznym promieniu od maszyny!");
         }
     }
 
@@ -303,9 +299,30 @@ protected:
         auto* myTransform = GetComponent<TransformComponent>();
         if (!myTransform) return { std::numeric_limits<std::size_t>::max(), 0 };
 
+        glm::ivec2 myCell = GridSystem::WorldToCell(myTransform->GetPosition());
+
+        // --- ARCHITEKTONICZNA BLOKADA CELU (STICKY LOCK) ---
+        // Jeœli maszyna ma ju¿ namierzony talerz, najpierw sprawdzamy jego aktualn¹ pozycjê.
+        // Zapobiega to chaotycznemu prze³¹czaniu celów, gdy inny talerz podjedzie bli¿ej.
+        if (m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max())
+        {
+            auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_LastHighlightedPlate);
+            if (plateTransform)
+            {
+                glm::ivec2 plateCell = GridSystem::WorldToCell(plateTransform->GetPosition());
+
+                // Sprawdzamy, czy ten konkretny talerz nadal znajduje siê w zasiêgu s¹siednich kratek (promieñ 1)
+                if (std::abs(myCell.x - plateCell.x) <= 1 && std::abs(myCell.y - plateCell.y) <= 1)
+                {
+                    // Talerz wci¹¿ jest w zasiêgu! Zwracamy go natychmiast i ignorujemy resztê œwiata.
+                    return m_LastHighlightedPlate;
+                }
+            }
+        }
+
+        // Jeœli nie by³o zablokowanego talerza lub stary uciek³ z zasiêgu, szukamy nowego:
         Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 999.0f;
-        glm::ivec2 myCell = GridSystem::WorldToCell(myTransform->GetPosition());
 
         auto* tagSet = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         if (tagSet)

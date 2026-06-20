@@ -9,6 +9,10 @@ enum class TutorialState {
     CameraResetting,
     WaitForCrateSpawn,   // NOWOŒÆ: Przerwa po talerzach, przed skrzynk¹
     WaitForCrateClick,   // NOWOŒÆ: Czekamy a¿ gracz weŸmie pomidora!
+    WaitForBoardSpawn,        // Czekamy na pojawienie siê deski po ma³ym cooldownie
+    WaitForIngredientOnBoard, // Œwiecimy desk¹ i czekamy na po³o¿enie pomidora
+    WaitForChopping,          // Czekamy a¿ gracz pokroi pomidora (wymagane 3 klikniêcia)
+    WaitForPlateTransfer,
     WaitForPotPlacement,
     BurnedSaladDialog,
     WaitForCooking,
@@ -48,6 +52,8 @@ private:
     Entity m_Poof;
 
     glm::vec3 m_CrateOriginalPos;
+    glm::vec3 m_BoardOriginalPos;      // NOWOŒÆ: Zapisana oryginalna pozycja deski
+    glm::vec3 m_BoardStandOriginalPos;
 
     Entity FindEntityByName(const std::string& name);
     void HideUnderground(Entity e);

@@ -115,10 +115,9 @@ public:
     {
         if (m_ChopCooldown > 0.0f) return;
 
-        Entity targetPlate = m_LastHighlightedPlate;
-
-        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
-            targetPlate = GetClosestAvailablePlate();
+        // NAPRAWA: Zamiast ufać zapamiętanej zmiennej wizualnej, wymuszamy 
+        // przeliczenie odległości GridSystemu dokładnie w klatce kliknięcia!
+        Entity targetPlate = GetClosestAvailablePlate();
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())
         {
@@ -140,7 +139,7 @@ public:
                 if (pScript->AddIngredient(choppedType))
                 {
                     spdlog::info("Składnik z deski przeniesiony na talerz!");
-                    ClearHighlight();
+                    ClearHighlight(); // Czyścimy wizualia po udanym transferze
                     ResetMachineState();
                 }
                 else
@@ -151,7 +150,7 @@ public:
         }
         else
         {
-            spdlog::warn("Brak podświetlonego talerza - najedź na danie przed kliknięciem!");
+            spdlog::warn("Brak talerza w promieniu kratki - nie można nałożyć!");
         }
     }
 

@@ -7,6 +7,7 @@
 #include "CookingStation/Scripts/CrateScript.h" 
 #include <algorithm>
 #include <limits> 
+#include "CookingStation/Scripts/Machines/CuttingBoardScript.h"
 
 Entity TutorialManagerScript::FindEntityByName(const std::string& name) {
     auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -67,6 +68,15 @@ void TutorialManagerScript::OnCreate() {
     auto* crateTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TomatoCrate);
     if (crateTc) {
         m_CrateOriginalPos = crateTc->GetPosition();
+    }
+    auto* boardTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Board);
+    if (boardTc) {
+        m_BoardOriginalPos = boardTc->GetPosition();
+    }
+
+    auto* standTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_BoardStand);
+    if (standTc) {
+        m_BoardStandOriginalPos = standTc->GetPosition();
     }
 
     HideUnderground(m_Pot);
@@ -319,8 +329,196 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             ev.IsInfinite = false;
             GetScene()->GetWorld().GetEventBus().Publish(ev);
 
+            m_State = TutorialState::WaitForBoardSpawn;
+            m_StateTimer = 0.0f;
+            m_DialogIndex = 0;
+        }
+        break;
+    }
+
+    case TutorialState::WaitForBoardSpawn: {
+        // Cooldown 1.5s po zabraniu pomidora
+        if (m_StateTimer > 1.5f && m_DialogIndex == 0) {
+            // Spawnujemy "Poof" particle nad miejscem gdzie pojawi siê deska
+            glm::vec3 poofPos = m_BoardOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f);
+            RestorePosition(m_Poof, poofPos);
+
+            auto* poofNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Poof);
+            if (poofNsc) {
+                for (auto& s : poofNsc->Scripts) {
+                    if (s.Name == "PoofEmitterScript" && s.Instance) {
+                        static_cast<ParticleEmitterScript*>(s.Instance)->Play();
+                        break;
+                    }
+                }
+            }
+            m_DialogIndex = 1;
+        }
+
+        // Przywracamy deskê i szafkê u³amek sekundy po efekcie cz¹steczkowym
+        if (m_StateTimer > 1.8f && m_DialogIndex == 1) {
+            RestorePosition(m_BoardStand, m_BoardStandOriginalPos);
+            RestorePosition(m_Board, m_BoardOriginalPos);
+            HideUnderground(m_Poof);
+
+            m_State = TutorialState::WaitForIngredientOnBoard;
+            m_StateTimer = 0.0f;
+        }
+        break;
+    }
+
+    case TutorialState::WaitForIngredientOnBoard: {
+        // Zawsze podœwietlamy deskê w tym stanie
+        TriggerHighlightEvent evBoard;
+        evBoard.TargetEntity = m_Board;
+        evBoard.Color = glm::vec3(1.0f, 0.9f, 0.0f);
+        evBoard.Duration = 8.0f;
+        evBoard.IsInfinite = true;
+        GetScene()->GetWorld().GetEventBus().Publish(evBoard);
+
+        // Szukamy pomidora na taœmie
+        Entity tomatoBeltItem = { std::numeric_limits<std::size_t>::max(), 0 };
+        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+        if (tags) {
+            for (size_t i = 0; i < tags->dense.size(); ++i) {
+                if (tags->dense[i].Tag.find("BeltItem") != std::string::npos) {
+                    tomatoBeltItem = tags->reverse[i];
+                    break;
+                }
+            }
+        }
+
+        // Sprawdzamy, czy pomidor fizycznie podjecha³ blisko deski
+        bool inRange = false;
+        auto* boardTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Board);
+        auto* tomatoTf = GetScene()->GetWorld().GetComponent<TransformComponent>(tomatoBeltItem);
+
+        if (tomatoTf && boardTf) {
+            float distToBoard = glm::distance(
+                glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z),
+                glm::vec2(tomatoTf->GetPosition().x, tomatoTf->GetPosition().z)
+            );
+
+            // Odleg³oœæ miêdzy desk¹ a pomidorem pozwalaj¹ca na interakcjê
+            if (distToBoard < 3.5f) {
+                inRange = true;
+
+                // Synchroniczne œwiecenie pomidora
+                TriggerHighlightEvent evTomato;
+                evTomato.TargetEntity = tomatoBeltItem;
+                evTomato.Color = glm::vec3(1.0f, 0.9f, 0.0f);
+                evTomato.Duration = 8.0f;
+                evTomato.IsInfinite = true;
+                GetScene()->GetWorld().GetEventBus().Publish(evTomato);
+            }
+        }
+
+        // Obs³uga klikniêcia (Bypass)
+        bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
+
+        if (isActionPressed && inRange && !Input::IsUICapturingMouse()) {
+            glm::vec3 mousePos = GetMouseWorldPosition();
+            glm::vec2 mouse2D = { mousePos.x, mousePos.z };
+
+            bool clickedNearTarget = false;
+
+            // NAPRAWA: Znacznie zwiêkszona tolerancja celowania myszk¹ z 1.5f na 4.0f!
+            // Ca³kowicie niweluje to b³¹d paralaksy/perspektywy miêdzy kamer¹, wy¿szym taœmoci¹giem a pod³og¹.
+            // Gracz wystarczy, ¿e kliknie "mniej wiêcej" na œwiec¹ce elementy.
+            if (tomatoTf && glm::distance(mouse2D, glm::vec2(tomatoTf->GetPosition().x, tomatoTf->GetPosition().z)) < 4.0f) clickedNearTarget = true;
+            if (boardTf && glm::distance(mouse2D, glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z)) < 4.0f) clickedNearTarget = true;
+
+            if (clickedNearTarget) {
+                auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
+                if (nsc) {
+                    for (auto& s : nsc->Scripts) {
+                        if (s.Name == "CuttingBoardScript" && s.Instance) {
+                            auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
+                            if (boardScript->m_Ingredients.empty()) {
+                                boardScript->AddIngredient(IngredientType::Tomato);
+                                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ tomatoBeltItem });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Sprawdzenie czy deska ma ju¿ sk³adnik i mo¿emy przejœæ dalej
+        bool hasIngredient = false;
+        auto* nscBoard = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
+        if (nscBoard) {
+            for (auto& s : nscBoard->Scripts) {
+                if (s.Name == "CuttingBoardScript" && s.Instance) {
+                    auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
+                    if (!boardScript->m_Ingredients.empty()) {
+                        hasIngredient = true;
+                    }
+                }
+            }
+        }
+
+        if (hasIngredient) {
+            // Gasimy tutorialowe œwiecenie deski
+            TriggerHighlightEvent ev;
+            ev.TargetEntity = m_Board;
+            ev.Color = glm::vec3(0.0f);
+            ev.Duration = 0.1f;
+            ev.IsInfinite = false;
+            GetScene()->GetWorld().GetEventBus().Publish(ev);
+
+            m_State = TutorialState::WaitForChopping;
+            m_StateTimer = 0.0f;
+        }
+        break;
+    }
+
+    case TutorialState::WaitForChopping: {
+        // Tutaj ca³¹ robotê z odliczaniem "3 klikniêæ" wykonuje CuttingBoardScript
+        // My tylko sprawdzamy flagê m_IsReady, która ustawi siê na true po 3 "ciachniêciach"
+        bool isReady = false;
+        auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
+        if (nsc) {
+            for (auto& s : nsc->Scripts) {
+                if (s.Name == "CuttingBoardScript" && s.Instance) {
+                    auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
+                    if (boardScript->m_IsReady) {
+                        isReady = true;
+                    }
+                }
+            }
+        }
+
+        if (isReady) {
+            m_State = TutorialState::WaitForPlateTransfer;
+            m_StateTimer = 0.0f;
+        }
+        break;
+    }
+
+    case TutorialState::WaitForPlateTransfer: {
+        // MachineScript ju¿ obs³uguje podœwietlanie talerza w zasiêgu (OnHoverCursor)
+        // oraz przenoszenie (TryTransferToPlate) - wszystko przebiega tak jak w normalnej grze.
+        // My czekamy jedynie na moment, w którym deska siê "zresetuje" (sk³adnik z niej zniknie)
+        bool transferred = false;
+        auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
+        if (nsc) {
+            for (auto& s : nsc->Scripts) {
+                if (s.Name == "CuttingBoardScript" && s.Instance) {
+                    auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
+                    // ResetMachineState() czyœci wektor i flagê m_IsReady
+                    if (boardScript->m_Ingredients.empty() && !boardScript->m_IsReady) {
+                        transferred = true;
+                    }
+                }
+            }
+        }
+
+        if (transferred) {
+            // Koniec sekwencji deski - przechodzimy do dalszej czêœci przygotowañ zupy (garnek)
             m_State = TutorialState::WaitForPotPlacement;
             m_StateTimer = 0.0f;
+            m_DialogIndex = 0;
         }
         break;
     }
