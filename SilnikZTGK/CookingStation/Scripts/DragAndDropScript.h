@@ -251,9 +251,7 @@ private:
                     return mScript->m_Ingredients.empty() && (hoveredType == IngredientType::RawDough);
                 }
                 else if (name == "PanScript") {
-                    bool hasEgg = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), IngredientType::Egg) != mScript->m_Ingredients.end();
-                    bool hasHam = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), IngredientType::ChoppedHam) != mScript->m_Ingredients.end();
-                    return mScript->m_Ingredients.size() < 2 && ((hoveredType == IngredientType::Egg && !hasEgg) || (hoveredType == IngredientType::ChoppedHam && !hasHam));
+                    return mScript->CanAcceptIngredient(hoveredType);
                 }
                 return false;
                 });
@@ -330,10 +328,8 @@ private:
                                 else if (machineName == "OvenScript" && hoveredMachineScript->m_Ingredients.empty()) {
                                     canAccept = (type == IngredientType::RawDough);
                                 }
-                                else if (machineName == "PanScript" && hoveredMachineScript->m_Ingredients.size() < 2) {
-                                    bool hasEgg = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), IngredientType::Egg) != hoveredMachineScript->m_Ingredients.end();
-                                    bool hasHam = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), IngredientType::ChoppedHam) != hoveredMachineScript->m_Ingredients.end();
-                                    canAccept = ((type == IngredientType::Egg && !hasEgg) || (type == IngredientType::ChoppedHam && !hasHam));
+                                else if (machineName == "PanScript") {
+                                    canAccept = hoveredMachineScript->CanAcceptIngredient(type);
                                 }
 
                                 if (canAccept) {
@@ -454,10 +450,8 @@ private:
                 else if (machineName == "OvenScript" && hoveredMachineScript->m_Ingredients.empty()) {
                     return topIngredient == IngredientType::RawDough;
                 }
-                else if (machineName == "PanScript" && hoveredMachineScript->m_Ingredients.size() < 2) {
-                    bool hasEgg = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), IngredientType::Egg) != hoveredMachineScript->m_Ingredients.end();
-                    bool hasHam = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), IngredientType::ChoppedHam) != hoveredMachineScript->m_Ingredients.end();
-                    return ((topIngredient == IngredientType::Egg && !hasEgg) || (topIngredient == IngredientType::ChoppedHam && !hasHam));
+                else if (machineName == "PanScript") {
+                    return hoveredMachineScript->CanAcceptIngredient(topIngredient);
                 }
                 return false;
                 });
@@ -527,9 +521,7 @@ private:
                     return mScript->m_Ingredients.empty() && topIngredient == IngredientType::RawDough;
                 }
                 else if (name == "PanScript") {
-                    bool hasEgg = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), IngredientType::Egg) != mScript->m_Ingredients.end();
-                    bool hasHam = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), IngredientType::ChoppedHam) != mScript->m_Ingredients.end();
-                    return mScript->m_Ingredients.size() < 2 && ((topIngredient == IngredientType::Egg && !hasEgg) || (topIngredient == IngredientType::ChoppedHam && !hasHam));
+                    return mScript->CanAcceptIngredient(topIngredient);
                 }
                 return false;
             });

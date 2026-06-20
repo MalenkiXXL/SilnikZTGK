@@ -42,11 +42,14 @@ public:
 
         bool hasEgg = HasIngredient(IngredientType::Egg);
         bool hasHam = HasIngredient(IngredientType::ChoppedHam);
+        bool hasTomato = HasIngredient(IngredientType::ChoppedTomato);
 
         if (hasEgg && !m_IsReady)
         {
             m_CurrentTime += ts.GetSeconds();
-            float requiredTime = m_BaseCookTime + (hasHam ? m_ExtraBaconTime : 0.0f);
+            float requiredTime = m_BaseCookTime;
+            if (hasHam) requiredTime += m_ExtraBaconTime;
+            if (hasTomato) requiredTime += 2.0f;
 
             if (m_CurrentTime >= requiredTime)
             {
@@ -71,61 +74,48 @@ public:
     bool CanAcceptIngredient(IngredientType type) override
     {
         if (m_Ingredients.size() >= 2) return false;
+
         bool hasEgg = HasIngredient(IngredientType::Egg);
         bool hasHam = HasIngredient(IngredientType::ChoppedHam);
+        bool hasTomato = HasIngredient(IngredientType::ChoppedTomato);
 
         if (type == IngredientType::Egg && !hasEgg) return true;
-        if (type == IngredientType::ChoppedHam && !hasHam) return true;
+        if (type == IngredientType::ChoppedHam && !hasHam && !hasTomato) return true;
+        if (type == IngredientType::ChoppedTomato && !hasTomato && !hasHam) return true;
 
         return false;
     }
 
     bool AddIngredient(IngredientType type) override
     {
-        if (m_Ingredients.size() >= 2) return false;
+        if (!CanAcceptIngredient(type)) return false;
 
-        bool hasEgg = HasIngredient(IngredientType::Egg);
-        bool hasHam = HasIngredient(IngredientType::ChoppedHam);
+        m_Ingredients.push_back(type);
 
-        if (type == IngredientType::Egg && !hasEgg)
+        if (m_IsReady)
         {
-            m_Ingredients.push_back(type);
             m_IsReady = false;
-            UpdateVisuals();
-            AudioEngine::Play("assets://sounds/put_in_pot.mp3");
+            auto* mesh = GetComponent<MeshComponent>();
+            if (mesh) mesh->ModelPtr = AssetManager::GetModel("assets://models/przybory_kuchenne/patelka/pan.gltf");
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
+            {
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+            }
+        }
+
+        UpdateVisuals();
+        AudioEngine::Play("assets://sounds/put_in_pot.mp3");
+
+        if (HasIngredient(IngredientType::Egg)) {
             SetSmoking(true);
             AudioEngine::Play("assets://sounds/cooking.mp3");
-            return true;
+        }
+        else {
+            SetSmoking(false);
         }
 
-        if (type == IngredientType::ChoppedHam && !hasHam)
-        {
-            m_Ingredients.push_back(type);
-            if (m_IsReady)
-            {
-                m_IsReady = false;
-                auto* mesh = GetComponent<MeshComponent>();
-                if (mesh) mesh->ModelPtr = AssetManager::GetModel("assets://models/przybory_kuchenne/patelka/pan.gltf");
-                if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-                {
-                    GetScene()->DestroyEntity(m_SpawnedFood);
-                    m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-                }
-            }
-            UpdateVisuals();
-            AudioEngine::Play("assets://sounds/put_in_pot.mp3");
-
-            if (HasIngredient(IngredientType::Egg)) {
-                SetSmoking(true);
-                AudioEngine::Play("assets://sounds/cooking.mp3");
-            }
-            else {
-                SetSmoking(false);
-            }
-            return true;
-        }
-
-        return false;
+        return true;
     }
 
 protected:
@@ -137,7 +127,11 @@ protected:
                 return;
 
             bool hasHam = HasIngredient(IngredientType::ChoppedHam);
-            std::string modelPath = hasHam ? "assets://models/skladniki/jajko-dania/jajo-bekon.gltf" : "assets://models/skladniki/jajko-dania/jajo.gltf";
+            bool hasTomato = HasIngredient(IngredientType::ChoppedTomato);
+
+            std::string modelPath = "assets://models/skladniki/jajko-dania/jajo.gltf";
+            if (hasHam) modelPath = "assets://models/skladniki/jajko-dania/jajo-bekon.gltf";
+            else if (hasTomato) modelPath = "assets://models/skladniki/jajko-dania/szakszuka.gltf";
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
@@ -149,17 +143,17 @@ protected:
             {
                 glm::vec3 baseScale = myTransform->GetScale();
                 foodTf->SetScale(baseScale * 0.5f);
-                foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 0.06f, 0.0f));
+                foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 0.23f, 0.0f));
             }
 
             auto* mesh = GetComponent<MeshComponent>();
             if (mesh) mesh->ModelPtr = nullptr;
 
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    m_SpawnedFood, glm::vec3(1.0f, 0.8f, 0.2f), 1.5f, false
+                    m_SpawnedFood, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
                 });
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    m_Entity, glm::vec3(1.0f, 0.8f, 0.2f), 1.5f, false
+                    m_Entity, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
                 });
 
             DishHistory history;
@@ -192,7 +186,7 @@ protected:
             glm::vec3 myScale = myTransform->GetScale();
 
             foodTransform->SetScale((myScale * 0.5f) / plateScale);
-            foodTransform->SetPosition(glm::vec3(0.0f, 0.18f, 0.0f));
+            foodTransform->SetPosition(glm::vec3(0.0f, 0.2f, 0.0f));
 
             GetScene()->SetParent(m_SpawnedFood, plate);
 
@@ -200,6 +194,13 @@ protected:
                 foodTag->Tag = "UgotowaneDanie";
 
             AudioEngine::Play("assets://sounds/plate_down.wav");
+
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                m_SpawnedFood, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
+                });
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                plate, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
+                });
         }
 
         m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
