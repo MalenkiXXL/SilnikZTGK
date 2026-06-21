@@ -56,6 +56,8 @@ void GameLayer::OnUpdate(Timestep ts)
     m_ActiveScene->OnUpdateRuntime(scaledTs);
     auto& world = m_ActiveScene->GetWorld();
 
+    UpdateTransformAnimations(world, scaledTs);
+
     auto mousePos = Input::GetMousePosition();
     float mouseX = mousePos.first;
     float mouseY = mousePos.second;
@@ -281,4 +283,45 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
     eventBus.Subscribe<PackageSpawnedEvent>([](const PackageSpawnedEvent& e) {
         AudioEngine::Play("assets://sounds/box_drop.mp3");
         });
+}
+
+void GameLayer::UpdateTransformAnimations(World& world, float dt)
+{
+    auto* animatorStorage = world.GetComponentVector<TransformAnimatorComponent>();
+    if (!animatorStorage) return;
+
+    for (std::size_t i = 0; i < animatorStorage->dense.size(); ++i)
+    {
+        auto& animator = animatorStorage->dense[i];
+        if (!animator.CurrentAnimation) continue;
+
+        if (animator.IsPlaying)
+        {
+            float duration = animator.CurrentAnimation->GetDuration();
+            animator.CurrentTime += animator.CurrentAnimation->GetTicksPerSecond() * dt * animator.PlaybackSpeed;
+
+            if (animator.Loop) {
+                animator.CurrentTime = std::fmod(animator.CurrentTime, duration);
+            } else {
+                if (animator.CurrentTime >= duration) {
+                    animator.CurrentTime = duration;
+                    animator.IsPlaying = false;
+                }
+            }
+        }
+
+        for (const auto& [trackName, targetEntityId] : animator.TargetEntities)
+        {
+            AnimationTrack* track = animator.CurrentAnimation->GetTrack(trackName);
+            if (!track) continue;
+
+            auto* transform = world.GetComponentByID<TransformComponent>(targetEntityId);
+            if (transform)
+            {
+                transform->SetPosition(track->GetInterpolatedPosition(animator.CurrentTime));
+                transform->SetRotation(track->GetInterpolatedRotationEuler(animator.CurrentTime));
+                transform->SetScale(track->GetInterpolatedScale(animator.CurrentTime));
+            }
+        }
+    }
 }

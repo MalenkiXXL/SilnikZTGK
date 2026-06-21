@@ -2,6 +2,7 @@
 #include "MachineScript.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Core/GameProgress.h"
+#include "CookingStation/Scripts/ParticleEmitterScript.h"
 
 class PanScript : public MachineScript
 {

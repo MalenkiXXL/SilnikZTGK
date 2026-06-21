@@ -16,6 +16,12 @@
 		{
 			"mesh":0,
 			"name":"Cube.008",
+			"rotation":[
+				0,
+				0,
+				0.7071068286895752,
+				0.7071067094802856
+			],
 			"translation":[
 				1.782881736755371,
 				1.5083484649658203,
@@ -23,55 +29,10 @@
 			]
 		}
 	],
-	"animations":[
-		{
-			"channels":[
-				{
-					"sampler":0,
-					"target":{
-						"node":0,
-						"path":"translation"
-					}
-				},
-				{
-					"sampler":1,
-					"target":{
-						"node":0,
-						"path":"rotation"
-					}
-				},
-				{
-					"sampler":2,
-					"target":{
-						"node":0,
-						"path":"scale"
-					}
-				}
-			],
-			"name":"Cube.008Action",
-			"samplers":[
-				{
-					"input":4,
-					"interpolation":"STEP",
-					"output":5
-				},
-				{
-					"input":6,
-					"interpolation":"LINEAR",
-					"output":7
-				},
-				{
-					"input":4,
-					"interpolation":"STEP",
-					"output":8
-				}
-			]
-		}
-	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material.016",
+			"name":"Material.008",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -83,7 +44,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.003",
+			"name":"Cube.002",
 			"primitives":[
 				{
 					"attributes":{
@@ -144,48 +105,6 @@
 			"componentType":5123,
 			"count":78,
 			"type":"SCALAR"
-		},
-		{
-			"bufferView":4,
-			"componentType":5126,
-			"count":2,
-			"max":[
-				0.625
-			],
-			"min":[
-				0
-			],
-			"type":"SCALAR"
-		},
-		{
-			"bufferView":5,
-			"componentType":5126,
-			"count":2,
-			"type":"VEC3"
-		},
-		{
-			"bufferView":6,
-			"componentType":5126,
-			"count":16,
-			"max":[
-				0.625
-			],
-			"min":[
-				0
-			],
-			"type":"SCALAR"
-		},
-		{
-			"bufferView":7,
-			"componentType":5126,
-			"count":16,
-			"type":"VEC4"
-		},
-		{
-			"bufferView":8,
-			"componentType":5126,
-			"count":2,
-			"type":"VEC3"
 		}
 	],
 	"bufferViews":[
@@ -212,31 +131,6 @@
 			"byteLength":156,
 			"byteOffset":1024,
 			"target":34963
-		},
-		{
-			"buffer":0,
-			"byteLength":8,
-			"byteOffset":1180
-		},
-		{
-			"buffer":0,
-			"byteLength":24,
-			"byteOffset":1188
-		},
-		{
-			"buffer":0,
-			"byteLength":64,
-			"byteOffset":1212
-		},
-		{
-			"buffer":0,
-			"byteLength":256,
-			"byteOffset":1276
-		},
-		{
-			"buffer":0,
-			"byteLength":24,
-			"byteOffset":1532
 		}
 	],
 	"samplers":[
@@ -247,8 +141,8 @@
 	],
 	"buffers":[
 		{
-			"byteLength":1556,
-			"uri":"dostawczak-otwieranie.bin"
+			"byteLength":1180,
+			"uri":"dostawczak-klapa.bin"
 		}
 	]
 }

@@ -71,7 +71,7 @@
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material.016",
+			"name":"Material.001",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -83,7 +83,7 @@
 	],
 	"meshes":[
 		{
-			"name":"Cube.003",
+			"name":"Cube.011",
 			"primitives":[
 				{
 					"attributes":{
@@ -248,7 +248,7 @@
 	"buffers":[
 		{
 			"byteLength":1556,
-			"uri":"dostawczak-otwieranie.bin"
+			"uri":"dostawczak_klapa.bin"
 		}
 	]
 }

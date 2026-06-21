@@ -1,15 +1,39 @@
-{
-  "name": "Dostawczak",
-  "model_path": "assets://models/animacje/dostawa/dostawczak-otwarty.gltf",
-  "animator": {
-    "is_playing": false,
-    "start_clip": "",
-    "clips": {
-      "Open": "assets://models/animacje/dostawa/dostawczak-otwieranie.gltf",
-      "Close": "assets://models/animacje/dostawa/dostawczak-zamykanie.gltf"
-    }
+[
+  {
+    "local_id": 1,
+    "name": "Dostawczak",
+    "model_path": "assets://models/animacje/dostawa/dostawczak-otwarty.gltf",
+    "animator": {
+      "type": "transform",
+      "is_playing": false,
+      "clips": {
+        "Open": "assets://models/animacje/dostawa/dostawczak-otwieranie.gltf",
+        "Close": "assets://models/animacje/dostawa/dostawczak-zamykanie.gltf"
+      }
+    },
+    "rotation": [0.0, -90.0, 0.0],
+    "scale" : [2.0, 2.0, 2.0],
+    "script": "DeliveryCarScript"
   },
-  "rotation": [0.0, -90.0, 0.0],
-  "scale" : [2.0, 2.0, 2.0],
-  "script": "DeliveryCarScript"
-}
+  {
+    "local_id": 2,
+    "parent_id": 1,
+    "name": "Cube.008",
+    "model_path": "assets://models/animacje/dostawa/dostawczak-klapa.gltf",
+    "position": [1.78288, 1.50834, 0.0]
+  },
+  {
+    "local_id": 3,
+    "parent_id": 1,
+    "name": "DeliveryMushroom",
+    "model_path": "assets://models/animacje/dostawa/grzyb-macha.gltf",
+    "position": [2.5, -0.5, 0.0],
+    "animator": {
+      "type": "legacy",
+      "is_playing": true,
+      "start_clip": "Default",
+      "clips": {}
+    },
+    "script": "DeliveryMushroomScript"
+  }
+]

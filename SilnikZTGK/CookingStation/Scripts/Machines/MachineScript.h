@@ -36,14 +36,22 @@ public:
 
     virtual void TryTransferToPlate()
     {
-        // NAPRAWA: Przeliczenie matematyczne siatki w momencie transferu
         Entity targetPlate = GetClosestAvailablePlate();
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())
         {
             ClearHighlight();
+
+            // Zachowujemy stare ID przed prÃ³bÄ… przekazania
+            Entity foodBeforeTransfer = m_SpawnedFood;
+
             OnTransferToPlate(targetPlate);
-            ResetMachineState();
+
+            // JeÅ›li m_SpawnedFood siÄ™ zmieniÅ‚o (zostaÅ‚o zresetowane w PlaceSpawnedFoodOnPlate), to znaczy, Å¼e transfer siÄ™ udaÅ‚!
+            if (m_SpawnedFood.id != foodBeforeTransfer.id)
+            {
+                ResetMachineState();
+            }
         }
         else
         {
@@ -302,8 +310,8 @@ protected:
         glm::ivec2 myCell = GridSystem::WorldToCell(myTransform->GetPosition());
 
         // --- ARCHITEKTONICZNA BLOKADA CELU (STICKY LOCK) ---
-        // Jeœli maszyna ma ju¿ namierzony talerz, najpierw sprawdzamy jego aktualn¹ pozycjê.
-        // Zapobiega to chaotycznemu prze³¹czaniu celów, gdy inny talerz podjedzie bli¿ej.
+        // Jeï¿½li maszyna ma juï¿½ namierzony talerz, najpierw sprawdzamy jego aktualnï¿½ pozycjï¿½.
+        // Zapobiega to chaotycznemu przeï¿½ï¿½czaniu celï¿½w, gdy inny talerz podjedzie bliï¿½ej.
         if (m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max())
         {
             auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_LastHighlightedPlate);
@@ -311,16 +319,16 @@ protected:
             {
                 glm::ivec2 plateCell = GridSystem::WorldToCell(plateTransform->GetPosition());
 
-                // Sprawdzamy, czy ten konkretny talerz nadal znajduje siê w zasiêgu s¹siednich kratek (promieñ 1)
+                // Sprawdzamy, czy ten konkretny talerz nadal znajduje siï¿½ w zasiï¿½gu sï¿½siednich kratek (promieï¿½ 1)
                 if (std::abs(myCell.x - plateCell.x) <= 1 && std::abs(myCell.y - plateCell.y) <= 1)
                 {
-                    // Talerz wci¹¿ jest w zasiêgu! Zwracamy go natychmiast i ignorujemy resztê œwiata.
+                    // Talerz wciï¿½ï¿½ jest w zasiï¿½gu! Zwracamy go natychmiast i ignorujemy resztï¿½ ï¿½wiata.
                     return m_LastHighlightedPlate;
                 }
             }
         }
 
-        // Jeœli nie by³o zablokowanego talerza lub stary uciek³ z zasiêgu, szukamy nowego:
+        // Jeï¿½li nie byï¿½o zablokowanego talerza lub stary uciekï¿½ z zasiï¿½gu, szukamy nowego:
         Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 999.0f;
 
@@ -404,22 +412,31 @@ protected:
     {
         if (m_SpawnedFood.id == std::numeric_limits<std::size_t>::max()) return;
 
-        auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-        auto* foodTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_SpawnedFood);
+        auto* scriptComp = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(plate);
+        if (!scriptComp) return;
 
-        if (foodTransform)
-        {
-            foodTransform->SetPosition(glm::vec3(0.0f, 0.15f, 0.0f));
-            GetScene()->SetParent(m_SpawnedFood, plate);
-
-            if (foodTag)
-                foodTag->Tag = "UgotowaneDanie";
-
-            spdlog::info("Gotowe jedzenie podane na talerz - czeka na kelnera!");
-            AudioEngine::Play("CookingStation/Assets/sounds/plate_down.wav");
-
+        PlateScript* targetPlateScript = nullptr;
+        for (auto& s : scriptComp->Scripts) {
+            targetPlateScript = dynamic_cast<PlateScript*>(s.Instance);
+            if (targetPlateScript) break;
         }
 
-        m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+        if (!targetPlateScript) {
+            spdlog::warn("Cel nie jest talerzem lub nie ma PlateScript!");
+            return;
+        }
+
+        bool success = targetPlateScript->ReceiveFinishedDish(m_SpawnedFood);
+
+        if (success)
+        {
+            AudioEngine::Play("assets://sounds/plate_down.wav");
+
+            m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+        }
+        else
+        {
+            spdlog::info("Maszyna zatrzymuje jedzenie, bo talerz odrzucil transfer.");
+        }
     }
 };

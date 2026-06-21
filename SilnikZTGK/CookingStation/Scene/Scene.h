@@ -110,5 +110,7 @@ private:
 	std::unordered_map<glm::ivec2, std::vector<Entity>, IVec2Hash> m_SpartialGrid;
 	std::size_t m_DestroySubId;
 	void OnEntityDestroyRequest(const EntityDestroyRequestEvent& e);
+
+    void DestroyEntityRecursive(Entity entity);
 };
 

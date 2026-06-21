@@ -29,6 +29,7 @@ Scene::Scene()
     m_ECSWorld.RegisterComponent<RelationshipComponent>();
     m_ECSWorld.RegisterComponent<UVScrollComponent>();
     m_ECSWorld.RegisterComponent<AnimatorComponent>();
+    m_ECSWorld.RegisterComponent<TransformAnimatorComponent>();
 
     auto& bus = GetWorld().GetEventBus();
 
@@ -523,7 +524,27 @@ void Scene::DestroyEntity(Entity entity)
 
 void Scene::OnEntityDestroyRequest(const EntityDestroyRequestEvent& e) {
     spdlog::info("ENTITY DESTROY EVENT RECEIVED");
-    DestroyEntity(e.TargetEntity);
+    DestroyEntityRecursive(e.TargetEntity);
+}
+
+void Scene::DestroyEntityRecursive(Entity entity)
+{
+    auto* rel = m_ECSWorld.GetComponent<RelationshipComponent>(entity);
+    if (rel)
+    {
+        std::size_t currentChildId = rel->FirstChild;
+        while (currentChildId != NULL_ENTITY)
+        {
+            auto* childRel = m_ECSWorld.GetComponentByID<RelationshipComponent>(currentChildId);
+            std::size_t nextSibling = childRel ? childRel->NextSibling : NULL_ENTITY;
+
+            DestroyEntityRecursive({ currentChildId, 0 });
+
+            currentChildId = nextSibling;
+        }
+    }
+
+    DestroyEntity(entity);
 }
 
 Scene::~Scene()

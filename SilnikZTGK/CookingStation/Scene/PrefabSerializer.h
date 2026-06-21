@@ -93,6 +93,18 @@ public:
         }
 
         std::vector<uint8_t> fileData = VFS::ReadFile(vfsPath);
+
+        if (fileData.empty()) {
+            std::ifstream file(filepath, std::ios::ate | std::ios::binary);
+            if (file.is_open()) {
+                size_t fileSize = (size_t)file.tellg();
+                fileData.resize(fileSize);
+                file.seekg(0);
+                file.read((char*)fileData.data(), fileSize);
+                file.close();
+            }
+        }
+
         if (fileData.empty()) {
             spdlog::error("[PrefabSerializer] Blad VFS!");
             spdlog::error("   -> Oryginal: {}", filepath);
@@ -173,10 +185,23 @@ public:
                 builder.With<NativeScriptComponent>(nsc);
             }
 
-            if (model) {
-                AnimatorComponent animComp;
-                if (SceneSerializer::ParseAnimatorFromJson(item, model, animComp)) {
-                    builder.With<AnimatorComponent>(animComp);
+            if (model && item.contains("animator")) {
+                if (item["animator"].contains("type") && item["animator"]["type"] == "transform") {
+                    TransformAnimatorComponent transAnim;
+                    transAnim.IsPlaying = item["animator"].contains("is_playing") ? item["animator"]["is_playing"].get<bool>() : false;
+
+                    if (item["animator"].contains("clips")) {
+                        for (const auto& [clipName, clipPath] : item["animator"]["clips"].items()) {
+                            transAnim.Animations[clipName] = std::make_shared<NodeAnimation>(clipPath.get<std::string>());
+                        }
+                    }
+                    builder.With<TransformAnimatorComponent>(transAnim);
+                    spdlog::info("[PrefabSerializer] Sukces: Podpieto TransformAnimatorComponent do encji!");
+                } else {
+                    AnimatorComponent animComp;
+                    if (SceneSerializer::ParseAnimatorFromJson(item, model, animComp)) {
+                        builder.With<AnimatorComponent>(animComp);
+                    }
                 }
             }
 

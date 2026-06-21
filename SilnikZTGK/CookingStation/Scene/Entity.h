@@ -4,6 +4,11 @@
 #include <memory>
 #include "CookingStation/Renderer/Model.h"
 #include "CookingStation/Layers/GameLayer/Animator.h"
+#include "CookingStation/Layers/AssetLayer/NodeAnimation.h"
+#include "CookingStation/Scene/Entity.h"
+#include "CookingStation/Scene/ecs.h"
+#include <memory>
+#include <unordered_map>
 
 constexpr std::size_t NULL_ENTITY = std::numeric_limits<std::size_t>::max();
 
@@ -106,5 +111,35 @@ struct AnimatorComponent {
     AnimatorComponent() = default;
     AnimatorComponent(std::shared_ptr<Animator> animator)
         : AnimatorInstance(animator) {
+    }
+};
+
+
+struct TransformAnimatorComponent {
+    std::unordered_map<std::string, std::shared_ptr<NodeAnimation>> Animations;
+
+    std::shared_ptr<NodeAnimation> CurrentAnimation = nullptr;
+    std::string CurrentAnimationName = "";
+
+    float CurrentTime = 0.0f;
+    bool IsPlaying = false;
+    float PlaybackSpeed = 1.0f;
+    bool Loop = true;
+
+    std::unordered_map<std::string, std::size_t> TargetEntities;
+
+    TransformAnimatorComponent() = default;
+
+    void PlayAnimation(const std::string& name, bool forceReset = false, bool loop = true) {
+        if (CurrentAnimationName == name && !forceReset) return;
+
+        auto it = Animations.find(name);
+        if (it != Animations.end()) {
+            CurrentAnimation = it->second;
+            CurrentAnimationName = name;
+            CurrentTime = 0.0f;
+            IsPlaying = true;
+            Loop = loop;
+        }
     }
 };

@@ -1,5 +1,4 @@
 #include "CookingStation/Scripts/Delivery/DeliveryCarScript.h"
-#include "CookingStation/Scene/PrefabSerializer.h"
 #include <spdlog/spdlog.h>
 
 void DeliveryCarScript::OnCreate()
@@ -14,6 +13,49 @@ void DeliveryCarScript::OnCreate()
             [this](const DeliveryMushroomAppearedEvent& e) {
             }
     );
+
+    auto* animator = GetComponent<TransformAnimatorComponent>();
+    if (!animator) return;
+
+    std::unordered_set<std::string> animatedNodeNames;
+    for (const auto& [clipName, animPtr] : animator->Animations) {
+        if (animPtr) {
+            for (const auto& [trackName, track] : animPtr->GetTracks())
+                animatedNodeNames.insert(trackName);
+        }
+    }
+
+    auto& world = GetScene()->GetWorld();
+
+    auto* myRel = world.GetComponent<RelationshipComponent>(m_Entity);
+    if (!myRel) return;
+
+    std::size_t childId = myRel->FirstChild;
+    while (childId != NULL_ENTITY)
+    {
+        auto* childRel = world.GetComponentByID<RelationshipComponent>(childId);
+        auto* childTag = world.GetComponentByID<TagComponent>(childId);
+
+        if (childTag)
+        {
+            for (const std::string& animNodeName : animatedNodeNames)
+            {
+                if (childTag->Tag.find(animNodeName) == 0)
+                {
+                    animator->TargetEntities[animNodeName] = childId;
+                    spdlog::info("[DeliveryCar] Podpieto klapę '{}' do animacji", childTag->Tag);
+                }
+            }
+
+            if (childTag->Tag.find("DeliveryMushroom") == 0)
+            {
+                m_MushroomEntity = childId; // <--- ZMIANA
+                m_MushroomSpawned = true;
+                spdlog::info("[DeliveryCar] Znaleziono grzyba: '{}'", childTag->Tag);
+            }        }
+
+        childId = childRel ? childRel->NextSibling : NULL_ENTITY;
+    }
 }
 
 void DeliveryCarScript::OnDestroy()
@@ -25,7 +67,7 @@ void DeliveryCarScript::OnDestroy()
 void DeliveryCarScript::OnUpdate(Timestep ts)
 {
     auto* transform = GetComponent<TransformComponent>();
-    auto* animator = GetComponent<AnimatorComponent>();
+    auto* animator = GetComponent<TransformAnimatorComponent>();
     if (!transform) return;
 
     glm::vec3 currentPos = transform->GetPosition();
@@ -48,10 +90,11 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             {
                 transform->SetPosition(m_DropPos);
 
-//                if (animator && animator->AnimatorInstance) {
-//                    animator->Isaing = true;
-//                    animator->AnimatorInstance->PlayAnimation("Open", true);
-//                }
+                if (animator) {
+                    animator->IsPlaying = true;
+                    animator->PlaybackSpeed = 0.417f; //bo 15 klatek w blenderze
+                    animator->PlayAnimation("Open", true, false);
+                }
 
                 m_State = DeliveryState::ANIMATING_OPEN;
                 m_AnimationTimer = 1.5f;
@@ -71,17 +114,8 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
         {
             m_AnimationTimer -= (float)ts;
 
-            if (!m_MushroomSpawned) {
-                m_MushroomEntity = PrefabSerializer::Deserialize(GetScene(), "assets://prefabs/deliveryMushroom.json", m_DropPos)[0];
-
-                GetScene()->SetParent(m_MushroomEntity, m_Entity);
-
-                m_MushroomSpawned = true;
-                GetScene()->GetWorld().GetEventBus().Publish(CarArrivedEvent{ m_DropPos });
-            }
-
             if (m_MushroomSpawned) {
-                auto* mushTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_MushroomEntity);
+                auto* mushTransform = GetScene()->GetWorld().GetComponentByID<TransformComponent>(m_MushroomEntity);
                 if (mushTransform) {
                     float progress = 1.0f - (m_AnimationTimer / 1.5f);
                     progress = glm::clamp(progress, 0.0f, 1.0f);
@@ -94,12 +128,14 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             if (m_AnimationTimer <= 0.0f)
             {
                 m_State = DeliveryState::DROPPING;
-                //if (animator) animator->IsPlaying = false;
+                if (animator) animator->IsPlaying = false;
+
+                GetScene()->GetWorld().GetEventBus().Publish(CarArrivedEvent{ m_DropPos });
 
                 if (!m_ArePackagesCollected)
                 {
                     glm::vec3 mushroomWorldPos = {0.0f, 0.0f, 0.0f};
-                    auto* mushTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_MushroomEntity);
+                    auto* mushTransform = GetScene()->GetWorld().GetComponentByID<TransformComponent>(m_MushroomEntity);
 
                     if (mushTransform && transform) {
                         glm::vec3 localPos = mushTransform->GetPosition();
@@ -118,10 +154,11 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             if (m_ArePackagesCollected)
             {
 
-//                if (animator && animator->AnimatorInstance) {
-//                    animator->IsPlaying = true;
-//                    animator->AnimatorInstance->PlayAnimation("Close", true);
-//                }
+                if (animator) {
+                    animator->IsPlaying = true;
+                    animator->PlaybackSpeed = 0.417f; // bo 15 klatek w blenderze
+                    animator->PlayAnimation("Close", true, false);
+                }
 
                 m_State = DeliveryState::ANIMATING_CLOSE;
                 m_AnimationTimer = 1.5f;
@@ -135,7 +172,7 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             m_AnimationTimer -= (float)ts;
 
             if (m_MushroomSpawned) {
-                auto* mushTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_MushroomEntity);
+                auto* mushTransform = GetScene()->GetWorld().GetComponentByID<TransformComponent>(m_MushroomEntity);
                 if (mushTransform) {
                     float progress = 1.0f - (m_AnimationTimer / 1.5f);
                     progress = glm::clamp(progress, 0.0f, 1.0f);
@@ -147,16 +184,11 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
             if (m_AnimationTimer <= 0.0f)
             {
-                if (m_MushroomSpawned)
-                {
-                    GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_MushroomEntity });
-                    m_MushroomEntity = { std::numeric_limits<std::size_t>::max(), 0 };
-                    m_MushroomSpawned = false;
-                }
+                m_MushroomSpawned = false;
 
                 m_State = DeliveryState::DRIVING_OUT;
-                //if (animator) animator->IsPlaying = false;
-                spdlog::info("[DeliveryCar] Klapa zamknieta, grzyb usunięty. Odjeżdzam!");
+                if (animator) animator->IsPlaying = false;
+                spdlog::info("[DeliveryCar] Klapa zamknieta. Odjeżdzam!");
             }
             break;
         }

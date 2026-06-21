@@ -30,4 +30,6 @@ private:
 
     std::shared_ptr<Scene> m_LastSubscribedScene = nullptr;
     void SubscribeToGameplayEvents(std::shared_ptr<Scene> scene);
+    void UpdateTransformAnimations(World& world, float dt);
+
 };

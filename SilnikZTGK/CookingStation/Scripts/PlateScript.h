@@ -55,6 +55,44 @@ public:
         return true;
     }
 
+    bool ReceiveFinishedDish(Entity dishEntity)
+    {
+        if (m_CompletedDish != IngredientType::None || !m_Ingredients.empty())
+        {
+            spdlog::warn("Talerz: Odmawiam przyjecia dania. Mam juz kanapke lub skladniki!");
+            return false;
+        }
+
+        auto* rel = GetScene()->GetWorld().GetComponent<RelationshipComponent>(m_Entity);
+        if (rel) {
+            std::size_t currentChildId = rel->FirstChild;
+            while (currentChildId != std::numeric_limits<std::size_t>::max()) {
+                auto* tag = GetScene()->GetWorld().GetComponentByID<TagComponent>(currentChildId);
+                if (tag && tag->Tag == "UgotowaneDanie") {
+                    spdlog::warn("Talerz: Odmawiam. Mam juz ugotowane danie z maszyny!");
+                    return false;
+                }
+                auto* childRel = GetScene()->GetWorld().GetComponentByID<RelationshipComponent>(currentChildId);
+                currentChildId = childRel ? childRel->NextSibling : std::numeric_limits<std::size_t>::max();
+            }
+        }
+
+
+        auto* tagComp = GetScene()->GetWorld().GetComponent<TagComponent>(dishEntity);
+        if (tagComp) tagComp->Tag = "UgotowaneDanie";
+
+        auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(dishEntity);
+        if (foodTransform) {
+            foodTransform->SetPosition(glm::vec3(0.0f, 0.15f, 0.0f));
+        }
+
+        GetScene()->SetParent(dishEntity, m_Entity);
+        m_VisualModels.push_back(dishEntity);
+
+        spdlog::info("Talerz: Przyjeto gotowe danie z maszyny (rozpoznawane po Tagu)!");
+        return true;
+    }
+
 private:
     std::string GetModelPath(IngredientType type)
     {
@@ -187,7 +225,6 @@ private:
 
         for (Entity e : m_VisualModels) {
             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ e });
-            e = { std::numeric_limits<std::size_t>::max(), 0 };
         }
         m_VisualModels.clear();
 
