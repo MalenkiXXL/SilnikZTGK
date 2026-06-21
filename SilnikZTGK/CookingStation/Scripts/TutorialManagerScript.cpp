@@ -889,8 +889,8 @@ case TutorialState::WaitForPlateTransfer: {
 }
 
 case TutorialState::WaitForPotPlacement: {
-    // 1. ZWIÊKSZONY COOLDOWN (3.0s zamiast 1.5s)
-    if (m_StateTimer > 3.0f && m_DialogIndex == 0) {
+    // ZWIÊKSZONY COOLDOWN - 5 sekund
+    if (m_StateTimer > 5.0f && m_DialogIndex == 0) {
         glm::vec3 poofPos = m_PotOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f);
         RestorePosition(m_Poof, poofPos);
 
@@ -906,8 +906,7 @@ case TutorialState::WaitForPotPlacement: {
         m_DialogIndex = 1;
     }
 
-    // 2. Przywracamy palnik i garnek u³amek sekundy po efekcie cz¹steczkowym
-    if (m_StateTimer > 3.3f && m_DialogIndex == 1) {
+    if (m_StateTimer > 5.3f && m_DialogIndex == 1) {
         RestorePosition(m_Burner, m_BurnerOriginalPos);
         RestorePosition(m_Pot, m_PotOriginalPos);
         HideUnderground(m_Poof);
@@ -930,13 +929,16 @@ case TutorialState::WaitForIngredientInPot: {
         transitionLerp = 0.0f;
     }
 
-    // --- 1. ZNAJDOWANIE NAJBLI¯SZEGO TALERZA ---
+    // --- 1. ZNAJDOWANIE NAJBLI¯SZEGO TALERZA I JEGO SKRYPTU ---
     Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
+    PlateScript* closestPlateScript = nullptr;
     float closestDist = 999.0f;
+
     auto* potTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Pot);
     auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+    auto* nscVector = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
 
-    if (tags && potTf) {
+    if (tags && potTf && nscVector) {
         for (size_t i = 0; i < tags->dense.size(); ++i) {
             const std::string& tag = tags->dense[i].Tag;
             if (tag.find("Plate") != std::string::npos || tag.find("Talerz") != std::string::npos) {
@@ -947,31 +949,14 @@ case TutorialState::WaitForIngredientInPot: {
                     if (d < closestDist) {
                         closestDist = d;
                         closestPlate = p;
-                    }
-                }
-            }
-        }
-    }
-
-    // --- 2. ZNAJDOWANIE POMIDORA NA TYM TALERZU (Sprawdzanie odleg³oœci!) ---
-    Entity foodOnPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-    auto* plateTf = closestPlate.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(closestPlate) : nullptr;
-
-    if (plateTf && tags) {
-        for (size_t i = 0; i < tags->dense.size(); ++i) {
-            Entity e = tags->reverse[i];
-            if (e.id != closestPlate.id) { // To nie mo¿e byæ sam talerz
-                auto* eTf = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
-                if (eTf) {
-                    // Jeœli obiekt znajduje siê idealnie w œrodku talerza (odleg³oœæ < 0.5f)
-                    float d = glm::distance(glm::vec2(eTf->GetPosition().x, eTf->GetPosition().z),
-                        glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z));
-                    if (d < 0.5f) {
-                        const std::string& tag = tags->dense[i].Tag;
-                        // I jest obiektem typu BeltItem (Twoje jedzenie)
-                        if (tag.find("BeltItem") != std::string::npos || tag.find("Skladnik") != std::string::npos) {
-                            foodOnPlate = e;
-                            break;
+                        // Wyci¹gamy PlateScript z encji
+                        auto* plateNsc = nscVector->Get(p);
+                        if (plateNsc) {
+                            for (auto& s : plateNsc->Scripts) {
+                                if (s.Name == "PlateScript" && s.Instance) {
+                                    closestPlateScript = static_cast<PlateScript*>(s.Instance);
+                                }
+                            }
                         }
                     }
                 }
@@ -979,8 +964,16 @@ case TutorialState::WaitForIngredientInPot: {
         }
     }
 
-    // --- 3. ZASIÊG (Czy talerz dojecha³ do garnka?) ---
+    // --- 2. IDEALNE ZNAJDOWANIE POMIDORA (Z PlateScript) ---
+    Entity foodOnPlate = { std::numeric_limits<std::size_t>::max(), 0 };
+    // Bierzemy model dok³adnie tak, jak zarz¹dza nim talerz! Zero tagów, czysta pamiêæ maszyny.
+    if (closestPlateScript && !closestPlateScript->m_VisualModels.empty()) {
+        foodOnPlate = closestPlateScript->m_VisualModels.back();
+    }
+
+    // --- 3. ZASIÊG (Naprawiony, 3.5f zapewnia ³apanie na taœmie!) ---
     bool inRange = false;
+    auto* plateTf = closestPlate.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(closestPlate) : nullptr;
     if (plateTf && potTf) {
         float distToPot = glm::distance(
             glm::vec2(potTf->GetPosition().x, potTf->GetPosition().z),
@@ -1037,7 +1030,7 @@ case TutorialState::WaitForIngredientInPot: {
     glm::vec3 potColor = glm::mix(baseGray, activePotColor, transitionLerp);
     float potDuration = glm::mix(32.0f, 8.0f, transitionLerp);
 
-    // --- 6. EVENTY ---
+    // --- 6. EVENTY (Perfekcyjne podœwietlanie 3 elementów) ---
     TriggerHighlightEvent evPot;
     evPot.TargetEntity = m_Pot;
     evPot.Color = potColor;
@@ -1053,7 +1046,6 @@ case TutorialState::WaitForIngredientInPot: {
         evPlate.IsInfinite = true;
         GetScene()->GetWorld().GetEventBus().Publish(evPlate);
 
-        // Teraz pomidor piêknie zapali siê na ten sam kolor co talerz!
         if (foodOnPlate.id != std::numeric_limits<std::size_t>::max()) {
             TriggerHighlightEvent evFood;
             evFood.TargetEntity = foodOnPlate;
@@ -1064,22 +1056,37 @@ case TutorialState::WaitForIngredientInPot: {
         }
     }
 
-    // --- 7. BEZPOŒREDNIE KLIKNIÊCIE (TRANSFER) ---
+    // --- 7. LOGIKA KLIKNIÊCIA SKOPIOWANA Z DRAG AND DROP SCRIPT! ---
     bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
 
     if (isActionPressed && inRange && (isHoveringPot || isHoveringPlate) && !Input::IsUICapturingMouse()) {
         auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Pot);
-        if (nsc) {
+        if (nsc && closestPlateScript && !closestPlateScript->m_Ingredients.empty()) {
             for (auto& s : nsc->Scripts) {
                 if (s.Name == "PotScript" && s.Instance) {
                     auto* potScript = static_cast<PotScript*>(s.Instance);
 
-                    // ZAMIAST HANDLECLICK WYMUSZAMY LOGIKÊ!
-                    // PotScript z pliku nag³ówkowego oczekuje IngredientType::ChoppedTomato
-                    if (potScript->AddIngredient(IngredientType::ChoppedTomato)) {
-                        // Je¿eli garnek pomyœlnie przyj¹³ pomidora, usuwamy model pomidora z talerza
-                        if (foodOnPlate.id != std::numeric_limits<std::size_t>::max()) {
-                            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ foodOnPlate });
+                    IngredientType topIngredient = closestPlateScript->m_Ingredients.back();
+
+                    // Próba dodania sk³adnika do garnka
+                    if (potScript->AddIngredient(topIngredient)) {
+                        // Jeœli garnek przyj¹³, wykonujemy IDENTYCZN¥ sekwencjê niszczenia jak w Twoim silniku:
+                        closestPlateScript->m_Ingredients.pop_back();
+
+                        if (!closestPlateScript->m_VisualModels.empty()) {
+                            Entity visualToRemove = closestPlateScript->m_VisualModels.back();
+
+                            // Dodatkowo zabezpieczaj¹co gasimy highlight z jedzenia przed zniszczeniem
+                            TriggerHighlightEvent evClear;
+                            evClear.TargetEntity = visualToRemove;
+                            evClear.Color = glm::vec3(0.0f);
+                            evClear.Duration = 0.1f;
+                            evClear.IsInfinite = false;
+                            GetScene()->GetWorld().GetEventBus().Publish(evClear);
+
+                            // Wysy³amy event zniszczenia i usuwamy œlad z talerza
+                            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
+                            closestPlateScript->m_VisualModels.pop_back();
                         }
                     }
                 }
@@ -1127,7 +1134,7 @@ case TutorialState::WaitForIngredientInPot: {
     }
 
     if (hasIngredient) {
-        // Gasimy garnek
+        // Gasimy wszystko
         TriggerHighlightEvent ev;
         ev.TargetEntity = m_Pot;
         ev.Color = glm::vec3(0.0f);
@@ -1135,7 +1142,6 @@ case TutorialState::WaitForIngredientInPot: {
         ev.IsInfinite = false;
         GetScene()->GetWorld().GetEventBus().Publish(ev);
 
-        // B³yskamy na krótko talerzem, po czym gaœnie
         if (closestPlate.id != std::numeric_limits<std::size_t>::max()) {
             TriggerHighlightEvent evPlate;
             evPlate.TargetEntity = closestPlate;
@@ -1146,8 +1152,6 @@ case TutorialState::WaitForIngredientInPot: {
         }
 
         GameManagerScript::s_ShowTutorialDialog = false;
-
-        // Upewnij siê, ¿e masz dodane 'WaitForCooking' w enumiie w pliku .h!
         m_State = TutorialState::WaitForCooking;
         m_StateTimer = 0.0f;
     }

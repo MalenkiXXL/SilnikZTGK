@@ -230,7 +230,7 @@ void MainMenuLayer::PlayGame()
     auto activeScene = SceneManager::NewScene();
     SceneSerializer serializer(activeScene.get());
 
-    if (serializer.Deserialize("assets://saves/tuto.json")) {
+    if (serializer.Deserialize("assets://levels/level02.json")) {
         activeScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
         Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
         activeScene->SetState(SceneState::Play);
