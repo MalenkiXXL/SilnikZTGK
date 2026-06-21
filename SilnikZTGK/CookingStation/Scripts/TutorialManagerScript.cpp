@@ -1185,11 +1185,8 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
         if (!potScript) break;
 
         // --- 2. ZABÓJCA CRASHÓW (Warunek sukcesu na samym szczycie klatki!) ---
-        // Oddaliœmy klikanie Twojej natywnej grze. Jeœli klikniesz i gra przeleje zupê,
-        // maszyna przestanie byæ gotowa i wyczyœci sk³adniki. Zauwa¿amy to w u³amek sekundy!
         if (!potScript->m_IsReady && potScript->m_Ingredients.empty()) {
 
-            // Szukamy pobliskiego talerza, ¿eby radoœnie b³ysn¹æ nim na zielono
             Entity successPlate = { std::numeric_limits<std::size_t>::max(), 0 };
             float closestD = 999.0f;
             auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -1200,7 +1197,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                         auto* pTf = GetScene()->GetWorld().GetComponent<TransformComponent>(p);
                         if (pTf) {
                             float d = glm::distance(pTf->GetPosition(), potTf->GetPosition());
-                            // Talerz musi byæ blisko garnka
                             if (d < closestD && d < 3.5f) {
                                 closestD = d;
                                 successPlate = p;
@@ -1210,8 +1206,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 }
             }
 
-            // B³yskamy na zielono TYLKO bezpiecznym talerzem. 
-            // Zupy nie dotykamy, bo natywny silnik ju¿ usun¹³ z niej encjê (to powodowa³o zamra¿anie gry)!
             if (successPlate.id != std::numeric_limits<std::size_t>::max()) {
                 TriggerHighlightEvent evPlateGreen;
                 evPlateGreen.TargetEntity = successPlate;
@@ -1226,7 +1220,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             m_State = TutorialState::WaitForDelivery;
             m_StateTimer = 0.0f;
 
-            break; // NATYCHMIAST ucinamy dzia³anie kodu w tej klatce. Brak szans na b³¹d pamiêci.
+            break;
         }
 
         // --- 3. CZY ZUPA WCI¥¯ SIÊ GOTUJE? ---
@@ -1235,10 +1229,9 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             break;
         }
 
-        // === ZUPA JEST GOTOWA, WCHODZIMY W BEZPIECZNE PODŒWIETLANIE ===
+        // === ZUPA JEST GOTOWA ===
 
         // --- 4. TARCZA OCHRONNA DLA PAMIÊCI ---
-        // Skanujemy absolutnie ca³¹ pamiêæ gry. Jeœli encja zupy wyparowa³a - omijamy!
         Entity spawnedSoup = potScript->m_SpawnedFood;
         bool isSoupValid = false;
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -1252,7 +1245,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        // --- 5. ZNAJDOWANIE NAJBLI¯SZEGO TALERZA (Wersja z dzia³aj¹cego kodu) ---
+        // --- 5. ZNAJDOWANIE NAJBLI¯SZEGO TALERZA ---
         Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 999.0f;
         if (tags && potTf) {
@@ -1272,7 +1265,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        // --- 6. ZASIÊG (3.5f zapewnia bezpieczny margines na reakcjê UI) ---
+        // --- 6. ZASIÊG ---
         bool inRange = false;
         auto* plateTf = closestPlate.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(closestPlate) : nullptr;
 
@@ -1286,13 +1279,18 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        // --- 7. RZUTOWANIE MYSZKI W 3D ---
+        // --- 7. RZUTOWANIE MYSZKI W 3D Z POPRAWK¥ NA WYSOKOŒÆ ZUPY ---
         glm::vec3 floorMousePos = GetMouseWorldPosition();
         auto* camera = GetScene()->GetCamera();
         glm::vec3 preciseMousePos = floorMousePos;
 
+        // Pobieramy transform zupy, ¿eby wiedzieæ na jakiej jest dok³adnie wysokoœci!
+        auto* soupTf = isSoupValid ? GetScene()->GetWorld().GetComponent<TransformComponent>(spawnedSoup) : nullptr;
+
         if (camera && potTf) {
-            float targetY = potTf->GetPosition().y;
+            // Jeœli zupa istnieje, bierzemy JEJ wysokoœæ. Jeœli nie, to podnosimy odrobinê œrodek garnka.
+            float targetY = soupTf ? soupTf->GetPosition().y : (potTf->GetPosition().y + 0.5f);
+
             glm::vec3 rayDir = camera->Front;
             if (std::abs(rayDir.y) > 0.001f) {
                 float t = (targetY - floorMousePos.y) / rayDir.y;
@@ -1305,11 +1303,20 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
         bool isHoveringPlate = false;
 
         if (!Input::IsUICapturingMouse()) {
-            if (potTf && glm::distance(mouse2D, glm::vec2(potTf->GetPosition().x, potTf->GetPosition().z)) < 1.5f) isHoveringSoup = true;
-            if (plateTf && glm::distance(mouse2D, glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)) < 1.5f) isHoveringPlate = true;
+            // Zwiêkszyliœmy nieco hitbox z 1.5f na 1.8f i ³apiemy celownik dla siatki zupy!
+            if (soupTf && glm::distance(mouse2D, glm::vec2(soupTf->GetPosition().x, soupTf->GetPosition().z)) < 1.8f) {
+                isHoveringSoup = true;
+            }
+            else if (potTf && glm::distance(mouse2D, glm::vec2(potTf->GetPosition().x, potTf->GetPosition().z)) < 1.8f) {
+                isHoveringSoup = true;
+            }
+
+            if (plateTf && glm::distance(mouse2D, glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)) < 1.8f) {
+                isHoveringPlate = true;
+            }
         }
 
-        // --- 8. P£YNNE KOLORY (Bia³y -> Ró¿owy -> Z³oty) ---
+        // --- 8. P£YNNE KOLORY ---
         if (isHoveringSoup && inRange) potHoverLerp += ts.GetSeconds() * 8.0f;
         else potHoverLerp -= ts.GetSeconds() * 8.0f;
         potHoverLerp = std::clamp(potHoverLerp, 0.0f, 1.0f);
@@ -1333,7 +1340,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
         float soupDuration = glm::mix(32.0f, 8.0f, transitionLerp);
 
         // --- 9. EVENTY WIZUALNE ---
-        // Nak³adamy kolor TYLKO, jeœli tarcza ochronna potwierdzi³a istnienie zupy!
         if (isSoupValid) {
             TriggerHighlightEvent evSoup;
             evSoup.TargetEntity = spawnedSoup;
@@ -1352,11 +1358,16 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             GetScene()->GetWorld().GetEventBus().Publish(evPlate);
         }
 
-        // --- UWAGA: BRAK LOGIKI KLIKANIA! ---
-        // Zauwa¿, ¿e nie ma tu w ogóle sprawdzania wciskania klawiszy myszki. 
-        // Twój wbudowany silnik sam rozpozna myszkê, zdejmie zupê i wywo³a sukces!
+        // --- 10. PRZYWRÓCONA LOGIKA KLIKNIÊCIA W TALERZ ---
+        bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
 
-        // --- 10. OBS£UGA UI KROPEK ---
+        if (isActionPressed && inRange && !Input::IsUICapturingMouse()) {
+            if (isHoveringPlate && !isHoveringSoup) {
+                potScript->TryTransferToPlate();
+            }
+        }
+
+        // --- 11. OBS£UGA UI KROPEK ---
         m_TypewriterTimer += ts.GetSeconds();
 
         if (m_TypewriterTimer < 5.5f) {
