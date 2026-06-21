@@ -23,7 +23,6 @@ protected:
     bool m_IsNewlySpawned = false;
     float m_PickupDelay = 0.0f;
 
-    Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
     Entity m_LastHighlightedPlate = { std::numeric_limits<std::size_t>::max(), 0 };
 
     bool m_IsMouseHoveringFood = false;
@@ -33,6 +32,8 @@ protected:
     bool m_IsHoveredThisFrame = false;
 
 public:
+
+    Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
     virtual void TryTransferToPlate()
     {
