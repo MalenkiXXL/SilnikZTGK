@@ -288,7 +288,7 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
 
         bool isFirst = (i == 0);
         float ticketHeight = isFirst ? (220.0f * baseScale) : (140.0f * baseScale);
-        bool isHelper = (tagComp->Tag == "HelperCustomer");
+        bool isHelper = (tagComp->Tag.find("HelperCustomer") != std::string::npos);
 
         std::shared_ptr<Texture> ticketTex = isHelper ? m_HelperOrderTex : m_CustomerOrderTex;
         if (!ticketTex) ticketTex = m_BookCloudIcon;
@@ -1062,7 +1062,7 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
 
     for (size_t i = 0; i < tags->dense.size(); ++i) {
         std::string tag = tags->dense[i].Tag;
-        if (tag == "NormalCustomer" || tag == "HelperCustomer") {
+        if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos) {
             Entity custEntity = tags->reverse[i];
             auto* nsc = scripts->Get(custEntity);
             auto* tf = transforms->Get(custEntity);

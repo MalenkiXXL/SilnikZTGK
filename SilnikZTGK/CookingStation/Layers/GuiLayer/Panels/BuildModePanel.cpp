@@ -424,7 +424,7 @@ int BuildModePanel::GetCellState(std::shared_ptr<Scene>& activeScene, const glm:
 
             if (nsc) {
                 for (auto& s : nsc->Scripts) {
-                    if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" || s.Name == "OvenScript" || s.Name == "CrateScript") {
+                    if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" || s.Name == "OvenScript" || s.Name == "CrateScript" || s.Name == "HelperCustomerScript") {
                         isMachine = true;
                         break;
                     }
@@ -456,7 +456,9 @@ int BuildModePanel::GetCellState(std::shared_ptr<Scene>& activeScene, const glm:
                     t.find("Piekarnik") != std::string::npos ||
                     t.find("Crate") != std::string::npos ||
                     t.find("Item") != std::string::npos ||
-                    t.find("Plate") != std::string::npos)
+                    t.find("Plate") != std::string::npos ||
+                    t.find("NajedzonyPomocnik") != std::string::npos ||
+                    t.find("HelperCustomer") != std::string::npos)
                 {
                     isObstacle = true;
                 }
