@@ -67,6 +67,8 @@ public:
 
     void PerformChop()
     {
+        if (m_ChopCooldown > 0.0f) return;
+
         m_ChopCount++;
         m_ChopCooldown = 0.2f;
         spdlog::info("Ciach! ({}/{})", m_ChopCount, m_ChopsRequired);

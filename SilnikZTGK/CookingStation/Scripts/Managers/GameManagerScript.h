@@ -25,7 +25,7 @@ class GameManagerScript : public ScriptableEntity
 public:
     static inline bool s_IsTutorialMode = false;
 
-    // ZMIENNE DO DIALOGÓW TUTORIALA
+    // ZMIENNE DO TUTORIALA
     static inline bool s_ShowTutorialDialog = false;
     static inline std::string s_TutorialSpeaker = "";
     static inline glm::vec4 s_TutorialSpeakerColor = glm::vec4(1.0f);
@@ -33,6 +33,8 @@ public:
     static inline int s_TutorialCharsRevealed = 0;
     static inline bool s_TutorialDialogIsBottom = false;
     static inline float s_TutorialIconAlpha = 0.0f;
+    static inline Entity s_TutorialTrackedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+    static inline glm::vec3 s_TutorialTrackedOffset = glm::vec3(0.0f, 0.0f, 0.0f);
 
 
     inline static GameManagerScript* s_Instance = nullptr;
