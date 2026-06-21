@@ -55,6 +55,7 @@ private:
 	bool m_Running = true;
 	bool m_IgnoreNextResize = true; 
 	bool m_GraphicsSettingsDirty = false;
+	bool m_ApplyingGraphicsSettings = false;
 
 	float m_LastFrameTime = 0.0f;
 	std::shared_ptr<Framebuffer> m_ViewportFBO;
