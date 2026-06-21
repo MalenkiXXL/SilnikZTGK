@@ -13,12 +13,13 @@ public:
 
     void DrawButton(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt, bool isBlocked);
     void DrawPanel(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt);
-    void DrawOverlay(float gameW, float gameH, float baseScale);
 
-    void DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos, int hoverState);
-    void DrawActiveGrid(std::shared_ptr<Scene>& activeScene);
+    // Zaktualizowane sygnatury - teraz w 100% zgadzaj¹ siê z .cpp!
+    void DrawOverlay(float gameX, float gameY, float gameW, float gameH, float baseScale);
+    void DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos, int hoverState, float gameX, float gameY, float gameW, float gameH);
+    void DrawActiveGrid(std::shared_ptr<Scene>& activeScene, float gameX, float gameY, float gameW, float gameH, float baseScale);
 
-    void UpdatePlacement(std::shared_ptr<Scene>& activeScene);
+    void UpdatePlacement(std::shared_ptr<Scene>& activeScene, float gameX, float gameY, float gameW, float gameH, float baseScale);
 
     void Activate();
     void Deactivate();

@@ -160,10 +160,7 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
 
     if (inBounds) {
         Input::SetUICaptureMouse(true);
-        if (Input::IsMouseButtonJustPressed(0)){
-            Toggle();
-            AudioEngine::Play(AudioConfig::BuildModeSound);
-        }
+        if (Input::IsMouseButtonJustPressed(0)) Toggle();
     }
 }
 
@@ -474,38 +471,28 @@ int BuildModePanel::GetCellState(std::shared_ptr<Scene>& activeScene, const glm:
     return state;
 }
 
-void BuildModePanel::DrawActiveGrid(std::shared_ptr<Scene>& activeScene) {
+void BuildModePanel::DrawActiveGrid(std::shared_ptr<Scene>& activeScene, float gameX, float gameY, float gameW, float gameH, float baseScale) {
     if (!activeScene) return;
 
-    auto mousePos = Input::GetMousePosition();
-    auto windowSize = Input::GetWindowSize();
-    float mouseX = mousePos.first;
-    float mouseY = mousePos.second;
-    float viewW = (float)windowSize.first;
-    float viewH = (float)windowSize.second;
-
-#ifndef CS_DISTRIBUTION
-    mouseX -= 200.0f;
-    mouseY -= 30.0f;
-    viewW -= 500.0f;
-    viewH -= 230.0f;
-#endif
+    auto rawMouse = Input::GetMousePosition();
+    float mouseX = rawMouse.first - gameX;
+    float mouseY = rawMouse.second - gameY;
 
     auto* camera = activeScene->GetCamera();
     if (!camera) return;
 
-    float aspect = viewW / (viewH > 0.0f ? viewH : 1.0f);
+    float aspect = gameW / (gameH > 0.0f ? gameH : 1.0f);
     float orthoSize = 10.0f * (camera->Zoom / 45.0f);
     glm::mat4 proj = glm::ortho(-aspect * orthoSize, aspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
     glm::mat4 view = camera->GetViewMatrix();
 
-    Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, viewW, viewH, proj, view);
+    Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, gameW, gameH, proj, view);
     glm::vec3 snappedPos(0.0f);
 
-    auto rawMouse = Input::GetMousePosition();
-    bool mouseOverPanel = (rawMouse.second >= (float)Input::GetWindowSize().second - 130.0f);
+    // Zabezpieczenie przed stawianiem obiektów pod panelem
+    bool mouseOverPanel = (rawMouse.second >= (gameY + gameH - 200.0f * baseScale));
 
-    int hoverState = 0; // 0 = Niebieski, 1 = Zielony, 2 = Czerwony
+    int hoverState = 0;
 
     if (std::abs(ray.Direction.y) > 1e-6f && !mouseOverPanel) {
         float t = -ray.Origin.y / ray.Direction.y;
@@ -528,27 +515,21 @@ void BuildModePanel::DrawActiveGrid(std::shared_ptr<Scene>& activeScene) {
         snappedPos = glm::vec3(99999.0f);
     }
 
-    DrawGrid(proj * view, camera->Position, snappedPos, hoverState);
+    DrawGrid(proj * view, camera->Position, snappedPos, hoverState, gameX, gameY, gameW, gameH);
 }
 
-void BuildModePanel::DrawOverlay(float gameW, float gameH, float baseScale) {
-    if (m_CurrentScene) {
-        DrawActiveGrid(m_CurrentScene);
-
-        glm::mat4 orthoProj = glm::ortho(0.0f, gameW, gameH, 0.0f, -1.0f, 1.0f);
-        Renderer2D::BeginScene(orthoProj);
-    }
-
+void BuildModePanel::DrawOverlay(float gameX, float gameY, float gameW, float gameH, float baseScale) {
     auto pausedTextTex = AssetManager::GetTexture("assets://UI/buildMode.png");
     if (pausedTextTex && pausedTextTex->GetRendererID() != 0) {
         float aspect = (float)pausedTextTex->GetWidth() / (float)pausedTextTex->GetHeight();
         glm::vec2 tSize = { gameW * 0.20f, (gameW * 0.20f) / aspect };
         float yPos = gameH * 0.18f;
-        Renderer2D::DrawQuad({ (gameW - tSize.x) * 0.5f, yPos }, tSize, pausedTextTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        // Obliczamy wycentrowaną pozycję X bazując na obszarze renderowania gameX i gameW
+        Renderer2D::DrawQuad({ gameX + (gameW - tSize.x) * 0.5f, gameY + yPos }, tSize, pausedTextTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     }
 }
 
-void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
+void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float gameX, float gameY, float gameW, float gameH, float baseScale) {
     if (!activeScene) return;
 
     if (Input::IsMouseButtonJustPressed(1) || Input::IsKeyPressed(GLFW_KEY_TAB)) {
@@ -577,30 +558,20 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
         return;
     }
 
-    auto mousePos = Input::GetMousePosition();
-    auto windowSize = Input::GetWindowSize();
-    float mouseX = mousePos.first;
-    float mouseY = mousePos.second;
-    float viewW = (float)windowSize.first;
-    float viewH = (float)windowSize.second;
-
-#ifndef CS_DISTRIBUTION
-    mouseX -= 200.0f;
-    mouseY -= 30.0f;
-    viewW -= 500.0f;
-    viewH -= 230.0f;
-#endif
+    auto rawMouse = Input::GetMousePosition();
+    float mouseX = rawMouse.first - gameX;
+    float mouseY = rawMouse.second - gameY;
 
     auto* camera = activeScene->GetCamera();
     if (!camera) return;
 
-    float aspect = viewW / (viewH > 0.0f ? viewH : 1.0f);
+    float aspect = gameW / (gameH > 0.0f ? gameH : 1.0f);
     float orthoSize = 10.0f * (camera->Zoom / 45.0f);
     glm::mat4 proj = glm::ortho(-aspect * orthoSize, aspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
 
     glm::mat4 view = camera->GetViewMatrix();
 
-    Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, viewW, viewH, proj, view);
+    Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, gameW, gameH, proj, view);
     glm::vec3 snappedPos(0.0f);
     if (std::abs(ray.Direction.y) > 1e-6f) {
         float t = -ray.Origin.y / ray.Direction.y;
@@ -611,8 +582,7 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
         }
     }
 
-    auto rawMouse = Input::GetMousePosition();
-    bool mouseOverPanel = (rawMouse.second >= (float)Input::GetWindowSize().second - 130.0f);
+    bool mouseOverPanel = (rawMouse.second >= (gameY + gameH - 200.0f * baseScale));
 
     if (m_HeldMachineIndex < 0 && m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max()) {
         auto& world = activeScene->GetWorld();
@@ -738,10 +708,9 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene) {
     m_JustSelectedFromPanel = false;
 }
 
-void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos, int hoverState) {
+void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos, int hoverState, float gameX, float gameY, float gameW, float gameH) {
     const float cell = GridSystem::CELL_SIZE;
     const float t = 0.06f;
-    const float range = 30.0f;
 
     glm::vec4 lineColor = { 0.6f, 0.6f, 0.6f, 0.40f };
     glm::vec4 hoverColor;
@@ -756,22 +725,18 @@ void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camP
         hoverColor = glm::vec4(0.3f, 0.75f, 1.0f, 0.55f);
     }
 
-    int startX = (int)std::floor((camPos.x - range) / cell);
-    int endX = (int)std::ceil((camPos.x + range) / cell);
-    int startZ = (int)std::floor((camPos.z - range) / cell);
-    int endZ = (int)std::ceil((camPos.z + range) / cell);
+    int startX = (int)std::floor(FLOOR_MIN_X / cell);
+    int endX = (int)std::ceil(FLOOR_MAX_X / cell);
+    int startZ = (int)std::floor(FLOOR_MIN_Z / cell);
+    int endZ = (int)std::ceil(FLOOR_MAX_Z / cell);
 
-    int floorStartX = (int)std::floor(FLOOR_MIN_X / cell);
-    int floorEndX = (int)std::ceil(FLOOR_MAX_X / cell);
-    int floorStartZ = (int)std::floor(FLOOR_MIN_Z / cell);
-    int floorEndZ = (int)std::ceil(FLOOR_MAX_Z / cell);
+    auto windowSize = Input::GetWindowSize();
+    int vpX = (int)gameX;
+    int vpY = (int)(windowSize.second - (gameY + gameH));
+    int vpW = (int)gameW;
+    int vpH = (int)gameH;
 
-    startX = std::max(startX, floorStartX);
-    endX = std::min(endX, floorEndX);
-    startZ = std::max(startZ, floorStartZ);
-    endZ = std::min(endZ, floorEndZ);
-
-    if (startX > endX || startZ > endZ) return;
+    glViewport(vpX, vpY, vpW, vpH);
 
     auto FlatQuad = [](const glm::vec3& center, float sx, float sz) -> glm::mat4 {
         return glm::translate(glm::mat4(1.0f), center) * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), { 1.f, 0.f, 0.f }) * glm::scale(glm::mat4(1.0f), { sx, sz, 1.f }) * glm::translate(glm::mat4(1.0f), { -0.5f, -0.5f, 0.f });
@@ -783,14 +748,12 @@ void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camP
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // Kursor siatki (Kwadrat) rysujemy tylko na obszarze podłogi
     if (hoverPos.x < 90000.0f && IsWithinBuildArea(hoverPos)) {
         glm::ivec2 hCell = GridSystem::WorldToCell(hoverPos);
         glm::vec3  hCenter = { (hCell.x + 0.5f) * cell, 0.01f, (hCell.y + 0.5f) * cell };
         Renderer2D::DrawQuad(FlatQuad(hCenter, cell, cell), hoverColor);
     }
 
-    // Rysowanie obciętych linii siatki
     float realMinX = startX * cell;
     float realMaxX = endX * cell;
     float lenX = realMaxX - realMinX;
@@ -810,5 +773,9 @@ void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camP
     }
 
     Renderer2D::EndScene();
-    glEnable(GL_DEPTH_TEST);
+
+    // ZMIANA: CAŁKOWICIE USUNIĘTO glEnable(GL_DEPTH_TEST)
+    // To właśnie ta funkcja powodowała Z-fighting i chowanie się UI pod tłem!
+
+    glViewport(0, 0, (int)windowSize.first, (int)windowSize.second);
 }

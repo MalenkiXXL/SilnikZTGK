@@ -6,9 +6,9 @@ struct GraphicsSettingsChangedEvent {};
 
 struct GraphicsSettings {
     int MsaaSamples = 4;
-    int WindowWidth = 1280;   // Domyślne wartości zapasowe przed maksymalizacją
-    int WindowHeight = 720;
-    bool Fullscreen = false;
+    int WindowWidth = 1920;   
+    int WindowHeight = 1080;
+    bool Fullscreen = true;
 
     static constexpr int ResolutionCount = 5;
     static constexpr std::pair<int, int> Resolutions[ResolutionCount] = {

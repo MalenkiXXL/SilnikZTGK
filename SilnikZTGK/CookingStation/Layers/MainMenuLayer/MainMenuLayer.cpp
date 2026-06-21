@@ -11,6 +11,7 @@
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/GuiLayer/Panels/SettingsMenuPanel.h" 
+#include "CookingStation/Layers/GuiLayer/Panels/CreditsPanel.h"
 #include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 #include <algorithm>
 #include <string>
@@ -33,10 +34,14 @@ void MainMenuLayer::OnAttach()
     m_SettingsPanel = std::make_shared<SettingsMenuPanel>();
     m_SettingsPanel->SetVisible(false);
 
+    m_CreditsPanel = std::make_shared<CreditsPanel>();
+    m_CreditsPanel->SetVisible(false);
+
     m_ShowMenuSubId = Application::Get().GetEventBus().Subscribe<ShowMainMenuEvent>(
         [this](const ShowMainMenuEvent&) {
             m_IsActive = true;
             m_SettingsPanel->SetVisible(false);
+            m_CreditsPanel->SetVisible(false);
         }
     );
 }
@@ -126,6 +131,10 @@ void MainMenuLayer::OnUpdate(Timestep ts) {
         m_SettingsPanel->OnUpdate(dt);
         m_SettingsPanel->Draw(baseScale);
     }
+    else if (m_CreditsPanel->IsVisible()) {
+        m_CreditsPanel->OnUpdate(dt);
+        m_CreditsPanel->Draw(baseScale);
+    }
     else {
         DrawMainMenu(baseScale, dt);
     }
@@ -206,6 +215,7 @@ void MainMenuLayer::DrawMainMenu(float baseScale, float dt) {
     }
 
     if (DrawImageButton(m_CreditsBtnTex, creditsPos, creditsSize, m_CreditsBtnScale, baseScale, hoverCredits)) {
+        m_CreditsPanel->SetVisible(true);
     }
 
     if (DrawImageButton(m_ExitBtnTex, exitPos, exitSize, m_ExitBtnScale, baseScale, hoverExit)) {

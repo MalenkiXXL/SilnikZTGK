@@ -159,6 +159,7 @@ Application::~Application()
 }
 void Application::ApplyGraphicsSettings()
 {
+	m_ApplyingGraphicsSettings = true;
 	auto& settings = GraphicsSettings::Get();
 	int width = settings.WindowWidth;
 	int height = settings.WindowHeight;
@@ -222,6 +223,8 @@ void Application::ApplyGraphicsSettings()
 
 	spdlog::info("GraphicsSettings: Zastosowano MSAA x{} | FAKTYCZNY ROZMIAR: {}x{} (Fullscreen: {})",
 		settings.MsaaSamples, width, height, settings.Fullscreen);
+
+	m_ApplyingGraphicsSettings = false;
 }
 
 void Application::Run()
@@ -335,8 +338,8 @@ bool Application::OnKeyPressed(KeyPressedEvent& e)
 
 void Application::SetFullscreen(bool enabled)
 {
-
 #ifdef CS_DISTRIBUTION
+	if (m_ApplyingGraphicsSettings) return;
 	auto& gs = GraphicsSettings::Get();
 	if (gs.Fullscreen == enabled) return;
 

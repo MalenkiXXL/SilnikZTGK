@@ -238,6 +238,7 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClCompile Include="CookingStation\Core\Texture.cpp" />
     <ClCompile Include="CookingStation\Core\VFS\PhysicalFileSystem.h" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\BuildModePanel.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\CreditsPanel.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Utils\Font.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp" />
@@ -311,6 +312,7 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClInclude Include="CookingStation\Layers\GuiLayer\GameGuiLayer.h" />
     <ClInclude Include="CookingStation\Core\GraphicsSettings.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\Panels\BuildModePanel.h" />
+    <ClInclude Include="CookingStation\Layers\GuiLayer\Panels\CreditsPanel.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\Utils\BubblyUI.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\Utils\GuiUtils.h" />
