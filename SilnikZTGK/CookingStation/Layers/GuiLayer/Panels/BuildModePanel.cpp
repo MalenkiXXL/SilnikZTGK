@@ -65,7 +65,6 @@ void BuildModePanel::Activate() {
 
     m_CurrentScene = activeScene;
 
-    if (activeScene) activeScene->SetState(SceneState::Edit);
     Application::Get().GetEventBus().Publish(BuildModeToggledEvent{ true });
 }
 
@@ -99,7 +98,6 @@ void BuildModePanel::Deactivate() {
         m_MovingGroup.clear();
     }
 
-    if (activeScene) activeScene->SetState(SceneState::Play);
     Application::Get().GetEventBus().Publish(BuildModeToggledEvent{ false });
 }
 

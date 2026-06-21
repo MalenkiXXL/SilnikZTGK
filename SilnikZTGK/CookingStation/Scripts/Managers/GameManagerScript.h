@@ -80,6 +80,9 @@ private:
     std::size_t m_OrderFulfilledSubId = 0;
     std::size_t m_DishCreatedSubId = 0;
     std::size_t m_ValidateOrderSubId = 0;
+    int m_CustomersServed = 0;
+    int m_TotalMoneyEarned = 0;
+    const int MAX_CUSTOMERS = 2;;
 
     //questy
     QuestEventState m_CurrentQuestState = QuestEventState::WaitingForTimer;

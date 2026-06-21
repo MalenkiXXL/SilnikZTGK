@@ -26,6 +26,14 @@ m_Camera(glm::vec3(10.0f, 10.0f, 10.0f), glm::vec3(0.0f, 1.0f, 0.0f), ISO_YAW, I
     m_GameResumedSubId = appBus.Subscribe<GameResumedEvent>([this](const GameResumedEvent&) {
         m_IsGamePaused = false;
         });
+
+    m_LevelCompletedSubId = appBus.Subscribe<LevelCompletedEvent>([this](const LevelCompletedEvent&) {
+        m_IsLevelCompleted = true;
+        });
+
+    m_GameStartedSubId = appBus.Subscribe<GameStartedEvent>([this](const GameStartedEvent&) {
+        m_IsLevelCompleted = false;
+        });
 }
 
 CameraLayer::~CameraLayer()
@@ -33,6 +41,8 @@ CameraLayer::~CameraLayer()
     auto& appBus = Application::Get().GetEventBus();
     if (m_GamePausedSubId != 0) appBus.Unsubscribe<GamePausedEvent>(m_GamePausedSubId);
     if (m_GameResumedSubId != 0) appBus.Unsubscribe<GameResumedEvent>(m_GameResumedSubId);
+    if (m_LevelCompletedSubId != 0) appBus.Unsubscribe<LevelCompletedEvent>(m_LevelCompletedSubId);
+    if (m_GameStartedSubId != 0) appBus.Unsubscribe<GameStartedEvent>(m_GameStartedSubId);
 }
 
 void CameraLayer::OnUpdate(Timestep ts) {
@@ -43,7 +53,7 @@ void CameraLayer::OnUpdate(Timestep ts) {
 
     m_Camera.UpdateLerp((float) ts, LERP_SPEED);
 
-    if (m_IsGamePaused) return;
+    if (m_IsGamePaused || m_IsLevelCompleted) return;
 
     if (Gui::AnyItemActive()) return;
 
@@ -121,7 +131,7 @@ void CameraLayer::OnEvent(Event &event) {
 }
 
 bool CameraLayer::OnMouseScrolled(MouseScrolledEvent &e) {
-    if (m_IsGamePaused) return false;
+    if (m_IsGamePaused || m_IsLevelCompleted) return false;
     if (Gui::AnyItemActive()) return false;
 
  //   m_Camera.ProcessMouseScroll((float) e.GetYOffset());

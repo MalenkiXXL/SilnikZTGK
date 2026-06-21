@@ -239,6 +239,8 @@ xcopy /y /d "C:\Users\ola87\vcpkg\packages\pugixml_x64-windows\bin\pugixml.dll" 
     <ClCompile Include="CookingStation\Core\VFS\PhysicalFileSystem.h" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\BuildModePanel.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\CreditsPanel.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\LevelCompletedPanel.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\LevelCompletedPanel.h" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Utils\Font.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\GameGuiLayer.cpp" />

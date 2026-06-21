@@ -162,3 +162,8 @@ struct AudioSettingsChangedEvent {
     bool MusicEnabled;
     bool SoundsEnabled;
 };
+
+struct LevelCompletedEvent {
+    int EarnedMoney;
+    int StarsEarned;
+};

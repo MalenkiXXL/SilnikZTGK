@@ -9,6 +9,7 @@
 #include "CookingStation/Renderer/Framebuffer.h"
 #include "CarouselUI.h"
 #include "CookingStation/Scripts/Managers/IngredientType.h"
+#include "Panels/LevelCompletedPanel.h"
 #include "Panels/BuildModePanel.h"
 #include "Panels/RecipeBookPanel.h"
 #include <unordered_map>
@@ -112,5 +113,8 @@ private:
     bool m_ShowFPS = false;
     bool m_IsGamePaused = false;
     bool m_ShowMushroomBubble = false;
+
+    LevelCompletedPanel m_LevelCompletedPanel;
+    std::size_t m_LevelCompletedSubId = 0;
 
 };

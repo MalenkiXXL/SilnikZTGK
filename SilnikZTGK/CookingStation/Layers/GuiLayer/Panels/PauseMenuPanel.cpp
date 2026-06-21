@@ -14,11 +14,21 @@
 PauseMenuPanel::PauseMenuPanel() {
     m_SettingsPanel = std::make_unique<SettingsMenuPanel>();
 
-    Application::Get().GetEventBus().Subscribe<GameStartedEvent>([this](const GameStartedEvent&) {
+    auto& appBus = Application::Get().GetEventBus();
+
+    appBus.Subscribe<GameStartedEvent>([this](const GameStartedEvent&) {
         m_IsPaused = false;
         });
 
-    Application::Get().GetEventBus().Subscribe<BuildModeToggledEvent>([this](const BuildModeToggledEvent& e) {
+    appBus.Subscribe<GamePausedEvent>([this](const GamePausedEvent&) {
+        m_IsPaused = true;
+        });
+
+    appBus.Subscribe<GameResumedEvent>([this](const GameResumedEvent&) {
+        m_IsPaused = false;
+        });
+
+    appBus.Subscribe<BuildModeToggledEvent>([this](const BuildModeToggledEvent& e) {
         m_IsBuildMode = e.IsActive;
         });
 }
@@ -28,21 +38,11 @@ void PauseMenuPanel::TogglePause() {
         m_SettingsPanel->SetVisible(false);
     }
     else {
-        m_IsPaused = !m_IsPaused;
-        auto activeScene = SceneManager::GetActiveScene();
-        if (activeScene) {
-
-            if (m_IsPaused) {
-                activeScene->SetState(SceneState::Pause);
-                Application::Get().GetEventBus().Publish(GamePausedEvent{});
-                activeScene->GetWorld().GetEventBus().Publish(PlayPauseSoundEvent{});
-            }
-            else {
-                activeScene->SetState(m_IsBuildMode ? SceneState::Edit : SceneState::Play);
-                Application::Get().GetEventBus().Publish(GameResumedEvent{});
-                activeScene->GetWorld().GetEventBus().Publish(PlayUnpauseSoundEvent{});
-            }
-
+        if (!m_IsPaused) {
+            Application::Get().GetEventBus().Publish(GamePausedEvent{});
+        }
+        else {
+            Application::Get().GetEventBus().Publish(GameResumedEvent{});
         }
     }
 }
