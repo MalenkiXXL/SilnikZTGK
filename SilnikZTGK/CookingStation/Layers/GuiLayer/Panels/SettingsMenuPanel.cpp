@@ -311,17 +311,12 @@ void SettingsMenuPanel::Draw(float baseScale) {
         bool resOrMsaaChanged = (gs.WindowWidth != newWidth || gs.WindowHeight != newHeight || gs.MsaaSamples != newMsaa);
         bool fsChanged = (gs.Fullscreen != m_PendingFullscreen);
 
-        // Wykonujemy aktualizację grafiki TYLKO gdy faktycznie zaszła jakaś zmiana
         if (resOrMsaaChanged || fsChanged) {
             gs.WindowWidth = newWidth;
             gs.WindowHeight = newHeight;
             gs.MsaaSamples = newMsaa;
-
-            // UWAGA: Zmieniamy Fullscreen bezpośrednio w zmiennej! 
-            // Omijamy Application::SetFullscreen, by uniknąć pętli podwójnego wywoływania w jednej klatce
             gs.Fullscreen = m_PendingFullscreen;
 
-            // Wywołujemy nakładanie grafiki dokładnie RAZ
             Application::Get().ApplyGraphicsSettings();
         }
     }
