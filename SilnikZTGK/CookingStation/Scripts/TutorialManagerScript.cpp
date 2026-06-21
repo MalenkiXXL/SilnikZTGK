@@ -207,7 +207,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     }
 
     case TutorialState::WaitForCrateSpawn: {
-
         if (m_StateTimer > 2.5f && m_DialogIndex == 0) {
             glm::vec3 poofPos = m_CrateOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f);
             RestorePosition(m_Poof, poofPos);
@@ -237,9 +236,10 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 }
             }
 
+            // --- ZMIANA: Skrzynka pojawia siê na soczysty ró¿owo! ---
             TriggerHighlightEvent ev;
             ev.TargetEntity = m_TomatoCrate;
-            ev.Color = glm::vec3(1.0f, 0.8f, 0.0f);
+            ev.Color = glm::vec3(1.0f, 0.2f, 0.6f);
             ev.IsInfinite = true;
             GetScene()->GetWorld().GetEventBus().Publish(ev);
 
@@ -268,10 +268,10 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                     if (s.Name == "CrateScript" && s.Instance) {
                         auto* crateScript = static_cast<CrateScript*>(s.Instance);
                         if (crateScript->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                            // --- ZMIANA: Jedzenie w skrzynce te¿ na ró¿owo ---
                             TriggerHighlightEvent evFood;
                             evFood.TargetEntity = crateScript->m_VisualFood;
-                            evFood.Color = glm::vec3(1.0f, 0.9f, 0.0f);
-                            // ZMIANA: Wolniejsze przejœcie animacji (cykl 2 sekundy zamiast natychmiastowego)
+                            evFood.Color = glm::vec3(1.0f, 0.2f, 0.6f);
                             evFood.Duration = 8.0f;
                             evFood.IsInfinite = true;
                             GetScene()->GetWorld().GetEventBus().Publish(evFood);
@@ -291,6 +291,34 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     }
 
     case TutorialState::WaitForCrateClick: {
+        // --- NOWOŒÆ: Logika Hovera dla samej Skrzynki! ---
+        static float crateHoverLerp = 0.0f;
+        if (m_StateTimer < 0.05f) {
+            crateHoverLerp = 0.0f;
+        }
+
+        bool isHoveringCrate = false;
+        auto* crateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TomatoCrate);
+        if (crateTf && !Input::IsUICapturingMouse()) {
+            glm::vec3 mousePos = GetMouseWorldPosition();
+            glm::vec2 mouse2D = { mousePos.x, mousePos.z };
+            if (glm::distance(mouse2D, glm::vec2(crateTf->GetPosition().x, crateTf->GetPosition().z)) < 4.0f) {
+                isHoveringCrate = true;
+            }
+        }
+
+        if (isHoveringCrate) {
+            crateHoverLerp += ts.GetSeconds() * 8.0f;
+        }
+        else {
+            crateHoverLerp -= ts.GetSeconds() * 8.0f;
+        }
+        crateHoverLerp = std::clamp(crateHoverLerp, 0.0f, 1.0f);
+
+        // P³ynne przejœcie z "Oczekuj¹cego Ró¿u" na "Aktywne Z³oto"
+        glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
+        glm::vec3 hoverGold = glm::vec3(1.0f, 0.9f, 0.0f);
+        glm::vec3 currentCrateColor = glm::mix(basePink, hoverGold, crateHoverLerp);
 
         auto* crateNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_TomatoCrate);
         if (crateNsc) {
@@ -300,8 +328,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                     if (crateScript->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
                         TriggerHighlightEvent evFood;
                         evFood.TargetEntity = crateScript->m_VisualFood;
-                        evFood.Color = glm::vec3(1.0f, 0.9f, 0.0f);
-                        // ZMIANA: Zsynchronizowane wolniejsze tempo pulsowania
+                        evFood.Color = currentCrateColor;
                         evFood.Duration = 8.0f;
                         evFood.IsInfinite = true;
                         GetScene()->GetWorld().GetEventBus().Publish(evFood);
@@ -322,12 +349,29 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
         }
 
         if (tomatoFound) {
+            // Gasimy podœwietlenie ca³kowicie po pomyœlnym wrzuceniu na taœmê
             TriggerHighlightEvent ev;
             ev.TargetEntity = m_TomatoCrate;
             ev.Color = glm::vec3(0.0f);
             ev.Duration = 0.1f;
             ev.IsInfinite = false;
             GetScene()->GetWorld().GetEventBus().Publish(ev);
+
+            if (crateNsc) {
+                for (auto& s : crateNsc->Scripts) {
+                    if (s.Name == "CrateScript" && s.Instance) {
+                        auto* crateScript = static_cast<CrateScript*>(s.Instance);
+                        if (crateScript->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                            TriggerHighlightEvent evFoodClear;
+                            evFoodClear.TargetEntity = crateScript->m_VisualFood;
+                            evFoodClear.Color = glm::vec3(0.0f);
+                            evFoodClear.Duration = 0.1f;
+                            evFoodClear.IsInfinite = false;
+                            GetScene()->GetWorld().GetEventBus().Publish(evFoodClear);
+                        }
+                    }
+                }
+            }
 
             m_State = TutorialState::WaitForBoardSpawn;
             m_StateTimer = 0.0f;
@@ -339,7 +383,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     case TutorialState::WaitForBoardSpawn: {
         // Cooldown 1.5s po zabraniu pomidora
         if (m_StateTimer > 1.5f && m_DialogIndex == 0) {
-            // Spawnujemy "Poof" particle nad miejscem gdzie pojawi siê deska
             glm::vec3 poofPos = m_BoardOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f);
             RestorePosition(m_Poof, poofPos);
 
@@ -368,12 +411,20 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     }
 
     case TutorialState::WaitForIngredientOnBoard: {
-        // Inicjalizacja timera tekstowego dla tego konkretnego stanu
-        if (m_StateTimer <= ts.GetSeconds()) {
+        // --- NOWOŒÆ: Rozdzielenie zmiennych na dwa osobne obiekty ---
+        static float tomatoHoverLerp = 0.0f;
+        static float boardHoverLerp = 0.0f;
+        static float boardTransitionLerp = 0.0f; // Szary -> Ró¿owy
+
+        // Niezawodny reset na starcie stanu
+        if (m_StateTimer < 0.05f) {
             m_TypewriterTimer = 0.0f;
+            tomatoHoverLerp = 0.0f;
+            boardHoverLerp = 0.0f;
+            boardTransitionLerp = 0.0f;
         }
 
-        // Szukamy pomidora na taœmie
+        // --- 1. POZYCJE OBIEKTÓW I ZASIÊG ---
         Entity tomatoBeltItem = { std::numeric_limits<std::size_t>::max(), 0 };
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         if (tags) {
@@ -385,7 +436,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        // Sprawdzamy fizyczny dystans
         bool inRange = false;
         auto* boardTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Board);
         auto* tomatoTf = GetScene()->GetWorld().GetComponent<TransformComponent>(tomatoBeltItem);
@@ -395,95 +445,113 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z),
                 glm::vec2(tomatoTf->GetPosition().x, tomatoTf->GetPosition().z)
             );
-
             if (distToBoard < 3.5f) {
                 inRange = true;
             }
         }
 
-        // --- 1. NAPRAWA PODŒWIETLENIA (Pingowanie co klatkê) ---
+        // --- 2. LOGIKA MYSZKI I PRZEJŒCIE KOLORÓW (Osobno dla Deski i Pomidora!) ---
+        glm::vec3 mousePos = GetMouseWorldPosition();
+        glm::vec2 mouse2D = { mousePos.x, mousePos.z };
+
+        bool isHoveringTomato = false;
+        bool isHoveringBoard = false;
+
+        if (!Input::IsUICapturingMouse()) {
+            // ZMNIEJSZONO PROMIEÑ z 4.0f na 2.5f, ¿eby hover puszcza³ b³yskawicznie po zjechaniu myszk¹!
+            if (tomatoTf && glm::distance(mouse2D, glm::vec2(tomatoTf->GetPosition().x, tomatoTf->GetPosition().z)) < 2.5f) isHoveringTomato = true;
+            if (boardTf && glm::distance(mouse2D, glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z)) < 2.5f) isHoveringBoard = true;
+        }
+
+        // Interpolacja koloru pomidora
+        if (isHoveringTomato && inRange) tomatoHoverLerp += ts.GetSeconds() * 8.0f;
+        else tomatoHoverLerp -= ts.GetSeconds() * 8.0f;
+        tomatoHoverLerp = std::clamp(tomatoHoverLerp, 0.0f, 1.0f);
+
+        // Interpolacja koloru deski
+        if (isHoveringBoard && inRange) boardHoverLerp += ts.GetSeconds() * 8.0f;
+        else boardHoverLerp -= ts.GetSeconds() * 8.0f;
+        boardHoverLerp = std::clamp(boardHoverLerp, 0.0f, 1.0f);
+
+        glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
+        glm::vec3 hoverGold = glm::vec3(1.0f, 0.9f, 0.0f);
+
+        glm::vec3 currentTomatoColor = glm::mix(basePink, hoverGold, tomatoHoverLerp);
+        glm::vec3 currentBoardInteractionColor = glm::mix(basePink, hoverGold, boardHoverLerp);
+
+
+        // --- 3. P£YNNE PRZEJŒCIE KOLORU DESKI (Szary -> Ró¿owy/Z³oty) ---
+        if (inRange) boardTransitionLerp += ts.GetSeconds() * 3.0f;
+        else boardTransitionLerp -= ts.GetSeconds() * 3.0f;
+        boardTransitionLerp = std::clamp(boardTransitionLerp, 0.0f, 1.0f);
+
+        glm::vec3 grayColor = glm::vec3(0.4f, 0.4f, 0.4f);
+        // Do deski ³adujemy wyliczony dla NIEJ kolor interakcji
+        glm::vec3 currentBoardColor = glm::mix(grayColor, currentBoardInteractionColor, boardTransitionLerp);
+        float currentBoardDuration = glm::mix(32.0f, 8.0f, boardTransitionLerp);
+
         TriggerHighlightEvent evBoard;
         evBoard.TargetEntity = m_Board;
+        evBoard.Color = currentBoardColor;
+        evBoard.Duration = currentBoardDuration;
         evBoard.IsInfinite = true;
+        GetScene()->GetWorld().GetEventBus().Publish(evBoard);
 
+        // --- 4. HIGHLIGHT POMIDORA ---
         if (inRange) {
-            // Szybsze "migotanie" na z³oto (Duration 8.0f)
-            evBoard.Color = glm::vec3(1.0f, 0.9f, 0.0f);
-            evBoard.Duration = 8.0f;
-            GetScene()->GetWorld().GetEventBus().Publish(evBoard);
-
-            // Pomidor te¿ migocze synchronicznie na z³oto
             TriggerHighlightEvent evTomato;
             evTomato.TargetEntity = tomatoBeltItem;
-            evTomato.Color = glm::vec3(1.0f, 0.9f, 0.0f);
+            evTomato.Color = currentTomatoColor; // £adujemy tylko kolor wyliczony dla pomidora!
             evTomato.Duration = 8.0f;
             evTomato.IsInfinite = true;
             GetScene()->GetWorld().GetEventBus().Publish(evTomato);
         }
-        else {
-            // £agodny, bardzo powolny bia³y blask oczekuj¹cy na obiekt (Duration 20.0f)
-            // Kolor lekko przygaszony (0.5), ¿eby blask by³ delikatny.
-            evBoard.Color = glm::vec3(0.5f, 0.5f, 0.5f);
-            evBoard.Duration = 20.0f;
-            GetScene()->GetWorld().GetEventBus().Publish(evBoard);
-        }
 
-        // --- 2. NAPRAWA UI (Niezale¿ne kropki i p³ynne zanikanie) ---
+        // --- 5. OBS£UGA UI KROPEK ---
         m_TypewriterTimer += ts.GetSeconds();
 
-        // Timer krêci siê równe 4 sekundy, niezale¿nie od tego gdzie jest pomidor
-        if (m_TypewriterTimer < 4.0f) {
+        if (m_TypewriterTimer < 5.5f) {
             GameManagerScript::s_ShowTutorialDialog = true;
             GameManagerScript::s_TutorialSpeaker = "";
-            GameManagerScript::s_TutorialDialogIsBottom = true; // Wracamy na dó³, ¿eby nie bugowaæ kamery
+            GameManagerScript::s_TutorialDialogIsBottom = true;
             GameManagerScript::s_TutorialIconAlpha = 0.0f;
 
-            // Sztywna matematyka dla 2 pe³nych cykli (0.0s do 3.0s)
-            int stage = (int)(m_TypewriterTimer / 0.5f);
+            int stage = (int)(m_TypewriterTimer / 0.8f);
+            std::string offset = "                        ";
             std::string waitingText = "";
 
-            if (stage == 0 || stage == 3) waitingText = ".";
-            else if (stage == 1 || stage == 4) waitingText = ". .";
-            else if (stage == 2 || stage == 5) waitingText = ". . .";
-            else waitingText = ""; // Faza 6 i 7 (od 3.0s do 4.0s) pusty string, ¿eby p³ynnie wygasiæ dymek
+            if (stage == 0 || stage == 3) waitingText = offset + ".";
+            else if (stage == 1 || stage == 4) waitingText = offset + ". .";
+            else if (stage == 2 || stage == 5) waitingText = offset + ". . .";
+            else waitingText = "";
 
             GameManagerScript::s_TutorialText = waitingText;
             GameManagerScript::s_TutorialCharsRevealed = waitingText.length();
         }
         else {
-            // Okno zamyka siê cichutko po 4 sekundach
             GameManagerScript::s_ShowTutorialDialog = false;
         }
 
-        // --- 3. OBS£UGA KLIKNIÊCIA ---
+        // --- 6. OBS£UGA KLIKNIÊCIA ---
         bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
 
-        if (isActionPressed && inRange && !Input::IsUICapturingMouse()) {
-            glm::vec3 mousePos = GetMouseWorldPosition();
-            glm::vec2 mouse2D = { mousePos.x, mousePos.z };
-
-            bool clickedNearTarget = false;
-
-            if (tomatoTf && glm::distance(mouse2D, glm::vec2(tomatoTf->GetPosition().x, tomatoTf->GetPosition().z)) < 4.0f) clickedNearTarget = true;
-            if (boardTf && glm::distance(mouse2D, glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z)) < 4.0f) clickedNearTarget = true;
-
-            if (clickedNearTarget) {
-                auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
-                if (nsc) {
-                    for (auto& s : nsc->Scripts) {
-                        if (s.Name == "CuttingBoardScript" && s.Instance) {
-                            auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
-                            if (boardScript->m_Ingredients.empty()) {
-                                boardScript->AddIngredient(IngredientType::Tomato);
-                                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ tomatoBeltItem });
-                            }
+        // Gracz mo¿e klikn¹æ jeœli namierzy³ pomidora LUB namierzy³ deskê
+        if (isActionPressed && inRange && (isHoveringTomato || isHoveringBoard)) {
+            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
+            if (nsc) {
+                for (auto& s : nsc->Scripts) {
+                    if (s.Name == "CuttingBoardScript" && s.Instance) {
+                        auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
+                        if (boardScript->m_Ingredients.empty()) {
+                            boardScript->AddIngredient(IngredientType::Tomato);
+                            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ tomatoBeltItem });
                         }
                     }
                 }
             }
         }
 
-        // --- 4. WARUNEK PRZEJŒCIA DALEJ ---
+        // --- 7. WARUNEK PRZEJŒCIA DALEJ ---
         bool hasIngredient = false;
         auto* nscBoard = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
         if (nscBoard) {
@@ -505,7 +573,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             ev.IsInfinite = false;
             GetScene()->GetWorld().GetEventBus().Publish(ev);
 
-            // Profilaktycznie gasimy okno UI przy wyjœciu ze stanu
             GameManagerScript::s_ShowTutorialDialog = false;
 
             m_State = TutorialState::WaitForChopping;
@@ -515,51 +582,68 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     }
 
     case TutorialState::WaitForChopping: {
-        // Tutaj ca³¹ robotê z odliczaniem "3 klikniêæ" wykonuje CuttingBoardScript
-        // My tylko sprawdzamy flagê m_IsReady, która ustawi siê na true po 3 "ciachniêciach"
+        // Niezawodny reset timera przy wejœciu do stanu
+        if (m_StateTimer < 0.05f) {
+            GameManagerScript::s_TutorialCharsRevealed = 0;
+        }
+
+        // --- 1. HIGHLIGHT DESKI ---
+        // Deska ca³y czas lœni na z³oto, co informuje gracza o koniecznoœci interakcji
+        TriggerHighlightEvent evBoard;
+        evBoard.TargetEntity = m_Board;
+        evBoard.Color = glm::vec3(1.0f, 0.9f, 0.0f);
+        evBoard.Duration = 8.0f;
+        evBoard.IsInfinite = true;
+        GetScene()->GetWorld().GetEventBus().Publish(evBoard);
+
+        // --- 2. ODCZYT DANYCH Z MASZYNY W CZASIE RZECZYWISTYM ---
+        int currentChops = 0;
         bool isReady = false;
+
         auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
         if (nsc) {
             for (auto& s : nsc->Scripts) {
                 if (s.Name == "CuttingBoardScript" && s.Instance) {
                     auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
-                    if (boardScript->m_IsReady) {
-                        isReady = true;
-                    }
+                    currentChops = boardScript->m_ChopCount; // Pobieramy na ¿ywo aktualn¹ wartoœæ z deski!
+                    isReady = boardScript->m_IsReady;
                 }
             }
         }
 
+        // --- 3. OBS£UGA UI (Dynamiczny tekst i pulsuj¹ca myszka) ---
+        GameManagerScript::s_ShowTutorialDialog = true;
+        GameManagerScript::s_TutorialSpeaker = "";
+        GameManagerScript::s_TutorialDialogIsBottom = true;
+
+        // Pulsuj¹ca animacja ikony klikniêcia myszki (od 0% do 100% przeziernoœci z u¿yciem funkcji Sinus)
+        // Szybkoœæ pulsowania (8.0f) mo¿esz ³atwo dostosowaæ!
+        GameManagerScript::s_TutorialIconAlpha = (std::sin(m_StateTimer * 8.0f) + 1.0f) * 0.5f;
+
+        // U¿ywamy tego samego offsetu co przy kropkach, ¿eby UI w tutorialu trzyma³o równy layout
+        std::string offset = "                        ";
+        std::string text = offset + "Krojenie: " + std::to_string(currentChops) + " / 3";
+
+        GameManagerScript::s_TutorialText = text;
+        GameManagerScript::s_TutorialCharsRevealed = text.length();
+
+        // --- 4. WARUNEK PRZEJŒCIA DALEJ ---
         if (isReady) {
+            // Natychmiastowe ugaszenie tutorialowego podœwietlenia
+            TriggerHighlightEvent ev;
+            ev.TargetEntity = m_Board;
+            ev.Color = glm::vec3(0.0f);
+            ev.Duration = 0.1f;
+            ev.IsInfinite = false;
+            GetScene()->GetWorld().GetEventBus().Publish(ev);
+
+            // Wy³¹czenie i sprz¹tniêcie UI
+            GameManagerScript::s_ShowTutorialDialog = false;
+            GameManagerScript::s_TutorialIconAlpha = 0.0f;
+
+            // Przejœcie do pakowania na talerz
             m_State = TutorialState::WaitForPlateTransfer;
             m_StateTimer = 0.0f;
-        }
-        break;
-    }
-
-    case TutorialState::WaitForPlateTransfer: {
-        // MachineScript ju¿ obs³uguje podœwietlanie talerza w zasiêgu (OnHoverCursor)
-        // oraz przenoszenie (TryTransferToPlate) - wszystko przebiega tak jak w normalnej grze.
-        // My czekamy jedynie na moment, w którym deska siê "zresetuje" (sk³adnik z niej zniknie)
-        bool transferred = false;
-        auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
-        if (nsc) {
-            for (auto& s : nsc->Scripts) {
-                if (s.Name == "CuttingBoardScript" && s.Instance) {
-                    auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
-                    // ResetMachineState() czyœci wektor i flagê m_IsReady
-                    if (boardScript->m_Ingredients.empty() && !boardScript->m_IsReady) {
-                        transferred = true;
-                    }
-                }
-            }
-        }
-
-        if (transferred) {
-            // Koniec sekwencji deski - przechodzimy do dalszej czêœci przygotowañ zupy (garnek)
-            m_State = TutorialState::WaitForPotPlacement;
-            m_StateTimer = 0.0f;
-            m_DialogIndex = 0;
         }
         break;
     }

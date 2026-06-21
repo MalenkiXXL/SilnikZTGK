@@ -7,7 +7,6 @@
 class CuttingBoardScript : public MachineScript
 {
 private:
-    int m_ChopCount = 0;
     const int m_ChopsRequired = 3;
     float m_ChopCooldown = 0.0f;
 
@@ -52,6 +51,20 @@ private:
         }
     }
 
+    
+
+    void ResetMachineState() override
+    {
+        m_ChopCount = 0;
+        m_AutoChopTimer = 0.0f;
+        m_VisualJumpY = 0.0f;
+        m_ChopCooldown = 0.0f;
+        MachineScript::ResetMachineState();
+    }
+
+public:
+    int m_ChopCount = 0;
+
     void PerformChop()
     {
         m_ChopCount++;
@@ -70,16 +83,6 @@ private:
         }
     }
 
-    void ResetMachineState() override
-    {
-        m_ChopCount = 0;
-        m_AutoChopTimer = 0.0f;
-        m_VisualJumpY = 0.0f;
-        m_ChopCooldown = 0.0f;
-        MachineScript::ResetMachineState();
-    }
-
-public:
     void OnCreate() override
     {
         MachineScript::OnCreate();
