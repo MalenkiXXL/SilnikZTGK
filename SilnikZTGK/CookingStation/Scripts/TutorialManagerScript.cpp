@@ -368,13 +368,10 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     }
 
     case TutorialState::WaitForIngredientOnBoard: {
-        // Zawsze podœwietlamy deskê w tym stanie
-        TriggerHighlightEvent evBoard;
-        evBoard.TargetEntity = m_Board;
-        evBoard.Color = glm::vec3(1.0f, 0.9f, 0.0f);
-        evBoard.Duration = 8.0f;
-        evBoard.IsInfinite = true;
-        GetScene()->GetWorld().GetEventBus().Publish(evBoard);
+        // Inicjalizacja timera tekstowego dla tego konkretnego stanu
+        if (m_StateTimer <= ts.GetSeconds()) {
+            m_TypewriterTimer = 0.0f;
+        }
 
         // Szukamy pomidora na taœmie
         Entity tomatoBeltItem = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -388,7 +385,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        // Sprawdzamy, czy pomidor fizycznie podjecha³ blisko deski
+        // Sprawdzamy fizyczny dystans
         bool inRange = false;
         auto* boardTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Board);
         auto* tomatoTf = GetScene()->GetWorld().GetComponent<TransformComponent>(tomatoBeltItem);
@@ -399,21 +396,66 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 glm::vec2(tomatoTf->GetPosition().x, tomatoTf->GetPosition().z)
             );
 
-            // Odleg³oœæ miêdzy desk¹ a pomidorem pozwalaj¹ca na interakcjê
             if (distToBoard < 3.5f) {
                 inRange = true;
-
-                // Synchroniczne œwiecenie pomidora
-                TriggerHighlightEvent evTomato;
-                evTomato.TargetEntity = tomatoBeltItem;
-                evTomato.Color = glm::vec3(1.0f, 0.9f, 0.0f);
-                evTomato.Duration = 8.0f;
-                evTomato.IsInfinite = true;
-                GetScene()->GetWorld().GetEventBus().Publish(evTomato);
             }
         }
 
-        // Obs³uga klikniêcia (Bypass)
+        // --- 1. NAPRAWA PODŒWIETLENIA (Pingowanie co klatkê) ---
+        TriggerHighlightEvent evBoard;
+        evBoard.TargetEntity = m_Board;
+        evBoard.IsInfinite = true;
+
+        if (inRange) {
+            // Szybsze "migotanie" na z³oto (Duration 8.0f)
+            evBoard.Color = glm::vec3(1.0f, 0.9f, 0.0f);
+            evBoard.Duration = 8.0f;
+            GetScene()->GetWorld().GetEventBus().Publish(evBoard);
+
+            // Pomidor te¿ migocze synchronicznie na z³oto
+            TriggerHighlightEvent evTomato;
+            evTomato.TargetEntity = tomatoBeltItem;
+            evTomato.Color = glm::vec3(1.0f, 0.9f, 0.0f);
+            evTomato.Duration = 8.0f;
+            evTomato.IsInfinite = true;
+            GetScene()->GetWorld().GetEventBus().Publish(evTomato);
+        }
+        else {
+            // £agodny, bardzo powolny bia³y blask oczekuj¹cy na obiekt (Duration 20.0f)
+            // Kolor lekko przygaszony (0.5), ¿eby blask by³ delikatny.
+            evBoard.Color = glm::vec3(0.5f, 0.5f, 0.5f);
+            evBoard.Duration = 20.0f;
+            GetScene()->GetWorld().GetEventBus().Publish(evBoard);
+        }
+
+        // --- 2. NAPRAWA UI (Niezale¿ne kropki i p³ynne zanikanie) ---
+        m_TypewriterTimer += ts.GetSeconds();
+
+        // Timer krêci siê równe 4 sekundy, niezale¿nie od tego gdzie jest pomidor
+        if (m_TypewriterTimer < 4.0f) {
+            GameManagerScript::s_ShowTutorialDialog = true;
+            GameManagerScript::s_TutorialSpeaker = "";
+            GameManagerScript::s_TutorialDialogIsBottom = true; // Wracamy na dó³, ¿eby nie bugowaæ kamery
+            GameManagerScript::s_TutorialIconAlpha = 0.0f;
+
+            // Sztywna matematyka dla 2 pe³nych cykli (0.0s do 3.0s)
+            int stage = (int)(m_TypewriterTimer / 0.5f);
+            std::string waitingText = "";
+
+            if (stage == 0 || stage == 3) waitingText = ".";
+            else if (stage == 1 || stage == 4) waitingText = ". .";
+            else if (stage == 2 || stage == 5) waitingText = ". . .";
+            else waitingText = ""; // Faza 6 i 7 (od 3.0s do 4.0s) pusty string, ¿eby p³ynnie wygasiæ dymek
+
+            GameManagerScript::s_TutorialText = waitingText;
+            GameManagerScript::s_TutorialCharsRevealed = waitingText.length();
+        }
+        else {
+            // Okno zamyka siê cichutko po 4 sekundach
+            GameManagerScript::s_ShowTutorialDialog = false;
+        }
+
+        // --- 3. OBS£UGA KLIKNIÊCIA ---
         bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
 
         if (isActionPressed && inRange && !Input::IsUICapturingMouse()) {
@@ -422,9 +464,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
             bool clickedNearTarget = false;
 
-            // NAPRAWA: Znacznie zwiêkszona tolerancja celowania myszk¹ z 1.5f na 4.0f!
-            // Ca³kowicie niweluje to b³¹d paralaksy/perspektywy miêdzy kamer¹, wy¿szym taœmoci¹giem a pod³og¹.
-            // Gracz wystarczy, ¿e kliknie "mniej wiêcej" na œwiec¹ce elementy.
             if (tomatoTf && glm::distance(mouse2D, glm::vec2(tomatoTf->GetPosition().x, tomatoTf->GetPosition().z)) < 4.0f) clickedNearTarget = true;
             if (boardTf && glm::distance(mouse2D, glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z)) < 4.0f) clickedNearTarget = true;
 
@@ -444,7 +483,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        // Sprawdzenie czy deska ma ju¿ sk³adnik i mo¿emy przejœæ dalej
+        // --- 4. WARUNEK PRZEJŒCIA DALEJ ---
         bool hasIngredient = false;
         auto* nscBoard = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
         if (nscBoard) {
@@ -459,13 +498,15 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
         }
 
         if (hasIngredient) {
-            // Gasimy tutorialowe œwiecenie deski
             TriggerHighlightEvent ev;
             ev.TargetEntity = m_Board;
             ev.Color = glm::vec3(0.0f);
             ev.Duration = 0.1f;
             ev.IsInfinite = false;
             GetScene()->GetWorld().GetEventBus().Publish(ev);
+
+            // Profilaktycznie gasimy okno UI przy wyjœciu ze stanu
+            GameManagerScript::s_ShowTutorialDialog = false;
 
             m_State = TutorialState::WaitForChopping;
             m_StateTimer = 0.0f;
