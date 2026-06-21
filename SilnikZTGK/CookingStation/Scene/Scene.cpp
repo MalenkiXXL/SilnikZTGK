@@ -482,17 +482,17 @@ void Scene::RemoveParent(Entity child) {
 
     if (!childRel || childRel->Parent == NULL_ID) return;
 
-    auto* oldParentRel = world.GetComponent<RelationshipComponent>({ childRel->Parent, 0 });
+    auto* oldParentRel = world.GetComponentByID<RelationshipComponent>(childRel->Parent);
     if (oldParentRel) {
         if (oldParentRel->FirstChild == child.id) {
             oldParentRel->FirstChild = childRel->NextSibling;
         }
         if (childRel->PreviousSibling != NULL_ID) {
-            auto* prevRel = world.GetComponent<RelationshipComponent>({ childRel->PreviousSibling, 0 });
+            auto* prevRel = world.GetComponentByID<RelationshipComponent>(childRel->PreviousSibling);
             if (prevRel) prevRel->NextSibling = childRel->NextSibling;
         }
         if (childRel->NextSibling != NULL_ID) {
-            auto* nextRel = world.GetComponent<RelationshipComponent>({ childRel->NextSibling, 0 });
+            auto* nextRel = world.GetComponentByID<RelationshipComponent>(childRel->NextSibling);
             if (nextRel) nextRel->PreviousSibling = childRel->PreviousSibling;
         }
         oldParentRel->ChildrenCount--;
