@@ -2,6 +2,9 @@
 #include "CustomerScript.h"
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Scripts/Machines/MachineScript.h"
+#include "CookingStation/Layers/AssetLayer/AssetManager.h"
+#include "CookingStation/Core/Application.h"
+#include "CookingStation/Events/GameEvents.h"
 #include <glm/glm.hpp>
 #include <limits>
 #include <cmath>
@@ -9,11 +12,26 @@
 class HelperCustomerScript : public CustomerScript
 {
 public:
-public:
     float m_YOffset = 0.5f;
     Entity m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
     glm::vec3 m_HighlightColor = glm::vec3(0.2f, 0.8f, 0.2f);
     float m_RotationOffset = -90.0f;
+    float m_WaitingRotation = 270.0f;
+
+    bool m_IsFalling = false;
+    Entity m_FloorTile = { std::numeric_limits<std::size_t>::max(), 0 };
+    float m_FallSpeed = 25.0f;
+    float m_CurrentFallY = 14.0f;
+
+    // Zmienne do pulsowania i pierwszego podnoszenia
+    bool m_IsWaitingForPickup = false;
+    bool m_IsDragged = false;
+    float m_DragDelayTimer = 0.0f;
+    bool m_IsFirstHelperInstance = false;
+    glm::vec3 m_BaseScale = { 1.0f, 1.0f, 1.0f };
+    bool m_BaseScaleInitialized = false;
+    float m_PulseTimer = 0.0f;
+    std::size_t m_ClickSubId = 0;
 
     void OnCreate() override
     {
@@ -30,14 +48,52 @@ public:
             else if (tagComp->Tag.find("Rzodkiewka") != std::string::npos) {
                 m_HighlightColor = glm::vec3(0.66f, 0.52f, 0.95f);
                 m_RotationOffset = 90.0f;
+                m_WaitingRotation = 90.0f;
             }
         }
+
+        // --- NAS£UCHIWANIE NA KLIKNIÊCIE ---
+        m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
+            [this](const EntityClickedEvent& e) {
+                // Pozwalamy z³apaæ pracownika tylko jeœli siedzi w poczekalni (nie spada i nie zosta³ ju¿ u¿yty)
+                if (e.TargetEntity.id == m_Entity.id && m_IsWaitingForPickup && !m_IsFalling) {
+                    m_IsWaitingForPickup = false;
+                    m_IsDragged = true;
+                    m_DragDelayTimer = 0.0f;
+
+                    // Resetujemy skalê do naturalnej i wy³¹czamy fioletowy shader
+                    auto* myTransform = GetComponent<TransformComponent>();
+                    if (myTransform) myTransform->SetScale(m_BaseScale);
+
+                    auto* mesh = GetComponent<MeshComponent>();
+                    if (mesh) mesh->ShaderName = "Default";
+
+                    // Wy³¹czamy nieskoñczone œwiat³o w menad¿erze
+                    if (m_IsFirstHelperInstance) {
+                        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                            m_Entity, glm::vec3(0.0f), 0.01f, false
+                            });
+                    }
+
+                    // Kasujemy kafelek z pod³ogi
+                    if (m_FloorTile.id != std::numeric_limits<std::size_t>::max()) {
+                        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_FloorTile });
+                        m_FloorTile = { std::numeric_limits<std::size_t>::max(), 0 };
+                    }
+                }
+            }
+        );
     }
 
     void OnDestroy() override
     {
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
+
         if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
             SetMachineAutomated(m_AssignedMachine, false);
+        }
+        if (m_FloorTile.id != std::numeric_limits<std::size_t>::max()) {
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_FloorTile });
         }
         CustomerScript::OnDestroy();
     }
@@ -68,6 +124,74 @@ public:
     {
         if (!IsServed) return;
 
+        // --- ZMODYFIKOWANY SYSTEM SPADANIA ---
+        if (m_IsFalling) {
+            auto* myTransform = GetComponent<TransformComponent>();
+            auto* tileTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_FloorTile);
+
+            if (myTransform && tileTransform) {
+                m_CurrentFallY -= m_FallSpeed * ts.GetSeconds();
+
+                if (m_CurrentFallY <= 0.0f) {
+                    m_CurrentFallY = 0.0f;
+                    m_IsFalling = false;
+                }
+
+                glm::vec3 helperPos = myTransform->GetPosition();
+                helperPos.y = m_CurrentFallY + 0.25f;
+                myTransform->SetPosition(helperPos);
+
+                glm::vec3 tilePos = tileTransform->GetPosition();
+                tilePos.y = m_CurrentFallY - 0.05f;
+                tileTransform->SetPosition(tilePos);
+            }
+            return;
+        }
+
+        // --- OCZEKIWANIE (PULSOWANIE) ---
+        if (m_IsWaitingForPickup) {
+            if (m_IsFirstHelperInstance) {
+                m_PulseTimer += ts.GetSeconds();
+                float wave = std::sin(m_PulseTimer * 4.0f);
+
+                auto* myTransform = GetComponent<TransformComponent>();
+                if (myTransform) {
+                    myTransform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
+                }
+
+                auto* mesh = GetComponent<MeshComponent>();
+                if (mesh) {
+                    float currentOpacity = (wave + 1.0f) * 0.5f * 0.6f;
+                    mesh->ShaderName = "HighlightShader";
+                    // Fioletowy kolor paczek
+                    mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity);
+                }
+            }
+            return;
+        }
+
+        // --- PRZECI¥GANIE DO MASZYNY ---
+        if (m_IsDragged) {
+            glm::vec3 mousePos = GetMouseWorldPosition();
+
+            // Matematyczne przyci¹ganie do siatki (grid snapping) bez BuildMode
+            float snapX = std::round((mousePos.x - 1.0f) / 2.0f) * 2.0f + 1.0f;
+            float snapZ = std::round((mousePos.z - 1.0f) / 2.0f) * 2.0f + 1.0f;
+
+            auto* myTransform = GetComponent<TransformComponent>();
+            if (myTransform) {
+                myTransform->SetPosition({ snapX, 0.0f, snapZ });
+            }
+
+            m_DragDelayTimer += ts.GetSeconds();
+            // Mo¿na od³o¿yæ dopiero po u³amku sekundy, by unikn¹æ upuszczenia w klatce klikniêcia
+            if (m_DragDelayTimer > 0.15f && Input::IsMouseButtonJustPressed(0)) {
+                m_IsDragged = false;
+            }
+            return;
+        }
+        // -------------------------------------
+
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
@@ -84,6 +208,10 @@ public:
                 SetMachineAutomated(m_AssignedMachine, true);
                 RotateTowardsMachine(transform, m_AssignedMachine);
 
+                glm::vec3 snapPos = transform->GetPosition();
+                snapPos.y = 0.0f;
+                transform->SetPosition(snapPos);
+
                 glm::vec3 highlightColor = m_HighlightColor;
 
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
@@ -93,51 +221,125 @@ public:
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_AssignedMachine, highlightColor, 0.8f, false
                     });
+
+                auto* rels = GetScene()->GetWorld().GetComponentVector<RelationshipComponent>();
+                if (rels) {
+                    for (size_t i = 0; i < rels->dense.size(); ++i) {
+                        if (rels->dense[i].Parent == m_AssignedMachine.id) {
+                            Entity childEnt = rels->reverse[i];
+                            auto* childTag = GetScene()->GetWorld().GetComponent<TagComponent>(childEnt);
+
+                            bool isItem = false;
+                            if (childTag) {
+                                if (childTag->Tag.find("Item") != std::string::npos ||
+                                    childTag->Tag.find("Ingredient") != std::string::npos) {
+                                    isItem = true;
+                                }
+                            }
+
+                            if (!isItem) {
+                                GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                                    childEnt, highlightColor, 0.8f, false
+                                    });
+                            }
+                        }
+                    }
+                }
             }
         }
         else if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
             RotateTowardsMachine(transform, m_AssignedMachine);
+
+            glm::vec3 snapPos = transform->GetPosition();
+            if (snapPos.y != 0.0f) {
+                snapPos.y = 0.0f;
+                transform->SetPosition(snapPos);
+            }
         }
     }
 
 private:
     void TeleportToWaitingArea()
     {
-        auto* scripts = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+        float targetZ = 9.0f;
+        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
 
-        if (!scripts || !transforms) return;
+        if (tags && transforms) {
+            while (true) {
+                bool spotTaken = false;
+                for (size_t i = 0; i < tags->dense.size(); ++i) {
+                    if (tags->dense[i].Tag.find("NajedzonyPomocnik") != std::string::npos) {
+                        Entity otherHelper = tags->reverse[i];
 
-        glm::vec3 targetPos = { -5.0f, 0.0f, 11.0f };
-
-        for (size_t i = 0; i < scripts->dense.size(); ++i) {
-            auto& nsc = scripts->dense[i];
-            bool foundCrate = false;
-
-            for (auto& s : nsc.Scripts) {
-                if (s.Name == "CrateScript") {
-                    Entity crateEntity = scripts->reverse[i];
-                    auto* crateTf = transforms->Get(crateEntity);
-
-                    if (crateTf) {
-                        glm::vec3 cratePos = crateTf->GetPosition();
-
-                        float offsetX = (m_Entity.id % 3) * 1.5f - 1.5f;
-                        float offsetZ = (m_Entity.id % 2) * 1.0f + 2.5f;
-
-                        targetPos = glm::vec3(cratePos.x + offsetX, 0.0f, cratePos.z + offsetZ);
-                        foundCrate = true;
-                        break;
+                        if (otherHelper.id != m_Entity.id) {
+                            auto* otherTf = transforms->Get(otherHelper);
+                            if (otherTf) {
+                                glm::vec3 otherPos = otherTf->GetPosition();
+                                if (std::abs(otherPos.x - 13.0f) < 1.0f && std::abs(otherPos.z - targetZ) < 1.0f) {
+                                    spotTaken = true;
+                                    break;
+                                }
+                            }
+                        }
                     }
                 }
+
+                if (!spotTaken) {
+                    break;
+                }
+
+                targetZ -= 4.0f;
             }
-            if (foundCrate) break;
         }
+
+        glm::vec3 targetPos = { 13.0f, -1.5f, targetZ };
+
+        auto builder = GetScene()->GetWorld().BuildEntity();
+        builder.With<TagComponent>({ "HelperFloorTile" });
+
+        m_CurrentFallY = 15.0f;
+
+        TransformComponent tileTf;
+        tileTf.SetPosition(targetPos + glm::vec3(0.0f, m_CurrentFallY - 0.05f, 0.0f));
+        tileTf.SetScale({ 0.07f, 0.3f, 0.07f });
+        builder.With<TransformComponent>(tileTf);
+
+        MeshComponent tileMesh;
+        tileMesh.ModelPtr = AssetManager::GetModel("assets://models/wystroj/podloga.gltf");
+        builder.With<MeshComponent>(tileMesh);
+
+        m_FloorTile = builder.Build();
+
+        m_IsFalling = true;
+        m_IsWaitingForPickup = true;
+        m_PulseTimer = 0.0f;
 
         auto* myTransform = GetComponent<TransformComponent>();
         if (myTransform) {
-            myTransform->SetPosition(targetPos);
-            myTransform->SetRotation({ 0.0f, 180.0f, 0.0f });
+            if (!m_BaseScaleInitialized) {
+                m_BaseScale = myTransform->GetScale();
+                m_BaseScaleInitialized = true;
+            }
+            myTransform->SetPosition(targetPos + glm::vec3(0.0f, m_CurrentFallY, 0.0f));
+            myTransform->SetRotation({ 0.0f, m_WaitingRotation, 0.0f });
+        }
+
+        static bool s_IsFirstEverHelper = true;
+        glm::vec3 purpleColor = glm::vec3(0.513f, 0.109f, 0.364f); // Fioletowy kolor z paczek
+
+        if (s_IsFirstEverHelper) {
+            m_IsFirstHelperInstance = true;
+            s_IsFirstEverHelper = false;
+
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                m_Entity, purpleColor, 0.0f, true
+                });
+        }
+        else {
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
+                m_Entity, purpleColor, 1.5f, false
+                });
         }
     }
 
