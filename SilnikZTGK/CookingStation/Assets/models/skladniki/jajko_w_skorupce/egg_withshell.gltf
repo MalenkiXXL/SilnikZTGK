@@ -26,8 +26,8 @@
 				"baseColorTexture":{
 					"index":0
 				},
-				"metallicFactor":0,
-				"roughnessFactor":0.5
+				"metallicFactor":0.20000000298023224,
+				"roughnessFactor":0.7862069010734558
 			}
 		}
 	],
@@ -57,7 +57,7 @@
 		{
 			"mimeType":"image/png",
 			"name":"palette",
-			"uri": "../../../textures/palette.png"
+			"uri": "../../../textures/palette.png",
 		}
 	],
 	"accessors":[
@@ -67,13 +67,13 @@
 			"count":445,
 			"max":[
 				1.0208684206008911,
-				2.0308496952056885,
-				1.2313897609710693
+				2.4761805534362793,
+				1.0242077112197876
 			],
 			"min":[
 				-1.0249658823013306,
-				0.01042783260345459,
-				-1.2479677200317383
+				-0.003177046775817871,
+				-0.9962141513824463
 			],
 			"type":"VEC3"
 		},

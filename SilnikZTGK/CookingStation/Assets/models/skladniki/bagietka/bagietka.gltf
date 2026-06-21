@@ -1,6 +1,6 @@
 {
 	"asset":{
-		"generator":"Khronos glTF Blender I/O v4.4.56",
+		"generator":"Khronos glTF Blender I/O v4.5.48",
 		"version":"2.0"
 	},
 	"scene":0,
@@ -93,8 +93,8 @@
 	],
 	"images":[
 		{
-			"mimeType": "image/png",
-			"name": "palette",
+			"mimeType":"image/png",
+			"name":"palette",
 			"uri": "../../../textures/palette.png"
 		}
 	],
@@ -105,12 +105,12 @@
 			"count":1104,
 			"max":[
 				0.14014334976673126,
-				0.04454056918621063,
+				0.08928187191486359,
 				0.06162654608488083
 			],
 			"min":[
 				-0.1481860727071762,
-				-0.04454056918621063,
+				0.00020072981715202332,
 				-0.06162658706307411
 			],
 			"type":"VEC3"
@@ -136,15 +136,15 @@
 		{
 			"bufferView":4,
 			"componentType":5126,
-			"count":1104,
+			"count":1105,
 			"max":[
 				0.017889946699142456,
-				0.04786364361643791,
+				0.09260494261980057,
 				0.03690831735730171
 			],
 			"min":[
 				-0.01366470381617546,
-				0.025057535618543625,
+				0.06979883462190628,
 				-0.0369083397090435
 			],
 			"type":"VEC3"
@@ -152,13 +152,13 @@
 		{
 			"bufferView":5,
 			"componentType":5126,
-			"count":1104,
+			"count":1105,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":6,
 			"componentType":5126,
-			"count":1104,
+			"count":1105,
 			"type":"VEC2"
 		},
 		{
@@ -173,12 +173,12 @@
 			"count":2179,
 			"max":[
 				0.08266380429267883,
-				0.04082678630948067,
+				0.08556808531284332,
 				0.03690831735730171
 			],
 			"min":[
 				-0.09070655703544617,
-				0.017781617119908333,
+				0.06252291798591614,
 				-0.0369083397090435
 			],
 			"type":"VEC3"
@@ -229,50 +229,50 @@
 		},
 		{
 			"buffer":0,
-			"byteLength":13248,
+			"byteLength":13260,
 			"byteOffset":43968,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":13248,
-			"byteOffset":57216,
+			"byteLength":13260,
+			"byteOffset":57228,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":8832,
-			"byteOffset":70464,
+			"byteLength":8840,
+			"byteOffset":70488,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":8640,
-			"byteOffset":79296,
+			"byteOffset":79328,
 			"target":34963
 		},
 		{
 			"buffer":0,
 			"byteLength":26148,
-			"byteOffset":87936,
+			"byteOffset":87968,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":26148,
-			"byteOffset":114084,
+			"byteOffset":114116,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":17432,
-			"byteOffset":140232,
+			"byteOffset":140264,
 			"target":34962
 		},
 		{
 			"buffer":0,
 			"byteLength":17280,
-			"byteOffset":157664,
+			"byteOffset":157696,
 			"target":34963
 		}
 	],
@@ -284,7 +284,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":174944,
+			"byteLength":174976,
 			"uri":"bagietka.bin"
 		}
 	]

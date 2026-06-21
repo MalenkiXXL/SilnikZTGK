@@ -14,6 +14,7 @@ struct HighlightData {
     std::string OriginalShader;
     bool IsInfinite;
     bool PingedThisFrame;
+    float CurrentAlpha = 0.0f;
 };
 
 class HighlightManagerScript : public ScriptableEntity {
@@ -62,17 +63,25 @@ public:
             }
 
             if (data.IsInfinite) {
+                float speed = (data.MaxTime > 0.0f) ? (4.0f / data.MaxTime) : 4.0f;
+                float wave = std::sin(m_GlobalTime * speed);
+                float targetOpacity = (wave + 1.0f) * 0.5f * 0.7f;
+
                 if (!data.PingedThisFrame) {
-                    mesh->ShaderName = data.OriginalShader;
-                    it = m_ActiveHighlights.erase(it);
-                    continue;
+                    // P³ynne zanikanie - wygasi œwiat³o w 0.3 sekundy zamiast uci¹æ je na brutalnie!
+                    data.CurrentAlpha -= ts.GetSeconds() * 3.0f;
+                    if (data.CurrentAlpha <= 0.0f) {
+                        mesh->ShaderName = data.OriginalShader;
+                        it = m_ActiveHighlights.erase(it);
+                        continue;
+                    }
+                }
+                else {
+                    data.CurrentAlpha = targetOpacity;
                 }
 
-                float wave = std::sin(m_GlobalTime * 4.0f);
-                float currentOpacity = (wave + 1.0f) * 0.5f * 0.7f;
-
                 mesh->ShaderName = "HighlightShader";
-                mesh->HighlightColor = glm::vec4(data.Color, currentOpacity);
+                mesh->HighlightColor = glm::vec4(data.Color, data.CurrentAlpha);
 
                 data.PingedThisFrame = false;
                 ++it;

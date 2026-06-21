@@ -159,6 +159,7 @@ Application::~Application()
 }
 void Application::ApplyGraphicsSettings()
 {
+	m_ApplyingGraphicsSettings = true;
 	auto& settings = GraphicsSettings::Get();
 	int width = settings.WindowWidth;
 	int height = settings.WindowHeight;
@@ -166,27 +167,22 @@ void Application::ApplyGraphicsSettings()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	GLFWwindow* nativeWindow = (GLFWwindow*)m_Window->GetNativeWindow();
+
+#ifdef CS_DISTRIBUTION
 	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
 	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
 
 	if (settings.Fullscreen) {
-		// 1. Prawdziwy Fullscreen (Exclusive)
-		// NAJPIERW przejmujemy monitor, POTEM zdejmujemy ramki
 		glfwSetWindowMonitor(nativeWindow, monitor, 0, 0, mode->width, mode->height, mode->refreshRate);
 		m_Window->SetDecorated(false);
 	}
 	else {
-		// 2. Zwykłe okno Z RAMKAMI
 		int workX, workY, workW, workH;
 		glfwGetMonitorWorkarea(monitor, &workX, &workY, &workW, &workH);
 
-		// NAJPIERW wyjście z Fullscreena (przekazanie nullptr) i nadanie wstępnego rozmiaru
 		glfwSetWindowMonitor(nativeWindow, nullptr, workX, workY, width, height, 0);
-
-		// DOPIERO TERAZ przywracamy ramki (jest to teraz bezpieczne, bo okno jest już "zwykłe")
 		m_Window->SetDecorated(true);
 
-		// Sprawdzamy, czy okno nie jest za duże dla obszaru roboczego
 		if (width >= workW || height >= workH) {
 			glfwMaximizeWindow(nativeWindow);
 		}
@@ -194,13 +190,10 @@ void Application::ApplyGraphicsSettings()
 			glfwRestoreWindow(nativeWindow);
 			int xpos = workX + (workW - width) / 2;
 			int ypos = workY + (workH - height) / 2;
-
-			// Używamy SetWindowPos do wyśrodkowania, bo SetWindowMonitor zostało już wywołane wyżej
 			glfwSetWindowPos(nativeWindow, xpos, ypos);
 		}
 	}
-
-	// Pobieramy FAKTYCZNY rozmiar obszaru roboczego okna po decyzjach systemu (odjęcie ramek itp.)
+#endif
 	int actualWidth, actualHeight;
 	glfwGetFramebufferSize(nativeWindow, &actualWidth, &actualHeight);
 
@@ -230,6 +223,8 @@ void Application::ApplyGraphicsSettings()
 
 	spdlog::info("GraphicsSettings: Zastosowano MSAA x{} | FAKTYCZNY ROZMIAR: {}x{} (Fullscreen: {})",
 		settings.MsaaSamples, width, height, settings.Fullscreen);
+
+	m_ApplyingGraphicsSettings = false;
 }
 
 void Application::Run()
@@ -343,10 +338,13 @@ bool Application::OnKeyPressed(KeyPressedEvent& e)
 
 void Application::SetFullscreen(bool enabled)
 {
+#ifdef CS_DISTRIBUTION
+	if (m_ApplyingGraphicsSettings) return;
 	auto& gs = GraphicsSettings::Get();
-	if (gs.Fullscreen == enabled) return; 
+	if (gs.Fullscreen == enabled) return;
 
 	gs.Fullscreen = enabled;
 
 	m_GraphicsSettingsDirty = true;
+#endif
 }

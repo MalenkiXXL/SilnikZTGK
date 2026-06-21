@@ -6,8 +6,8 @@ struct GraphicsSettingsChangedEvent {};
 
 struct GraphicsSettings {
     int MsaaSamples = 4;
-    int WindowWidth = 1280;   // Domyślne wartości zapasowe przed maksymalizacją
-    int WindowHeight = 720;
+    int WindowWidth = 1920;   
+    int WindowHeight = 1080;
     bool Fullscreen = true;
 
     static constexpr int ResolutionCount = 5;

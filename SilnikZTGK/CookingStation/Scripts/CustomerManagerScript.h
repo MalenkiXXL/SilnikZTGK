@@ -74,39 +74,39 @@ private:
         float rotationOffsetY = 90.0f;
         float heightOffset = 1.0f;
         std::string animPath = "";
+        std::string targetTag = "NormalCustomer";
 
         if (isHelper)
         {
-            // MARCHEWKA
             if (chosenModel.find("marchewka") != std::string::npos || chosenModel.find("test.gltf") != std::string::npos)
             {
                 finalScale = glm::vec3(1.0f, 1.0f, 1.0f);
                 rotationOffsetY = -90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/marchewka-siedzi.gltf";
+                targetTag = "HelperCustomer_Marchewka";
             }
-            // POMIDOR
             else if (chosenModel.find("pomidor") != std::string::npos)
             {
                 finalScale = glm::vec3(1.0f, 1.0f, 1.0f);
                 rotationOffsetY = -90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/pomidor-siedzi.gltf";
+                targetTag = "HelperCustomer_Pomidor";
             }
-            // RZODKIEWKA
             else if (chosenModel.find("rzodkiewka") != std::string::npos)
             {
                 finalScale = glm::vec3(1.2f, 1.2f, 1.2f);
                 rotationOffsetY = 90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/rzodkiewka-siedzi.gltf";
+                targetTag = "HelperCustomer_Rzodkiewka";
             }
         }
         else
         {
-            // LUDZIE
             animPath = "CookingStation/Assets/models/animacje/klienci/klient-siedzi.gltf";
         }
 
         auto builder = GetScene()->GetWorld().BuildEntity();
-        builder.With<TagComponent>({ isHelper ? "HelperCustomer" : "NormalCustomer" });
+        builder.With<TagComponent>({ targetTag });
 
         auto* chairTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(targetChair);
         TransformComponent tc;
@@ -219,7 +219,7 @@ private:
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
             std::string tag = tags->dense[i].Tag;
-            if (tag == "NormalCustomer" || tag == "HelperCustomer" || tag == "NajedzonyPomocnik") {
+            if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos || tag.find("NajedzonyPomocnik") != std::string::npos) {
                 Entity customer = tags->reverse[i];
                 auto* custTransform = transforms->Get(customer);
 

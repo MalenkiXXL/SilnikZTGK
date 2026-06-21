@@ -1,6 +1,6 @@
 {
 	"asset":{
-		"generator":"Khronos glTF Blender I/O v4.4.56",
+		"generator":"Khronos glTF Blender I/O v4.5.48",
 		"version":"2.0"
 	},
 	"scene":0,
@@ -55,8 +55,8 @@
 	],
 	"images":[
 		{
-			"mimeType": "image/png",
-			"name": "palette",
+			"mimeType":"image/png",
+			"name":"palette",
 			"uri": "../../../textures/palette.png"
 		}
 	],
@@ -67,12 +67,12 @@
 			"count":352,
 			"max":[
 				0.13639135658740997,
-				0,
+				0.04452824965119362,
 				0.06162654608488083
 			],
 			"min":[
 				-0.1519380658864975,
-				-0.04454056918621063,
+				-1.231953501701355e-05,
 				-0.06162658706307411
 			],
 			"type":"VEC3"

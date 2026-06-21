@@ -6,7 +6,6 @@
 #include "CookingStation/Events/WindowEvent.h"
 #include "CookingStation/Events/MouseEvent.h"
 
-// NOWE: Zeby móc wysłać event zmiany grafiki bezpośrednio do aplikacji
 #include "CookingStation/Core/Application.h"
 #include "CookingStation/Core/GraphicsSettings.h"
 #include "CookingStation/Events/GameEvents.h"
@@ -18,8 +17,6 @@ Window::Window(unsigned int width, unsigned int height, const std::string name)
 Window::~Window()
 {}
 
-// POPRAWKA: Callback bledow GLFW - pozwala zobaczyc PRAWDZIWA przyczyne
-// (np. brak wsparcia OpenGL 3.3 Core na karcie graficznej), zamiast cichego nullptr.
 static void GLFWErrorCallback(int error, const char* description)
 {
     spdlog::error("GLFW Error [{}]: {}", error, description);

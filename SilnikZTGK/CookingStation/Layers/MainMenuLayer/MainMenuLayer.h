@@ -10,6 +10,7 @@
 #include <cstddef>
 
 class SettingsMenuPanel;
+class CreditsPanel;
 class MainMenuLayer : public Layer {
 public:
     MainMenuLayer() : Layer("MainMenuLayer") {}
@@ -67,6 +68,7 @@ private:
     static constexpr int MsaaOptionCount = 4;
 
     std::shared_ptr<SettingsMenuPanel> m_SettingsPanel;
+    std::shared_ptr<CreditsPanel> m_CreditsPanel;
 
     std::size_t m_ShowMenuSubId = 0;
 

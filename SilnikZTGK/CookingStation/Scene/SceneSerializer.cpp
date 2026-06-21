@@ -191,12 +191,15 @@ void SceneSerializer::Serialize(const std::string& filepath) {
 
         if (meshStorage) {
             auto* mesh = meshStorage->Get(entity);
-            if (mesh && mesh->ModelPtr) {
-                item["model_path"] = mesh->ModelPtr->FilePath;
-            }
 
-            if (!mesh->ShaderName.empty() && mesh->ShaderName != "ModelShader") {
-                item["shader_name"] = mesh->ShaderName;
+            if (mesh) {
+                if (mesh->ModelPtr) {
+                    item["model_path"] = mesh->ModelPtr->FilePath;
+                }
+
+                if (!mesh->ShaderName.empty() && mesh->ShaderName != "ModelShader") {
+                    item["shader_name"] = mesh->ShaderName;
+                }
             }
         }
 

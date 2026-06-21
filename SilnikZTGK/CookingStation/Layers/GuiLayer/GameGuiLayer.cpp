@@ -288,7 +288,7 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
 
         bool isFirst = (i == 0);
         float ticketHeight = isFirst ? (220.0f * baseScale) : (140.0f * baseScale);
-        bool isHelper = (tagComp->Tag == "HelperCustomer");
+        bool isHelper = (tagComp->Tag.find("HelperCustomer") != std::string::npos);
 
         std::shared_ptr<Texture> ticketTex = isHelper ? m_HelperOrderTex : m_CustomerOrderTex;
         if (!ticketTex) ticketTex = m_BookCloudIcon;
@@ -377,15 +377,18 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
 
+    // KROK 1: Najpierw rysujemy w pe³ni œrodowisko siatki 3D (Z W£ASNYM VIEWPORTEM)
     if (m_BuildModePanel.IsActive() && m_PausePanel && !m_PausePanel->IsPaused()) {
-        Renderer2D::BeginScene(uiProj);
-        m_BuildModePanel.DrawOverlay(m_ViewportWidth, m_ViewportHeight, baseScale);
-        Renderer2D::EndScene();
-
-        glDisable(GL_DEPTH_TEST);
+        m_BuildModePanel.DrawActiveGrid(m_ActiveScene, gameX, gameY, gameWidth, gameHeight, baseScale);
     }
 
+    // KROK 2: Otwieramy Scene2D dla interfejsu
     Renderer2D::BeginScene(uiProj);
+
+    // KROK 3: Rysujemy warstwê napisów OVERLAY u góry 
+    if (m_BuildModePanel.IsActive() && m_PausePanel && !m_PausePanel->IsPaused()) {
+        m_BuildModePanel.DrawOverlay(gameX, gameY, gameWidth, gameHeight, baseScale);
+    }
 
     bool isBookOpen = m_RecipeBookPanel.IsOpen();
     bool isPausedBlocked = m_IsGamePaused && !m_BuildModePanel.IsActive();
@@ -474,13 +477,38 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         int revealedCount = GameManagerScript::s_TutorialCharsRevealed;
 
         float maxLineWidth = gameWidth * 0.70f;
+
+        // BAZOWE POZYCJE (dó³ lub góra ekranu)
         float dialogY = GameManagerScript::s_TutorialDialogIsBottom ?
             (gameY + gameHeight * 0.75f) :
             (gameY + gameHeight * 0.15f);
+        float dialogX = gameX + gameWidth * 0.5f;
+
+        // --- NOWOŒÆ: PROJEKCJA 3D (Zamiast na sta³e na œrodku ekranu, œledzimy encjê w œwiecie 3D!) ---
+        if (GameManagerScript::s_TutorialTrackedEntity.id != std::numeric_limits<std::size_t>::max() && m_ActiveScene) {
+            auto* tf = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(GameManagerScript::s_TutorialTrackedEntity);
+            auto* camera = m_ActiveScene->GetCamera();
+            if (tf && camera) {
+                glm::vec3 worldPos = tf->GetPosition() + GameManagerScript::s_TutorialTrackedOffset;
+                glm::mat4 view = camera->GetViewMatrix();
+                float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+                float orthoSize = 10.0f * (camera->Zoom / 45.0f);
+                glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+                glm::mat4 viewProj = proj3D * view;
+
+                glm::vec4 clipSpace = viewProj * glm::vec4(worldPos, 1.0f);
+                if (clipSpace.w > 0.0f) {
+                    glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
+                    dialogX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
+                    dialogY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
+                }
+            }
+        }
+        // -----------------------------------------------------------------------------------------
 
         float speakerScale = 2.0f * baseScale;
         float speakerWidth = Gui::MeasureTextWidth(speaker, speakerScale);
-        float speakerX = gameX + (gameWidth - speakerWidth) * 0.5f;
+        float speakerX = dialogX - speakerWidth * 0.5f; // Wyœrodkowane wzglêdem dynamicznego dialogX
 
         Gui::DrawGuiText(speaker, { speakerX + 2.0f, dialogY - 50.0f * baseScale + 2.0f }, speakerScale, { 0.0f, 0.0f, 0.0f, 0.4f });
         Gui::DrawGuiText(speaker, { speakerX, dialogY - 50.0f * baseScale }, speakerScale, GameManagerScript::s_TutorialSpeakerColor);
@@ -512,7 +540,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         float lineHeight = Gui::MeasureTextHeight("A", textScale) * 1.5f;
         int charsLeftToDraw = revealedCount;
 
-        float maxActualWidth = 0.0f; 
+        float maxActualWidth = 0.0f;
         float lastLineY = currentY;
 
         for (const auto& line : lines) {
@@ -523,12 +551,11 @@ void GameGuiLayer::OnUpdate(Timestep ts)
             charsLeftToDraw -= charsInThisLine;
 
             float totalLineWidth = Gui::MeasureTextWidth(line, textScale);
-            float lineStartX = gameX + (gameWidth - totalLineWidth) * 0.5f;
+            float lineStartX = dialogX - totalLineWidth * 0.5f; // Wyœrodkowane wzglêdem dynamicznego dialogX
 
             Gui::DrawGuiText(drawnLine, { lineStartX + 2.0f, currentY + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.5f });
             Gui::DrawGuiText(drawnLine, { lineStartX, currentY }, textScale, glm::vec4(1.0f));
 
-            // Rejestrujemy najwiêksz¹ szerokoœæ!
             if (totalLineWidth > maxActualWidth) {
                 maxActualWidth = totalLineWidth;
             }
@@ -546,7 +573,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                 float iconSizeY = 80.0f * baseScale;
                 glm::vec2 iconSize = GuiUtils::CalculateAspectSize(s_LMBIcon, iconSizeY);
 
-                float blockRightEdge = gameX + (gameWidth + maxActualWidth) * 0.5f;
+                float blockRightEdge = dialogX + maxActualWidth * 0.5f; // Wzglêdem dialogX
                 float blockCenterY = (dialogY + lastLineY) * 0.5f;
 
                 glm::vec2 iconPos = {
@@ -560,13 +587,11 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                 Renderer2D::DrawQuad(iconPos, iconSize, s_LMBIcon, { 1.0f, 1.0f, 1.0f, GameManagerScript::s_TutorialIconAlpha }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
                 Renderer2D::EndScene();
-
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
                 Renderer2D::BeginScene(uiProj);
 
                 float wave = (std::sin(timeNow * 4.0f) + 1.0f) * 0.5f;
-                float flashSpike = std::pow(wave, 16.0f); 
+                float flashSpike = std::pow(wave, 16.0f);
 
                 float glowScale = 1.0f + (flashSpike * 0.1f);
                 glm::vec2 glowSize = iconSize * glowScale;
@@ -607,7 +632,9 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
 
-    if (m_BuildModePanel.IsActive()) m_BuildModePanel.UpdatePlacement(m_ActiveScene);
+    if (m_BuildModePanel.IsActive()) {
+        m_BuildModePanel.UpdatePlacement(m_ActiveScene, gameX, gameY, gameWidth, gameHeight, baseScale);
+    }
 
     if (m_PausePanel && m_PausePanel->IsPaused()) {
         glEnable(GL_BLEND);
@@ -1035,7 +1062,7 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
 
     for (size_t i = 0; i < tags->dense.size(); ++i) {
         std::string tag = tags->dense[i].Tag;
-        if (tag == "NormalCustomer" || tag == "HelperCustomer") {
+        if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos) {
             Entity custEntity = tags->reverse[i];
             auto* nsc = scripts->Get(custEntity);
             auto* tf = transforms->Get(custEntity);
