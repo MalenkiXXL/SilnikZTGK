@@ -16,11 +16,6 @@ float Input::s_PreviousGamepadAxes[6] = { 0.0f };
 
 bool Input::s_UICapturesMouse = false;
 
-// POPRAWKA: centralny "straznik" - jesli natywne okno GLFW jest nullptr
-// (np. bo glfwCreateWindow sie nie powiodlo), kazda funkcja Input:: zwraca
-// bezpieczna wartosc domyslna zamiast wywolywac glfw*(nullptr, ...), co
-// powodowalo Access Violation w glfw3.dll. Log wypisuje sie tylko RAZ,
-// zeby nie zaspamowac konsoli (te funkcje sa wolane co klatke).
 static GLFWwindow* GetSafeNativeWindow()
 {
 	auto window = Application::Get().GetWindow().GetNativeWindow();
@@ -177,7 +172,7 @@ std::pair<float, float> Input::GetMousePosition()
 
 std::pair<float, float> Input::GetWindowSize() {
 	auto window = GetSafeNativeWindow();
-	if (!window) return { 1920.0f, 1080.0f }; // bezpieczna wartosc domyslna, by aspect ratio nie wybuchal dzieleniem przez 0
+	if (!window) return { 1920.0f, 1080.0f }; 
 
 	int width, height;
 	glfwGetWindowSize(window, &width, &height);

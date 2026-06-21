@@ -27,12 +27,11 @@ public:
 
     void OnCreate() override
     {
-        // 1. Definiujemy, co jest w menu (odblokowane pozostałe opcje!)
         std::vector<IngredientType> menu = {
             IngredientType::Tomato,
-            IngredientType::Cheese,
+       /*     IngredientType::Cheese,
             IngredientType::Ham,
-            IngredientType::Sandwich
+            IngredientType::Sandwich*/
         };
 
         // 2. Losujemy jeden ze składników
@@ -43,7 +42,6 @@ public:
         WantedIngredient = menu[dist(gen)];
         OrderTaken = false;
 
-        // NOWE: 3. Losujemy kwotę do zapłaty (25, 50 lub 75)
         std::vector<float> prices = { 25.0f, 50.0f, 75.0f };
         std::uniform_int_distribution<> priceDist(0, prices.size() - 1);
         OrderPrice = prices[priceDist(gen)];
@@ -124,7 +122,6 @@ public:
             spdlog::info("Klient nr {} dostal to, czego chcial! Zjada ze smakiem.", m_Entity.id);
             if (GameManagerScript::s_Instance)
             {
-                // NOWE: Przekazujemy wylosowaną cenę do Eventu, zamiast twardego 50.0f
                 OrderFulfilledEvent e(OrderPrice);
                 GetScene()->GetWorld().GetEventBus().Publish(e);
                 spdlog::info("Klient nr {} zaplacil {} monet!", m_Entity.id, OrderPrice);
@@ -135,11 +132,18 @@ public:
         else
         {
             spdlog::info("Klient nr {} dostal puste/zle zamowienie! Wychodzi bez placenia.", m_Entity.id);
+
+
+            if (GameManagerScript::s_Instance)
+            {
+                OrderFulfilledEvent e(0.0f);
+                GetScene()->GetWorld().GetEventBus().Publish(e);
+            }
+
             auto* tag = GetComponent<TagComponent>();
             if (tag) tag->Tag = "ZlyKlient";
         }
 
-        // --- ZACHOWANE: Ostateczne usuwanie klienta ---
         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
         spdlog::info("PUBLISHED DESTROY EVENT");
     }

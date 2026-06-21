@@ -8,7 +8,7 @@
 #include "../Utils/GuiUtils.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Renderer2D.h"
-#include <GLFW/glfw3.h> // Wymagane do sprawdzenia rozdzielczości monitora
+#include <GLFW/glfw3.h> 
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 
@@ -319,6 +319,7 @@ void SettingsMenuPanel::Draw(float baseScale) {
 
             Application::Get().ApplyGraphicsSettings();
         }
+        SetVisible(false);
     }
 
     s_LastMouseStateSettings = currentMouseState;
