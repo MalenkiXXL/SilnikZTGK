@@ -11,13 +11,13 @@ enum class TutorialState {
     WaitForCrateClick,   
     WaitForBoardSpawn,       
     WaitForIngredientOnBoard, 
-    WaitForIngredientInPot, 
     WaitForChopping,          
     WaitForPlateTransfer,
-    WaitForPotPlacement,
     BurnedSaladDialog,
-    WaitForCooking,
-    WaitForServing,
+    WaitForPotPlacement, 
+    WaitForIngredientInPot,   
+	WaitForCooking,
+    WaitForDelivery,
     Outro
 };
 
@@ -57,6 +57,7 @@ private:
     glm::vec3 m_BoardStandOriginalPos;
     glm::vec3 m_PotOriginalPos;
     glm::vec3 m_BurnerOriginalPos;
+
 
     Entity FindEntityByName(const std::string& name);
     void HideUnderground(Entity e);

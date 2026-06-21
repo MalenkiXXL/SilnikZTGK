@@ -15,7 +15,6 @@ class MachineScript : public ScriptableEntity
 {
 protected:
     float m_CookTime = 10.0f;
-    float m_CurrentTime = 0.0f;
     float m_AutoDetectRadius = 3.0f;
     bool m_IsHeld = false;
     std::size_t m_ClickSubId = 0;
@@ -23,7 +22,6 @@ protected:
     bool m_IsNewlySpawned = false;
     float m_PickupDelay = 0.0f;
 
-    Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
     Entity m_LastHighlightedPlate = { std::numeric_limits<std::size_t>::max(), 0 };
 
     bool m_IsMouseHoveringFood = false;
@@ -34,10 +32,15 @@ protected:
 
 public:
 
+    Entity m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+    float m_CurrentTime = 0.0f;
+
     virtual void TryTransferToPlate()
     {
         // NAPRAWA: Przeliczenie matematyczne siatki w momencie transferu
         Entity targetPlate = GetClosestAvailablePlate();
+        auto* tag = GetScene()->GetWorld().GetComponent<TagComponent>(targetPlate);
+        spdlog::info("TryTransferToPlate -> target tag: {}", tag ? tag->Tag : "BRAK");
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())
         {
@@ -301,50 +304,47 @@ protected:
 
         glm::ivec2 myCell = GridSystem::WorldToCell(myTransform->GetPosition());
 
-        // --- ARCHITEKTONICZNA BLOKADA CELU (STICKY LOCK) ---
-        // Jeœli maszyna ma ju¿ namierzony talerz, najpierw sprawdzamy jego aktualn¹ pozycjê.
-        // Zapobiega to chaotycznemu prze³¹czaniu celów, gdy inny talerz podjedzie bli¿ej.
+        // Sticky lock - bez zmian
         if (m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max())
         {
             auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_LastHighlightedPlate);
             if (plateTransform)
             {
                 glm::ivec2 plateCell = GridSystem::WorldToCell(plateTransform->GetPosition());
-
-                // Sprawdzamy, czy ten konkretny talerz nadal znajduje siê w zasiêgu s¹siednich kratek (promieñ 1)
                 if (std::abs(myCell.x - plateCell.x) <= 1 && std::abs(myCell.y - plateCell.y) <= 1)
                 {
-                    // Talerz wci¹¿ jest w zasiêgu! Zwracamy go natychmiast i ignorujemy resztê œwiata.
                     return m_LastHighlightedPlate;
                 }
             }
         }
 
-        // Jeœli nie by³o zablokowanego talerza lub stary uciek³ z zasiêgu, szukamy nowego:
         Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 999.0f;
 
-        auto* tagSet = GetScene()->GetWorld().GetComponentVector<TagComponent>();
-        if (tagSet)
+        // ZMIANA: szukamy po realnym PlateScript, nie po podci¹gu tagu
+        auto* scriptSet = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+        if (scriptSet)
         {
-            for (size_t i = 0; i < tagSet->dense.size(); ++i)
+            for (size_t i = 0; i < scriptSet->dense.size(); ++i)
             {
-                const std::string& tagName = tagSet->dense[i].Tag;
-                if (tagName.find("Plate") != std::string::npos || tagName.find("Talerz") != std::string::npos)
+                bool isRealPlate = false;
+                for (auto& s : scriptSet->dense[i].Scripts) {
+                    if (s.Name == "PlateScript") { isRealPlate = true; break; }
+                }
+                if (!isRealPlate) continue;
+
+                Entity plateEntity = scriptSet->reverse[i];
+                auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(plateEntity);
+                if (plateTransform)
                 {
-                    Entity plateEntity = tagSet->reverse[i];
-                    auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(plateEntity);
-                    if (plateTransform)
+                    glm::ivec2 plateCell = GridSystem::WorldToCell(plateTransform->GetPosition());
+                    if (std::abs(myCell.x - plateCell.x) <= 1 && std::abs(myCell.y - plateCell.y) <= 1)
                     {
-                        glm::ivec2 plateCell = GridSystem::WorldToCell(plateTransform->GetPosition());
-                        if (std::abs(myCell.x - plateCell.x) <= 1 && std::abs(myCell.y - plateCell.y) <= 1)
+                        float dist = glm::distance(myTransform->GetPosition(), plateTransform->GetPosition());
+                        if (dist < closestDist)
                         {
-                            float dist = glm::distance(myTransform->GetPosition(), plateTransform->GetPosition());
-                            if (dist < closestDist)
-                            {
-                                closestDist = dist;
-                                closestPlate = plateEntity;
-                            }
+                            closestDist = dist;
+                            closestPlate = plateEntity;
                         }
                     }
                 }
