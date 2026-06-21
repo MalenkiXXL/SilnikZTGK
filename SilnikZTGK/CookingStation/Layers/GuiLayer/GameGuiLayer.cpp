@@ -377,15 +377,18 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
 
+    // KROK 1: Najpierw rysujemy w pe³ni œrodowisko siatki 3D (Z W£ASNYM VIEWPORTEM)
     if (m_BuildModePanel.IsActive() && m_PausePanel && !m_PausePanel->IsPaused()) {
-        Renderer2D::BeginScene(uiProj);
-        m_BuildModePanel.DrawOverlay(m_ViewportWidth, m_ViewportHeight, baseScale);
-        Renderer2D::EndScene();
-
-        glDisable(GL_DEPTH_TEST);
+        m_BuildModePanel.DrawActiveGrid(m_ActiveScene, gameX, gameY, gameWidth, gameHeight, baseScale);
     }
 
+    // KROK 2: Otwieramy Scene2D dla interfejsu
     Renderer2D::BeginScene(uiProj);
+
+    // KROK 3: Rysujemy warstwê napisów OVERLAY u góry 
+    if (m_BuildModePanel.IsActive() && m_PausePanel && !m_PausePanel->IsPaused()) {
+        m_BuildModePanel.DrawOverlay(gameX, gameY, gameWidth, gameHeight, baseScale);
+    }
 
     bool isBookOpen = m_RecipeBookPanel.IsOpen();
     bool isPausedBlocked = m_IsGamePaused && !m_BuildModePanel.IsActive();
@@ -607,7 +610,9 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     Renderer2D::EndScene();
     glDisable(GL_SCISSOR_TEST);
 
-    if (m_BuildModePanel.IsActive()) m_BuildModePanel.UpdatePlacement(m_ActiveScene);
+    if (m_BuildModePanel.IsActive()) {
+        m_BuildModePanel.UpdatePlacement(m_ActiveScene, gameX, gameY, gameWidth, gameHeight, baseScale);
+    }
 
     if (m_PausePanel && m_PausePanel->IsPaused()) {
         glEnable(GL_BLEND);
