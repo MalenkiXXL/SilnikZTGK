@@ -63,9 +63,8 @@ public:
     Entity m_TargetPlate = { std::numeric_limits<std::size_t>::max(), 0 };
     bool m_IsCarryingPlate = false;
 
-    // BEZWZGLĘDNA KOLEJKA FIFO (Żadnego omijania!)
     struct WaiterTask {
-        int Type; // 0 = Klient Usiadł (Zbierz zamówienie), 1 = Talerz Wyjechał (Wydaj Talerz)
+        int Type; 
         Entity Target;
     };
     std::vector<WaiterTask> m_TaskQueue;

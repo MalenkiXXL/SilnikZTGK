@@ -185,6 +185,8 @@ private:
         }
         builder.With<NativeScriptComponent>(nsc);
 
+        builder.Build();
+
         if (isGrandma) {
             CustomerScript::s_GrandmaTargetChair = targetChair;
 
@@ -276,7 +278,11 @@ private:
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
             std::string tag = tags->dense[i].Tag;
-            if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos || tag.find("NajedzonyPomocnik") != std::string::npos || tag == "GrandmaCustomer") {
+            // === ZMIANA: Dodano "ZadowolonyKlient" oraz "ZlyKlient" do sprawdzania zajętości krzesła ===
+            if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos ||
+                tag.find("NajedzonyPomocnik") != std::string::npos || tag == "GrandmaCustomer" ||
+                tag == "ZadowolonyKlient" || tag == "ZlyKlient") {
+
                 Entity customer = tags->reverse[i];
                 auto* custTransform = transforms->Get(customer);
 
@@ -285,7 +291,7 @@ private:
                     glm::vec2 custPos2D = { custTransform->GetPosition().x, custTransform->GetPosition().z };
                     if (glm::distance(chairPos2D, custPos2D) < 0.5f)
                     {
-                        return false;
+                        return false; // Krzesło jest wciąż fizycznie zajęte!
                     }
                 }
             }

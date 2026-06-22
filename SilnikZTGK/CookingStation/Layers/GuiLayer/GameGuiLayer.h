@@ -65,6 +65,8 @@ private:
     CarouselUI m_IngredientsCarousel;
     CarouselUI m_MachinesCarousel;
 
+    std::shared_ptr<Texture> m_SmileFaceIcon;
+    std::shared_ptr<Texture> m_AngryFaceIcon;
     std::shared_ptr<Texture> m_CoinIcon;
     std::shared_ptr<Texture> m_CoinCloudIcon;
     std::shared_ptr<Texture> m_CornerIcon;

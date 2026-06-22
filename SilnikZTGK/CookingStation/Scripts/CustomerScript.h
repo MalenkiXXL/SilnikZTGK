@@ -3,12 +3,13 @@
 #include "CookingStation/Scene/ecs.h" 
 #include "CookingStation/Events/GameEvents.h"
 #include "CookingStation/Core/AudioEngine.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h" 
 #include <string>
 #include <vector>
 #include <spdlog/spdlog.h>
 #include <random>
 
-enum class CustomerState { Spawning, WalkingToChair, Seated };
+enum class CustomerState { Spawning, WalkingToChair, Seated, LeavingReaction };
 
 class CustomerScript : public ScriptableEntity
 {
@@ -24,6 +25,9 @@ public:
     glm::vec3 TargetPos = { 0.0f, 0.0f, 0.0f };
     glm::vec3 FinalRotation = { 0.0f, 0.0f, 0.0f };
     bool IsGrandma = false;
+
+    float m_ReactionTimer = 0.0f;
+    bool m_WasCorrect = false;
 
     std::size_t m_ValidationResponseSubId = 0;
     bool IsPendingDestroy = false;
@@ -42,11 +46,7 @@ public:
         auto* tagComp = GetComponent<TagComponent>();
         IsGrandma = (tagComp && tagComp->Tag == "GrandmaCustomer");
 
-        std::vector<IngredientType> menu = {
-            IngredientType::Tomato, IngredientType::Cheese,
-            IngredientType::Ham, IngredientType::Sandwich
-        };
-
+        std::vector<IngredientType> menu = { IngredientType::Tomato, IngredientType::Cheese, IngredientType::Ham, IngredientType::Sandwich };
         std::random_device rd;
         std::mt19937 gen(rd());
 
@@ -65,11 +65,10 @@ public:
 
         OrderTaken = false;
 
+        // Przywrócone losowanie ceny z poprzedniego kodu
         std::vector<float> prices = { 25.0f, 50.0f, 75.0f };
         std::uniform_int_distribution<> priceDist(0, (int)prices.size() - 1);
         OrderPrice = prices[priceDist(gen)];
-
-        spdlog::info("Klient nr {} usiadl/zmierza do stolika. Czeka na: {}", m_Entity.id, IngredientTypeToString(WantedIngredient));
 
         auto& bus = GetScene()->GetWorld().GetEventBus();
 
@@ -80,16 +79,12 @@ public:
         m_ServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
             if (e.Customer.id == m_Entity.id) {
                 m_ReceivedFood = e.ServedFood;
-                GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderRequestEvent{
-                    m_Entity, e.ServedFood, WantedIngredient
-                    });
+                GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderRequestEvent{ m_Entity, e.ServedFood, WantedIngredient });
             }
             });
 
         m_ValidationResponseSubId = bus.Subscribe<ValidateOrderResponseEvent>([this](const ValidateOrderResponseEvent& e) {
-            if (e.Customer.id == m_Entity.id) {
-                this->ReceiveFood(e.IsCorrect);
-            }
+            if (e.Customer.id == m_Entity.id) { this->ReceiveFood(e.IsCorrect); }
             });
 
         m_OrderSubId = bus.Subscribe<OrderTakenEvent>([this](const OrderTakenEvent& e) {
@@ -102,13 +97,23 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
+        // 1. Sprawdzanie czy klient jest w trakcie odchodzenia (reakcja na jedzenie)
+        if (State == CustomerState::LeavingReaction) {
+            m_ReactionTimer -= ts.GetSeconds();
+            if (m_ReactionTimer <= 0.0f && !IsPendingDestroy) {
+                IsPendingDestroy = true;
+                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
+            }
+            return; // Zakoñcz update, nie rób nic wiêcej
+        }
+
+        // 2. Chodzenie do stolika
         if (State == CustomerState::WalkingToChair)
         {
             auto* tf = GetComponent<TransformComponent>();
             if (!tf) return;
 
             glm::vec3 pos = tf->GetPosition();
-
             glm::vec3 currentTarget = ReachedWaypoint ? TargetPos : glm::vec3(-9.0f, TargetPos.y, -37.0f);
 
             glm::vec3 dir = currentTarget - pos;
@@ -145,6 +150,7 @@ public:
             }
             else
             {
+                // Naprawiony kod chodzenia (poprzednio popl¹tany z LeavingReaction)
                 dir = glm::normalize(dir);
                 pos += dir * step;
                 tf->SetPosition(pos);
@@ -153,6 +159,47 @@ public:
                 tf->SetRotation({ 0.0f, angle, 0.0f });
             }
         }
+    }
+
+    // PRZYWRÓCONA FUNKCJA!
+    bool IsOrderMatching(const std::vector<IngredientType>& ingredientsOnPlate)
+    {
+        if (ingredientsOnPlate.empty()) return false;
+        for (const auto& item : ingredientsOnPlate)
+        {
+            if (item == WantedIngredient) return true;
+        }
+        return false;
+    }
+
+    virtual void ReceiveFood(bool isCorrectOrder = true)
+    {
+        if (State == CustomerState::LeavingReaction || IsPendingDestroy) return;
+        IsServed = true;
+
+        if (m_ReceivedFood.id != std::numeric_limits<std::size_t>::max()) {
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ReceivedFood });
+            m_ReceivedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+        }
+
+        auto* tagComp = GetComponent<TagComponent>();
+        glm::vec3 highlightColor = { 1.0f, 1.0f, 1.0f };
+
+        if (isCorrectOrder) {
+            if (tagComp) tagComp->Tag = "ZadowolonyKlient";
+            highlightColor = { 0.1f, 1.0f, 0.2f };
+            if (GameManagerScript::s_Instance) GetScene()->GetWorld().GetEventBus().Publish(OrderFulfilledEvent(OrderPrice));
+        }
+        else {
+            if (tagComp) tagComp->Tag = "ZlyKlient";
+            highlightColor = { 1.0f, 0.1f, 0.1f };
+            if (GameManagerScript::s_Instance) GetScene()->GetWorld().GetEventBus().Publish(OrderFulfilledEvent(0.0f));
+        }
+
+        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, highlightColor, 2.0f, false });
+        m_WasCorrect = isCorrectOrder;
+        State = CustomerState::LeavingReaction;
+        m_ReactionTimer = 2.0f;
     }
 
     void OnDestroy() override
@@ -167,54 +214,5 @@ public:
         if (IsGrandma && State == CustomerState::WalkingToChair) {
             s_GrandmaTargetChair = { std::numeric_limits<std::size_t>::max(), 0 };
         }
-    }
-
-    bool IsOrderMatching(const std::vector<IngredientType>& ingredientsOnPlate)
-    {
-        if (ingredientsOnPlate.empty()) return false;
-        for (const auto& item : ingredientsOnPlate)
-        {
-            if (item == WantedIngredient) return true;
-        }
-        return false;
-    }
-
-    virtual void ReceiveFood(bool isCorrectOrder = true)
-    {
-        if (IsPendingDestroy) return;
-        IsPendingDestroy = true;
-        IsServed = true;
-
-        if (m_ReceivedFood.id != std::numeric_limits<std::size_t>::max()) {
-            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ReceivedFood });
-            m_ReceivedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-        }
-
-        if (isCorrectOrder)
-        {
-            spdlog::info("Klient nr {} dostal to, czego chcial!", m_Entity.id);
-            if (GameManagerScript::s_Instance)
-            {
-                OrderFulfilledEvent e(OrderPrice);
-                GetScene()->GetWorld().GetEventBus().Publish(e);
-            }
-            auto* tag = GetComponent<TagComponent>();
-            if (tag) tag->Tag = "ZadowolonyKlient";
-        }
-        else
-        {
-            spdlog::info("Klient nr {} dostal puste/zle zamowienie! Wychodzi bez placenia.", m_Entity.id);
-
-            if (GameManagerScript::s_Instance)
-            {
-                OrderFulfilledEvent e(0.0f);
-                GetScene()->GetWorld().GetEventBus().Publish(e);
-            }
-
-            auto* tag = GetComponent<TagComponent>();
-            if (tag) tag->Tag = "ZlyKlient";
-        }
-
-        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
     }
 };

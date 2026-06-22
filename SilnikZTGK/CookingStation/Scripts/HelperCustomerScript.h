@@ -23,7 +23,6 @@ public:
     float m_FallSpeed = 25.0f;
     float m_CurrentFallY = 14.0f;
 
-    // Zmienne do pulsowania i pierwszego podnoszenia
     bool m_IsWaitingForPickup = false;
     bool m_IsDragged = false;
     float m_DragDelayTimer = 0.0f;
@@ -52,30 +51,25 @@ public:
             }
         }
 
-        // --- NAS£UCHIWANIE NA KLIKNIÊCIE ---
         m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
             [this](const EntityClickedEvent& e) {
-                // Pozwalamy z³apaæ pracownika tylko jeœli siedzi w poczekalni (nie spada i nie zosta³ ju¿ u¿yty)
                 if (e.TargetEntity.id == m_Entity.id && m_IsWaitingForPickup && !m_IsFalling) {
                     m_IsWaitingForPickup = false;
                     m_IsDragged = true;
                     m_DragDelayTimer = 0.0f;
 
-                    // Resetujemy skalê do naturalnej i wy³¹czamy fioletowy shader
                     auto* myTransform = GetComponent<TransformComponent>();
                     if (myTransform) myTransform->SetScale(m_BaseScale);
 
                     auto* mesh = GetComponent<MeshComponent>();
                     if (mesh) mesh->ShaderName = "Default";
 
-                    // Wy³¹czamy nieskoñczone œwiat³o w menad¿erze
                     if (m_IsFirstHelperInstance) {
                         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                             m_Entity, glm::vec3(0.0f), 0.01f, false
                             });
                     }
 
-                    // Kasujemy kafelek z pod³ogi
                     if (m_FloorTile.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_FloorTile });
                         m_FloorTile = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -98,8 +92,10 @@ public:
         CustomerScript::OnDestroy();
     }
 
+    // === ZMIANA: Dodano reakcjê przed teleportacj¹ ===
     void ReceiveFood(bool isCorrectOrder = true) override
     {
+        if (State == CustomerState::LeavingReaction || IsPendingDestroy) return;
         IsServed = true;
 
         if (m_ReceivedFood.id != std::numeric_limits<std::size_t>::max()) {
@@ -107,24 +103,50 @@ public:
             m_ReceivedFood = { std::numeric_limits<std::size_t>::max(), 0 };
         }
 
+        auto* tagComp = GetComponent<TagComponent>();
+        glm::vec3 highlightColor = { 1.0f, 1.0f, 1.0f };
+
         if (isCorrectOrder)
         {
-            auto* tag = GetComponent<TagComponent>();
-            if (tag) tag->Tag = "NajedzonyPomocnik";
-
-            TeleportToWaitingArea();
+            if (tagComp) tagComp->Tag = "ZadowolonyKlient"; // Zmieniamy tymczasowo, by narysowaæ ikonkê na GUI
+            highlightColor = { 0.1f, 1.0f, 0.2f };
         }
         else
         {
-            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
+            if (tagComp) tagComp->Tag = "ZlyKlient";
+            highlightColor = { 1.0f, 0.1f, 0.1f };
         }
+
+        GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, highlightColor, 2.0f, false });
+        m_WasCorrect = isCorrectOrder;
+        State = CustomerState::LeavingReaction;
+        m_ReactionTimer = 2.0f;
     }
 
     void OnUpdate(Timestep ts) override
     {
+        // === ZMIANA: Obs³uga czasu reakcji dla Helpera ===
+        if (State == CustomerState::LeavingReaction) {
+            m_ReactionTimer -= ts.GetSeconds();
+            if (m_ReactionTimer <= 0.0f) {
+                if (m_WasCorrect) {
+                    State = CustomerState::Seated; // Reset stanu
+                    auto* tagComp = GetComponent<TagComponent>();
+                    if (tagComp) tagComp->Tag = "NajedzonyPomocnik"; // Zmieniamy na ostateczny tag przed teleportem
+                    TeleportToWaitingArea();
+                }
+                else {
+                    if (!IsPendingDestroy) {
+                        IsPendingDestroy = true;
+                        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
+                    }
+                }
+            }
+            return; // Przerwij resztê logiki póki œwieci
+        }
+
         if (!IsServed) return;
 
-        // --- ZMODYFIKOWANY SYSTEM SPADANIA ---
         if (m_IsFalling) {
             auto* myTransform = GetComponent<TransformComponent>();
             auto* tileTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_FloorTile);
@@ -148,7 +170,6 @@ public:
             return;
         }
 
-        // --- OCZEKIWANIE (PULSOWANIE) ---
         if (m_IsWaitingForPickup) {
             if (m_IsFirstHelperInstance) {
                 m_PulseTimer += ts.GetSeconds();
@@ -163,18 +184,15 @@ public:
                 if (mesh) {
                     float currentOpacity = (wave + 1.0f) * 0.5f * 0.6f;
                     mesh->ShaderName = "HighlightShader";
-                    // Fioletowy kolor paczek
                     mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity);
                 }
             }
             return;
         }
 
-        // --- PRZECI¥GANIE DO MASZYNY ---
         if (m_IsDragged) {
             glm::vec3 mousePos = GetMouseWorldPosition();
 
-            // Matematyczne przyci¹ganie do siatki (grid snapping) bez BuildMode
             float snapX = std::round((mousePos.x - 1.0f) / 2.0f) * 2.0f + 1.0f;
             float snapZ = std::round((mousePos.z - 1.0f) / 2.0f) * 2.0f + 1.0f;
 
@@ -184,13 +202,11 @@ public:
             }
 
             m_DragDelayTimer += ts.GetSeconds();
-            // Mo¿na od³o¿yæ dopiero po u³amku sekundy, by unikn¹æ upuszczenia w klatce klikniêcia
             if (m_DragDelayTimer > 0.15f && Input::IsMouseButtonJustPressed(0)) {
                 m_IsDragged = false;
             }
             return;
         }
-        // -------------------------------------
 
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
@@ -326,7 +342,7 @@ private:
         }
 
         static bool s_IsFirstEverHelper = true;
-        glm::vec3 purpleColor = glm::vec3(0.513f, 0.109f, 0.364f); // Fioletowy kolor z paczek
+        glm::vec3 purpleColor = glm::vec3(0.513f, 0.109f, 0.364f);
 
         if (s_IsFirstEverHelper) {
             m_IsFirstHelperInstance = true;
