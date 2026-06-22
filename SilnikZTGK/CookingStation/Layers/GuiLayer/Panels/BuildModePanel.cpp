@@ -44,6 +44,10 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   0 });
     m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  0 });
     m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/pan.png"), 0 });
+
+    m_LeftMouseIcon = AssetManager::GetTexture("assets://UI/leftMouse.png");
+    m_RightMouseIcon = AssetManager::GetTexture("assets://UI/rightMouse.png");
+    m_TabIcon = AssetManager::GetTexture("assets://UI/tab.png");
 }
 
 void BuildModePanel::ForceReset() {
@@ -154,6 +158,23 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
 
         Gui::DrawGuiText(label, { textPos.x + 1.5f, textPos.y + 1.5f }, textScale, { 0.0f, 0.0f, 0.0f, 0.55f });
         Gui::DrawGuiText(label, textPos, textScale, m_IsActive ? glm::vec4(0.85f, 0.95f, 1.00f, 1.0f) : glm::vec4(0.70f, 0.80f, 1.00f, 1.0f));
+    }
+
+    if (m_TabIcon && m_TabIcon->GetRendererID() != 0) {
+        // Wysokość to np. 35 pikseli, ale skaluje się razem z animacją "puchnięcia" przycisku
+        float tabHeight = 25.0f * baseScale * m_ButtonScale;
+        float tabAspect = (float)m_TabIcon->GetWidth() / (float)m_TabIcon->GetHeight();
+        glm::vec2 tabSize = { tabHeight * tabAspect, tabHeight };
+
+        // Wyśrodkowane w poziomie względem głównego przycisku. Y rośnie w dół, więc dodajemy wysokość przycisku + margines
+        glm::vec2 tabPos = {
+            scaledPos.x + (scaledSize.x - tabSize.x) * 0.5f,
+            scaledPos.y + scaledSize.y + (12.0f * baseScale)
+        };
+
+        // Lekko przezroczyste, żeby wyglądało jak subtelna podpowiedź
+        glm::vec4 tabTint = { 1.0f, 1.0f, 1.0f, 0.85f };
+        Renderer2D::DrawQuad(tabPos, tabSize, m_TabIcon, tabTint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     }
 
     if (inBounds) {
@@ -292,11 +313,66 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         }
     }
 
-    if (m_HeldMachineIndex >= 0 && m_SlideY > 0.95f) {
-        const std::string hint = "LPM: postaw   PPM / Tab: anuluj";
-        float hs = 0.44f * baseScale;
-        float hw = Gui::MeasureTextWidth(hint, hs);
-        Gui::DrawGuiText(hint, { gameX + (gameWidth - hw) * 0.5f, panelY - 26.0f * baseScale }, hs, { 0.95f, 0.95f, 0.60f, 0.90f });
+    // --- POPRAWKA: Wskazówki sterowania ---
+    bool isHoldingFromPanel = (m_HeldMachineIndex >= 0);
+    bool isMovingExisting = (m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max());
+
+    if ((isHoldingFromPanel || isMovingExisting) && m_SlideY > 0.95f) {
+
+        // WIELKOŚĆ ELEMENTÓW (Zwiększona dla czytelności)
+        float textScale = 0.85f * baseScale;
+        float targetIconHeight = 75.0f * baseScale;
+        float textSpacing = 15.0f * baseScale;
+        float groupSpacing = 100.0f * baseScale;
+
+        std::string placeText = "Place";
+        std::string cancelText = "Cancel";
+
+        float placeTextW = Gui::MeasureTextWidth(placeText, textScale);
+        float cancelTextW = Gui::MeasureTextWidth(cancelText, textScale);
+        float textH = Gui::MeasureTextHeight("P", textScale);
+
+        // MAGIA ASPECT RATIO: Pobieramy szerokość zachowującą proporcje obrazka
+        float leftIconW = targetIconHeight;
+        if (m_LeftMouseIcon && m_LeftMouseIcon->GetRendererID() != 0) {
+            leftIconW = targetIconHeight * ((float)m_LeftMouseIcon->GetWidth() / (float)m_LeftMouseIcon->GetHeight());
+        }
+
+        float rightIconW = targetIconHeight;
+        if (m_RightMouseIcon && m_RightMouseIcon->GetRendererID() != 0) {
+            rightIconW = targetIconHeight * ((float)m_RightMouseIcon->GetWidth() / (float)m_RightMouseIcon->GetHeight());
+        }
+
+        // Całkowita szerokość grupy wyliczona z doskonałymi proporcjami
+        float totalWidth = (leftIconW + textSpacing + placeTextW) + groupSpacing + (rightIconW + textSpacing + cancelTextW);
+        float startX = gameX + (gameWidth - totalWidth) * 0.5f;
+        float centerY = panelY - 45.0f * baseScale; // Uniesione wyżej
+
+        glm::vec4 textColor = { 0.95f, 0.95f, 0.95f, 0.95f };
+        glm::vec4 textShadow = { 0.0f, 0.0f, 0.0f, 0.6f };
+        glm::vec4 iconColor = { 1.0f, 1.0f, 1.0f, 0.95f };
+
+        float cursorX = startX;
+
+        // --- GRUPA 1: LEFT MOUSE + "Place" ---
+        if (m_LeftMouseIcon) {
+            Renderer2D::DrawQuad({ cursorX, centerY - targetIconHeight * 0.5f }, { leftIconW, targetIconHeight }, m_LeftMouseIcon, iconColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        }
+        cursorX += leftIconW + textSpacing;
+
+        float labelY = centerY - textH * 0.4f;
+        Gui::DrawGuiText(placeText, { cursorX + 2.0f, labelY + 2.0f }, textScale, textShadow);
+        Gui::DrawGuiText(placeText, { cursorX, labelY }, textScale, textColor);
+        cursorX += placeTextW + groupSpacing;
+
+        // --- GRUPA 2: RIGHT MOUSE + "Cancel" ---
+        if (m_RightMouseIcon) {
+            Renderer2D::DrawQuad({ cursorX, centerY - targetIconHeight * 0.5f }, { rightIconW, targetIconHeight }, m_RightMouseIcon, iconColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        }
+        cursorX += rightIconW + textSpacing;
+
+        Gui::DrawGuiText(cancelText, { cursorX + 2.0f, labelY + 2.0f }, textScale, textShadow);
+        Gui::DrawGuiText(cancelText, { cursorX, labelY }, textScale, textColor);
     }
 }
 
