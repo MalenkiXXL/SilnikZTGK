@@ -9,21 +9,21 @@
 #include <limits> 
 #include "CookingStation/Scripts/Machines/CuttingBoardScript.h"
 #include "CookingStation/Scripts/Machines/PotScript.h"
+#include "CookingStation/Scripts/PlateScript.h"
+#include "CookingStation/Layers/AssetLayer/AssetManager.h"
 
 Entity TutorialManagerScript::FindEntityByName(const std::string& name) {
     auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
     if (tags) {
         for (size_t i = 0; i < tags->dense.size(); ++i) {
-            if (tags->dense[i].Tag == name) {
-                return tags->reverse[i];
-            }
+            if (tags->dense[i].Tag == name) return tags->reverse[i];
         }
     }
-    return { NULL_ENTITY };
+    return { std::numeric_limits<std::size_t>::max(), 0 };
 }
 
 void TutorialManagerScript::HideUnderground(Entity e) {
-    if (e.id == NULL_ENTITY) return;
+    if (e.id == std::numeric_limits<std::size_t>::max()) return;
     auto* tc = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
     if (tc) {
         glm::vec3 pos = tc->GetPosition();
@@ -33,17 +33,131 @@ void TutorialManagerScript::HideUnderground(Entity e) {
 }
 
 void TutorialManagerScript::RestorePosition(Entity e, glm::vec3 originalPos) {
-    if (e.id == NULL_ENTITY) return;
+    if (e.id == std::numeric_limits<std::size_t>::max()) return;
     auto* tc = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
-    if (tc) {
-        tc->SetPosition(originalPos);
+    if (tc) tc->SetPosition(originalPos);
+}
+
+void TutorialManagerScript::UpdateWaitingUI(float dt) {
+    m_TypewriterTimer += dt;
+    if (m_TypewriterTimer < 5.5f) {
+        GameManagerScript::s_ShowTutorialDialog = true;
+        GameManagerScript::s_TutorialSpeaker = "";
+        GameManagerScript::s_TutorialDialogIsBottom = true;
+        GameManagerScript::s_TutorialIconAlpha = 0.0f;
+
+        int stage = (int)(m_TypewriterTimer / 0.8f);
+        std::string offset = "                        ";
+        if (stage == 0 || stage == 3) GameManagerScript::s_TutorialText = offset + ".";
+        else if (stage == 1 || stage == 4) GameManagerScript::s_TutorialText = offset + ". .";
+        else if (stage == 2 || stage == 5) GameManagerScript::s_TutorialText = offset + ". . .";
+        else GameManagerScript::s_TutorialText = "";
+
+        GameManagerScript::s_TutorialCharsRevealed = GameManagerScript::s_TutorialText.length();
+    }
+    else {
+        GameManagerScript::s_ShowTutorialDialog = false;
     }
 }
 
+void TutorialManagerScript::SetHighlight(Entity target, glm::vec3 color, float duration, bool isInfinite) {
+    if (target.id != std::numeric_limits<std::size_t>::max()) {
+        TriggerHighlightEvent ev;
+        ev.TargetEntity = target;
+        ev.Color = color;
+        ev.Duration = duration;
+        ev.IsInfinite = isInfinite;
+        GetScene()->GetWorld().GetEventBus().Publish(ev);
+    }
+}
+
+glm::vec3 TutorialManagerScript::GetRaycastedMousePos(float targetY) {
+    glm::vec3 floorMousePos = GetMouseWorldPosition();
+    auto* camera = GetScene()->GetCamera();
+    if (camera && std::abs(camera->Front.y) > 0.001f) {
+        float t = (targetY - floorMousePos.y) / camera->Front.y;
+        return floorMousePos + camera->Front * t;
+    }
+    return floorMousePos;
+}
+
+float TutorialManagerScript::UpdateLerp(bool condition, float currentLerp, float dt, float speed) {
+    currentLerp += (condition ? speed : -speed) * dt;
+    return std::clamp(currentLerp, 0.0f, 1.0f);
+}
+
+// 1. ZREFAKTORYZOWANY POOF
+void TutorialManagerScript::PlayPoofAt(glm::vec3 pos) {
+    RestorePosition(m_Poof, pos);
+    auto* poofNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Poof);
+    if (poofNsc) {
+        for (auto& s : poofNsc->Scripts) {
+            if (s.Name == "PoofEmitterScript" && s.Instance) {
+                static_cast<ParticleEmitterScript*>(s.Instance)->Play();
+                break;
+            }
+        }
+    }
+}
+
+Entity TutorialManagerScript::FindClosestPlate(glm::vec3 targetPos, PlateScript** outScript, bool mustBeEmpty) {
+    Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
+    float closestDist = 999.0f;
+
+    auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+    auto* nscVector = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+
+    if (!tags || !nscVector) return closestPlate;
+
+    for (size_t i = 0; i < tags->dense.size(); ++i) {
+        const std::string& tag = tags->dense[i].Tag;
+        if (tag.find("Plate") != std::string::npos || tag.find("Talerz") != std::string::npos) {
+            Entity p = tags->reverse[i];
+            auto* pTf = GetScene()->GetWorld().GetComponent<TransformComponent>(p);
+            if (pTf) {
+                float d = glm::distance(pTf->GetPosition(), targetPos);
+                if (d < closestDist) {
+                    PlateScript* pScript = nullptr;
+                    auto* plateNsc = nscVector->Get(p);
+                    if (plateNsc) {
+                        for (auto& s : plateNsc->Scripts) {
+                            if (s.Name == "PlateScript" && s.Instance) {
+                                pScript = static_cast<PlateScript*>(s.Instance);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (mustBeEmpty && pScript) {
+                        if (!pScript->m_Ingredients.empty() || pScript->m_CompletedDish != IngredientType::None) {
+                            continue; // Talerz nie jest pusty, ignorujemy go!
+                        }
+                    }
+
+                    closestDist = d;
+                    closestPlate = p;
+                    if (outScript) *outScript = pScript;
+                }
+            }
+        }
+    }
+    return closestPlate;
+}
+
+// 3. ZREFAKTORYZOWANE SPRAWDZANIE HOVERA
+bool TutorialManagerScript::IsHovering(Entity e, glm::vec3 mousePos, float radius) {
+    if (Input::IsUICapturingMouse() || e.id == std::numeric_limits<std::size_t>::max()) return false;
+    auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
+    if (!tf) return false;
+    return glm::distance(glm::vec2(mousePos.x, mousePos.z), glm::vec2(tf->GetPosition().x, tf->GetPosition().z)) < radius;
+}
+
+// ==========================================
+// --- G£ÓWNA LOGIKA ---
+// ==========================================
+
 void TutorialManagerScript::OnCreate() {
     GameManagerScript::s_IsTutorialMode = true;
-
-    // Zabieramy domyœlne pomidory z magazynu gracza na start
     GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ IngredientType::Tomato, 5 });
 
     glm::vec4 walterColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f);
@@ -63,29 +177,22 @@ void TutorialManagerScript::OnCreate() {
     m_BoardStand = FindEntityByName("TutorialBoardStand");
     m_PlateSpawner = FindEntityByName("PlateSpawner_62_3");
     m_Waiter = FindEntityByName("Pan Grzybek_1");
-
     m_Poof = FindEntityByName("TutorialPoof");
 
     auto* crateTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TomatoCrate);
-    if (crateTc) {
-        m_CrateOriginalPos = crateTc->GetPosition();
-    }
+    if (crateTc) m_CrateOriginalPos = crateTc->GetPosition();
+
     auto* boardTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Board);
-    if (boardTc) {
-        m_BoardOriginalPos = boardTc->GetPosition();
-    }
+    if (boardTc) m_BoardOriginalPos = boardTc->GetPosition();
+
     auto* standTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_BoardStand);
-    if (standTc) {
-        m_BoardStandOriginalPos = standTc->GetPosition();
-    }
+    if (standTc) m_BoardStandOriginalPos = standTc->GetPosition();
+
     auto* potTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Pot);
-    if (potTc) {
-        m_PotOriginalPos = potTc->GetPosition();
-    }
+    if (potTc) m_PotOriginalPos = potTc->GetPosition();
+
     auto* burnerTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Burner);
-    if (burnerTc) {
-        m_BurnerOriginalPos = burnerTc->GetPosition();
-    }
+    if (burnerTc) m_BurnerOriginalPos = burnerTc->GetPosition();
 
     HideUnderground(m_Pot);
     HideUnderground(m_Burner);
@@ -101,6 +208,9 @@ void TutorialManagerScript::OnCreate() {
 
 void TutorialManagerScript::OnUpdate(Timestep ts) {
     m_StateTimer += ts.GetSeconds();
+    glm::vec3 baseGray = glm::vec3(0.4f, 0.4f, 0.4f);
+    glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
+    glm::vec3 hoverGold = glm::vec3(1.0f, 0.9f, 0.0f);
 
     switch (m_State) {
 
@@ -124,8 +234,8 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             GameManagerScript::s_TutorialDialogIsBottom = line.IsBottom;
 
             int fullLength = line.Text.length();
-
             m_TypewriterTimer += ts.GetSeconds();
+
             if (m_TypewriterTimer > 0.05f) {
                 m_TypewriterTimer = 0.0f;
                 if (GameManagerScript::s_TutorialCharsRevealed < fullLength) {
@@ -154,18 +264,13 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
         }
         else {
             GameManagerScript::s_ShowTutorialDialog = false;
-
             if (camera) {
                 glm::vec3 floorCenter = glm::vec3(0.0f, 0.0f, 0.0f);
-                if (m_Floor.id != NULL_ENTITY) {
+                if (m_Floor.id != std::numeric_limits<std::size_t>::max()) {
                     auto* floorTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Floor);
-                    if (floorTc) {
-                        floorCenter = floorTc->GetPosition();
-                    }
+                    if (floorTc) floorCenter = floorTc->GetPosition();
                 }
-
-                glm::vec3 cameraOffset = glm::vec3(0.0f, 2.0f, 0.0f);
-                camera->TargetPosition = floorCenter + cameraOffset;
+                camera->TargetPosition = floorCenter + glm::vec3(0.0f, 2.0f, 0.0f);
             }
 
             m_State = TutorialState::CameraResetting;
@@ -177,36 +282,20 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
     case TutorialState::CameraResetting: {
         auto* camera = GetScene()->GetCamera();
-        if (camera) {
-            camera->Zoom += (32.0f - camera->Zoom) * 4.0f * ts.GetSeconds();
-        }
+        if (camera) camera->Zoom += (32.0f - camera->Zoom) * 4.0f * ts.GetSeconds();
 
         if (m_StateTimer > 1.5f && m_DialogIndex == 0) {
-            glm::vec3 poofPos = glm::vec3(-7.0f, 2.2f, 1.0f);
-            RestorePosition(m_Poof, poofPos);
-
-            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Poof);
-            if (nsc) {
-                for (auto& s : nsc->Scripts) {
-                    if (s.Name == "PoofEmitterScript" && s.Instance) {
-                        static_cast<ParticleEmitterScript*>(s.Instance)->Play();
-                        break;
-                    }
-                }
-            }
+            PlayPoofAt(glm::vec3(-7.0f, 2.2f, 1.0f));
             m_DialogIndex = 1;
         }
 
         if (m_StateTimer > 1.9f && m_DialogIndex == 1) {
-            glm::vec3 spawnerPos = glm::vec3(-7.0f, 1.2f, 1.0f);
-            RestorePosition(m_PlateSpawner, spawnerPos);
+            RestorePosition(m_PlateSpawner, glm::vec3(-7.0f, 1.2f, 1.0f));
             m_DialogIndex = 2;
         }
 
         if (m_StateTimer > 2.4f && m_DialogIndex == 2) {
-            if (m_Poof.id != NULL_ENTITY) {
-                HideUnderground(m_Poof);
-            }
+            HideUnderground(m_Poof);
             m_State = TutorialState::WaitForCrateSpawn;
             m_StateTimer = 0.0f;
             m_DialogIndex = 0;
@@ -216,18 +305,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
     case TutorialState::WaitForCrateSpawn: {
         if (m_StateTimer > 2.5f && m_DialogIndex == 0) {
-            glm::vec3 poofPos = m_CrateOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f);
-            RestorePosition(m_Poof, poofPos);
-
-            auto* poofNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Poof);
-            if (poofNsc) {
-                for (auto& s : poofNsc->Scripts) {
-                    if (s.Name == "PoofEmitterScript" && s.Instance) {
-                        static_cast<ParticleEmitterScript*>(s.Instance)->Play();
-                        break;
-                    }
-                }
-            }
+            PlayPoofAt(m_CrateOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f));
             m_DialogIndex = 1;
         }
 
@@ -236,21 +314,11 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
             if (GameManagerScript::s_Instance) {
                 int currentTomatoes = GameManagerScript::s_Instance->GetIngredientCount(IngredientType::Tomato);
-                if (currentTomatoes > 1) {
-                    GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ IngredientType::Tomato, currentTomatoes - 1 });
-                }
-                else if (currentTomatoes == 0) {
-                    GetScene()->GetWorld().GetEventBus().Publish(AddIngredientEvent{ IngredientType::Tomato, 1 });
-                }
+                if (currentTomatoes > 1) GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ IngredientType::Tomato, currentTomatoes - 1 });
+                else if (currentTomatoes == 0) GetScene()->GetWorld().GetEventBus().Publish(AddIngredientEvent{ IngredientType::Tomato, 1 });
             }
 
-            // --- ZMIANA: Skrzynka pojawia siê na soczysty ró¿owo! ---
-            TriggerHighlightEvent ev;
-            ev.TargetEntity = m_TomatoCrate;
-            ev.Color = glm::vec3(1.0f, 0.2f, 0.6f);
-            ev.IsInfinite = true;
-            GetScene()->GetWorld().GetEventBus().Publish(ev);
-
+            SetHighlight(m_TomatoCrate, basePink, 0.1f, true);
             m_DialogIndex = 2;
         }
 
@@ -262,27 +330,8 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                         auto* crateScript = static_cast<CrateScript*>(s.Instance);
                         if (crateScript->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
                             RestorePosition(crateScript->m_VisualFood, m_CrateOriginalPos + glm::vec3(0.0f, 0.4f, 0.0f));
+                            SetHighlight(crateScript->m_VisualFood, basePink, 8.0f, true);
                             m_DialogIndex = 3;
-                        }
-                    }
-                }
-            }
-        }
-
-        if (m_DialogIndex == 3) {
-            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_TomatoCrate);
-            if (nsc) {
-                for (auto& s : nsc->Scripts) {
-                    if (s.Name == "CrateScript" && s.Instance) {
-                        auto* crateScript = static_cast<CrateScript*>(s.Instance);
-                        if (crateScript->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
-                            // --- ZMIANA: Jedzenie w skrzynce te¿ na ró¿owo ---
-                            TriggerHighlightEvent evFood;
-                            evFood.TargetEntity = crateScript->m_VisualFood;
-                            evFood.Color = glm::vec3(1.0f, 0.2f, 0.6f);
-                            evFood.Duration = 8.0f;
-                            evFood.IsInfinite = true;
-                            GetScene()->GetWorld().GetEventBus().Publish(evFood);
                         }
                     }
                 }
@@ -300,61 +349,21 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
     case TutorialState::WaitForCrateClick: {
         static float crateHoverLerp = 0.0f;
-        if (m_StateTimer < 0.05f) {
-            crateHoverLerp = 0.0f;
-        }
+        if (m_StateTimer < 0.05f) crateHoverLerp = 0.0f;
 
-        bool isHoveringCrate = false;
         auto* crateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TomatoCrate);
+        glm::vec3 preciseMousePos = GetRaycastedMousePos(crateTf ? crateTf->GetPosition().y : 0.0f);
 
-        // --- NAPRAWA CELOWANIA W SKRZYNKÊ (Rzutowanie 3D zamiast wielkiego hitboxa 4.0f) ---
-        if (crateTf && !Input::IsUICapturingMouse()) {
-            glm::vec3 floorMousePos = GetMouseWorldPosition();
-            auto* camera = GetScene()->GetCamera();
-            glm::vec3 preciseMousePos = floorMousePos;
+        bool isHoveringCrate = IsHovering(m_TomatoCrate, preciseMousePos, 1.5f);
+        crateHoverLerp = UpdateLerp(isHoveringCrate, crateHoverLerp, ts.GetSeconds());
 
-            if (camera) {
-                float targetY = crateTf->GetPosition().y;
-                glm::vec3 rayDir = camera->Front;
-                if (std::abs(rayDir.y) > 0.001f) {
-                    float t = (targetY - floorMousePos.y) / rayDir.y;
-                    preciseMousePos = floorMousePos + rayDir * t;
-                }
-            }
-
-            glm::vec2 mouse2D = { preciseMousePos.x, preciseMousePos.z };
-
-            // Teraz skrzynka ³apie idealnie, tylko z bliskiej odleg³oœci 1.5f!
-            if (glm::distance(mouse2D, glm::vec2(crateTf->GetPosition().x, crateTf->GetPosition().z)) < 1.5f) {
-                isHoveringCrate = true;
-            }
-        }
-
-        if (isHoveringCrate) {
-            crateHoverLerp += ts.GetSeconds() * 8.0f;
-        }
-        else {
-            crateHoverLerp -= ts.GetSeconds() * 8.0f;
-        }
-        crateHoverLerp = std::clamp(crateHoverLerp, 0.0f, 1.0f);
-
-        glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
-        glm::vec3 hoverGold = glm::vec3(1.0f, 0.9f, 0.0f);
         glm::vec3 currentCrateColor = glm::mix(basePink, hoverGold, crateHoverLerp);
 
         auto* crateNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_TomatoCrate);
         if (crateNsc) {
             for (auto& s : crateNsc->Scripts) {
                 if (s.Name == "CrateScript" && s.Instance) {
-                    auto* crateScript = static_cast<CrateScript*>(s.Instance);
-                    if (crateScript->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
-                        TriggerHighlightEvent evFood;
-                        evFood.TargetEntity = crateScript->m_VisualFood;
-                        evFood.Color = currentCrateColor;
-                        evFood.Duration = 8.0f;
-                        evFood.IsInfinite = true;
-                        GetScene()->GetWorld().GetEventBus().Publish(evFood);
-                    }
+                    SetHighlight(static_cast<CrateScript*>(s.Instance)->m_VisualFood, currentCrateColor, 8.0f, true);
                 }
             }
         }
@@ -371,25 +380,11 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
         }
 
         if (tomatoFound) {
-            TriggerHighlightEvent ev;
-            ev.TargetEntity = m_TomatoCrate;
-            ev.Color = glm::vec3(0.0f);
-            ev.Duration = 0.1f;
-            ev.IsInfinite = false;
-            GetScene()->GetWorld().GetEventBus().Publish(ev);
-
+            SetHighlight(m_TomatoCrate, glm::vec3(0.0f), 0.1f, false);
             if (crateNsc) {
                 for (auto& s : crateNsc->Scripts) {
                     if (s.Name == "CrateScript" && s.Instance) {
-                        auto* crateScript = static_cast<CrateScript*>(s.Instance);
-                        if (crateScript->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
-                            TriggerHighlightEvent evFoodClear;
-                            evFoodClear.TargetEntity = crateScript->m_VisualFood;
-                            evFoodClear.Color = glm::vec3(0.0f);
-                            evFoodClear.Duration = 0.1f;
-                            evFoodClear.IsInfinite = false;
-                            GetScene()->GetWorld().GetEventBus().Publish(evFoodClear);
-                        }
+                        SetHighlight(static_cast<CrateScript*>(s.Instance)->m_VisualFood, glm::vec3(0.0f), 0.1f, false);
                     }
                 }
             }
@@ -402,29 +397,15 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     }
 
     case TutorialState::WaitForBoardSpawn: {
-        // Cooldown 1.5s po zabraniu pomidora
         if (m_StateTimer > 1.5f && m_DialogIndex == 0) {
-            glm::vec3 poofPos = m_BoardOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f);
-            RestorePosition(m_Poof, poofPos);
-
-            auto* poofNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Poof);
-            if (poofNsc) {
-                for (auto& s : poofNsc->Scripts) {
-                    if (s.Name == "PoofEmitterScript" && s.Instance) {
-                        static_cast<ParticleEmitterScript*>(s.Instance)->Play();
-                        break;
-                    }
-                }
-            }
+            PlayPoofAt(m_BoardOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f));
             m_DialogIndex = 1;
         }
 
-        // Przywracamy deskê i szafkê u³amek sekundy po efekcie cz¹steczkowym
         if (m_StateTimer > 1.8f && m_DialogIndex == 1) {
             RestorePosition(m_BoardStand, m_BoardStandOriginalPos);
             RestorePosition(m_Board, m_BoardOriginalPos);
             HideUnderground(m_Poof);
-
             m_State = TutorialState::WaitForIngredientOnBoard;
             m_StateTimer = 0.0f;
         }
@@ -438,12 +419,9 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
         if (m_StateTimer < 0.05f) {
             m_TypewriterTimer = 0.0f;
-            tomatoHoverLerp = 0.0f;
-            boardHoverLerp = 0.0f;
-            boardTransitionLerp = 0.0f;
+            tomatoHoverLerp = boardHoverLerp = boardTransitionLerp = 0.0f;
         }
 
-        // --- 1. POZYCJE OBIEKTÓW I ZASIÊG ---
         Entity tomatoBeltItem = { std::numeric_limits<std::size_t>::max(), 0 };
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         if (tags) {
@@ -455,114 +433,34 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        bool inRange = false;
         auto* boardTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Board);
         auto* tomatoTf = GetScene()->GetWorld().GetComponent<TransformComponent>(tomatoBeltItem);
 
+        bool inRange = false;
         if (tomatoTf && boardTf) {
-            float distToBoard = glm::distance(
-                glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z),
-                glm::vec2(tomatoTf->GetPosition().x, tomatoTf->GetPosition().z)
-            );
-            if (distToBoard < 3.5f) {
+            if (glm::distance(glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z),
+                glm::vec2(tomatoTf->GetPosition().x, tomatoTf->GetPosition().z)) < 3.5f) {
                 inRange = true;
             }
         }
 
-        // --- 2. PRECYZYJNA LOGIKA MYSZKI (Rzutowanie z uwzglêdnieniem kamery!) ---
-        glm::vec3 floorMousePos = GetMouseWorldPosition();
-        auto* camera = GetScene()->GetCamera();
-        glm::vec3 preciseMousePos = floorMousePos;
+        glm::vec3 preciseMousePos = GetRaycastedMousePos(boardTf ? boardTf->GetPosition().y : 0.0f);
+        bool isHoveringTomato = IsHovering(tomatoBeltItem, preciseMousePos, 1.5f);
+        bool isHoveringBoard = IsHovering(m_Board, preciseMousePos, 1.5f);
 
-        if (camera && boardTf) {
-            float targetY = boardTf->GetPosition().y;
-            glm::vec3 rayDir = camera->Front;
-            if (std::abs(rayDir.y) > 0.001f) {
-                float t = (targetY - floorMousePos.y) / rayDir.y;
-                preciseMousePos = floorMousePos + rayDir * t;
-            }
-        }
-
-        glm::vec2 mouse2D = { preciseMousePos.x, preciseMousePos.z };
-
-        bool isHoveringTomato = false;
-        bool isHoveringBoard = false;
-
-        if (!Input::IsUICapturingMouse()) {
-            // TERAZ U¯YWAMY IDEALNEGO, MA£EGO ZASIÊGU (1.5f), bo perspektywa jest naprawiona!
-            if (tomatoTf && glm::distance(mouse2D, glm::vec2(tomatoTf->GetPosition().x, tomatoTf->GetPosition().z)) < 1.5f) isHoveringTomato = true;
-            if (boardTf && glm::distance(mouse2D, glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z)) < 1.5f) isHoveringBoard = true;
-        }
-
-        if (isHoveringTomato && inRange) tomatoHoverLerp += ts.GetSeconds() * 8.0f;
-        else tomatoHoverLerp -= ts.GetSeconds() * 8.0f;
-        tomatoHoverLerp = std::clamp(tomatoHoverLerp, 0.0f, 1.0f);
-
-        if (isHoveringBoard && inRange) boardHoverLerp += ts.GetSeconds() * 8.0f;
-        else boardHoverLerp -= ts.GetSeconds() * 8.0f;
-        boardHoverLerp = std::clamp(boardHoverLerp, 0.0f, 1.0f);
-
-        glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
-        glm::vec3 hoverGold = glm::vec3(1.0f, 0.9f, 0.0f);
+        tomatoHoverLerp = UpdateLerp(isHoveringTomato && inRange, tomatoHoverLerp, ts.GetSeconds());
+        boardHoverLerp = UpdateLerp(isHoveringBoard && inRange, boardHoverLerp, ts.GetSeconds());
+        boardTransitionLerp = UpdateLerp(inRange, boardTransitionLerp, ts.GetSeconds(), 3.0f);
 
         glm::vec3 currentTomatoColor = glm::mix(basePink, hoverGold, tomatoHoverLerp);
-        glm::vec3 currentBoardInteractionColor = glm::mix(basePink, hoverGold, boardHoverLerp);
+        glm::vec3 currentBoardColor = glm::mix(baseGray, glm::mix(basePink, hoverGold, boardHoverLerp), boardTransitionLerp);
 
+        SetHighlight(m_Board, currentBoardColor, glm::mix(32.0f, 8.0f, boardTransitionLerp), true);
+        if (inRange) SetHighlight(tomatoBeltItem, currentTomatoColor, 8.0f, true);
 
-        // --- 3. P£YNNE PRZEJŒCIE KOLORU DESKI ---
-        if (inRange) boardTransitionLerp += ts.GetSeconds() * 3.0f;
-        else boardTransitionLerp -= ts.GetSeconds() * 3.0f;
-        boardTransitionLerp = std::clamp(boardTransitionLerp, 0.0f, 1.0f);
+        UpdateWaitingUI(ts.GetSeconds());
 
-        glm::vec3 grayColor = glm::vec3(0.4f, 0.4f, 0.4f);
-        glm::vec3 currentBoardColor = glm::mix(grayColor, currentBoardInteractionColor, boardTransitionLerp);
-        float currentBoardDuration = glm::mix(32.0f, 8.0f, boardTransitionLerp);
-
-        TriggerHighlightEvent evBoard;
-        evBoard.TargetEntity = m_Board;
-        evBoard.Color = currentBoardColor;
-        evBoard.Duration = currentBoardDuration;
-        evBoard.IsInfinite = true;
-        GetScene()->GetWorld().GetEventBus().Publish(evBoard);
-
-        // --- 4. HIGHLIGHT POMIDORA ---
-        if (inRange) {
-            TriggerHighlightEvent evTomato;
-            evTomato.TargetEntity = tomatoBeltItem;
-            evTomato.Color = currentTomatoColor;
-            evTomato.Duration = 8.0f;
-            evTomato.IsInfinite = true;
-            GetScene()->GetWorld().GetEventBus().Publish(evTomato);
-        }
-
-        // --- 5. OBS£UGA UI KROPEK ---
-        m_TypewriterTimer += ts.GetSeconds();
-
-        if (m_TypewriterTimer < 5.5f) {
-            GameManagerScript::s_ShowTutorialDialog = true;
-            GameManagerScript::s_TutorialSpeaker = "";
-            GameManagerScript::s_TutorialDialogIsBottom = true;
-            GameManagerScript::s_TutorialIconAlpha = 0.0f;
-
-            int stage = (int)(m_TypewriterTimer / 0.8f);
-            std::string offset = "                        ";
-            std::string waitingText = "";
-
-            if (stage == 0 || stage == 3) waitingText = offset + ".";
-            else if (stage == 1 || stage == 4) waitingText = offset + ". .";
-            else if (stage == 2 || stage == 5) waitingText = offset + ". . .";
-            else waitingText = "";
-
-            GameManagerScript::s_TutorialText = waitingText;
-            GameManagerScript::s_TutorialCharsRevealed = waitingText.length();
-        }
-        else {
-            GameManagerScript::s_ShowTutorialDialog = false;
-        }
-
-        // --- 6. OBS£UGA KLIKNIÊCIA ---
         bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
-
         if (isActionPressed && inRange && (isHoveringTomato || isHoveringBoard)) {
             auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
             if (nsc) {
@@ -578,30 +476,19 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        // --- 7. WARUNEK PRZEJŒCIA DALEJ ---
         bool hasIngredient = false;
         auto* nscBoard = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
         if (nscBoard) {
             for (auto& s : nscBoard->Scripts) {
                 if (s.Name == "CuttingBoardScript" && s.Instance) {
-                    auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
-                    if (!boardScript->m_Ingredients.empty()) {
-                        hasIngredient = true;
-                    }
+                    if (!static_cast<CuttingBoardScript*>(s.Instance)->m_Ingredients.empty()) hasIngredient = true;
                 }
             }
         }
 
         if (hasIngredient) {
-            TriggerHighlightEvent ev;
-            ev.TargetEntity = m_Board;
-            ev.Color = glm::vec3(0.0f);
-            ev.Duration = 0.1f;
-            ev.IsInfinite = false;
-            GetScene()->GetWorld().GetEventBus().Publish(ev);
-
+            SetHighlight(m_Board, glm::vec3(0.0f), 0.1f, false);
             GameManagerScript::s_ShowTutorialDialog = false;
-
             m_State = TutorialState::WaitForChopping;
             m_StateTimer = 0.0f;
         }
@@ -609,12 +496,8 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     }
 
     case TutorialState::WaitForChopping: {
-        // Niezawodny reset na pocz¹tku stanu
-        if (m_StateTimer < 0.05f) {
-            GameManagerScript::s_TutorialCharsRevealed = 0;
-        }
+        if (m_StateTimer < 0.05f) GameManagerScript::s_TutorialCharsRevealed = 0;
 
-        // --- 1. ODCZYT DANYCH Z MASZYNY W CZASIE RZECZYWISTYM ---
         int currentChops = 0;
         bool isReady = false;
 
@@ -629,45 +512,21 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        // --- 2. IDEALNA SYNCHRONIZACJA Z MYSZK¥ ---
-        // U¿ywamy prêdkoœci 4.0f - to DOK£ADNIE taka sama wartoœæ, jakiej 
-        // Twój GameGuiLayer u¿ywa do rozb³ysków myszki ( std::sin(timeNow * 4.0f) )
         float wave = (std::sin(m_StateTimer * 4.0f) + 1.0f) * 0.5f;
+        SetHighlight(m_Board, glm::vec3(0.61f, 0.44f, 0.8f) * wave, 0.1f, false);
 
-        // Deska oddycha fioletem w idealnym rytmie UI
-        glm::vec3 basePurple = glm::vec3(0.61f, 0.44f, 0.8f);
-        TriggerHighlightEvent evBoard;
-        evBoard.TargetEntity = m_Board;
-        evBoard.Color = basePurple * wave;
-        evBoard.Duration = 0.1f;
-        evBoard.IsInfinite = false;
-        GetScene()->GetWorld().GetEventBus().Publish(evBoard);
-
-        // --- 3. OBS£UGA UI ---
         GameManagerScript::s_ShowTutorialDialog = true;
         GameManagerScript::s_TutorialSpeaker = "";
-
         GameManagerScript::s_TutorialTrackedEntity = m_Board;
         GameManagerScript::s_TutorialTrackedOffset = glm::vec3(0.0f, 3.0f, 0.0f);
-
-        // --- NAPRAWA: Zwracamy sta³e Alpha dla Ikonki ---
-        // Ikona pojawia siê w u³amek sekundy i trzyma wartoœæ 1.0f. 
-        // Twój kod w GameGuiLayer sam zajmie siê teraz lataniem góra-dó³ i rozb³yskami pod ni¹!
         GameManagerScript::s_TutorialIconAlpha = std::clamp(m_StateTimer * 3.0f, 0.0f, 1.0f);
 
         std::string text = std::to_string(currentChops) + " / 3";
         GameManagerScript::s_TutorialText = text;
         GameManagerScript::s_TutorialCharsRevealed = text.length();
 
-        // --- 4. WARUNEK PRZEJŒCIA DALEJ ---
         if (isReady) {
-            TriggerHighlightEvent ev;
-            ev.TargetEntity = m_Board;
-            ev.Color = glm::vec3(0.0f);
-            ev.Duration = 0.1f;
-            ev.IsInfinite = false;
-            GetScene()->GetWorld().GetEventBus().Publish(ev);
-
+            SetHighlight(m_Board, glm::vec3(0.0f), 0.1f, false);
             GameManagerScript::s_ShowTutorialDialog = false;
             GameManagerScript::s_TutorialIconAlpha = 0.0f;
             GameManagerScript::s_TutorialTrackedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -685,202 +544,63 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
         if (m_StateTimer < 0.05f) {
             m_TypewriterTimer = 0.0f;
-            foodHoverLerp = 0.0f;
-            plateHoverLerp = 0.0f;
-            transitionLerp = 0.0f;
+            foodHoverLerp = plateHoverLerp = transitionLerp = 0.0f;
         }
 
-        // --- 1. ZNAJDOWANIE POKROJONEGO POMIDORA ---
-        Entity foodOnBoard = { std::numeric_limits<std::size_t>::max(), 0 };
-        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
-        if (tags) {
-            for (size_t i = 0; i < tags->dense.size(); ++i) {
-                if (tags->dense[i].Tag == "Na_Desce") {
-                    foodOnBoard = tags->reverse[i];
-                    break;
-                }
-            }
-        }
-
-        // --- 2. ZNAJDOWANIE NAJBLI¯SZEGO TALERZA ---
-        Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-        float closestDist = 999.0f;
+        Entity foodOnBoard = FindEntityByName("Na_Desce");
         auto* boardTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Board);
 
-        if (tags && boardTf) {
-            for (size_t i = 0; i < tags->dense.size(); ++i) {
-                const std::string& tag = tags->dense[i].Tag;
-                if (tag.find("Plate") != std::string::npos || tag.find("Talerz") != std::string::npos) {
-                    Entity p = tags->reverse[i];
-                    auto* pTf = GetScene()->GetWorld().GetComponent<TransformComponent>(p);
-                    if (pTf) {
-                        float d = glm::distance(pTf->GetPosition(), boardTf->GetPosition());
-                        if (d < closestDist) {
-                            closestDist = d;
-                            closestPlate = p;
-                        }
-                    }
-                }
-            }
-        }
-
-        // --- 3. SPRAWDZANIE ZASIÊGU (Czy talerz podjecha³?) ---
-        bool inRange = false;
+        Entity closestPlate = FindClosestPlate(boardTf ? boardTf->GetPosition() : glm::vec3(0.0f));
         auto* plateTf = closestPlate.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(closestPlate) : nullptr;
 
-        if (plateTf && boardTf) {
-            float distToPlate = glm::distance(
-                glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z),
-                glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)
-            );
-            if (distToPlate < 3.5f) {
-                inRange = true;
-            }
-        }
+        bool inRange = (plateTf && boardTf && glm::distance(glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z), glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)) < 3.5f);
 
-        // --- 4. PRECYZYJNA LOGIKA MYSZKI (Rzutowanie z napraw¹ perspektywy) ---
-        glm::vec3 floorMousePos = GetMouseWorldPosition();
-        auto* camera = GetScene()->GetCamera();
-        glm::vec3 preciseMousePos = floorMousePos;
+        glm::vec3 preciseMousePos = GetRaycastedMousePos(boardTf ? boardTf->GetPosition().y : 0.0f);
 
-        if (camera && boardTf) {
-            float targetY = boardTf->GetPosition().y;
-            glm::vec3 rayDir = camera->Front;
-            if (std::abs(rayDir.y) > 0.001f) {
-                float t = (targetY - floorMousePos.y) / rayDir.y;
-                preciseMousePos = floorMousePos + rayDir * t;
-            }
-        }
+        bool isHoveringFood = IsHovering(m_Board, preciseMousePos, 1.5f);
+        bool isHoveringPlate = IsHovering(closestPlate, preciseMousePos, 1.5f);
 
-        glm::vec2 mouse2D = { preciseMousePos.x, preciseMousePos.z };
-
-        bool isHoveringFood = false;
-        bool isHoveringPlate = false;
-
-        if (!Input::IsUICapturingMouse()) {
-            if (boardTf && glm::distance(mouse2D, glm::vec2(boardTf->GetPosition().x, boardTf->GetPosition().z)) < 1.5f) isHoveringFood = true;
-            if (plateTf && glm::distance(mouse2D, glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)) < 1.5f) isHoveringPlate = true;
-        }
-
-        // --- 5. P£YNNA MATEMATYKA KOLORÓW (Niezale¿na!) ---
-        if (isHoveringFood && inRange) foodHoverLerp += ts.GetSeconds() * 8.0f;
-        else foodHoverLerp -= ts.GetSeconds() * 8.0f;
-        foodHoverLerp = std::clamp(foodHoverLerp, 0.0f, 1.0f);
-
-        if (isHoveringPlate && inRange) plateHoverLerp += ts.GetSeconds() * 8.0f;
-        else plateHoverLerp -= ts.GetSeconds() * 8.0f;
-        plateHoverLerp = std::clamp(plateHoverLerp, 0.0f, 1.0f);
-
-        if (inRange) transitionLerp += ts.GetSeconds() * 3.0f;
-        else transitionLerp -= ts.GetSeconds() * 3.0f;
-        transitionLerp = std::clamp(transitionLerp, 0.0f, 1.0f);
-
-        glm::vec3 baseGray = glm::vec3(0.4f, 0.4f, 0.4f);
-        glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
-        glm::vec3 hoverGold = glm::vec3(1.0f, 0.9f, 0.0f);
+        foodHoverLerp = UpdateLerp(isHoveringFood && inRange, foodHoverLerp, ts.GetSeconds());
+        plateHoverLerp = UpdateLerp(isHoveringPlate && inRange, plateHoverLerp, ts.GetSeconds());
+        transitionLerp = UpdateLerp(inRange, transitionLerp, ts.GetSeconds(), 3.0f);
 
         glm::vec3 activeFoodColor = glm::mix(basePink, hoverGold, foodHoverLerp);
         glm::vec3 activePlateColor = glm::mix(basePink, hoverGold, plateHoverLerp);
-
         glm::vec3 foodColor = glm::mix(baseGray, activeFoodColor, transitionLerp);
-        float foodDuration = glm::mix(32.0f, 8.0f, transitionLerp);
 
-        // Wysy³anie eventów
-        if (foodOnBoard.id != std::numeric_limits<std::size_t>::max()) {
-            TriggerHighlightEvent evFood;
-            evFood.TargetEntity = foodOnBoard;
-            evFood.Color = foodColor;
-            evFood.Duration = foodDuration;
-            evFood.IsInfinite = true;
-            GetScene()->GetWorld().GetEventBus().Publish(evFood);
-        }
+        SetHighlight(foodOnBoard, foodColor, glm::mix(32.0f, 8.0f, transitionLerp), true);
+        if (inRange) SetHighlight(closestPlate, activePlateColor, 8.0f, true);
 
-        if (inRange && plateTf) {
-            TriggerHighlightEvent evPlate;
-            evPlate.TargetEntity = closestPlate;
-            evPlate.Color = activePlateColor;
-            evPlate.Duration = 8.0f;
-            evPlate.IsInfinite = true;
-            GetScene()->GetWorld().GetEventBus().Publish(evPlate);
-        }
+        UpdateWaitingUI(ts.GetSeconds());
 
-        // --- 6. WYMUSZENIE KLIKNIÊCIA (PERFEKCYJNE OBEJŒCIE) ---
         bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
-
         if (isActionPressed && inRange && (isHoveringFood || isHoveringPlate) && !Input::IsUICapturingMouse()) {
             auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
             if (nsc) {
                 for (auto& s : nsc->Scripts) {
                     if (s.Name == "CuttingBoardScript" && s.Instance) {
                         auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
-
-                        // Rozdzielamy logikê!
-                        if (isHoveringFood) {
-                            // Jeœli klikniêto w pomidora na desce -> normalny klik w maszynê
-                            boardScript->HandleClick();
-                        }
-                        else if (isHoveringPlate) {
-                            // Jeœli klikniêto w talerz -> BEZPOŒREDNI ROZKAZ TRANSFERU! Omija blokady z HandleClick.
-                            boardScript->TryTransferToPlate();
-                        }
+                        if (isHoveringFood) boardScript->HandleClick();
+                        else if (isHoveringPlate) boardScript->TryTransferToPlate();
                     }
                 }
             }
         }
 
-        // --- 7. OBS£UGA UI KROPEK ---
-        m_TypewriterTimer += ts.GetSeconds();
-
-        if (m_TypewriterTimer < 5.5f) {
-            GameManagerScript::s_ShowTutorialDialog = true;
-            GameManagerScript::s_TutorialSpeaker = "";
-            GameManagerScript::s_TutorialDialogIsBottom = true;
-            GameManagerScript::s_TutorialIconAlpha = 0.0f;
-
-            int stage = (int)(m_TypewriterTimer / 0.8f);
-            std::string offset = "                        ";
-            std::string waitingText = "";
-
-            if (stage == 0 || stage == 3) waitingText = offset + ".";
-            else if (stage == 1 || stage == 4) waitingText = offset + ". .";
-            else if (stage == 2 || stage == 5) waitingText = offset + ". . .";
-            else waitingText = "";
-
-            GameManagerScript::s_TutorialText = waitingText;
-            GameManagerScript::s_TutorialCharsRevealed = waitingText.length();
-        }
-        else {
-            GameManagerScript::s_ShowTutorialDialog = false;
-        }
-
-        // --- 8. WARUNEK PRZEJŒCIA (Sprawdzamy sukces) ---
         bool transferred = false;
         auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Board);
         if (nsc) {
             for (auto& s : nsc->Scripts) {
                 if (s.Name == "CuttingBoardScript" && s.Instance) {
                     auto* boardScript = static_cast<CuttingBoardScript*>(s.Instance);
-
-                    if (boardScript->m_Ingredients.empty() && !boardScript->m_IsReady) {
-                        transferred = true;
-                    }
+                    if (boardScript->m_Ingredients.empty() && !boardScript->m_IsReady) transferred = true;
                 }
             }
         }
 
         if (transferred) {
-            // Talerz b³yska na satysfakcjonuj¹cy zielony kolor!
-            if (closestPlate.id != std::numeric_limits<std::size_t>::max()) {
-                TriggerHighlightEvent evGreen;
-                evGreen.TargetEntity = closestPlate;
-                evGreen.Color = glm::vec3(0.1f, 1.0f, 0.2f);
-                evGreen.Duration = 1.5f;
-                evGreen.IsInfinite = false;
-                GetScene()->GetWorld().GetEventBus().Publish(evGreen);
-            }
-
+            SetHighlight(closestPlate, glm::vec3(0.1f, 1.0f, 0.2f), 1.5f, false);
             GameManagerScript::s_ShowTutorialDialog = false;
-
             m_State = TutorialState::WaitForPotPlacement;
             m_StateTimer = 0.0f;
             m_DialogIndex = 0;
@@ -889,20 +609,8 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     }
 
     case TutorialState::WaitForPotPlacement: {
-        // ZWIÊKSZONY COOLDOWN - 5 sekund
         if (m_StateTimer > 5.0f && m_DialogIndex == 0) {
-            glm::vec3 poofPos = m_PotOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f);
-            RestorePosition(m_Poof, poofPos);
-
-            auto* poofNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Poof);
-            if (poofNsc) {
-                for (auto& s : poofNsc->Scripts) {
-                    if (s.Name == "PoofEmitterScript" && s.Instance) {
-                        static_cast<ParticleEmitterScript*>(s.Instance)->Play();
-                        break;
-                    }
-                }
-            }
+            PlayPoofAt(m_PotOriginalPos + glm::vec3(0.0f, 1.0f, 0.0f));
             m_DialogIndex = 1;
         }
 
@@ -910,7 +618,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             RestorePosition(m_Burner, m_BurnerOriginalPos);
             RestorePosition(m_Pot, m_PotOriginalPos);
             HideUnderground(m_Poof);
-
             m_State = TutorialState::WaitForIngredientInPot;
             m_StateTimer = 0.0f;
         }
@@ -924,167 +631,52 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
         if (m_StateTimer < 0.05f) {
             m_TypewriterTimer = 0.0f;
-            potHoverLerp = 0.0f;
-            plateHoverLerp = 0.0f;
-            transitionLerp = 0.0f;
+            potHoverLerp = plateHoverLerp = transitionLerp = 0.0f;
         }
-
-        // --- 1. ZNAJDOWANIE NAJBLI¯SZEGO TALERZA I JEGO SKRYPTU ---
-        Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-        PlateScript* closestPlateScript = nullptr;
-        float closestDist = 999.0f;
 
         auto* potTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Pot);
-        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
-        auto* nscVector = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+        PlateScript* closestPlateScript = nullptr;
+        Entity closestPlate = FindClosestPlate(potTf ? potTf->GetPosition() : glm::vec3(0.0f), &closestPlateScript);
 
-        if (tags && potTf && nscVector) {
-            for (size_t i = 0; i < tags->dense.size(); ++i) {
-                const std::string& tag = tags->dense[i].Tag;
-                if (tag.find("Plate") != std::string::npos || tag.find("Talerz") != std::string::npos) {
-                    Entity p = tags->reverse[i];
-                    auto* pTf = GetScene()->GetWorld().GetComponent<TransformComponent>(p);
-                    if (pTf) {
-                        float d = glm::distance(pTf->GetPosition(), potTf->GetPosition());
-                        if (d < closestDist) {
-                            closestDist = d;
-                            closestPlate = p;
-                            // Wyci¹gamy PlateScript z encji
-                            auto* plateNsc = nscVector->Get(p);
-                            if (plateNsc) {
-                                for (auto& s : plateNsc->Scripts) {
-                                    if (s.Name == "PlateScript" && s.Instance) {
-                                        closestPlateScript = static_cast<PlateScript*>(s.Instance);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // --- 2. IDEALNE ZNAJDOWANIE POMIDORA (Z PlateScript) ---
-        Entity foodOnPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-        // Bierzemy model dok³adnie tak, jak zarz¹dza nim talerz! Zero tagów, czysta pamiêæ maszyny.
-        if (closestPlateScript && !closestPlateScript->m_VisualModels.empty()) {
-            foodOnPlate = closestPlateScript->m_VisualModels.back();
-        }
-
-        // --- 3. ZASIÊG (Naprawiony, 3.5f zapewnia ³apanie na taœmie!) ---
-        bool inRange = false;
+        Entity foodOnPlate = (closestPlateScript && !closestPlateScript->m_VisualModels.empty()) ? closestPlateScript->m_VisualModels.back() : Entity{ std::numeric_limits<std::size_t>::max(), 0 };
         auto* plateTf = closestPlate.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(closestPlate) : nullptr;
-        if (plateTf && potTf) {
-            float distToPot = glm::distance(
-                glm::vec2(potTf->GetPosition().x, potTf->GetPosition().z),
-                glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)
-            );
-            if (distToPot < 3.5f) {
-                inRange = true;
-            }
-        }
 
-        // --- 4. RZUTOWANIE MYSZKI W 3D ---
-        glm::vec3 floorMousePos = GetMouseWorldPosition();
-        auto* camera = GetScene()->GetCamera();
-        glm::vec3 preciseMousePos = floorMousePos;
+        bool inRange = (plateTf && potTf && glm::distance(glm::vec2(potTf->GetPosition().x, potTf->GetPosition().z), glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)) < 3.5f);
 
-        if (camera && potTf) {
-            float targetY = potTf->GetPosition().y;
-            glm::vec3 rayDir = camera->Front;
-            if (std::abs(rayDir.y) > 0.001f) {
-                float t = (targetY - floorMousePos.y) / rayDir.y;
-                preciseMousePos = floorMousePos + rayDir * t;
-            }
-        }
+        glm::vec3 preciseMousePos = GetRaycastedMousePos(potTf ? potTf->GetPosition().y : 0.0f);
+        bool isHoveringPot = IsHovering(m_Pot, preciseMousePos, 1.5f);
+        bool isHoveringPlate = IsHovering(closestPlate, preciseMousePos, 1.5f);
 
-        glm::vec2 mouse2D = { preciseMousePos.x, preciseMousePos.z };
-        bool isHoveringPot = false;
-        bool isHoveringPlate = false;
-
-        if (!Input::IsUICapturingMouse()) {
-            if (potTf && glm::distance(mouse2D, glm::vec2(potTf->GetPosition().x, potTf->GetPosition().z)) < 1.5f) isHoveringPot = true;
-            if (plateTf && glm::distance(mouse2D, glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)) < 1.5f) isHoveringPlate = true;
-        }
-
-        // --- 5. KOLORY ---
-        if (isHoveringPot && inRange) potHoverLerp += ts.GetSeconds() * 8.0f;
-        else potHoverLerp -= ts.GetSeconds() * 8.0f;
-        potHoverLerp = std::clamp(potHoverLerp, 0.0f, 1.0f);
-
-        if (isHoveringPlate && inRange) plateHoverLerp += ts.GetSeconds() * 8.0f;
-        else plateHoverLerp -= ts.GetSeconds() * 8.0f;
-        plateHoverLerp = std::clamp(plateHoverLerp, 0.0f, 1.0f);
-
-        if (inRange) transitionLerp += ts.GetSeconds() * 3.0f;
-        else transitionLerp -= ts.GetSeconds() * 3.0f;
-        transitionLerp = std::clamp(transitionLerp, 0.0f, 1.0f);
-
-        glm::vec3 baseGray = glm::vec3(0.4f, 0.4f, 0.4f);
-        glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
-        glm::vec3 hoverGold = glm::vec3(1.0f, 0.9f, 0.0f);
+        potHoverLerp = UpdateLerp(isHoveringPot && inRange, potHoverLerp, ts.GetSeconds());
+        plateHoverLerp = UpdateLerp(isHoveringPlate && inRange, plateHoverLerp, ts.GetSeconds());
+        transitionLerp = UpdateLerp(inRange, transitionLerp, ts.GetSeconds(), 3.0f);
 
         glm::vec3 activePotColor = glm::mix(basePink, hoverGold, potHoverLerp);
         glm::vec3 activePlateColor = glm::mix(basePink, hoverGold, plateHoverLerp);
-
         glm::vec3 potColor = glm::mix(baseGray, activePotColor, transitionLerp);
-        float potDuration = glm::mix(32.0f, 8.0f, transitionLerp);
 
-        // --- 6. EVENTY (Perfekcyjne podœwietlanie 3 elementów) ---
-        TriggerHighlightEvent evPot;
-        evPot.TargetEntity = m_Pot;
-        evPot.Color = potColor;
-        evPot.Duration = potDuration;
-        evPot.IsInfinite = true;
-        GetScene()->GetWorld().GetEventBus().Publish(evPot);
+        SetHighlight(m_Pot, potColor, glm::mix(32.0f, 8.0f, transitionLerp), true);
 
         if (inRange && plateTf) {
-            TriggerHighlightEvent evPlate;
-            evPlate.TargetEntity = closestPlate;
-            evPlate.Color = activePlateColor;
-            evPlate.Duration = 8.0f;
-            evPlate.IsInfinite = true;
-            GetScene()->GetWorld().GetEventBus().Publish(evPlate);
-
+            SetHighlight(closestPlate, activePlateColor, 8.0f, true);
             if (foodOnPlate.id != std::numeric_limits<std::size_t>::max()) {
-                TriggerHighlightEvent evFood;
-                evFood.TargetEntity = foodOnPlate;
-                evFood.Color = activePlateColor;
-                evFood.Duration = 8.0f;
-                evFood.IsInfinite = true;
-                GetScene()->GetWorld().GetEventBus().Publish(evFood);
+                SetHighlight(foodOnPlate, activePlateColor, 8.0f, true);
             }
         }
 
-        // --- 7. LOGIKA KLIKNIÊCIA SKOPIOWANA Z DRAG AND DROP SCRIPT! ---
         bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
-
         if (isActionPressed && inRange && (isHoveringPot || isHoveringPlate) && !Input::IsUICapturingMouse()) {
             auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Pot);
             if (nsc && closestPlateScript && !closestPlateScript->m_Ingredients.empty()) {
                 for (auto& s : nsc->Scripts) {
                     if (s.Name == "PotScript" && s.Instance) {
                         auto* potScript = static_cast<PotScript*>(s.Instance);
-
                         IngredientType topIngredient = closestPlateScript->m_Ingredients.back();
-
-                        // Próba dodania sk³adnika do garnka
                         if (potScript->AddIngredient(topIngredient)) {
-                            // Jeœli garnek przyj¹³, wykonujemy IDENTYCZN¥ sekwencjê niszczenia jak w Twoim silniku:
                             closestPlateScript->m_Ingredients.pop_back();
-
                             if (!closestPlateScript->m_VisualModels.empty()) {
                                 Entity visualToRemove = closestPlateScript->m_VisualModels.back();
-
-                                // Dodatkowo zabezpieczaj¹co gasimy highlight z jedzenia przed zniszczeniem
-                                TriggerHighlightEvent evClear;
-                                evClear.TargetEntity = visualToRemove;
-                                evClear.Color = glm::vec3(0.0f);
-                                evClear.Duration = 0.1f;
-                                evClear.IsInfinite = false;
-                                GetScene()->GetWorld().GetEventBus().Publish(evClear);
-
-                                // Wysy³amy event zniszczenia i usuwamy œlad z talerza
+                                SetHighlight(visualToRemove, glm::vec3(0.0f), 0.1f, false);
                                 GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
                                 closestPlateScript->m_VisualModels.pop_back();
                             }
@@ -1094,62 +686,21 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        // --- 8. OBS£UGA UI KROPEK ---
-        m_TypewriterTimer += ts.GetSeconds();
+        UpdateWaitingUI(ts.GetSeconds());
 
-        if (m_TypewriterTimer < 5.5f) {
-            GameManagerScript::s_ShowTutorialDialog = true;
-            GameManagerScript::s_TutorialSpeaker = "";
-            GameManagerScript::s_TutorialDialogIsBottom = true;
-            GameManagerScript::s_TutorialIconAlpha = 0.0f;
-
-            int stage = (int)(m_TypewriterTimer / 0.8f);
-            std::string offset = "                        ";
-            std::string waitingText = "";
-
-            if (stage == 0 || stage == 3) waitingText = offset + ".";
-            else if (stage == 1 || stage == 4) waitingText = offset + ". .";
-            else if (stage == 2 || stage == 5) waitingText = offset + ". . .";
-            else waitingText = "";
-
-            GameManagerScript::s_TutorialText = waitingText;
-            GameManagerScript::s_TutorialCharsRevealed = waitingText.length();
-        }
-        else {
-            GameManagerScript::s_ShowTutorialDialog = false;
-        }
-
-        // --- 9. WARUNEK PRZEJŒCIA DALEJ ---
         bool hasIngredient = false;
         auto* nscPot = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Pot);
         if (nscPot) {
             for (auto& s : nscPot->Scripts) {
                 if (s.Name == "PotScript" && s.Instance) {
-                    auto* potScript = static_cast<PotScript*>(s.Instance);
-                    if (!potScript->m_Ingredients.empty()) {
-                        hasIngredient = true;
-                    }
+                    if (!static_cast<PotScript*>(s.Instance)->m_Ingredients.empty()) hasIngredient = true;
                 }
             }
         }
 
         if (hasIngredient) {
-            // Gasimy wszystko
-            TriggerHighlightEvent ev;
-            ev.TargetEntity = m_Pot;
-            ev.Color = glm::vec3(0.0f);
-            ev.Duration = 0.1f;
-            ev.IsInfinite = false;
-            GetScene()->GetWorld().GetEventBus().Publish(ev);
-
-            if (closestPlate.id != std::numeric_limits<std::size_t>::max()) {
-                TriggerHighlightEvent evPlate;
-                evPlate.TargetEntity = closestPlate;
-                evPlate.Color = glm::vec3(0.0f);
-                evPlate.Duration = 0.1f;
-                evPlate.IsInfinite = false;
-                GetScene()->GetWorld().GetEventBus().Publish(evPlate);
-            }
+            SetHighlight(m_Pot, glm::vec3(0.0f), 0.1f, false);
+            if (closestPlate.id != std::numeric_limits<std::size_t>::max()) SetHighlight(closestPlate, glm::vec3(0.0f), 0.1f, false);
 
             GameManagerScript::s_ShowTutorialDialog = false;
             m_State = TutorialState::WaitForCooking;
@@ -1165,73 +716,40 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
         if (m_StateTimer < 0.05f) {
             m_TypewriterTimer = 0.0f;
-            potHoverLerp = 0.0f;
-            plateHoverLerp = 0.0f;
-            transitionLerp = 0.0f;
+            potHoverLerp = plateHoverLerp = transitionLerp = 0.0f;
         }
 
-        // --- 1. POBRANIE SKRYPTU GARNKA ---
         auto* potTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Pot);
         auto* nscPot = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Pot);
         PotScript* potScript = nullptr;
         if (nscPot) {
             for (auto& s : nscPot->Scripts) {
-                if (s.Name == "PotScript" && s.Instance) {
-                    potScript = static_cast<PotScript*>(s.Instance);
-                }
+                if (s.Name == "PotScript" && s.Instance) potScript = static_cast<PotScript*>(s.Instance);
             }
         }
 
         if (!potScript) break;
 
-        // --- 2. ZABÓJCA CRASHÓW (Warunek sukcesu na samym szczycie klatki!) ---
+        // --- ZABÓJCA CRASHÓW ---
         if (!potScript->m_IsReady && potScript->m_Ingredients.empty()) {
+            Entity successPlate = FindClosestPlate(potTf ? potTf->GetPosition() : glm::vec3(0.0f));
 
-            Entity successPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-            float closestD = 999.0f;
-            auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
-            if (tags && potTf) {
-                for (size_t i = 0; i < tags->dense.size(); ++i) {
-                    if (tags->dense[i].Tag.find("Plate") != std::string::npos || tags->dense[i].Tag.find("Talerz") != std::string::npos) {
-                        Entity p = tags->reverse[i];
-                        auto* pTf = GetScene()->GetWorld().GetComponent<TransformComponent>(p);
-                        if (pTf) {
-                            float d = glm::distance(pTf->GetPosition(), potTf->GetPosition());
-                            if (d < closestD && d < 3.5f) {
-                                closestD = d;
-                                successPlate = p;
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (successPlate.id != std::numeric_limits<std::size_t>::max()) {
-                TriggerHighlightEvent evPlateGreen;
-                evPlateGreen.TargetEntity = successPlate;
-                evPlateGreen.Color = glm::vec3(0.1f, 1.0f, 0.2f);
-                evPlateGreen.Duration = 1.5f;
-                evPlateGreen.IsInfinite = false;
-                GetScene()->GetWorld().GetEventBus().Publish(evPlateGreen);
+            auto* pTf = successPlate.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(successPlate) : nullptr;
+            if (pTf && potTf && glm::distance(pTf->GetPosition(), potTf->GetPosition()) < 3.5f) {
+                SetHighlight(successPlate, glm::vec3(0.1f, 1.0f, 0.2f), 1.5f, false);
             }
 
             GameManagerScript::s_ShowTutorialDialog = false;
-
             m_State = TutorialState::WaitForDelivery;
             m_StateTimer = 0.0f;
-
             break;
         }
 
-        // --- 3. CZY ZUPA WCI¥¯ SIÊ GOTUJE? ---
         if (!potScript->m_IsReady) {
             GameManagerScript::s_ShowTutorialDialog = false;
             break;
         }
 
-        // === ZUPA JEST GOTOWA ===
-
-        // --- 4. TARCZA OCHRONNA DLA PAMIÊCI ---
         Entity spawnedSoup = potScript->m_SpawnedFood;
         bool isSoupValid = false;
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -1245,155 +763,338 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
 
-        // --- 5. ZNAJDOWANIE NAJBLI¯SZEGO TALERZA ---
-        Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
-        float closestDist = 999.0f;
-        if (tags && potTf) {
-            for (size_t i = 0; i < tags->dense.size(); ++i) {
-                const std::string& tag = tags->dense[i].Tag;
-                if (tag.find("Plate") != std::string::npos || tag.find("Talerz") != std::string::npos) {
-                    Entity p = tags->reverse[i];
-                    auto* pTf = GetScene()->GetWorld().GetComponent<TransformComponent>(p);
-                    if (pTf) {
-                        float d = glm::distance(pTf->GetPosition(), potTf->GetPosition());
-                        if (d < closestDist) {
-                            closestDist = d;
-                            closestPlate = p;
-                        }
+        Entity closestPlate = FindClosestPlate(potTf ? potTf->GetPosition() : glm::vec3(0.0f), nullptr, true);
+        auto* plateTf = closestPlate.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(closestPlate) : nullptr;
+        bool inRange = (plateTf && potTf && glm::distance(glm::vec2(potTf->GetPosition().x, potTf->GetPosition().z), glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)) < 3.5f);
+
+        auto* soupTf = isSoupValid ? GetScene()->GetWorld().GetComponent<TransformComponent>(spawnedSoup) : nullptr;
+        glm::vec3 preciseMousePos = GetRaycastedMousePos(soupTf ? soupTf->GetPosition().y : (potTf ? potTf->GetPosition().y + 0.5f : 0.0f));
+
+        bool isHoveringSoup = IsHovering(spawnedSoup, preciseMousePos, 1.8f) || IsHovering(m_Pot, preciseMousePos, 1.8f);
+        bool isHoveringPlate = IsHovering(closestPlate, preciseMousePos, 1.8f);
+
+        potHoverLerp = UpdateLerp(isHoveringSoup && inRange, potHoverLerp, ts.GetSeconds());
+        plateHoverLerp = UpdateLerp(isHoveringPlate && inRange, plateHoverLerp, ts.GetSeconds());
+        transitionLerp = UpdateLerp(inRange, transitionLerp, ts.GetSeconds(), 3.0f);
+
+        glm::vec3 activePotColor = glm::mix(basePink, hoverGold, potHoverLerp);
+        glm::vec3 activePlateColor = glm::mix(basePink, hoverGold, plateHoverLerp);
+        glm::vec3 soupColor = glm::mix(baseGray, activePotColor, transitionLerp);
+
+        if (isSoupValid) SetHighlight(spawnedSoup, soupColor, glm::mix(32.0f, 8.0f, transitionLerp), true);
+        if (inRange) SetHighlight(closestPlate, activePlateColor, 8.0f, true);
+
+        bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
+        if (isActionPressed && inRange && !Input::IsUICapturingMouse()) {
+            if (isHoveringPlate && !isHoveringSoup) potScript->TryTransferToPlate();
+        }
+
+        UpdateWaitingUI(ts.GetSeconds());
+        break;
+    }
+    case TutorialState::WaitForDelivery: {
+        static float switchHoverLerp = 0.0f;
+        static float transitionLerp = 0.0f;
+        static float initialRotY = -999.0f; // Zmienna do œledzenia pocz¹tkowej rotacji
+
+        if (m_StateTimer < 0.05f) {
+            m_TypewriterTimer = 0.0f;
+            switchHoverLerp = 0.0f;
+            transitionLerp = 0.0f;
+        }
+
+        // --- 1. INTELIGENTNE ZNAJDOWANIE ZWROTNICY ---
+        // Skanujemy komponenty, ¿eby znaleŸæ encjê, która posiada "ConveyorSwitchScript"
+        Entity switchEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+        auto* nscVector = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+
+        if (nscVector) {
+            for (size_t i = 0; i < nscVector->dense.size(); ++i) {
+                for (auto& s : nscVector->dense[i].Scripts) {
+                    if (s.Name == "ConveyorSwitchScript") {
+                        switchEntity = nscVector->reverse[i];
+                        break;
                     }
                 }
+                if (switchEntity.id != std::numeric_limits<std::size_t>::max()) break;
             }
         }
 
-        // --- 6. ZASIÊG ---
-        bool inRange = false;
-        auto* plateTf = closestPlate.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(closestPlate) : nullptr;
+        auto* switchTf = switchEntity.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(switchEntity) : nullptr;
 
-        if (plateTf && potTf) {
-            float distToPot = glm::distance(
-                glm::vec2(potTf->GetPosition().x, potTf->GetPosition().z),
-                glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)
-            );
-            if (distToPot < 3.5f) {
-                inRange = true;
-            }
+        // Jeœli zwrotnica jakimœ cudem nie istnieje, uciekamy
+        if (!switchTf) break;
+
+        // Zapisujemy startow¹ rotacjê tylko raz na pocz¹tku stanu
+        if (m_StateTimer < 0.05f) {
+            initialRotY = switchTf->GetRotation().y;
         }
 
-        // --- 7. RZUTOWANIE MYSZKI W 3D Z POPRAWK¥ NA WYSOKOŒÆ ZUPY ---
-        glm::vec3 floorMousePos = GetMouseWorldPosition();
-        auto* camera = GetScene()->GetCamera();
-        glm::vec3 preciseMousePos = floorMousePos;
+        // --- 2. RZUTOWANIE MYSZKI I HOVER (U¿ycie naszych piêknych funkcji DRY!) ---
+        glm::vec3 preciseMousePos = GetRaycastedMousePos(switchTf->GetPosition().y);
 
-        // Pobieramy transform zupy, ¿eby wiedzieæ na jakiej jest dok³adnie wysokoœci!
-        auto* soupTf = isSoupValid ? GetScene()->GetWorld().GetComponent<TransformComponent>(spawnedSoup) : nullptr;
+        // Zasiêg 1.5f jest idealny, bo celujemy p³asko w zwrotnicê
+        bool isHoveringSwitch = IsHovering(switchEntity, preciseMousePos, 1.5f);
 
-        if (camera && potTf) {
-            // Jeœli zupa istnieje, bierzemy JEJ wysokoœæ. Jeœli nie, to podnosimy odrobinê œrodek garnka.
-            float targetY = soupTf ? soupTf->GetPosition().y : (potTf->GetPosition().y + 0.5f);
-
-            glm::vec3 rayDir = camera->Front;
-            if (std::abs(rayDir.y) > 0.001f) {
-                float t = (targetY - floorMousePos.y) / rayDir.y;
-                preciseMousePos = floorMousePos + rayDir * t;
-            }
-        }
-
-        glm::vec2 mouse2D = { preciseMousePos.x, preciseMousePos.z };
-        bool isHoveringSoup = false;
-        bool isHoveringPlate = false;
-
-        if (!Input::IsUICapturingMouse()) {
-            // Zwiêkszyliœmy nieco hitbox z 1.5f na 1.8f i ³apiemy celownik dla siatki zupy!
-            if (soupTf && glm::distance(mouse2D, glm::vec2(soupTf->GetPosition().x, soupTf->GetPosition().z)) < 1.8f) {
-                isHoveringSoup = true;
-            }
-            else if (potTf && glm::distance(mouse2D, glm::vec2(potTf->GetPosition().x, potTf->GetPosition().z)) < 1.8f) {
-                isHoveringSoup = true;
-            }
-
-            if (plateTf && glm::distance(mouse2D, glm::vec2(plateTf->GetPosition().x, plateTf->GetPosition().z)) < 1.8f) {
-                isHoveringPlate = true;
-            }
-        }
-
-        // --- 8. P£YNNE KOLORY ---
-        if (isHoveringSoup && inRange) potHoverLerp += ts.GetSeconds() * 8.0f;
-        else potHoverLerp -= ts.GetSeconds() * 8.0f;
-        potHoverLerp = std::clamp(potHoverLerp, 0.0f, 1.0f);
-
-        if (isHoveringPlate && inRange) plateHoverLerp += ts.GetSeconds() * 8.0f;
-        else plateHoverLerp -= ts.GetSeconds() * 8.0f;
-        plateHoverLerp = std::clamp(plateHoverLerp, 0.0f, 1.0f);
-
-        if (inRange) transitionLerp += ts.GetSeconds() * 3.0f;
-        else transitionLerp -= ts.GetSeconds() * 3.0f;
-        transitionLerp = std::clamp(transitionLerp, 0.0f, 1.0f);
+        // --- 3. P£YNNE KOLORY ---
+        switchHoverLerp = UpdateLerp(isHoveringSwitch, switchHoverLerp, ts.GetSeconds());
+        transitionLerp = UpdateLerp(true, transitionLerp, ts.GetSeconds(), 3.0f); // Pulsowanie w³¹cza siê od razu
 
         glm::vec3 baseGray = glm::vec3(0.4f, 0.4f, 0.4f);
         glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
         glm::vec3 hoverGold = glm::vec3(1.0f, 0.9f, 0.0f);
 
-        glm::vec3 activePotColor = glm::mix(basePink, hoverGold, potHoverLerp);
-        glm::vec3 activePlateColor = glm::mix(basePink, hoverGold, plateHoverLerp);
+        glm::vec3 activeSwitchColor = glm::mix(basePink, hoverGold, switchHoverLerp);
+        glm::vec3 switchColor = glm::mix(baseGray, activeSwitchColor, transitionLerp);
 
-        glm::vec3 soupColor = glm::mix(baseGray, activePotColor, transitionLerp);
-        float soupDuration = glm::mix(32.0f, 8.0f, transitionLerp);
+        // Wysy³amy œwiat³o jednym zgrabnym poleceniem!
+        SetHighlight(switchEntity, switchColor, glm::mix(32.0f, 8.0f, transitionLerp), true);
 
-        // --- 9. EVENTY WIZUALNE ---
-        if (isSoupValid) {
-            TriggerHighlightEvent evSoup;
-            evSoup.TargetEntity = spawnedSoup;
-            evSoup.Color = soupColor;
-            evSoup.Duration = soupDuration;
-            evSoup.IsInfinite = true;
-            GetScene()->GetWorld().GetEventBus().Publish(evSoup);
-        }
+        // --- 4. OBS£UGA UI KROPEK ---
+        UpdateWaitingUI(ts.GetSeconds());
 
-        if (inRange && plateTf) {
-            TriggerHighlightEvent evPlate;
-            evPlate.TargetEntity = closestPlate;
-            evPlate.Color = activePlateColor;
-            evPlate.Duration = 8.0f;
-            evPlate.IsInfinite = true;
-            GetScene()->GetWorld().GetEventBus().Publish(evPlate);
-        }
+        // --- 5. WARUNEK PRZEJŒCIA DALEJ ---
+        // Czekamy, a¿ Twój natywny EventBus z³apie klikniêcie i obróci zwrotnicê.
+        // Jeœli aktualny k¹t Y ró¿ni siê od pocz¹tkowego (o wiêcej ni¿ 1.0 stopieñ) -> SUKCES!
+        if (std::abs(switchTf->GetRotation().y - initialRotY) > 1.0f) {
 
-        // --- 10. PRZYWRÓCONA LOGIKA KLIKNIÊCIA W TALERZ ---
-        bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
+            // Satysfakcjonuj¹cy zielony b³ysk na po¿egnanie
+            SetHighlight(switchEntity, glm::vec3(0.1f, 1.0f, 0.2f), 1.5f, false);
 
-        if (isActionPressed && inRange && !Input::IsUICapturingMouse()) {
-            if (isHoveringPlate && !isHoveringSoup) {
-                potScript->TryTransferToPlate();
-            }
-        }
-
-        // --- 11. OBS£UGA UI KROPEK ---
-        m_TypewriterTimer += ts.GetSeconds();
-
-        if (m_TypewriterTimer < 5.5f) {
-            GameManagerScript::s_ShowTutorialDialog = true;
-            GameManagerScript::s_TutorialSpeaker = "";
-            GameManagerScript::s_TutorialDialogIsBottom = true;
-            GameManagerScript::s_TutorialIconAlpha = 0.0f;
-
-            int stage = (int)(m_TypewriterTimer / 0.8f);
-            std::string offset = "                        ";
-            std::string waitingText = "";
-
-            if (stage == 0 || stage == 3) waitingText = offset + ".";
-            else if (stage == 1 || stage == 4) waitingText = offset + ". .";
-            else if (stage == 2 || stage == 5) waitingText = offset + ". . .";
-            else waitingText = "";
-
-            GameManagerScript::s_TutorialText = waitingText;
-            GameManagerScript::s_TutorialCharsRevealed = waitingText.length();
-        }
-        else {
             GameManagerScript::s_ShowTutorialDialog = false;
-        }
 
+            // Zmieñ na swój OSTATNI stan, np. czekanie a¿ talerz dojedzie do kelnera!
+            // Upewnij siê, ¿e masz ten enum dodany w pliku TutorialManagerScript.h
+            m_State = TutorialState::WaitForEnd;
+            m_StateTimer = 0.0f;
+        }
         break;
     }
+    case TutorialState::WaitForEnd: {
+        // Zmienne statyczne do zarz¹dzania kinow¹ sekwencj¹
+        static int endPhase = 0;
+        static glm::vec3 waiterOriginalPos = glm::vec3(0.0f);
+        static glm::vec3 stationPos = glm::vec3(0.0f);
+        static Entity targetPlate = { std::numeric_limits<std::size_t>::max(), 0 };
+
+        auto* waiterTf = m_Waiter.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(m_Waiter) : nullptr;
+        if (!waiterTf) break;
+
+        // Zapamiêtanie oryginalnej pozycji kelnera przy pierwszym wejœciu w ten stan
+        if (m_StateTimer < 0.05f && endPhase == 0) {
+            waiterOriginalPos = waiterTf->GetPosition();
+            m_TypewriterTimer = 0.0f;
+            GameManagerScript::s_TutorialCharsRevealed = 0;
+        }
+
+        // --- FAZA 0: Czekamy a¿ zupa przyjedzie na wydawkê ---
+        if (endPhase == 0) {
+            Entity stationEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+            auto* nscVector = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+
+            if (nscVector) {
+                for (size_t i = 0; i < nscVector->dense.size(); ++i) {
+                    for (auto& s : nscVector->dense[i].Scripts) {
+                        // Skanujemy mapê w poszukiwaniu wydawki
+                        if (s.Name == "WaiterPickupStationScript") {
+                            stationEntity = nscVector->reverse[i];
+                            break;
+                        }
+                    }
+                    if (stationEntity.id != std::numeric_limits<std::size_t>::max()) break;
+                }
+            }
+
+            auto* stationTf = stationEntity.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(stationEntity) : nullptr;
+            if (stationTf) {
+                stationPos = stationTf->GetPosition();
+
+                // Szukamy talerza na wydawce (nie musi byæ pusty, w koñcu ma pyszn¹ zupê!)
+                targetPlate = FindClosestPlate(stationPos, nullptr, false);
+
+                if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
+                    auto* plateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(targetPlate);
+                    // Jeœli talerz uderzy³ w zasiêg stacji wydawczej -> uruchamiamy spacer kelnera!
+                    if (plateTf && glm::distance(plateTf->GetPosition(), stationPos) < 1.5f) {
+                        endPhase = 1;
+                    }
+                }
+            }
+        }
+        // --- FAZA 1: Kelner maszeruje do wydawki ---
+        else if (endPhase == 1) {
+            glm::vec3 currentPos = waiterTf->GetPosition();
+            glm::vec3 targetWalkPos = stationPos;
+            targetWalkPos.y = currentPos.y; // Zachowujemy sta³¹ wysokoœæ kelnera
+
+            float dist = glm::distance(currentPos, targetWalkPos);
+            if (dist > 0.5f) {
+                glm::vec3 dir = glm::normalize(targetWalkPos - currentPos);
+                waiterTf->SetPosition(currentPos + dir * 3.0f * (float)ts.GetSeconds()); // Spacer
+
+                // Kelner patrzy tam, gdzie idzie (u¿ywamy czystego glm!)
+                float targetAngle = glm::degrees(glm::atan(dir.x, dir.z));
+                waiterTf->SetRotation(glm::vec3(0.0f, targetAngle, 0.0f));
+            }
+            else {
+                // Dotar³ na miejsce! Podnosimy talerz z zup¹
+                if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
+                    auto* plateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(targetPlate);
+                    if (plateTf) {
+                        // Magia podpiêcia do kelnera
+                        GetScene()->SetParent(targetPlate, m_Waiter);
+                        // Lewituje idealnie miêdzy jego rêkami
+                        plateTf->SetPosition(glm::vec3(0.0f, 1.2f, 0.8f));
+                    }
+                }
+                endPhase = 2;
+            }
+        }
+        // --- FAZA 2: Kelner wraca zadowolony na swoje miejsce ---
+        else if (endPhase == 2) {
+            glm::vec3 currentPos = waiterTf->GetPosition();
+            float dist = glm::distance(currentPos, waiterOriginalPos);
+
+            if (dist > 0.1f) {
+                glm::vec3 dir = glm::normalize(waiterOriginalPos - currentPos);
+                waiterTf->SetPosition(currentPos + dir * 3.0f * (float)ts.GetSeconds());
+
+                float targetAngle = glm::degrees(glm::atan(dir.x, dir.z));
+                waiterTf->SetRotation(glm::vec3(0.0f, targetAngle, 0.0f));
+            }
+            else {
+                waiterTf->SetPosition(waiterOriginalPos);
+                m_TypewriterTimer = 0.0f;
+                GameManagerScript::s_TutorialCharsRevealed = 0;
+                endPhase = 3;
+            }
+        }
+        // --- FAZA 3: Zbli¿enie kamery, konsumpcja zupy i wielki dialog ---
+        else if (endPhase == 3) {
+            auto* camera = GetScene()->GetCamera();
+            if (camera) {
+                // Kamera zje¿d¿a z powrotem na twarz kelnera, dok³adnie tak samo jak na pocz¹tku
+                camera->TargetPosition = waiterTf->GetPosition() + glm::vec3(0.0f, 0.8f, 0.0f);
+                waiterTf->SetRotation(glm::vec3(0.0f, 45.0f, 0.0f));
+                camera->Zoom += (8.0f - camera->Zoom) * 3.0f * ts.GetSeconds();
+            }
+
+            // --- Zupa siê zmniejsza (symulacja jedzenia!) ---
+            if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
+                Entity soupModel = { std::numeric_limits<std::size_t>::max(), 0 };
+
+                auto* nscVector = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
+                if (nscVector) {
+                    auto* plateNsc = nscVector->Get(targetPlate);
+                    if (plateNsc) {
+                        for (auto& s : plateNsc->Scripts) {
+                            if (s.Name == "PlateScript" && s.Instance) {
+                                auto* pScript = static_cast<PlateScript*>(s.Instance);
+                                if (!pScript->m_VisualModels.empty()) {
+                                    soupModel = pScript->m_VisualModels.back(); // Pobieramy model zupy z talerza
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (soupModel.id != std::numeric_limits<std::size_t>::max()) {
+                    auto* soupTf = GetScene()->GetWorld().GetComponent<TransformComponent>(soupModel);
+                    if (soupTf) {
+                        glm::vec3 scale = soupTf->GetScale();
+                        scale -= glm::vec3(1.0f) * 0.2f * (float)ts.GetSeconds(); // Zupa znika
+                        scale = glm::max(scale, glm::vec3(0.0f)); // Zabezpieczenie przed ujemn¹ skal¹
+                        soupTf->SetScale(scale);
+                    }
+                }
+            }
+
+            // --- Dialog fina³owy ---
+            GameManagerScript::s_ShowTutorialDialog = true;
+            GameManagerScript::s_TutorialSpeaker = "Walter:";
+            GameManagerScript::s_TutorialSpeakerColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f);
+
+            std::string text = "Such dishes will certainly please the customers! Need a waiter? I'll be one!";
+            GameManagerScript::s_TutorialText = text;
+            GameManagerScript::s_TutorialDialogIsBottom = false;
+
+            m_TypewriterTimer += ts.GetSeconds();
+            if (m_TypewriterTimer > 0.05f) {
+                m_TypewriterTimer = 0.0f;
+                // Rzutowanie do inta zabezpiecza nas przed wszelkimi warningami z unsigned size_t!
+                if (GameManagerScript::s_TutorialCharsRevealed < (int)text.length()) {
+                    GameManagerScript::s_TutorialCharsRevealed++;
+                }
+            }
+
+            if (GameManagerScript::s_TutorialCharsRevealed >= (int)text.length()) {
+                GameManagerScript::s_TutorialIconAlpha = std::min(1.0f, GameManagerScript::s_TutorialIconAlpha + (float)ts.GetSeconds() * 3.0f);
+            }
+            else {
+                GameManagerScript::s_TutorialIconAlpha = 0.0f;
+            }
+
+            // Czekamy na klikniêcie zamykaj¹ce tutorial
+            bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
+            if (isActionPressed) {
+                if (GameManagerScript::s_TutorialCharsRevealed < (int)text.length()) {
+                    GameManagerScript::s_TutorialCharsRevealed = (int)text.length();
+                }
+                else {
+                    GameManagerScript::s_ShowTutorialDialog = false;
+                    endPhase = 4;
+                }
+            }
+        }
+        // --- FAZA 4: Wielki Poof i Zmiana Modelu! ---
+        else if (endPhase == 4) {
+            // Epicki strza³ efektu cz¹steczkowego
+            PlayPoofAt(waiterTf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
+
+            spdlog::info("[Tutorial] FAZA 4: Proba zmiany modelu kelnera...");
+
+            // Podmiana siatki modelu przez Twój AssetManager
+            auto* meshComp = GetScene()->GetWorld().GetComponent<MeshComponent>(m_Waiter);
+
+            if (meshComp) {
+                spdlog::info("[Tutorial] Znaleziono MeshComponent kelnera. Szukam modelu...");
+
+                std::string newModelPath = "assets://models/warzywka/grzybek/grzybek.gltf";
+                auto newModel = AssetManager::GetModel(newModelPath);
+
+                if (newModel) {
+                    spdlog::info("[Tutorial] SUKCES! Wczytano model z dysku. Podmieniam siatke.");
+                    meshComp->ModelPtr = newModel;
+                }
+                else {
+                    spdlog::error("[Tutorial] BLAD! AssetManager nie mogl wczytac modelu z podanej sciezki: {}", newModelPath);
+                    spdlog::warn("[Tutorial] Upewnij sie, ze plik istnieje i czy na pewno ma rozszerzenie .gltf (a moze to .glb lub .obj?)");
+                }
+            }
+            else {
+                spdlog::error("[Tutorial] BLAD! Kelner (m_Waiter) nie posiada MeshComponent!");
+            }
+
+            // Talerz wyparowuje z r¹k
+            if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
+                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ targetPlate });
+            }
+
+            endPhase = 5;
+            }
+        // --- FAZA 5: Koniec Samouczka ---
+        else if (endPhase == 5) {
+            auto* camera = GetScene()->GetCamera();
+            if (camera) {
+                // P³ynny odjazd kamery do standardowej pozycji w grze
+                camera->Zoom += (32.0f - camera->Zoom) * 4.0f * ts.GetSeconds();
+            }
+
+            // Mo¿esz tu dorzuciæ wyjœcie z tutoriala (np. s_IsTutorialMode = false) i co tylko sobie zaplanowa³aœ!
+        }
+        break;
+    }
+
 
     default:
         break;

@@ -1525,10 +1525,8 @@
     {
       "animator": {
         "clips": {
-          "Idle": "assets://models/animacje/grzybek/grzybek_idle.gltf",
-          "Order": "assets://models/animacje/grzybek/grzybek-zamowienia.gltf",
-          "Walk": "assets://models/animacje/grzybek/grzybek_walk.gltf",
-          "Wave": "assets://models/animacje/grzybek/grzybek-macha.gltf"
+          "Idle": "assets://models/animacje/grzybek/grzybek-beztacy-idle.gltf",
+          "Walk": "assets://models/animacje/grzybek/grzybek-beztacy-chodzi.gltf"
         },
         "is_playing": true,
         "playback_speed": 1.0,

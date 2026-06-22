@@ -2,6 +2,7 @@
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include <string>
 #include <vector>
+#include "CookingStation/Scripts/PlateScript.h"
 
 enum class TutorialState {
     Start,
@@ -18,6 +19,7 @@ enum class TutorialState {
     WaitForIngredientInPot,   
 	WaitForCooking,
     WaitForDelivery,
+    WaitForEnd,
     Outro
 };
 
@@ -62,4 +64,12 @@ private:
     Entity FindEntityByName(const std::string& name);
     void HideUnderground(Entity e);
     void RestorePosition(Entity e, glm::vec3 originalPos);
+
+    void UpdateWaitingUI(float dt);
+    void SetHighlight(Entity target, glm::vec3 color, float duration = 0.1f, bool isInfinite = false);
+    glm::vec3 GetRaycastedMousePos(float targetY);
+    float UpdateLerp(bool condition, float currentLerp, float dt, float speed = 8.0f);
+    void PlayPoofAt(glm::vec3 pos);
+    Entity FindClosestPlate(glm::vec3 targetPos, PlateScript** outScript = nullptr, bool mustBeEmpty = false);
+    bool IsHovering(Entity e, glm::vec3 mousePos, float radius = 1.5f);
 };
