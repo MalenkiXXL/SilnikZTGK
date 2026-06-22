@@ -34,6 +34,7 @@ class TutorialManagerScript : public ScriptableEntity {
 public:
     void OnCreate() override;
     void OnUpdate(Timestep ts) override;
+    static bool s_AllowConveyorSwitch;
 
 private:
     TutorialState m_State = TutorialState::Start;

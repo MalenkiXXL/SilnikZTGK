@@ -17,6 +17,8 @@
 #include "CookingStation/Core/Application.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Gui.h"
 
+bool TutorialManagerScript::s_AllowConveyorSwitch = false;
+
 static glm::vec3 s_WaiterOriginalSpawnPos = glm::vec3(0.0f);
 
 Entity TutorialManagerScript::FindEntityByName(const std::string& name) {
@@ -159,6 +161,7 @@ bool TutorialManagerScript::IsHovering(Entity e, glm::vec3 mousePos, float radiu
 
 void TutorialManagerScript::OnCreate() {
     GameManagerScript::s_IsTutorialMode = true;
+    TutorialManagerScript::s_AllowConveyorSwitch = false;
     GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ IngredientType::Tomato, 5 });
 
     glm::vec4 walterColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f);
@@ -809,6 +812,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             m_TypewriterTimer = 0.0f;
             switchHoverLerp = 0.0f;
             transitionLerp = 0.0f;
+            TutorialManagerScript::s_AllowConveyorSwitch = true;
         }
 
         Entity switchEntity = { std::numeric_limits<std::size_t>::max(), 0 };
