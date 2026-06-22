@@ -94,7 +94,7 @@ public:
                 GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
-                DragAndDropScript::StartDrag(IngredientType::Baguette, "assets://models/skladniki/bagietka/bagietka.gltf");
+                DragAndDropScript::StartDrag(IngredientType::Baguette);
                 ResetMachineState();
                 ClearHighlight();
             }
@@ -117,7 +117,7 @@ protected:
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            m_SpawnedFood = SpawnMachineFood(IngredientType::Baguette, "assets://models/skladniki/bagietka/bagietka.gltf", "BagietkaWPiekarniku");
+            m_SpawnedFood = SpawnMachineFood(IngredientType::Baguette, "BagietkaWPiekarniku");
 
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)

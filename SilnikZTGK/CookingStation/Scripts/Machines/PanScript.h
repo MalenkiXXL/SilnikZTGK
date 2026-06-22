@@ -130,14 +130,14 @@ protected:
             bool hasHam = HasIngredient(IngredientType::ChoppedHam);
             bool hasTomato = HasIngredient(IngredientType::ChoppedTomato);
 
-            std::string modelPath = "assets://models/skladniki/jajko-dania/jajo.gltf";
-            if (hasHam) modelPath = "assets://models/skladniki/jajko-dania/jajo-bekon.gltf";
-            else if (hasTomato) modelPath = "assets://models/skladniki/jajko-dania/szakszuka.gltf";
+            IngredientType type = IngredientType::FriedEgg;
+            if (hasHam) type = IngredientType::EggWithHam;
+            else if (hasTomato) type =  IngredientType::Shakshuka;
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            m_SpawnedFood = SpawnMachineFood(IngredientType::None, modelPath, "Na_Patelni");
+            m_SpawnedFood = SpawnMachineFood(type, "Na_Patelni");
 
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)

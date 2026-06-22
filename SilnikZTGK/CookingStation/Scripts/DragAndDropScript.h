@@ -32,7 +32,7 @@ public:
         ActiveScene = GetScene();
         m_DragSubId = GetScene()->GetWorld().GetEventBus().Subscribe<StartDragRequestEvent>(
             [this](const StartDragRequestEvent& e) {
-                this->StartDrag(e.Type, e.ModelPath);
+                this->StartDrag(e.Type);
             }
         );
 
@@ -101,7 +101,7 @@ public:
         }
     }
 
-    static void StartDrag(IngredientType type, const std::string& modelPath)
+    static void StartDrag(IngredientType type)
     {
         if (!ActiveScene) return;
         if (MachineScript::GlobalIsMachineHeld || MachineScript::PendingPickup.id != std::numeric_limits<std::size_t>::max()) {
@@ -125,7 +125,7 @@ public:
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
-        mesh.ModelPtr = AssetManager::GetModel(modelPath);
+        mesh.ModelPtr = AssetManager::GetModel(GetModelPath(type));
         builder.With<MeshComponent>(mesh);
 
         DraggedEntity = builder.Build();

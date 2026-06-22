@@ -60,6 +60,7 @@ private:
     glm::vec3 m_PotOriginalPos;
     glm::vec3 m_BurnerOriginalPos;
 
+    bool m_WalkAnimPlayed = false;
 
     Entity FindEntityByName(const std::string& name);
     void HideUnderground(Entity e);

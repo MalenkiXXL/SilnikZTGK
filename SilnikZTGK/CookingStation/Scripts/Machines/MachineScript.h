@@ -263,7 +263,7 @@ public:
 
 protected:
 
-    Entity SpawnMachineFood(IngredientType type, const std::string& modelPath, const std::string& tag)
+    Entity SpawnMachineFood(IngredientType type, const std::string& tag)
     {
         auto builder = GetScene()->GetWorld().BuildEntity();
         if (!tag.empty()) builder.With<TagComponent>({ tag });
@@ -277,7 +277,7 @@ protected:
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
-        mesh.ModelPtr = AssetManager::GetModel(modelPath);
+        mesh.ModelPtr = AssetManager::GetModel(GetModelPath(type));
         builder.With<MeshComponent>(mesh);
 
         return builder.Build();

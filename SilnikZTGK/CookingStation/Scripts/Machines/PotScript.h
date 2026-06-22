@@ -106,7 +106,7 @@ protected:
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            m_SpawnedFood = SpawnMachineFood(IngredientType::None, "CookingStation/Assets/models/skladniki/pomidor/pomidorowa.gltf", "W_Garnku");
+            m_SpawnedFood = SpawnMachineFood(IngredientType::TomatoSoup, "W_Garnku");
 
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)
