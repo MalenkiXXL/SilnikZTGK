@@ -483,8 +483,6 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         if (!GameManagerScript::s_IsTutorialMode)
         {
             DrawMushroomBubble(gameX, gameY, gameWidth, gameHeight, baseScale);
-            m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
-            m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
             DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
             DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
             m_RecipeBookPanel.Draw(gameX, gameY, gameWidth, gameHeight, baseScale, dt, m_IsGamePaused);
