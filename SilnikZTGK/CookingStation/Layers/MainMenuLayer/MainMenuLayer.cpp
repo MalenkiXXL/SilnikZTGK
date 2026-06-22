@@ -240,11 +240,11 @@ void MainMenuLayer::PlayGame()
 
         Application::Get().GetEventBus().Publish(GameResumedEvent{});
 
-        spdlog::info("Pomyslnie zaladowano level02.json!");
+        spdlog::info("Pomyslnie zaladowano tutorial.json!");
     }
     else {
         m_IsActive = true;
-        spdlog::error("Blad: Nie udalo sie wczytac level02.json");
+        spdlog::error("Blad: Nie udalo sie wczytac tutorial.json");
     }
 }
 void MainMenuLayer::OnEvent(Event& e) {

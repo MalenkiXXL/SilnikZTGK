@@ -777,6 +777,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     boothGlobalPos.y += yOffset3D;
 
     auto* camera = m_ActiveScene->GetCamera();
+    if (!camera) return;
     glm::mat4 view = camera->GetViewMatrix();
     float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
     float orthoSize = 10.0f * (camera->Zoom / 45.0f);
