@@ -18,6 +18,7 @@
 #include "CookingStation/Layers/GuiLayer/Utils/Gui.h"
 
 bool TutorialManagerScript::s_AllowConveyorSwitch = false;
+bool TutorialManagerScript::s_AllowSkip = false;
 
 static glm::vec3 s_WaiterOriginalSpawnPos = glm::vec3(0.0f);
 
@@ -220,6 +221,19 @@ void TutorialManagerScript::OnCreate() {
 
 void TutorialManagerScript::OnUpdate(Timestep ts) {
     m_StateTimer += ts.GetSeconds();
+
+    bool isEarlyState = (m_State == TutorialState::WaiterIntro && m_DialogIndex > 0) ||
+        m_State == TutorialState::CameraResetting ||
+        m_State == TutorialState::WaitForCrateSpawn ||
+        m_State == TutorialState::WaitForCrateClick;
+
+    if (isEarlyState) {
+        s_AllowSkip = true; 
+    }
+    else {
+        s_AllowSkip = false; 
+    }
+
     glm::vec3 baseGray = glm::vec3(0.4f, 0.4f, 0.4f);
     glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
     glm::vec3 hoverGold = glm::vec3(1.0f, 0.9f, 0.0f);
@@ -914,7 +928,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 }
             }
         }
-        // --- FAZA 1: Kelner idzie do wydawki ---
+        // --- FAZA 1: Kelner idzie w stronę wydawki (zatrzymuje się DUŻO wcześniej) ---
         else if (endPhase == 1) {
             if (!m_WalkAnimPlayed) {
                 auto* animComp = GetScene()->GetWorld().GetComponent<AnimatorComponent>(m_Waiter);
@@ -923,12 +937,16 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
 
             glm::vec3 currentPos = waiterTf->GetPosition();
+
+            // Cel: Wydawka, ale przesunięta troszkę w LEWO kelnera (prawo gracza)
             glm::vec3 targetWalkPos = stationPos;
             targetWalkPos.y = currentPos.y;
+            targetWalkPos.x -= 1.5f; // Minus w osi X to dokładnie lewo kelnera!
 
             float dist = glm::distance(currentPos, targetWalkPos);
 
-            if (dist > 1.5f) {
+            // BARDZO DUŻY ZASIĘG: Zatrzymuje się aż 3 metry przed celem (czyli na najbliższym mu końcu blatu!)
+            if (dist > 2.0f) {
                 glm::vec3 dir = glm::normalize(targetWalkPos - currentPos);
                 waiterTf->SetPosition(currentPos + dir * 3.0f * (float)ts.GetSeconds());
 
@@ -936,6 +954,11 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 waiterTf->SetRotation(glm::vec3(0.0f, targetAngle, 0.0f));
             }
             else {
+                // Po zatrzymaniu obraca się kulturalnie przodem do zupy
+                glm::vec3 lookDir = glm::normalize(stationPos - currentPos);
+                float targetAngle = glm::degrees(glm::atan(lookDir.x, lookDir.z));
+                waiterTf->SetRotation(glm::vec3(0.0f, targetAngle, 0.0f));
+
                 if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
                     auto* plateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(targetPlate);
                     if (plateTf) {
@@ -1138,38 +1161,47 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 }
             }
         }
-        // --- FAZA 6: Przejście do gry właściwej  ---
+        // --- FAZA 6: Przejście do gry właściwej ---
         else if (endPhase == 6) {
-            auto* camera = GetScene()->GetCamera();
+            auto *camera = GetScene()->GetCamera();
             if (camera) {
                 camera->Zoom += (32.0f - camera->Zoom) * 4.0f * ts.GetSeconds();
             }
 
             if (m_StateTimer > 1.5f) {
+                
+                // POPRAWKA: Używamy GetScene() zamiast m_ActiveScene!
+                if (GetScene()) {
+                    auto* oldCam = GetScene()->GetCamera();
+                    if (oldCam) {
+                        oldCam->Zoom = 45.0f;
+                        oldCam->TargetPosition = glm::vec3(0.0f);
+                    }
+                }
+
                 GameManagerScript::s_IsTutorialMode = false;
-
-                spdlog::info("[Tutorial] Rozpoczynam ladowanie wlasciwej gry (level02.json)...");
-
-                // Logika ładowania sceny
                 auto activeScene = SceneManager::NewScene();
                 SceneSerializer serializer(activeScene.get());
 
                 if (serializer.Deserialize("assets://levels/level02.json")) {
                     auto windowSize = Input::GetWindowSize();
                     activeScene->SetViewportSize((float)windowSize.first, (float)windowSize.second);
-                    Gui::SetScreenSize((float)windowSize.first, (float)windowSize.second); // Wymaga zainkludowania Gui.h!
-
+                    Gui::SetScreenSize((float)windowSize.first, (float)windowSize.second); 
+                    
                     activeScene->SetState(SceneState::Play);
                     activeScene->OnRuntimeStart();
 
+                    // Zabezpieczenie dla nowej sceny
+                    auto* newCam = activeScene->GetCamera();
+                    if (newCam) {
+                        newCam->Zoom = 45.0f;
+                        newCam->TargetPosition = glm::vec3(0.0f);
+                    }
+
                     Application::Get().GetEventBus().Publish(GameStartedEvent{});
                     Application::Get().GetEventBus().Publish(GameResumedEvent{});
-
-                    spdlog::info("[Tutorial] TUTORIAL UKONCZONY! Pomyslnie zaladowano level02.json!");
-                }
-                else {
-                    spdlog::error("[Tutorial] BLAD: Nie udalo sie wczytac assets://levels/level02.json");
-                }
+                } 
+                
                 m_StateTimer = -9999.0f;
                 endPhase = 7;
             }
