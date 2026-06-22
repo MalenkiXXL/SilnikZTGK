@@ -3,6 +3,7 @@
 #include "CookingStation/Scripts/Managers/IngredientType.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Core/AudioEngine.h"
+#include "CookingStation/Core/GameProgress.h"
 #include <vector>
 #include <algorithm>
 #include <random>
@@ -182,7 +183,20 @@ private:
 
     void TransformIntoDish(IngredientType dishType)
     {
-        spdlog::info("Talerz: Z�o�ono gotowe danie!");
+        spdlog::info("Talerz: Złożono gotowe danie!");
+
+        // --- NOWY KOD ODBLOKOWUJĄCY PRZEPIS W KSIĄŻCE ---
+        if (dishType == IngredientType::Sandwich && !GameProgress::IsRecipeUnlocked("Sandwich"))
+        {
+            GameProgress::UnlockRecipe("Sandwich");
+            spdlog::info("Książka Kucharska: Przepis na Sandwich odblokowany!");
+        }
+        else if (dishType == IngredientType::Caprese && !GameProgress::IsRecipeUnlocked("Caprese"))
+        {
+            GameProgress::UnlockRecipe("Caprese"); // W przyszłości możesz też dodać ikonkę dla Caprese!
+            spdlog::info("Książka Kucharska: Przepis na Caprese odblokowany!");
+        }
+        // ------------------------------------------------
 
         std::vector<IngredientType> historyIngredients = m_Ingredients;
 
@@ -221,10 +235,10 @@ private:
 
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                 m_Entity, glm::vec3(1.0f, 0.8f, 0.0f), 2.0f, false
-        });
+            });
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                 dishEntity, glm::vec3(1.0f, 0.8f, 0.0f), 2.0f, false
-        });
+            });
     }
 
 };
