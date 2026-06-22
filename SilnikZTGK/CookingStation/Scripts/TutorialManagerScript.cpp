@@ -20,6 +20,8 @@
 bool TutorialManagerScript::s_AllowConveyorSwitch = false;
 bool TutorialManagerScript::s_AllowSkip = false;
 
+extern bool g_TriggerCloudTransition;
+
 static glm::vec3 s_WaiterOriginalSpawnPos = glm::vec3(0.0f);
 
 Entity TutorialManagerScript::FindEntityByName(const std::string& name) {
@@ -1163,45 +1165,13 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
         }
         // --- FAZA 6: Przejście do gry właściwej ---
         else if (endPhase == 6) {
-            auto *camera = GetScene()->GetCamera();
+            auto* camera = GetScene()->GetCamera();
             if (camera) {
                 camera->Zoom += (32.0f - camera->Zoom) * 4.0f * ts.GetSeconds();
             }
 
             if (m_StateTimer > 1.5f) {
-                
-                // POPRAWKA: Używamy GetScene() zamiast m_ActiveScene!
-                if (GetScene()) {
-                    auto* oldCam = GetScene()->GetCamera();
-                    if (oldCam) {
-                        oldCam->Zoom = 45.0f;
-                        oldCam->TargetPosition = glm::vec3(0.0f);
-                    }
-                }
-
-                GameManagerScript::s_IsTutorialMode = false;
-                auto activeScene = SceneManager::NewScene();
-                SceneSerializer serializer(activeScene.get());
-
-                if (serializer.Deserialize("assets://levels/level02.json")) {
-                    auto windowSize = Input::GetWindowSize();
-                    activeScene->SetViewportSize((float)windowSize.first, (float)windowSize.second);
-                    Gui::SetScreenSize((float)windowSize.first, (float)windowSize.second); 
-                    
-                    activeScene->SetState(SceneState::Play);
-                    activeScene->OnRuntimeStart();
-
-                    // Zabezpieczenie dla nowej sceny
-                    auto* newCam = activeScene->GetCamera();
-                    if (newCam) {
-                        newCam->Zoom = 45.0f;
-                        newCam->TargetPosition = glm::vec3(0.0f);
-                    }
-
-                    Application::Get().GetEventBus().Publish(GameStartedEvent{});
-                    Application::Get().GetEventBus().Publish(GameResumedEvent{});
-                } 
-                
+                g_TriggerCloudTransition = true; // ODPALAMY CHMURKĘ!
                 m_StateTimer = -9999.0f;
                 endPhase = 7;
             }

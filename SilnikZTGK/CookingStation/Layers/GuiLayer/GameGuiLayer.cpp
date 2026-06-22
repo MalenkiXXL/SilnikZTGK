@@ -20,6 +20,8 @@
 #include <algorithm>
 #include <cmath> 
 
+bool g_TriggerCloudTransition = false;
+
 void GameGuiLayer::OnAttach()
 {
     m_ActiveScene = SceneManager::GetActiveScene();
@@ -685,40 +687,41 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                     skipHoldProgress += dt * 0.66f;
                     if (skipHoldProgress >= 1.0f) {
                         skipHoldProgress = 0.0f;
+                        g_TriggerCloudTransition = true;
 
-                        // --- ROZWI¥ZANIE PROBLEMU Z KAMER¥ ---
-                        // Resetujemy kamerê na OBECNEJ scenie, zanim silnik skopiuje jej zepsuty stan!
-                        if (m_ActiveScene) {
-                            auto* oldCam = m_ActiveScene->GetCamera();
-                            if (oldCam) {
-                                oldCam->Zoom = 45.0f;
-                                oldCam->TargetPosition = glm::vec3(0.0f);
-                            }
-                        }
+                        //// --- ROZWI¥ZANIE PROBLEMU Z KAMER¥ ---
+                        //// Resetujemy kamerê na OBECNEJ scenie, zanim silnik skopiuje jej zepsuty stan!
+                        //if (m_ActiveScene) {
+                        //    auto* oldCam = m_ActiveScene->GetCamera();
+                        //    if (oldCam) {
+                        //        oldCam->Zoom = 45.0f;
+                        //        oldCam->TargetPosition = glm::vec3(0.0f);
+                        //    }
+                        //}
 
-                        GameManagerScript::s_IsTutorialMode = false;
-                        auto activeScene = SceneManager::NewScene();
-                        SceneSerializer serializer(activeScene.get());
+                        //GameManagerScript::s_IsTutorialMode = false;
+                        //auto activeScene = SceneManager::NewScene();
+                        //SceneSerializer serializer(activeScene.get());
 
-                        if (serializer.Deserialize("assets://levels/level02.json")) {
-                            auto windowSize = Input::GetWindowSize();
-                            activeScene->SetViewportSize((float)windowSize.first, (float)windowSize.second);
-                            Gui::SetScreenSize((float)windowSize.first, (float)windowSize.second);
+                        //if (serializer.Deserialize("assets://levels/level02.json")) {
+                        //    auto windowSize = Input::GetWindowSize();
+                        //    activeScene->SetViewportSize((float)windowSize.first, (float)windowSize.second);
+                        //    Gui::SetScreenSize((float)windowSize.first, (float)windowSize.second);
 
-                            activeScene->SetState(SceneState::Play);
-                            activeScene->OnRuntimeStart();
+                        //    activeScene->SetState(SceneState::Play);
+                        //    activeScene->OnRuntimeStart();
 
-                            // Zabezpieczenie dla nowej sceny (na wszelki wypadek)
-                            auto* newCam = activeScene->GetCamera();
-                            if (newCam) {
-                                newCam->Zoom = 45.0f;
-                                newCam->TargetPosition = glm::vec3(0.0f);
-                            }
+                        //    // Zabezpieczenie dla nowej sceny (na wszelki wypadek)
+                        //    auto* newCam = activeScene->GetCamera();
+                        //    if (newCam) {
+                        //        newCam->Zoom = 45.0f;
+                        //        newCam->TargetPosition = glm::vec3(0.0f);
+                        //    }
 
-                            Application::Get().GetEventBus().Publish(GameStartedEvent{});
-                            Application::Get().GetEventBus().Publish(GameResumedEvent{});
-                        }
-                        return;
+                        //    Application::Get().GetEventBus().Publish(GameStartedEvent{});
+                        //    Application::Get().GetEventBus().Publish(GameResumedEvent{});
+                        //}
+                        //return;
                     }
                 }
                 else {
@@ -781,6 +784,84 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         Renderer2D::BeginScene(uiProj);
         m_LevelCompletedPanel.OnUpdate(dt);
         m_LevelCompletedPanel.Draw(m_ViewportWidth, m_ViewportHeight, baseScale);
+        Renderer2D::EndScene();
+    }
+    static int s_CloudTransState = 0;
+    static float s_CloudTransProgress = 0.0f;
+
+    if (g_TriggerCloudTransition && s_CloudTransState == 0) {
+        g_TriggerCloudTransition = false;
+        s_CloudTransState = 1;
+        s_CloudTransProgress = 0.0f;
+    }
+
+    if (s_CloudTransState > 0) {
+        Input::SetUICaptureMouse(true); // Blokujemy klikanie na czas przejœcia!
+        glEnable(GL_BLEND);
+        glDisable(GL_DEPTH_TEST);
+        Renderer2D::BeginScene(uiProj);
+
+        float speed = 1.5f * dt; // Chmura zas³oni ekran w ~0.6 sekundy
+        if (s_CloudTransState == 1) {
+            s_CloudTransProgress += speed;
+            if (s_CloudTransProgress >= 1.0f) {
+                s_CloudTransProgress = 1.0f;
+                s_CloudTransState = 2; // Zmieniamy stan na "odkrywanie"
+
+                if (m_ActiveScene) {
+                    auto* oldCam = m_ActiveScene->GetCamera();
+                    if (oldCam) {
+                        oldCam->Zoom = 45.0f;
+                        oldCam->TargetPosition = glm::vec3(0.0f);
+                    }
+                }
+
+                // --- £ADOWANIE SCENY, GDY EKRAN JEST CA£KIEM BIA£Y ---
+                GameManagerScript::s_IsTutorialMode = false;
+                auto activeScene = SceneManager::NewScene();
+                SceneSerializer serializer(activeScene.get());
+
+                if (serializer.Deserialize("assets://levels/level02.json")) {
+                    auto windowSize = Input::GetWindowSize();
+                    activeScene->SetViewportSize((float)windowSize.first, (float)windowSize.second);
+                    Gui::SetScreenSize((float)windowSize.first, (float)windowSize.second);
+
+                    activeScene->SetState(SceneState::Play);
+                    activeScene->OnRuntimeStart();
+
+                    auto* cam = activeScene->GetCamera();
+                    if (cam) {
+                        cam->Zoom = 45.0f;
+                        cam->TargetPosition = glm::vec3(0.0f);
+                    }
+
+                    Application::Get().GetEventBus().Publish(GameStartedEvent{});
+                    Application::Get().GetEventBus().Publish(GameResumedEvent{});
+                }
+            }
+        }
+        else if (s_CloudTransState == 2) {
+            s_CloudTransProgress -= speed;
+            if (s_CloudTransProgress <= 0.0f) {
+                s_CloudTransProgress = 0.0f;
+                s_CloudTransState = 0; // Koniec animacji
+            }
+        }
+
+        // Rysowanie pêczniej¹cej chmurki na³o¿onej na wszystko
+        if (m_BookCloudIcon) {
+            float t = s_CloudTransProgress;
+            float easeScale = t * t * (3.0f - 2.0f * t); // Smoothstep dla p³ynnego ruchu
+
+            // Ekstremalnie du¿a skala, ¿eby na pewno przykryæ ca³y ekran
+            float maxCloudSize = std::max(m_ViewportWidth, m_ViewportHeight) * 3.5f;
+            float currentSize = maxCloudSize * easeScale;
+
+            glm::vec2 size = { currentSize, currentSize };
+            glm::vec2 pos = { (m_ViewportWidth - currentSize) * 0.5f, (m_ViewportHeight - currentSize) * 0.5f };
+
+            Renderer2D::DrawQuad(pos, size, m_BookCloudIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        }
         Renderer2D::EndScene();
     }
     glEnable(GL_DEPTH_TEST);
