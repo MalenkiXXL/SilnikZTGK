@@ -15,8 +15,9 @@ public:
     void Close() { m_IsOpen = false; }
 
 private:
-    void DrawRecipeIcon(const std::string& recipeId, const std::shared_ptr<Texture>& texture,
-        glm::vec2 relativePct, float targetHeight, glm::vec2 bookPos, glm::vec2 bookSize, float dt, bool isBlocked);
+    void DrawRecipeIcon(const std::string& recipeId, const std::string& displayName, const std::shared_ptr<Texture>& iconTex, const std::shared_ptr<Texture>& tooltipTex,
+        glm::vec2 relativePct, float targetHeight, glm::vec2 bookPos, glm::vec2 bookSize, float dt, bool isBlocked,
+        std::shared_ptr<Texture>& outTooltipTex, glm::vec2& outTooltipPos, glm::vec2& outTooltipSize);
 
     bool m_IsOpen = false;
     std::unordered_map<std::string, BubblyState> m_BubblyStates;
@@ -26,8 +27,7 @@ private:
     std::shared_ptr<Texture> m_BookStarsIcon;
     std::shared_ptr<Texture> m_BookInsideIcon;
     std::shared_ptr<Texture> m_BookXIcon;
+
     std::shared_ptr<Texture> m_TomatoSoupIcon;
-    std::shared_ptr<Texture> m_SandwichIcon;
-    std::shared_ptr<Texture> m_CupcakeIcon;
-    std::shared_ptr<Texture> m_CroissantIcon;
+    std::shared_ptr<Texture> m_TomatoSoupRecipeTex;
 };

@@ -4,6 +4,7 @@
 #include "CookingStation/Core/GameProgress.h"
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
+#include "CookingStation/Layers/GuiLayer/Utils/Gui.h" 
 
 void RecipeBookPanel::Init() {
     m_BookCloudIcon = AssetManager::GetTexture("assets://UI/bookCloud.png");
@@ -11,21 +12,69 @@ void RecipeBookPanel::Init() {
     m_BookStarsIcon = AssetManager::GetTexture("assets://UI/bookStars.png");
     m_BookInsideIcon = AssetManager::GetTexture("assets://UI/bookInside.png");
     m_BookXIcon = AssetManager::GetTexture("assets://UI/bookX.png");
+
+    // Ikonki dañ
     m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
-    m_SandwichIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
-    m_CupcakeIcon = AssetManager::GetTexture("assets://UI/cupcake.png");
-    m_CroissantIcon = AssetManager::GetTexture("assets://UI/croissant.png");
+
+    // Obrazki ca³ych przepisów (chmurki)
+    m_TomatoSoupRecipeTex = AssetManager::GetTexture("assets://UI/TomatoSoupRecipe.png");
 }
 
-void RecipeBookPanel::DrawRecipeIcon(const std::string& recipeId, const std::shared_ptr<Texture>& texture,
-    glm::vec2 relativePct, float targetHeight, glm::vec2 bookPos, glm::vec2 bookSize, float dt, bool isBlocked)
+
+void RecipeBookPanel::DrawRecipeIcon(const std::string& recipeId, const std::string& displayName, const std::shared_ptr<Texture>& iconTex, const std::shared_ptr<Texture>& tooltipTex,
+    glm::vec2 relativePct, float targetHeight, glm::vec2 bookPos, glm::vec2 bookSize, float dt, bool isBlocked,
+    std::shared_ptr<Texture>& outTooltipTex, glm::vec2& outTooltipPos, glm::vec2& outTooltipSize)
 {
-    if (!texture) return;
-    glm::vec2 size = GuiUtils::CalculateAspectSize(texture, targetHeight);
+    if (!iconTex) return;
+
+    glm::vec2 size = GuiUtils::CalculateAspectSize(iconTex, targetHeight);
     glm::vec2 pos = { bookPos.x + bookSize.x * relativePct.x, bookPos.y + bookSize.y * relativePct.y };
+
     bool isUnlocked = GameProgress::IsRecipeUnlocked(recipeId);
-    glm::vec4 tint = isUnlocked ? glm::vec4(1.0f) : glm::vec4(0.15f, 0.15f, 0.15f, 1.0f);
-    BubblyUI::DrawBubblyImage(m_BubblyStates, "Recipe_" + recipeId, texture, pos, size, dt, isBlocked, 1.15f, true, 0.5f, tint);
+
+    // Zablokowane = czarna sylwetka, Odblokowane = pe³ne kolory
+    glm::vec4 tint = isUnlocked ? glm::vec4(1.0f) : glm::vec4(0.0f, 0.0f, 0.0f, 0.8f);
+    BubblyUI::DrawBubblyImage(m_BubblyStates, "Recipe_" + recipeId, iconTex, pos, size, dt, isBlocked, 1.15f, true, 0.5f, tint);
+
+    // --- PODPIS POD IKONK¥ (Fioletowy z tutoriala) ---
+    // Pobieramy bazow¹ skalê na podstawie wysokoœci ikonki
+    float baseScale = targetHeight / 120.0f;
+    float textScale = 0.75f * baseScale;
+    std::string textToShow = isUnlocked ? displayName : "???";
+    float textW = Gui::MeasureTextWidth(textToShow, textScale);
+    glm::vec2 textPos = { pos.x + (size.x - textW) * 0.5f, pos.y + size.y + (10.0f * baseScale) };
+
+    glm::vec4 purpleColor = { 0.75f, 0.4f, 0.9f, 1.0f }; // Kolor Waltera!
+    Gui::DrawGuiText(textToShow, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.5f }); // Cieñ
+    Gui::DrawGuiText(textToShow, textPos, textScale, purpleColor);
+
+    // --- OBS£UGA DU¯EJ CHMURKI (HOVER) ---
+    glm::vec2 mouse = Gui::GetMappedMousePos();
+    bool isHovered = (mouse.x >= pos.x && mouse.x <= pos.x + size.x && mouse.y >= pos.y && mouse.y <= pos.y + size.y);
+
+    if (isHovered && tooltipTex && !isBlocked) {
+        // Chmurka znacznie wiêksza (2.3x wysokoœæ ikonki)
+        float tooltipHeight = targetHeight * 2.3f;
+        glm::vec2 tSize = GuiUtils::CalculateAspectSize(tooltipTex, tooltipHeight);
+
+        glm::vec2 tPos;
+        float margin = 20.0f * baseScale;
+
+        // Jeœli ikonka jest po lewej stronie ksi¹¿ki (< 0.5), wyrzuæ chmurkê na PRAWO (do œrodka), i na odwrót
+        if (relativePct.x < 0.5f) {
+            tPos.x = pos.x + size.x + margin;
+        }
+        else {
+            tPos.x = pos.x - tSize.x - margin;
+        }
+
+        // Wyœrodkowanie chmurki w pionie wzglêdem ikonki
+        tPos.y = pos.y + (size.y - tSize.y) * 0.5f;
+
+        outTooltipTex = tooltipTex;
+        outTooltipPos = tPos;
+        outTooltipSize = tSize;
+    }
 }
 
 void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt, bool isGamePaused) {
@@ -65,10 +114,25 @@ void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float game
             }
         }
 
+        // --- RYSOWANIE IKONEK (Z Tooltipami) ---
         float recipeH = 120.0f * baseScale;
-        DrawRecipeIcon("TomatoSoup", m_TomatoSoupIcon, { 0.12f, 0.15f }, recipeH, insidePos, insideSize, dt, false);
-        DrawRecipeIcon("Sandwich", m_SandwichIcon, { 0.35f, 0.15f }, recipeH, insidePos, insideSize, dt, false);
-        DrawRecipeIcon("Croissant", m_CroissantIcon, { 0.12f, 0.30f }, recipeH - 20.0f, insidePos + glm::vec2(10.0f), insideSize, dt, false);
-        DrawRecipeIcon("Cupcake", m_CupcakeIcon, { 0.35f, 0.30f }, recipeH, insidePos, insideSize, dt, false);
+
+        // Zmienne, które "przechwyc¹" chmurkê, jeœli jakaœ jest najechana myszk¹
+        std::shared_ptr<Texture> activeTooltipTex = nullptr;
+        glm::vec2 activeTooltipPos;
+        glm::vec2 activeTooltipSize;
+
+        // Ikonka pomidorówki na lewej stronie ksi¹¿ki
+        DrawRecipeIcon(
+            "TomatoSoup", "Tomato Soup", m_TomatoSoupIcon, m_TomatoSoupRecipeTex,
+            { 0.15f, 0.15f }, recipeH, insidePos, insideSize, dt, isBlocked,
+            activeTooltipTex, activeTooltipPos, activeTooltipSize
+        );
+
+        // --- RYSOWANIE CHMURKI NA SAMYM WIERZCHU ---
+        // Rysujemy to dopiero tutaj, ¿eby inne ikonki nie przykry³y nam naszego przepisu!
+        if (activeTooltipTex) {
+            Renderer2D::DrawQuad(activeTooltipPos, activeTooltipSize, activeTooltipTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        }
     }
 }
