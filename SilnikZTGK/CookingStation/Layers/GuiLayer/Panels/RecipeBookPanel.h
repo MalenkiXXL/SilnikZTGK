@@ -16,7 +16,7 @@ public:
 
 private:
     void DrawRecipeIcon(const std::string& recipeId, const std::string& displayName, const std::shared_ptr<Texture>& iconTex, const std::shared_ptr<Texture>& tooltipTex,
-        glm::vec2 relativePct, float targetHeight, glm::vec2 bookPos, glm::vec2 bookSize, float dt, bool isBlocked,
+        glm::vec2 relativePct, float targetWidth, glm::vec2 bookPos, glm::vec2 bookSize, float dt, bool isBlocked,
         std::shared_ptr<Texture>& outTooltipTex, glm::vec2& outTooltipPos, glm::vec2& outTooltipSize);
 
     bool m_IsOpen = false;
@@ -28,6 +28,19 @@ private:
     std::shared_ptr<Texture> m_BookInsideIcon;
     std::shared_ptr<Texture> m_BookXIcon;
 
+    // --- IKONKI DAÑ ---
     std::shared_ptr<Texture> m_TomatoSoupIcon;
+    std::shared_ptr<Texture> m_SandwichIcon;
+    std::shared_ptr<Texture> m_FriedEggIcon;
+    std::shared_ptr<Texture> m_EggsAndBaconIcon;
+    std::shared_ptr<Texture> m_ShakshukaIcon;
+    std::shared_ptr<Texture> m_BaguetteIcon;
+
+    // --- TEKSTURY PRZEPISÓW (Chmurki) ---
     std::shared_ptr<Texture> m_TomatoSoupRecipeTex;
+    std::shared_ptr<Texture> m_SandwichRecipeTex;
+    std::shared_ptr<Texture> m_FriedEggRecipeTex;
+    std::shared_ptr<Texture> m_EggsAndBaconRecipeTex;
+    std::shared_ptr<Texture> m_ShakshukaRecipeTex;
+    std::shared_ptr<Texture> m_BaguetteRecipeTex;
 };

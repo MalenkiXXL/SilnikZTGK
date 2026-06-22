@@ -15,61 +15,75 @@ void RecipeBookPanel::Init() {
 
     // Ikonki dañ
     m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
+    m_SandwichIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
+    m_FriedEggIcon = AssetManager::GetTexture("assets://UI/friedEgg.png"); // Podmieñ jeœli masz inn¹ nazwê!
+    m_EggsAndBaconIcon = AssetManager::GetTexture("assets://UI/eggsAndBacon.png");
+    m_ShakshukaIcon = AssetManager::GetTexture("assets://UI/shakshuka.png");
+    m_BaguetteIcon = AssetManager::GetTexture("assets://UI/baguette.png");
 
     // Obrazki ca³ych przepisów (chmurki)
     m_TomatoSoupRecipeTex = AssetManager::GetTexture("assets://UI/TomatoSoupRecipe.png");
+    m_SandwichRecipeTex = AssetManager::GetTexture("assets://UI/SandwichRecipe.png");
+    m_FriedEggRecipeTex = AssetManager::GetTexture("assets://UI/FriedEggRecipe.png");
+    m_EggsAndBaconRecipeTex = AssetManager::GetTexture("assets://UI/EggsAndBaconRecipe.png");
+    m_ShakshukaRecipeTex = AssetManager::GetTexture("assets://UI/ShakshukaRecipe.png");
+    m_BaguetteRecipeTex = AssetManager::GetTexture("assets://UI/BaguetteRecipe.png");
 }
 
 
 void RecipeBookPanel::DrawRecipeIcon(const std::string& recipeId, const std::string& displayName, const std::shared_ptr<Texture>& iconTex, const std::shared_ptr<Texture>& tooltipTex,
-    glm::vec2 relativePct, float targetHeight, glm::vec2 bookPos, glm::vec2 bookSize, float dt, bool isBlocked,
+    glm::vec2 relativePct, float targetWidth, glm::vec2 bookPos, glm::vec2 bookSize, float dt, bool isBlocked,
     std::shared_ptr<Texture>& outTooltipTex, glm::vec2& outTooltipPos, glm::vec2& outTooltipSize)
 {
     if (!iconTex) return;
 
-    glm::vec2 size = GuiUtils::CalculateAspectSize(iconTex, targetHeight);
-    glm::vec2 pos = { bookPos.x + bookSize.x * relativePct.x, bookPos.y + bookSize.y * relativePct.y };
+    // MAGIA 1: Szerokoœæ jest sta³a, a wysokoœæ dopasowuje siê proporcjonalnie!
+    float aspect = (float)iconTex->GetWidth() / (float)iconTex->GetHeight();
+    glm::vec2 size = { targetWidth, targetWidth / aspect };
+
+    // MAGIA 2: Pozycja z procentów to teraz ŒRODEK ikonki, a nie jej róg.
+    glm::vec2 slotCenter = { bookPos.x + bookSize.x * relativePct.x, bookPos.y + bookSize.y * relativePct.y };
+    glm::vec2 pos = { slotCenter.x - size.x * 0.5f, slotCenter.y - size.y * 0.5f };
 
     bool isUnlocked = GameProgress::IsRecipeUnlocked(recipeId);
 
-    // Zablokowane = czarna sylwetka, Odblokowane = pe³ne kolory
     glm::vec4 tint = isUnlocked ? glm::vec4(1.0f) : glm::vec4(0.0f, 0.0f, 0.0f, 0.8f);
     BubblyUI::DrawBubblyImage(m_BubblyStates, "Recipe_" + recipeId, iconTex, pos, size, dt, isBlocked, 1.15f, true, 0.5f, tint);
 
-    // --- PODPIS POD IKONK¥ (Fioletowy z tutoriala) ---
-    // Pobieramy bazow¹ skalê na podstawie wysokoœci ikonki
-    float baseScale = targetHeight / 120.0f;
-    float textScale = 0.75f * baseScale;
+    // --- PODPIS POD IKONK¥ ---
+    float baseScale = targetWidth / 120.0f;
+    float textScale = 0.70f * baseScale;
     std::string textToShow = isUnlocked ? displayName : "???";
     float textW = Gui::MeasureTextWidth(textToShow, textScale);
-    glm::vec2 textPos = { pos.x + (size.x - textW) * 0.5f, pos.y + size.y + (10.0f * baseScale) };
 
-    glm::vec4 purpleColor = { 0.75f, 0.4f, 0.9f, 1.0f }; // Kolor Waltera!
-    Gui::DrawGuiText(textToShow, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.5f }); // Cieñ
+    // Tekst wyœrodkowany pod ikonk¹
+    glm::vec2 textPos = { slotCenter.x - textW * 0.5f, pos.y + size.y + (8.0f * baseScale) };
+
+    glm::vec4 purpleColor = { 0.75f, 0.4f, 0.9f, 1.0f };
+    Gui::DrawGuiText(textToShow, { textPos.x + 1.5f, textPos.y + 1.5f }, textScale, { 0.0f, 0.0f, 0.0f, 0.2f });
     Gui::DrawGuiText(textToShow, textPos, textScale, purpleColor);
 
-    // --- OBS£UGA DU¯EJ CHMURKI (HOVER) ---
+    // --- OBS£UGA CHMURKI ---
     glm::vec2 mouse = Gui::GetMappedMousePos();
     bool isHovered = (mouse.x >= pos.x && mouse.x <= pos.x + size.x && mouse.y >= pos.y && mouse.y <= pos.y + size.y);
 
     if (isHovered && tooltipTex && !isBlocked) {
-        // Chmurka znacznie wiêksza (2.3x wysokoœæ ikonki)
-        float tooltipHeight = targetHeight * 2.3f;
+        float tooltipHeight = targetWidth * 2.3f;
         glm::vec2 tSize = GuiUtils::CalculateAspectSize(tooltipTex, tooltipHeight);
 
+        float margin = 10.0f * baseScale;
         glm::vec2 tPos;
-        float margin = 20.0f * baseScale;
 
-        // Jeœli ikonka jest po lewej stronie ksi¹¿ki (< 0.5), wyrzuæ chmurkê na PRAWO (do œrodka), i na odwrót
-        if (relativePct.x < 0.5f) {
-            tPos.x = pos.x + size.x + margin;
-        }
-        else {
+        // Zgodnie z ¿yczeniem: Lewa kolumna -> chmurka w lewo. Prawa kolumna -> chmurka w prawo.
+        if (relativePct.x < 0.25f) {
             tPos.x = pos.x - tSize.x - margin;
         }
+        else {
+            tPos.x = pos.x + size.x + margin;
+        }
 
-        // Wyœrodkowanie chmurki w pionie wzglêdem ikonki
-        tPos.y = pos.y + (size.y - tSize.y) * 0.5f;
+        // Chmurka wyœrodkowana w pionie ze œrodkiem ikonki
+        tPos.y = slotCenter.y - tSize.y * 0.5f;
 
         outTooltipTex = tooltipTex;
         outTooltipPos = tPos;
@@ -114,23 +128,42 @@ void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float game
             }
         }
 
-        // --- RYSOWANIE IKONEK (Z Tooltipami) ---
-        float recipeH = 120.0f * baseScale;
-
-        // Zmienne, które "przechwyc¹" chmurkê, jeœli jakaœ jest najechana myszk¹
+        // --- RYSOWANIE IKONEK (Siatka 2 kolumny x 3 wiersze) ---
+        float recipeW = 100.0f * baseScale; 
+        
         std::shared_ptr<Texture> activeTooltipTex = nullptr;
         glm::vec2 activeTooltipPos;
         glm::vec2 activeTooltipSize;
 
-        // Ikonka pomidorówki na lewej stronie ksi¹¿ki
-        DrawRecipeIcon(
-            "TomatoSoup", "Tomato Soup", m_TomatoSoupIcon, m_TomatoSoupRecipeTex,
-            { 0.15f, 0.15f }, recipeH, insidePos, insideSize, dt, isBlocked,
-            activeTooltipTex, activeTooltipPos, activeTooltipSize
-        );
+        // Rozsuniête kolumny i wiersze na lewej stronie ksi¹¿ki
+        float col1 = 0.18f;  // Mocniej do lewej krawêdzi kartki
+        float col2 = 0.38f;  // Bli¿ej zgiêcia na œrodku ksi¹¿ki
+        
+        float row1 = 0.20f;  // Troszkê wy¿ej
+        float row2 = 0.40f;  // Idealny œrodek
+        float row3 = 0.62f;  // Troszkê ni¿ej
+
+        // --- RZ¥D 1 ---
+
+        // --- RZ¥D 1 ---
+        DrawRecipeIcon("TomatoSoup", "Tomato Soup", m_TomatoSoupIcon, m_TomatoSoupRecipeTex,
+            { col1, row1 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize);
+        DrawRecipeIcon("FriedEggs", "Fried Eggs", m_FriedEggIcon, m_FriedEggRecipeTex,
+            { col2, row1 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize);
+
+        // --- RZ¥D 2 ---
+        DrawRecipeIcon("EggsAndBacon", "Eggs & Bacon", m_EggsAndBaconIcon, m_EggsAndBaconRecipeTex,
+            { col1, row2 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize);
+        DrawRecipeIcon("Shakshuka", "Shakshuka", m_ShakshukaIcon, m_ShakshukaRecipeTex,
+            { col2, row2 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize);
+
+        // --- RZ¥D 3 ---
+        DrawRecipeIcon("Baguette", "Baguette", m_BaguetteIcon, m_BaguetteRecipeTex,
+            { col1, row3 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize);
+        DrawRecipeIcon("Sandwich", "Sandwich", m_SandwichIcon, m_SandwichRecipeTex,
+            { col2, row3 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize);
 
         // --- RYSOWANIE CHMURKI NA SAMYM WIERZCHU ---
-        // Rysujemy to dopiero tutaj, ¿eby inne ikonki nie przykry³y nam naszego przepisu!
         if (activeTooltipTex) {
             Renderer2D::DrawQuad(activeTooltipPos, activeTooltipSize, activeTooltipTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
