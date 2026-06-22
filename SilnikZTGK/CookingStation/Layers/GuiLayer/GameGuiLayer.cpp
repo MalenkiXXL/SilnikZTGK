@@ -42,6 +42,8 @@ void GameGuiLayer::OnAttach()
     m_ViewportWidth = (float)windowSize.first;
     m_ViewportHeight = (float)windowSize.second;
 
+    m_SmileFaceIcon = AssetManager::GetTexture("assets://UI/smileFace.png");
+    m_AngryFaceIcon = AssetManager::GetTexture("assets://UI/angryFace.png");
     m_CornerIcon = AssetManager::GetTexture("assets://UI/bottomCornerClouds.png");
     m_TomatoIcon = AssetManager::GetTexture("assets://UI/tomato.png");
     m_CheeseIcon = AssetManager::GetTexture("assets://UI/Cheese.png");
@@ -298,7 +300,10 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         }
 
         if (isPlaying) {
-            if (!custScript || custScript->IsServed || custScript->IsPendingDestroy) {
+            // ZMIANA: Usuwamy karteczkê tylko, gdy klient faktycznie odchodzi ze sceny,
+            // ALBO jest obs³u¿ony ale jakimœ cudem omin¹³ fazê LeavingReaction
+            if (!custScript || custScript->IsPendingDestroy ||
+                (custScript->IsServed && custScript->State != CustomerState::LeavingReaction)) {
                 it = m_ActiveOrderTickets.erase(it);
                 continue;
             }
@@ -335,7 +340,15 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
             glm::vec2 ticketSize = GuiUtils::CalculateAspectSize(ticketTex, ticketHeight);
             glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin, currentY };
 
-            Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+            // ZMIANA: Barwienie karteczki
+            glm::vec4 ticketColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // Domyœlny, bia³y
+            if (custScript && custScript->State == CustomerState::LeavingReaction) {
+                if (custScript->m_WasCorrect) ticketColor = { 0.4f, 1.0f, 0.4f, 1.0f }; // Zielonkawy odcieñ (dobrze)
+                else ticketColor = { 1.0f, 0.4f, 0.4f, 1.0f }; // Czerwonawy odcieñ (Ÿle)
+            }
+
+            // Przekazanie ticketColor zamiast "na sztywno" bia³ego
+            Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, ticketColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
             if (custScript) {
                 std::shared_ptr<Texture> iconToDraw = nullptr;
@@ -382,7 +395,6 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         }
     }
 }
-
 void GameGuiLayer::OnUpdate(Timestep ts)
 {
 #ifdef CS_DISTRIBUTION
@@ -1291,7 +1303,11 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
 
     for (size_t i = 0; i < tags->dense.size(); ++i) {
         std::string tag = tags->dense[i].Tag;
-        if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos) {
+
+        // ZMIANA: Szukamy równie¿ tagów "ZadowolonyKlient" oraz "ZlyKlient", bo klient zmienia swój tag w trakcie reakcji!
+        if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos ||
+            tag == "ZadowolonyKlient" || tag == "ZlyKlient")
+        {
             Entity custEntity = tags->reverse[i];
             auto* nsc = scripts->Get(custEntity);
             auto* tf = transforms->Get(custEntity);
@@ -1304,7 +1320,8 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
                     break;
                 }
             }
-            if (!custScript || custScript->IsServed) continue;
+
+            if (!custScript || (custScript->IsServed && custScript->State != CustomerState::LeavingReaction)) continue;
 
             glm::vec3 headPos = tf->GetPosition() + glm::vec3(0.0f, 3.0f, 0.0f);
             glm::vec4 clipSpace = viewProj * glm::vec4(headPos, 1.0f);
@@ -1315,7 +1332,14 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
             float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
 
             std::shared_ptr<Texture> iconToDraw = nullptr;
-            if (!custScript->OrderTaken) iconToDraw = m_QuestionMarkIcon;
+
+            // Ustawianie odpowiedniej ikonki reakcji
+            if (custScript->State == CustomerState::LeavingReaction) {
+                iconToDraw = custScript->m_WasCorrect ? m_SmileFaceIcon : m_AngryFaceIcon;
+            }
+            else if (!custScript->OrderTaken) {
+                iconToDraw = m_QuestionMarkIcon;
+            }
 
             if (iconToDraw) {
                 glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, 70.0f * baseScale);
