@@ -32,4 +32,11 @@ private:
     void SubscribeToGameplayEvents(std::shared_ptr<Scene> scene);
     void UpdateTransformAnimations(World& world, float dt);
 
+    bool m_IsPaused = false;
+    bool m_IsBuildModeActive = false;
+    bool m_IsLevelCompleted = false;
+    std::size_t m_PauseSubId = 0;
+    std::size_t m_ResumeSubId = 0;
+    std::size_t m_BuildModeSubId = 0;
+    std::size_t m_GameStartedSubId = 0;
 };

@@ -51,6 +51,8 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
+        if (GameManagerScript::s_IsTutorialMode) return;
+
         glm::vec3 mousePos = GetMouseWorldPosition();
 
         if (IsDragging && DraggedEntity.id != std::numeric_limits<std::size_t>::max())

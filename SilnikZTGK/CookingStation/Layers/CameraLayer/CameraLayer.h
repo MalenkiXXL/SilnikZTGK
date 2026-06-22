@@ -31,4 +31,7 @@ private:
     std::size_t m_GameResumedSubId = 0;
 
     bool m_IsBuildMode = false;
+    bool m_IsLevelCompleted = false;
+    std::size_t m_LevelCompletedSubId = 0;
+    std::size_t m_GameStartedSubId = 0;
 };

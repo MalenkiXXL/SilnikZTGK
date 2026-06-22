@@ -55,7 +55,6 @@ void GameGuiLayer::OnAttach()
     m_AcceptButtonTex = AssetManager::GetTexture("assets://UI/Events/AcceptButton.png");
     m_SkipButtonTex = AssetManager::GetTexture("assets://UI/Events/SkipButton.png");
 
-    // NOWE: ï¿½adowanie poprawnie wyciï¿½gniï¿½te do OnAttach
     m_EventCloudTex = AssetManager::GetTexture("assets://UI/Events/EventCloud.png");
     m_EventRewardTex = AssetManager::GetTexture("assets://UI/Events/EventReward.png");
 
@@ -63,6 +62,7 @@ void GameGuiLayer::OnAttach()
 
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
+    m_LevelCompletedPanel.Init();
 
     m_GameStartedSubId = Application::Get().GetEventBus().Subscribe<GameStartedEvent>(
         [this](const GameStartedEvent&) {
@@ -123,16 +123,25 @@ void GameGuiLayer::OnAttach()
                 );
 
                 m_MushroomAppearedSubId = newBus.Subscribe<DeliveryMushroomAppearedEvent>(
-                        [this](const DeliveryMushroomAppearedEvent& e) {
-                            m_ShowMushroomBubble = true;
-                            m_MushroomPos3D = e.WorldPosition;
-                        }
+                    [this](const DeliveryMushroomAppearedEvent& e) {
+                        m_ShowMushroomBubble = true;
+                        m_MushroomPos3D = e.WorldPosition;
+                    }
                 );
 
                 m_DeliveryCollectedSubId = newBus.Subscribe<DeliveryCollectedEvent>(
-                        [this](const DeliveryCollectedEvent&) {
-                            m_ShowMushroomBubble = false;
-                        }
+                    [this](const DeliveryCollectedEvent&) {
+                        m_ShowMushroomBubble = false;
+                    }
+                );
+
+                m_LevelCompletedSubId = newBus.Subscribe<LevelCompletedEvent>(
+                    [this](const LevelCompletedEvent& e) {
+                        spdlog::warn("GUI: Odebrano LevelCompletedEvent! Money={} Stars={}", e.EarnedMoney, e.StarsEarned);
+                        m_LevelCompletedPanel.Show(e.EarnedMoney, e.StarsEarned);
+                        Input::SetUICaptureMouse(true);
+                        Application::Get().GetEventBus().Publish(e);
+                    }
                 );
             }
 
@@ -168,6 +177,7 @@ void GameGuiLayer::OnDetach()
         if (m_OrderTakenSubId != 0) { bus.Unsubscribe<OrderTakenEvent>(m_OrderTakenSubId);       m_OrderTakenSubId = 0; }
         if (m_MushroomAppearedSubId != 0) { bus.Unsubscribe<DeliveryMushroomAppearedEvent>(m_MushroomAppearedSubId); m_MushroomAppearedSubId = 0; }
         if (m_DeliveryCollectedSubId != 0) { bus.Unsubscribe<DeliveryCollectedEvent>(m_DeliveryCollectedSubId); m_DeliveryCollectedSubId = 0; }
+        if (m_LevelCompletedSubId != 0) { bus.Unsubscribe<LevelCompletedEvent>(m_LevelCompletedSubId); m_LevelCompletedSubId = 0; }
     }
 
     auto& appBus = Application::Get().GetEventBus();
@@ -377,7 +387,6 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
     glm::mat4 uiProj = glm::ortho(0.0f, m_ViewportWidth, m_ViewportHeight, 0.0f);
 
-    // KROK 1: Najpierw rysujemy w pe³ni œrodowisko siatki 3D (Z W£ASNYM VIEWPORTEM)
     if (m_BuildModePanel.IsActive() && m_PausePanel && !m_PausePanel->IsPaused()) {
         m_BuildModePanel.DrawActiveGrid(m_ActiveScene, gameX, gameY, gameWidth, gameHeight, baseScale);
     }
@@ -385,7 +394,6 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     // KROK 2: Otwieramy Scene2D dla interfejsu
     Renderer2D::BeginScene(uiProj);
 
-    // KROK 3: Rysujemy warstwê napisów OVERLAY u góry 
     if (m_BuildModePanel.IsActive() && m_PausePanel && !m_PausePanel->IsPaused()) {
         m_BuildModePanel.DrawOverlay(gameX, gameY, gameWidth, gameHeight, baseScale);
     }
@@ -394,219 +402,224 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     bool isPausedBlocked = m_IsGamePaused && !m_BuildModePanel.IsActive();
     bool isPlayMode = !m_IsGamePaused && !m_BuildModePanel.IsActive();
 
-    if (isPlayMode && !isBookOpen && m_ActiveScene) {
-        auto mousePos = Input::GetMousePosition();
-        float mouseX = mousePos.first;
-        float mouseY = mousePos.second;
+    if (!m_LevelCompletedPanel.IsOpen())
+    {
+        if (isPlayMode && !isBookOpen && m_ActiveScene) {
+            auto mousePos = Input::GetMousePosition();
+            float mouseX = mousePos.first;
+            float mouseY = mousePos.second;
 
 #ifndef CS_DISTRIBUTION
-        mouseX -= gameX;
-        mouseY -= gameY;
+            mouseX -= gameX;
+            mouseY -= gameY;
 #endif
 
-        auto* camera = m_ActiveScene->GetCamera();
-        if (camera && mouseX >= 0 && mouseY >= 0 && mouseX <= gameWidth && mouseY <= gameHeight) {
-            float aspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
-            float orthoSize = 10.0f * (camera->Zoom / 45.0f);
-            glm::mat4 proj = glm::ortho(-aspect * orthoSize, aspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
-            glm::mat4 view = camera->GetViewMatrix();
+            auto* camera = m_ActiveScene->GetCamera();
+            if (camera && mouseX >= 0 && mouseY >= 0 && mouseX <= gameWidth && mouseY <= gameHeight) {
+                float aspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+                float orthoSize = 10.0f * (camera->Zoom / 45.0f);
+                glm::mat4 proj = glm::ortho(-aspect * orthoSize, aspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+                glm::mat4 view = camera->GetViewMatrix();
 
-            Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, gameWidth, gameHeight, proj, view);
-            Entity hoveredEntity = Physics::GetHoveredEntity(ray, m_ActiveScene, true, true);
+                Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, gameWidth, gameHeight, proj, view);
+                Entity hoveredEntity = Physics::GetHoveredEntity(ray, m_ActiveScene, true, true);
 
-            if (hoveredEntity.id != std::numeric_limits<std::size_t>::max()) {
-                auto* nsc = m_ActiveScene->GetWorld().GetComponent<NativeScriptComponent>(hoveredEntity);
+                if (hoveredEntity.id != std::numeric_limits<std::size_t>::max()) {
+                    auto* nsc = m_ActiveScene->GetWorld().GetComponent<NativeScriptComponent>(hoveredEntity);
 
-                if (!nsc) {
-                    auto* rel = m_ActiveScene->GetWorld().GetComponent<RelationshipComponent>(hoveredEntity);
-                    if (rel && rel->Parent != std::numeric_limits<std::size_t>::max()) {
-                        Entity parentEntity = { rel->Parent, 0 };
-                        nsc = m_ActiveScene->GetWorld().GetComponent<NativeScriptComponent>(parentEntity);
+                    if (!nsc) {
+                        auto* rel = m_ActiveScene->GetWorld().GetComponent<RelationshipComponent>(hoveredEntity);
+                        if (rel && rel->Parent != std::numeric_limits<std::size_t>::max()) {
+                            Entity parentEntity = { rel->Parent, 0 };
+                            nsc = m_ActiveScene->GetWorld().GetComponent<NativeScriptComponent>(parentEntity);
+                        }
                     }
-                }
 
-                if (nsc) {
-                    for (auto& s : nsc->Scripts) {
-                        if (s.Instance) {
-                            s.Instance->OnHoverCursor();
+                    if (nsc) {
+                        for (auto& s : nsc->Scripts) {
+                            if (s.Instance) {
+                                s.Instance->OnHoverCursor();
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
- 
-    if (!GameManagerScript::s_IsTutorialMode)
-    {
-        DrawMushroomBubble(gameX, gameY, gameWidth, gameHeight, baseScale);
-        m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
-        m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
-        DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
-        DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
-        m_RecipeBookPanel.Draw(gameX, gameY, gameWidth, gameHeight, baseScale, dt, m_IsGamePaused);
-        DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);
-        DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);
-        DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
-        m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
-        m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+        DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
-        if (m_CoinIcon) {
-            if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->m_MoneyWarningTimer > 0.0f) {
-                GameManagerScript::s_Instance->m_MoneyWarningTimer -= dt;
+        if (!GameManagerScript::s_IsTutorialMode)
+        {
+            DrawMushroomBubble(gameX, gameY, gameWidth, gameHeight, baseScale);
+            m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
+            m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+            DrawQuestPanel(gameX, gameY, gameWidth, gameHeight, baseScale, isPlayMode);
+            DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+            m_RecipeBookPanel.Draw(gameX, gameY, gameWidth, gameHeight, baseScale, dt, m_IsGamePaused);
+            DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);
+            DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);
+            DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+            m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
+            m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+
+            if (m_CoinIcon) {
+                if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->m_MoneyWarningTimer > 0.0f) {
+                    GameManagerScript::s_Instance->m_MoneyWarningTimer -= dt;
+                }
+
+                if (m_LastMoney == -1 && GameManagerScript::s_Instance)
+                    m_CurrentMoney = m_LastMoney = GameManagerScript::s_Instance->GetMoney();
+                m_MoneyStr = std::to_string(m_CurrentMoney);
+                float textScale = 2.0f * baseScale;
+                glm::vec2 textPos = {
+                    gameX + (gameWidth - (80.0f * baseScale + 8.0f * baseScale + Gui::MeasureTextWidth(m_MoneyStr, textScale))) * 0.5f + 88.0f * baseScale,
+                    gameY + 55.0f * baseScale
+                };
+                DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
             }
-
-            if (m_LastMoney == -1 && GameManagerScript::s_Instance)
-                m_CurrentMoney = m_LastMoney = GameManagerScript::s_Instance->GetMoney();
-            m_MoneyStr = std::to_string(m_CurrentMoney);
-            float textScale = 2.0f * baseScale;
-            glm::vec2 textPos = {
-                gameX + (gameWidth - (80.0f * baseScale + 8.0f * baseScale + Gui::MeasureTextWidth(m_MoneyStr, textScale))) * 0.5f + 88.0f * baseScale,
-                gameY + 55.0f * baseScale
-            };
-            DrawIconWithText(m_MoneyStr, m_CoinIcon, textPos, textScale, baseScale, dt);
         }
-    }
 
-    if (GameManagerScript::s_IsTutorialMode && GameManagerScript::s_ShowTutorialDialog)
-    {
-        float textScale = 1.6f * baseScale;
-        std::string speaker = GameManagerScript::s_TutorialSpeaker;
-        std::string fullText = GameManagerScript::s_TutorialText;
-        int revealedCount = GameManagerScript::s_TutorialCharsRevealed;
+        if (GameManagerScript::s_IsTutorialMode && GameManagerScript::s_ShowTutorialDialog)
+        {
+            float textScale = 1.6f * baseScale;
+            std::string speaker = GameManagerScript::s_TutorialSpeaker;
+            std::string fullText = GameManagerScript::s_TutorialText;
+            int revealedCount = GameManagerScript::s_TutorialCharsRevealed;
 
-        float maxLineWidth = gameWidth * 0.70f;
+            float maxLineWidth = gameWidth * 0.70f;
 
-        // BAZOWE POZYCJE (dó³ lub góra ekranu)
-        float dialogY = GameManagerScript::s_TutorialDialogIsBottom ?
-            (gameY + gameHeight * 0.75f) :
-            (gameY + gameHeight * 0.15f);
-        float dialogX = gameX + gameWidth * 0.5f;
+            // BAZOWE POZYCJE (dol lub gora ekranu)
+            float dialogY = GameManagerScript::s_TutorialDialogIsBottom ?
+                (gameY + gameHeight * 0.75f) :
+                (gameY + gameHeight * 0.15f);
+            float dialogX = gameX + gameWidth * 0.5f;
 
-        // --- NOWOŒÆ: PROJEKCJA 3D (Zamiast na sta³e na œrodku ekranu, œledzimy encjê w œwiecie 3D!) ---
-        if (GameManagerScript::s_TutorialTrackedEntity.id != std::numeric_limits<std::size_t>::max() && m_ActiveScene) {
-            auto* tf = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(GameManagerScript::s_TutorialTrackedEntity);
-            auto* camera = m_ActiveScene->GetCamera();
-            if (tf && camera) {
-                glm::vec3 worldPos = tf->GetPosition() + GameManagerScript::s_TutorialTrackedOffset;
-                glm::mat4 view = camera->GetViewMatrix();
-                float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
-                float orthoSize = 10.0f * (camera->Zoom / 45.0f);
-                glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
-                glm::mat4 viewProj = proj3D * view;
+            // --- PROJEKCJA 3D: sledzimy encje w swiecie 3D, jesli ustawiona ---
+            if (GameManagerScript::s_TutorialTrackedEntity.id != std::numeric_limits<std::size_t>::max() && m_ActiveScene) {
+                auto* tf = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(GameManagerScript::s_TutorialTrackedEntity);
+                auto* camera = m_ActiveScene->GetCamera();
+                if (tf && camera) {
+                    glm::vec3 worldPos = tf->GetPosition() + GameManagerScript::s_TutorialTrackedOffset;
+                    glm::mat4 view = camera->GetViewMatrix();
+                    float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+                    float orthoSize = 10.0f * (camera->Zoom / 45.0f);
+                    glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+                    glm::mat4 viewProj = proj3D * view;
 
-                glm::vec4 clipSpace = viewProj * glm::vec4(worldPos, 1.0f);
-                if (clipSpace.w > 0.0f) {
-                    glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
-                    dialogX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
-                    dialogY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
+                    glm::vec4 clipSpace = viewProj * glm::vec4(worldPos, 1.0f);
+                    if (clipSpace.w > 0.0f) {
+                        glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
+                        dialogX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
+                        dialogY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
+                    }
                 }
             }
-        }
-        // -----------------------------------------------------------------------------------------
+            // -----------------------------------------------------------------
 
-        float speakerScale = 2.0f * baseScale;
-        float speakerWidth = Gui::MeasureTextWidth(speaker, speakerScale);
-        float speakerX = dialogX - speakerWidth * 0.5f; // Wyœrodkowane wzglêdem dynamicznego dialogX
+            float speakerScale = 2.0f * baseScale;
+            float speakerWidth = Gui::MeasureTextWidth(speaker, speakerScale);
+            float speakerX = dialogX - speakerWidth * 0.5f;
 
-        Gui::DrawGuiText(speaker, { speakerX + 2.0f, dialogY - 50.0f * baseScale + 2.0f }, speakerScale, { 0.0f, 0.0f, 0.0f, 0.4f });
-        Gui::DrawGuiText(speaker, { speakerX, dialogY - 50.0f * baseScale }, speakerScale, GameManagerScript::s_TutorialSpeakerColor);
+            Gui::DrawGuiText(speaker, { speakerX + 2.0f, dialogY - 50.0f * baseScale + 2.0f }, speakerScale, { 0.0f, 0.0f, 0.0f, 0.4f });
+            Gui::DrawGuiText(speaker, { speakerX, dialogY - 50.0f * baseScale }, speakerScale, GameManagerScript::s_TutorialSpeakerColor);
 
-        std::vector<std::string> lines;
-        std::string currentLine = "";
-        std::string currentWord = "";
+            std::vector<std::string> lines;
+            std::string currentLine = "";
+            std::string currentWord = "";
 
-        for (size_t i = 0; i <= fullText.size(); ++i) {
-            char c = (i < fullText.size()) ? fullText[i] : ' ';
-            if (c == ' ' || i == fullText.size()) {
-                std::string testLine = currentLine.empty() ? currentWord : (currentLine + " " + currentWord);
-                if (Gui::MeasureTextWidth(testLine, textScale) > maxLineWidth) {
-                    lines.push_back(currentLine);
-                    currentLine = currentWord;
+            for (size_t i = 0; i <= fullText.size(); ++i) {
+                char c = (i < fullText.size()) ? fullText[i] : ' ';
+                if (c == ' ' || i == fullText.size()) {
+                    std::string testLine = currentLine.empty() ? currentWord : (currentLine + " " + currentWord);
+                    if (Gui::MeasureTextWidth(testLine, textScale) > maxLineWidth) {
+                        lines.push_back(currentLine);
+                        currentLine = currentWord;
+                    }
+                    else {
+                        currentLine = testLine;
+                    }
+                    currentWord = "";
                 }
                 else {
-                    currentLine = testLine;
+                    currentWord += c;
                 }
-                currentWord = "";
             }
-            else {
-                currentWord += c;
+            if (!currentLine.empty()) lines.push_back(currentLine);
+
+            float currentY = dialogY;
+            float lineHeight = Gui::MeasureTextHeight("A", textScale) * 1.5f;
+            int charsLeftToDraw = revealedCount;
+
+            float maxActualWidth = 0.0f;
+            float lastLineY = currentY;
+
+            for (const auto& line : lines) {
+                if (charsLeftToDraw <= 0) break;
+
+                int charsInThisLine = std::min((int)line.length(), charsLeftToDraw);
+                std::string drawnLine = line.substr(0, charsInThisLine);
+                charsLeftToDraw -= charsInThisLine;
+
+                float totalLineWidth = Gui::MeasureTextWidth(line, textScale);
+                float lineStartX = dialogX - totalLineWidth * 0.5f;
+
+                Gui::DrawGuiText(drawnLine, { lineStartX + 2.0f, currentY + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.5f });
+                Gui::DrawGuiText(drawnLine, { lineStartX, currentY }, textScale, glm::vec4(1.0f));
+
+                if (totalLineWidth > maxActualWidth) {
+                    maxActualWidth = totalLineWidth;
+                }
+
+                lastLineY = currentY;
+                currentY += lineHeight;
+
+                if (charsInThisLine < line.length() || charsLeftToDraw <= 0) break;
+                charsLeftToDraw--;
             }
-        }
-        if (!currentLine.empty()) lines.push_back(currentLine);
 
-        float currentY = dialogY;
-        float lineHeight = Gui::MeasureTextHeight("A", textScale) * 1.5f;
-        int charsLeftToDraw = revealedCount;
+            if (GameManagerScript::s_TutorialIconAlpha > 0.0f) {
+                static std::shared_ptr<Texture> s_LMBIcon = AssetManager::GetTexture("assets://UI/leftMouse.png");
+                if (s_LMBIcon) {
+                    float iconSizeY = 80.0f * baseScale;
+                    glm::vec2 iconSize = GuiUtils::CalculateAspectSize(s_LMBIcon, iconSizeY);
 
-        float maxActualWidth = 0.0f;
-        float lastLineY = currentY;
+                    float blockRightEdge = dialogX + maxActualWidth * 0.5f;
+                    float blockCenterY = (dialogY + lastLineY) * 0.5f;
 
-        for (const auto& line : lines) {
-            if (charsLeftToDraw <= 0) break;
+                    glm::vec2 iconPos = {
+                        blockRightEdge + 25.0f * baseScale,
+                        blockCenterY + (lineHeight * 0.3f) - (iconSize.y * 0.5f)
+                    };
 
-            int charsInThisLine = std::min((int)line.length(), charsLeftToDraw);
-            std::string drawnLine = line.substr(0, charsInThisLine);
-            charsLeftToDraw -= charsInThisLine;
+                    float timeNow = glfwGetTime();
+                    iconPos.y += std::sin(timeNow * 5.0f) * 5.0f * baseScale;
 
-            float totalLineWidth = Gui::MeasureTextWidth(line, textScale);
-            float lineStartX = dialogX - totalLineWidth * 0.5f; // Wyœrodkowane wzglêdem dynamicznego dialogX
+                    Renderer2D::DrawQuad(iconPos, iconSize, s_LMBIcon, { 1.0f, 1.0f, 1.0f, GameManagerScript::s_TutorialIconAlpha }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
-            Gui::DrawGuiText(drawnLine, { lineStartX + 2.0f, currentY + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.5f });
-            Gui::DrawGuiText(drawnLine, { lineStartX, currentY }, textScale, glm::vec4(1.0f));
+                    Renderer2D::EndScene();
 
-            if (totalLineWidth > maxActualWidth) {
-                maxActualWidth = totalLineWidth;
-            }
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 
-            lastLineY = currentY;
-            currentY += lineHeight;
+                    Renderer2D::BeginScene(uiProj);
 
-            if (charsInThisLine < line.length() || charsLeftToDraw <= 0) break;
-            charsLeftToDraw--;
-        }
+                    float wave = (std::sin(timeNow * 4.0f) + 1.0f) * 0.5f;
+                    float flashSpike = std::pow(wave, 16.0f);
 
-        if (GameManagerScript::s_TutorialIconAlpha > 0.0f) {
-            static std::shared_ptr<Texture> s_LMBIcon = AssetManager::GetTexture("assets://UI/leftMouse.png");
-            if (s_LMBIcon) {
-                float iconSizeY = 80.0f * baseScale;
-                glm::vec2 iconSize = GuiUtils::CalculateAspectSize(s_LMBIcon, iconSizeY);
+                    float glowScale = 1.0f + (flashSpike * 0.1f);
+                    glm::vec2 glowSize = iconSize * glowScale;
+                    glm::vec2 glowPos = {
+                        iconPos.x - (glowSize.x - iconSize.x) * 0.5f,
+                        iconPos.y - (glowSize.y - iconSize.y) * 0.5f
+                    };
 
-                float blockRightEdge = dialogX + maxActualWidth * 0.5f; // Wzglêdem dialogX
-                float blockCenterY = (dialogY + lastLineY) * 0.5f;
+                    glm::vec4 flashColor = { 1.0f, 1.0f, 1.0f, flashSpike * GameManagerScript::s_TutorialIconAlpha };
 
-                glm::vec2 iconPos = {
-                    blockRightEdge + 25.0f * baseScale,
-                    blockCenterY + (lineHeight * 0.3f) - (iconSize.y * 0.5f)
-                };
+                    Renderer2D::DrawQuad(glowPos, glowSize, s_LMBIcon, flashColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
-                float timeNow = glfwGetTime();
-                iconPos.y += std::sin(timeNow * 5.0f) * 5.0f * baseScale;
-
-                Renderer2D::DrawQuad(iconPos, iconSize, s_LMBIcon, { 1.0f, 1.0f, 1.0f, GameManagerScript::s_TutorialIconAlpha }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-
-                Renderer2D::EndScene();
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-                Renderer2D::BeginScene(uiProj);
-
-                float wave = (std::sin(timeNow * 4.0f) + 1.0f) * 0.5f;
-                float flashSpike = std::pow(wave, 16.0f);
-
-                float glowScale = 1.0f + (flashSpike * 0.1f);
-                glm::vec2 glowSize = iconSize * glowScale;
-                glm::vec2 glowPos = {
-                    iconPos.x - (glowSize.x - iconSize.x) * 0.5f,
-                    iconPos.y - (glowSize.y - iconSize.y) * 0.5f
-                };
-
-                glm::vec4 flashColor = { 1.0f, 1.0f, 1.0f, flashSpike * GameManagerScript::s_TutorialIconAlpha };
-
-                Renderer2D::DrawQuad(glowPos, glowSize, s_LMBIcon, flashColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-
-                Renderer2D::EndScene();
-                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                Renderer2D::BeginScene(uiProj);
+                    Renderer2D::EndScene();
+                    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                    Renderer2D::BeginScene(uiProj);
+                }
             }
         }
     }
@@ -645,6 +658,14 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         Renderer2D::EndScene();
     }
 
+    if (m_LevelCompletedPanel.IsOpen()) {
+        glEnable(GL_BLEND);
+        glDisable(GL_DEPTH_TEST);
+        Renderer2D::BeginScene(uiProj);
+        m_LevelCompletedPanel.OnUpdate(dt);
+        m_LevelCompletedPanel.Draw(m_ViewportWidth, m_ViewportHeight, baseScale);
+        Renderer2D::EndScene();
+    }
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -673,7 +694,10 @@ void GameGuiLayer::OnEvent(Event& e)
     }
 
     if (m_PausePanel) { m_PausePanel->OnEvent(e); if (e.Handled) return; }
-
+    if (m_LevelCompletedPanel.IsOpen()) {
+        m_LevelCompletedPanel.OnEvent(e);
+        if (e.Handled) return;
+    }
     dispatcher.Dispatch<MouseScrolledEvent>([this](MouseScrolledEvent& ev) {
         m_IngredientsCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);
         m_MachinesCarousel.OnMouseScrolled(ev, m_ViewportWidth, 8);

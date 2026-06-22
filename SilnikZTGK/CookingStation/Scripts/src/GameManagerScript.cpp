@@ -229,7 +229,29 @@ bool GameManagerScript::SpendMoney(int amount) {
 void GameManagerScript::OnOrderFulfilled(const OrderFulfilledEvent& e)
 {
     AddMoney(static_cast<int>(e.RewardAmount));
+    m_TotalMoneyEarned += static_cast<int>(e.RewardAmount); // Dodajemy do całkowitego zarobku
+
     spdlog::info("Order fulfilled! Reward added: {}", e.RewardAmount);
+
+    m_CustomersServed++;
+
+    if (m_CustomersServed >= MAX_CUSTOMERS)
+    {
+        int stars = 0;
+
+        if (m_TotalMoneyEarned >= 501) {
+            stars = 3;
+        }
+        else if (m_TotalMoneyEarned >= 201) {
+            stars = 2;
+        }
+        else if (m_TotalMoneyEarned >= 51) {
+            stars = 1;
+        }
+
+        spdlog::info("Poziom ukończony! Zarobiono łącznie: {}, Gwiazdki: {}", m_TotalMoneyEarned, stars);
+        GetScene()->GetWorld().GetEventBus().Publish(LevelCompletedEvent{ m_TotalMoneyEarned, stars });
+    }
 }
 
 void GameManagerScript::OnUpdate(Timestep ts)

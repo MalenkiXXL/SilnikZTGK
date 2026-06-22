@@ -8,6 +8,7 @@
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Core/Application.h"
 #include <GLFW/glfw3.h>
 #include <spdlog/spdlog.h> 
 #include <glm/glm.hpp>
@@ -24,18 +25,46 @@ void GameLayer::OnAttach()
     }
 
     AudioEngine::PlayMusic("assets://sounds/aktasok-ambient-background-loop.mp3", true, 0.01f);
+
+    auto& appBus = Application::Get().GetEventBus();
+    m_PauseSubId = appBus.Subscribe<GamePausedEvent>([this](const GamePausedEvent&) { m_IsPaused = true; });
+    m_ResumeSubId = appBus.Subscribe<GameResumedEvent>([this](const GameResumedEvent&) { m_IsPaused = false; });
+
+    m_BuildModeSubId = appBus.Subscribe<BuildModeToggledEvent>([this](const BuildModeToggledEvent& e) {
+        m_IsBuildModeActive = e.IsActive;
+        });
+
+    m_GameStartedSubId = appBus.Subscribe<GameStartedEvent>([this](const GameStartedEvent&) {
+        m_IsPaused = false;
+        m_IsBuildModeActive = false;
+        m_IsLevelCompleted = false;
+
+        m_ActiveScene = SceneManager::GetActiveScene();
+        if (m_ActiveScene) {
+            m_ActiveScene->SetState(SceneState::Play);
+        }
+        });
 }
 
 void GameLayer::OnDetach()
 {
     if (m_ActiveScene)
         m_ActiveScene->OnRuntimeStop();
+
+    auto& appBus = Application::Get().GetEventBus();
+    if (m_PauseSubId != 0) appBus.Unsubscribe<GamePausedEvent>(m_PauseSubId);
+    if (m_ResumeSubId != 0) appBus.Unsubscribe<GameResumedEvent>(m_ResumeSubId);
+    if (m_BuildModeSubId != 0) appBus.Unsubscribe<BuildModeToggledEvent>(m_BuildModeSubId);
+    if (m_GameStartedSubId != 0) appBus.Unsubscribe<GameStartedEvent>(m_GameStartedSubId);
 }
 
 void GameLayer::OnUpdate(Timestep ts)
 {
     if (Input::IsKeyPressed(GLFW_KEY_X)) {
         m_TimeScale = 4.0f;
+    }
+    else if (Input::IsKeyPressed(GLFW_KEY_Z)) {
+        m_TimeScale = 8.0f;
     }
     else {
         m_TimeScale = 1.0f;
@@ -52,6 +81,8 @@ void GameLayer::OnUpdate(Timestep ts)
     }
 
     if (m_ActiveScene->GetState() != SceneState::Play) return;
+
+    if (m_IsPaused || m_IsBuildModeActive || m_IsLevelCompleted) return;
 
     m_ActiveScene->OnUpdateRuntime(scaledTs);
     auto& world = m_ActiveScene->GetWorld();
@@ -283,6 +314,10 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
     eventBus.Subscribe<PackageSpawnedEvent>([](const PackageSpawnedEvent& e) {
         AudioEngine::Play("assets://sounds/box_drop.mp3");
         });
+
+    eventBus.Subscribe<LevelCompletedEvent>([this](const LevelCompletedEvent&) {
+        m_IsLevelCompleted = true;
+        });
 }
 
 void GameLayer::UpdateTransformAnimations(World& world, float dt)
@@ -302,7 +337,8 @@ void GameLayer::UpdateTransformAnimations(World& world, float dt)
 
             if (animator.Loop) {
                 animator.CurrentTime = std::fmod(animator.CurrentTime, duration);
-            } else {
+            }
+            else {
                 if (animator.CurrentTime >= duration) {
                     animator.CurrentTime = duration;
                     animator.IsPlaying = false;

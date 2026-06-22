@@ -53,6 +53,8 @@
     <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.cpp" />
     <ClCompile Include="CookingStation\Scripts\TutorialManagerScript.cpp" />
     <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\CreditsPanel.cpp" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\LevelCompletedPanel.h" />
+    <ClCompile Include="CookingStation\Layers\GuiLayer\Panels\LevelCompletedPanel.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CookingStation\Core\AudioEngine.h" />
