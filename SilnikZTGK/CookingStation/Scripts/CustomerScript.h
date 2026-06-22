@@ -46,7 +46,11 @@ public:
         auto* tagComp = GetComponent<TagComponent>();
         IsGrandma = (tagComp && tagComp->Tag == "GrandmaCustomer");
 
-        std::vector<IngredientType> menu = { IngredientType::Tomato, IngredientType::Cheese, IngredientType::Ham, IngredientType::Sandwich };
+        std::vector<IngredientType> menu = { IngredientType::Tomato
+            //,IngredientType::Cheese
+            //, IngredientType::Ham,
+            //IngredientType::Sandwich 
+        };
         std::random_device rd;
         std::mt19937 gen(rd());
 
