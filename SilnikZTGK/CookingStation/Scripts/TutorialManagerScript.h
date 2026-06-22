@@ -35,6 +35,7 @@ public:
     void OnCreate() override;
     void OnUpdate(Timestep ts) override;
     static bool s_AllowConveyorSwitch;
+    static bool s_AllowSkip;
 
 private:
     TutorialState m_State = TutorialState::Start;

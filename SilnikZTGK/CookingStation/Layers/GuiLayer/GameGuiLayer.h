@@ -51,6 +51,8 @@ private:
 
 
 private:
+    int m_LastKnownMoney = 0;       
+    float m_CoinAnimTimer = 0.0f;
     bool m_IsVisible = false;
     bool m_IsActive = false;
     std::shared_ptr<Scene>       m_ActiveScene;

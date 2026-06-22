@@ -12,6 +12,7 @@
 #include "CookingStation/Scripts/Delivery/PackageScript.h"
 #include "CookingStation/Scripts/CustomerScript.h"
 #include "CookingStation/Scripts/CrateScript.h"
+#include "CookingStation/Scripts/TutorialManagerScript.h"
 #include "CookingStation/Events/GameEvents.h"
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
@@ -103,6 +104,9 @@ void GameGuiLayer::OnAttach()
                 m_MoneySubId = newBus.Subscribe<MoneyChangedEvent>(
                     [this](const MoneyChangedEvent& e) {
                         if (!m_IsActive) return;
+                        if (m_LastMoney != -1 && e.NewAmount > m_LastMoney) {
+                            m_CoinAnimTimer = 1.0f;
+                        }
                         m_CurrentMoney = e.NewAmount;
                         m_LastMoney = e.NewAmount;
                         m_MoneyStr = std::to_string(e.NewAmount);
@@ -224,13 +228,35 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
             Renderer2D::DrawQuad(cloudPos, cloudSize, m_CoinCloudIcon, { 0.95f, 0.85f, 0.85f, 0.95f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         Renderer2D::DrawQuad(coinPos, coinSize, iconTex, { 0.75f, 0.35f, 0.35f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     }
+    else if (m_CoinAnimTimer > 0.0f) {
+        float bounceOffset = std::sin(m_CoinAnimTimer * 3.14159f) * (40.0f * baseScale);
+
+        glm::vec4 pastelGreen = glm::vec4(0.85f, 1.0f, 0.85f, 1.0f);
+        glm::vec4 vibrantGreen = glm::vec4(0.40f, 1.0f, 0.50f, 1.0f);
+
+        float colorMix = std::sin(m_CoinAnimTimer * 3.14159f);
+
+        glm::vec4 cloudColor = glm::mix(glm::vec4(1.0f), pastelGreen, colorMix);
+        glm::vec4 coinColor = glm::mix(glm::vec4(1.0f), vibrantGreen, colorMix);
+
+        textColor = glm::mix(textColor, vibrantGreen, colorMix);
+
+        if (m_CoinCloudIcon) {
+            Renderer2D::DrawQuad(cloudPos, cloudSize, m_CoinCloudIcon, cloudColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        }
+
+        glm::vec2 animatedCoinPos = { coinPos.x, coinPos.y - bounceOffset };
+        Renderer2D::DrawQuad(animatedCoinPos, coinSize, iconTex, coinColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    }
     else {
         BubblyUI::DrawBubblyImage(m_BubblyStates, "CloudIcon", m_CoinCloudIcon, cloudPos, cloudSize, dt, false, 1.05f, false);
         BubblyUI::DrawBubblyImage(m_BubblyStates, "CoinIcon", iconTex, coinPos, coinSize, dt, false, 1.05f, false);
     }
 
+    float currentBounce = (m_CoinAnimTimer > 0.0f && !isWarning) ? std::sin(m_CoinAnimTimer * 3.14159f) * (40.0f * baseScale) : 0.0f;
+
     float textDrawX = textPos.x + shakeOffsetX;
-    float textDrawY = coinPos.y + (coinSize.y * 0.5f) - baselineOffset + (textHeight * 0.25f);
+    float textDrawY = coinPos.y - currentBounce + (coinSize.y * 0.5f) - baselineOffset + (textHeight * 0.25f);
 
     Gui::DrawGuiText(text, { std::floor(textDrawX + 3.0f), std::floor(textDrawY + 3.0f) }, textScale, { 0.0f, 0.0f, 0.0f, 0.6f });
     Gui::DrawGuiText(text, { std::floor(textDrawX),        std::floor(textDrawY) }, textScale, textColor);
@@ -368,6 +394,11 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     Gui::UpdateDeltaTime(ts.GetSeconds());
     float dt = ts.GetSeconds();
 
+    if (m_CoinAnimTimer > 0.0f) {
+        m_CoinAnimTimer -= dt;
+        if (m_CoinAnimTimer < 0.0f) m_CoinAnimTimer = 0.0f;
+    }
+
     m_ActiveScene = SceneManager::GetActiveScene();
 
 #ifdef CS_DISTRIBUTION
@@ -391,7 +422,6 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         m_BuildModePanel.DrawActiveGrid(m_ActiveScene, gameX, gameY, gameWidth, gameHeight, baseScale);
     }
 
-    // KROK 2: Otwieramy Scene2D dla interfejsu
     Renderer2D::BeginScene(uiProj);
 
     if (m_BuildModePanel.IsActive() && m_PausePanel && !m_PausePanel->IsPaused()) {
@@ -488,13 +518,11 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
             float maxLineWidth = gameWidth * 0.70f;
 
-            // BAZOWE POZYCJE (dol lub gora ekranu)
             float dialogY = GameManagerScript::s_TutorialDialogIsBottom ?
                 (gameY + gameHeight * 0.75f) :
                 (gameY + gameHeight * 0.15f);
             float dialogX = gameX + gameWidth * 0.5f;
 
-            // --- PROJEKCJA 3D: sledzimy encje w swiecie 3D, jesli ustawiona ---
             if (GameManagerScript::s_TutorialTrackedEntity.id != std::numeric_limits<std::size_t>::max() && m_ActiveScene) {
                 auto* tf = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(GameManagerScript::s_TutorialTrackedEntity);
                 auto* camera = m_ActiveScene->GetCamera();
@@ -514,7 +542,6 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                     }
                 }
             }
-            // -----------------------------------------------------------------
 
             float speakerScale = 2.0f * baseScale;
             float speakerWidth = Gui::MeasureTextWidth(speaker, speakerScale);
@@ -622,7 +649,97 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                 }
             }
         }
-    }
+
+
+            // --- POPRAWKA 2: PRZYCISK HOLD TO SKIP Z TEKSTUR¥ ---
+            if (GameManagerScript::s_IsTutorialMode && TutorialManagerScript::s_AllowSkip) {
+                static float skipHoldProgress = 0.0f;
+                static float skipBtnScale = 1.0f;
+
+                // Pobieramy now¹ teksturê (skipTutoButton.png)
+                static std::shared_ptr<Texture> s_SkipBtnTex = nullptr;
+                if (!s_SkipBtnTex) {
+                    s_SkipBtnTex = AssetManager::GetTexture("assets://UI/skipTutoButton.png");
+                }
+
+                float baseH = 65.0f * baseScale;
+                float baseW = 200.0f * baseScale;
+                if (s_SkipBtnTex && s_SkipBtnTex->GetHeight() > 0) {
+                    float aspect = (float)s_SkipBtnTex->GetWidth() / (float)s_SkipBtnTex->GetHeight();
+                    baseW = baseH * aspect;
+                }
+
+                glm::vec2 basePos = { gameX + gameWidth - baseW - 30.0f * baseScale, gameY + gameHeight - baseH - 30.0f * baseScale };
+
+                glm::vec2 mouse = Gui::GetMappedMousePos();
+                bool isHovered = (mouse.x >= basePos.x && mouse.x <= basePos.x + baseW && mouse.y >= basePos.y && mouse.y <= basePos.y + baseH);
+
+                skipBtnScale += ((isHovered ? 1.08f : 1.0f) - skipBtnScale) * (dt * 15.0f);
+
+                float btnW = baseW * skipBtnScale;
+                float btnH = baseH * skipBtnScale;
+                glm::vec2 btnPos = basePos - glm::vec2((btnW - baseW) * 0.5f, (btnH - baseH) * 0.5f);
+                glm::vec2 btnSize = { btnW, btnH };
+
+                if (isHovered && Input::IsMouseButtonPressed(0)) {
+                    skipHoldProgress += dt * 0.66f;
+                    if (skipHoldProgress >= 1.0f) {
+                        skipHoldProgress = 0.0f;
+
+                        // --- ROZWI¥ZANIE PROBLEMU Z KAMER¥ ---
+                        // Resetujemy kamerê na OBECNEJ scenie, zanim silnik skopiuje jej zepsuty stan!
+                        if (m_ActiveScene) {
+                            auto* oldCam = m_ActiveScene->GetCamera();
+                            if (oldCam) {
+                                oldCam->Zoom = 45.0f;
+                                oldCam->TargetPosition = glm::vec3(0.0f);
+                            }
+                        }
+
+                        GameManagerScript::s_IsTutorialMode = false;
+                        auto activeScene = SceneManager::NewScene();
+                        SceneSerializer serializer(activeScene.get());
+
+                        if (serializer.Deserialize("assets://levels/level02.json")) {
+                            auto windowSize = Input::GetWindowSize();
+                            activeScene->SetViewportSize((float)windowSize.first, (float)windowSize.second);
+                            Gui::SetScreenSize((float)windowSize.first, (float)windowSize.second);
+
+                            activeScene->SetState(SceneState::Play);
+                            activeScene->OnRuntimeStart();
+
+                            // Zabezpieczenie dla nowej sceny (na wszelki wypadek)
+                            auto* newCam = activeScene->GetCamera();
+                            if (newCam) {
+                                newCam->Zoom = 45.0f;
+                                newCam->TargetPosition = glm::vec3(0.0f);
+                            }
+
+                            Application::Get().GetEventBus().Publish(GameStartedEvent{});
+                            Application::Get().GetEventBus().Publish(GameResumedEvent{});
+                        }
+                        return;
+                    }
+                }
+                else {
+                    skipHoldProgress -= dt * 2.0f;
+                    if (skipHoldProgress < 0.0f) skipHoldProgress = 0.0f;
+                }
+
+                if (s_SkipBtnTex) {
+                    Renderer2D::DrawQuad(btnPos, btnSize, s_SkipBtnTex, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+                    if (skipHoldProgress > 0.0f) {
+                        glm::vec2 fillSize = { btnSize.x * skipHoldProgress, btnSize.y };
+                        glm::vec2 fillUv1 = { skipHoldProgress, 0.0f };
+                        Renderer2D::DrawQuad(btnPos, fillSize, s_SkipBtnTex, glm::vec4(0.85f, 0.55f, 1.0f, 1.0f), { 0.0f, 1.0f }, fillUv1);
+                    }
+                }
+
+                if (isHovered) Input::SetUICaptureMouse(true);
+            }
+        }
+    
 
     if (m_ShowFPS) {
         static float s_FpsUpdateTimer = 0.0f;
@@ -707,6 +824,7 @@ void GameGuiLayer::OnEvent(Event& e)
     dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& ev) {
         if (ev.GetKeyCode() == 292 && ev.GetRepeatCode() == 0) m_ShowFPS = !m_ShowFPS;
         if (ev.GetKeyCode() == 258 && ev.GetRepeatCode() == 0) {
+            if (GameManagerScript::s_IsTutorialMode) return true;
             m_BuildModePanel.Toggle();
             AudioEngine::Play(AudioConfig::BuildModeSound);
             return true;
@@ -1257,8 +1375,6 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
         DrawHoverCloudUI({ screenX, screenY }, iconToDraw, amount, baseScale);
     }
 }
-
-
 
 void GameGuiLayer::DrawMushroomBubble(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
 {
