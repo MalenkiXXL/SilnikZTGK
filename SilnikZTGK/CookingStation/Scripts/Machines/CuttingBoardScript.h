@@ -374,7 +374,7 @@ protected:
 
         if (m_SpawnedFood.id == std::numeric_limits<std::size_t>::max())
         {
-            m_SpawnedFood = SpawnMachineFood(visualType, currentModelPath, "Na_Desce");
+            m_SpawnedFood = SpawnMachineFood(visualType, "Na_Desce");
         }
         else
         {

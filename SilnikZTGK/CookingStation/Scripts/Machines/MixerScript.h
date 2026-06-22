@@ -106,7 +106,7 @@ public:
                 GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
-                DragAndDropScript::StartDrag(IngredientType::RawDough, "assets://models/skladniki/maka/maka.gltf");
+                DragAndDropScript::StartDrag(IngredientType::RawDough);
                 ResetMachineState();
                 ClearHighlight();
             }
@@ -123,7 +123,7 @@ protected:
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            m_SpawnedFood = SpawnMachineFood(IngredientType::RawDough, "assets://models/skladniki/maka/maka.gltf", "WyrobioneCiasto");
+            m_SpawnedFood = SpawnMachineFood(IngredientType::RawDough, "WyrobioneCiasto");
 
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)

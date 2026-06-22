@@ -94,43 +94,6 @@ public:
     }
 
 private:
-    std::string GetModelPath(IngredientType type)
-    {
-        switch (type) {
-        case IngredientType::ChoppedTomato: return "assets://models/skladniki/pomidor/pomidor-pokrojony.gltf";
-        case IngredientType::ChoppedCheese: return "assets://models/skladniki/ser/ser-pokrojony.gltf";
-        case IngredientType::ChoppedHam:    return "assets://models/skladniki/szynka/szynka-pokrojona.gltf";
-        case IngredientType::CutBaguette:   return "assets://models/skladniki/bagietka/bagietka-przekrojona.gltf";
-        case IngredientType::RawDough:      return "assets://models/skladniki/maka/maka.gltf";
-        case IngredientType::Baguette:      return "assets://models/skladniki/bagietka/bagietka.gltf";
-        case IngredientType::Flour:         return "assets://models/skladniki/maka/maka.gltf";
-        case IngredientType::Milk:          return "assets://models/skladniki/mleko/milk.gltf";
-        case IngredientType::ChoppedMozzarella: return "assets://models/skladniki/pomidor/mozzarella-pokrojona.gltf";
-        default: return "";
-        }
-    }
-
-    std::string GetTagForIngredient(IngredientType type)
-    {
-        switch (type) {
-        case IngredientType::Tomato:
-        case IngredientType::ChoppedTomato: return "Tomato";
-        case IngredientType::Cheese:
-        case IngredientType::ChoppedCheese: return "Cheese";
-        case IngredientType::Ham:
-        case IngredientType::ChoppedHam:    return "Ham";
-        case IngredientType::Sandwich:      return "Sandwich";
-        case IngredientType::CutBaguette:   return "CutBaguette";
-        case IngredientType::RawDough:      return "RawDough";
-        case IngredientType::Baguette:      return "Baguette";
-        case IngredientType::Flour:         return "Flour";
-        case IngredientType::Milk:          return "Milk";
-        case IngredientType::Mozzarella:
-        case IngredientType::ChoppedMozzarella: return "Mozzarella";
-        case IngredientType::Caprese:           return "Caprese";
-        default: return "Unknown";
-        }
-    }
 
     void SpawnIngredientVisual(IngredientType type)
     {
@@ -205,16 +168,16 @@ private:
 
         if (MatchesRecipe(capreseRecipe))
         {
-            TransformIntoDish(IngredientType::Caprese, "assets://models/skladniki/pomidor/caprese.gltf");
+            TransformIntoDish(IngredientType::Caprese);
         }
 
         if (MatchesRecipe(sandwichRecipe))
         {
-            TransformIntoDish(IngredientType::Sandwich, "assets://models/skladniki/bagietka/kanapka.gltf");
+            TransformIntoDish(IngredientType::Sandwich);
         }
     }
 
-    void TransformIntoDish(IngredientType dishType, const std::string& dishModelPath)
+    void TransformIntoDish(IngredientType dishType)
     {
         spdlog::info("Talerz: Z�o�ono gotowe danie!");
 
@@ -239,7 +202,7 @@ private:
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
-        mesh.ModelPtr = AssetManager::GetModel(dishModelPath);
+        mesh.ModelPtr = AssetManager::GetModel(GetModelPath(dishType));
         builder.With<MeshComponent>(mesh);
 
         builder.With<TagComponent>({ GetTagForIngredient(dishType) });
