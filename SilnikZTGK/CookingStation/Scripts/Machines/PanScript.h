@@ -222,8 +222,6 @@ protected:
             if (foodTag)
                 foodTag->Tag = "UgotowaneDanie";
 
-            AudioEngine::Play("assets://sounds/plate_down.wav");
-
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                 m_SpawnedFood, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
                 });

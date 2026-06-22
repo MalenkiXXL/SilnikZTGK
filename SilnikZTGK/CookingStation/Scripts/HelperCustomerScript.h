@@ -12,7 +12,8 @@
 class HelperCustomerScript : public CustomerScript
 {
 public:
-    float m_YOffset = 0.5f;
+    float m_YOffset = 0.2f;
+    float m_ActionYOffset = 0.4f;
     Entity m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
     glm::vec3 m_HighlightColor = glm::vec3(0.2f, 0.8f, 0.2f);
     float m_RotationOffset = -90.0f;
@@ -32,22 +33,36 @@ public:
     float m_PulseTimer = 0.0f;
     std::size_t m_ClickSubId = 0;
 
+    std::shared_ptr<Model> m_OriginalModel = nullptr;
+    std::shared_ptr<Model> m_ActionModel = nullptr;
+    bool m_IsWorking = false;
+    std::size_t m_ProcessingSubId = 0;
+
+
     void OnCreate() override
     {
         CustomerScript::OnCreate();
+
+        auto* meshComp = GetComponent<MeshComponent>();
+        if (meshComp) {
+            m_OriginalModel = meshComp->ModelPtr;
+        }
 
         auto* tagComp = GetComponent<TagComponent>();
         if (tagComp) {
             if (tagComp->Tag.find("Marchewka") != std::string::npos) {
                 m_HighlightColor = glm::vec3(0.3f, 0.4f, 0.71f);
+                m_ActionModel = AssetManager::GetModel("assets://models/animacje/klienci/marchewka-kroi/marchewka-kroi.gltf");
             }
             else if (tagComp->Tag.find("Pomidor") != std::string::npos) {
                 m_HighlightColor = glm::vec3(0.94f, 0.31f, 0.47f);
+                m_ActionModel = AssetManager::GetModel("assets://models/animacje/klienci/pomidor-kroi/pomidor-kroi.gltf");
             }
             else if (tagComp->Tag.find("Rzodkiewka") != std::string::npos) {
                 m_HighlightColor = glm::vec3(0.66f, 0.52f, 0.95f);
                 m_RotationOffset = 90.0f;
                 m_WaitingRotation = 90.0f;
+                m_ActionModel = AssetManager::GetModel("assets://models/animacje/klienci/rzodkiewka-kroi/rzodkiewka-kroi.gltf");
             }
         }
 
@@ -58,6 +73,12 @@ public:
                     m_IsDragged = true;
                     m_DragDelayTimer = 0.0f;
 
+                    if (m_IsWorking) {
+                        m_IsWorking = false;
+                        SwapModel(false);
+                    }
+
+                    // Resetujemy skalï¿½ do naturalnej i wyï¿½ï¿½czamy fioletowy shader
                     auto* myTransform = GetComponent<TransformComponent>();
                     if (myTransform) myTransform->SetScale(m_BaseScale);
 
@@ -77,11 +98,39 @@ public:
                 }
             }
         );
+
+
+        m_ProcessingSubId = GetScene()->GetWorld().GetEventBus().Subscribe<MachineProcessingEvent>(
+                [this](const MachineProcessingEvent& e) {
+                    if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max() && e.Machine.id == m_AssignedMachine.id) {
+
+                        bool isCuttingBoard = false;
+                        auto* machineTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_AssignedMachine);
+                        if (machineTag && (machineTag->Tag.find("CuttingBoard") != std::string::npos ||
+                                           machineTag->Tag.find("Deska") != std::string::npos ||
+                                           machineTag->Tag.find("deska") != std::string::npos)) {
+                            isCuttingBoard = true;
+                        }
+
+                        if (e.IsProcessing && isCuttingBoard && !m_IsWorking) {
+                            m_IsWorking = true;
+                            SwapModel(true);
+                            PlayAnimation("Cut");
+                        }
+                        else if (!e.IsProcessing && m_IsWorking) {
+                            m_IsWorking = false;
+                            SwapModel(false);
+                            PlayAnimation("SitIdle");
+                        }
+                    }
+                }
+        );
     }
 
     void OnDestroy() override
     {
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<MachineProcessingEvent>(m_ProcessingSubId);
 
         if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
             SetMachineAutomated(m_AssignedMachine, false);
@@ -92,7 +141,6 @@ public:
         CustomerScript::OnDestroy();
     }
 
-    // === ZMIANA: Dodano reakcjê przed teleportacj¹ ===
     void ReceiveFood(bool isCorrectOrder = true) override
     {
         if (State == CustomerState::LeavingReaction || IsPendingDestroy) return;
@@ -108,7 +156,7 @@ public:
 
         if (isCorrectOrder)
         {
-            if (tagComp) tagComp->Tag = "ZadowolonyKlient"; // Zmieniamy tymczasowo, by narysowaæ ikonkê na GUI
+            if (tagComp) tagComp->Tag = "ZadowolonyKlient"; // Zmieniamy tymczasowo, by narysowaï¿½ ikonkï¿½ na GUI
             highlightColor = { 0.1f, 1.0f, 0.2f };
         }
         else
@@ -125,7 +173,7 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
-        // === ZMIANA: Obs³uga czasu reakcji dla Helpera ===
+        // === ZMIANA: Obsï¿½uga czasu reakcji dla Helpera ===
         if (State == CustomerState::LeavingReaction) {
             m_ReactionTimer -= ts.GetSeconds();
             if (m_ReactionTimer <= 0.0f) {
@@ -142,7 +190,7 @@ public:
                     }
                 }
             }
-            return; // Przerwij resztê logiki póki œwieci
+            return; // Przerwij resztï¿½ logiki pï¿½ki ï¿½wieci
         }
 
         if (!IsServed) return;
@@ -198,7 +246,7 @@ public:
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (myTransform) {
-                myTransform->SetPosition({ snapX, 0.0f, snapZ });
+                myTransform->SetPosition({ snapX, m_YOffset, snapZ });
             }
 
             m_DragDelayTimer += ts.GetSeconds();
@@ -214,8 +262,13 @@ public:
         Entity closestMachine = FindAdjacentMachine(transform->GetPosition());
 
         if (closestMachine.id != m_AssignedMachine.id) {
+
             if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
                 SetMachineAutomated(m_AssignedMachine, false);
+
+                m_IsWorking = false;
+                SwapModel(false);
+                PlayAnimation("SitIdle");
             }
 
             m_AssignedMachine = closestMachine;
@@ -225,18 +278,18 @@ public:
                 RotateTowardsMachine(transform, m_AssignedMachine);
 
                 glm::vec3 snapPos = transform->GetPosition();
-                snapPos.y = 0.0f;
+                snapPos.y = m_YOffset;
                 transform->SetPosition(snapPos);
 
                 glm::vec3 highlightColor = m_HighlightColor;
 
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    m_Entity, highlightColor, 0.8f, false
-                    });
+                        m_Entity, highlightColor, 0.8f, false
+                });
 
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    m_AssignedMachine, highlightColor, 0.8f, false
-                    });
+                        m_AssignedMachine, highlightColor, 0.8f, false
+                });
 
                 auto* rels = GetScene()->GetWorld().GetComponentVector<RelationshipComponent>();
                 if (rels) {
@@ -255,8 +308,8 @@ public:
 
                             if (!isItem) {
                                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                                    childEnt, highlightColor, 0.8f, false
-                                    });
+                                        childEnt, highlightColor, 0.8f, false
+                                });
                             }
                         }
                     }
@@ -266,11 +319,37 @@ public:
         else if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
             RotateTowardsMachine(transform, m_AssignedMachine);
 
+            float currentTargetY = m_IsWorking ? m_ActionYOffset : m_YOffset;
+
             glm::vec3 snapPos = transform->GetPosition();
-            if (snapPos.y != 0.0f) {
-                snapPos.y = 0.0f;
+            if (std::abs(snapPos.y - currentTargetY) > 0.001f) {
+                snapPos.y = currentTargetY;
                 transform->SetPosition(snapPos);
             }
+        }
+    }
+
+protected:
+    void PlayAnimation(const std::string& name)
+    {
+        auto* animComp = GetComponent<AnimatorComponent>();
+        if (animComp && animComp->AnimatorInstance)
+        {
+            animComp->AnimatorInstance->PlayAnimation(name);
+            animComp->IsPlaying = true;
+        }
+    }
+
+    void SwapModel(bool useActionModel)
+    {
+        auto* meshComp = GetComponent<MeshComponent>();
+        if (!meshComp) return;
+
+        if (useActionModel && m_ActionModel) {
+            meshComp->ModelPtr = m_ActionModel;
+        }
+        else if (!useActionModel && m_OriginalModel) {
+            meshComp->ModelPtr = m_OriginalModel;
         }
     }
 

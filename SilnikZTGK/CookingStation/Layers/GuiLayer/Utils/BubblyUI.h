@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Core/Input.h"
+#include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Renderer2D.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Gui.h"
 #include <glm/glm.hpp>
@@ -11,6 +12,7 @@
 struct BubblyState {
     float scale = 1.0f;
     glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+    bool wasHovered = false;
 };
 
 class BubblyUI {
@@ -33,6 +35,13 @@ public:
         float distX = mousePos.x - center.x;
         float distY = mousePos.y - center.y;
         bool isHovered = (distX * distX + distY * distY) <= (hitRadius * hitRadius);
+
+        if (isHovered && !state.wasHovered) {
+            AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
+            state.wasHovered = true;
+        } else if (!isHovered) {
+            state.wasHovered = false;
+        }
 
         if (outIsHovered != nullptr) *outIsHovered = isHovered;
         if (isHovered) Input::SetUICaptureMouse(true);
