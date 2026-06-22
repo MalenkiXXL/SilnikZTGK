@@ -1,13 +1,26 @@
 {
   "entities": [
     {
+      "collider": {
+        "offset": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "size": [
+          15.0,
+          0.7900000214576721,
+          15.0
+        ]
+      },
       "id": 0,
-      "model_path": "assets://models/wystroj/podloga.gltf",
+      "model_path": "CookingStation/Assets/models/wystroj/podloga.gltf",
       "name": "podloga",
+      "shader_name": "Floor",
       "position": [
         -0.5,
-        -1.0,
-        3.4000000953674316
+        -0.800000011920929,
+        3.40000057220459
       ],
       "rotation": [
         0.0,

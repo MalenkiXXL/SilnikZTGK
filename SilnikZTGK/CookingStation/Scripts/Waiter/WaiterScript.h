@@ -158,6 +158,9 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
+
+        if (GameManagerScript::s_IsTutorialMode) return;
+
         switch (m_CurrentState)
         {
         case State::IDLE:
