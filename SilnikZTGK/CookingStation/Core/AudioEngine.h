@@ -21,6 +21,11 @@ public:
     static void SetSoundsEnabled(bool enabled);
     static bool AreSoundsEnabled();
 
+    static ma_sound* PlayLoopingSound(const std::string& filepath, float volume, bool loop = true);
+    static void StopLoopingSound(ma_sound *sound);
+
+    static void ReplaySound(ma_sound *sound);
+
 private:
     static ma_engine* s_Engine;
 

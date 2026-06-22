@@ -3,14 +3,32 @@
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Core/AudioEngine.h"
 
 class MixerScript : public MachineScript
 {
+private:
+    ma_sound* m_MixingSound = nullptr;
+
+    void StopMixingSound()
+    {
+        if (m_MixingSound)
+        {
+            AudioEngine::StopLoopingSound(m_MixingSound);
+            m_MixingSound = nullptr;
+        }
+    }
+
 public:
     void OnCreate() override
     {
         MachineScript::OnCreate();
         m_CookTime = 4.0f;
+    }
+
+    void OnDestroy() override
+    {
+        StopMixingSound();
     }
 
     void OnUpdate(Timestep ts) override
@@ -30,6 +48,9 @@ public:
                 if (m_CurrentTime >= m_CookTime)
                 {
                     m_IsReady = true;
+
+                    StopMixingSound();
+
                     AudioEngine::Play("assets://sounds/dish_ready.mp3");
                     UpdateVisuals();
                 }
@@ -59,6 +80,23 @@ public:
             m_IsReady = false;
             m_CurrentTime = 0.0f;
             spdlog::info("Mikser: Przyjeto skladnik!");
+
+            if (m_Ingredients.size() == 2)
+            {
+                auto* meshComp = GetComponent<MeshComponent>();
+                if (meshComp)
+                {
+                    meshComp->Path = "assets://models/przybory_kuchenne/mikser/blender_on.gltf";
+                    meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
+                }
+
+                if (!m_MixingSound) {
+                    m_MixingSound = AudioEngine::PlayLoopingSound("CookingStation/Assets/sounds/mixer.mp3", 0.15f);
+                }
+
+                spdlog::info("Mikser: Rozpoczynam mieszanie (zmiana modelu i dzwiek)!");
+            }
+
             return true;
         }
 
@@ -101,15 +139,7 @@ public:
         }
         else if (!m_IsAutomated)
         {
-            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-            {
-                GetScene()->DestroyEntity(m_SpawnedFood);
-                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-
-                DragAndDropScript::StartDrag(IngredientType::RawDough);
-                ResetMachineState();
-                ClearHighlight();
-            }
+            spdlog::warn("Mikser: Brakuje talerza! Podstaw talerz, zeby wyciagnac ciasto.");
         }
     }
 
@@ -119,6 +149,13 @@ protected:
         if (m_IsReady)
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) return;
+
+            auto* meshComp = GetComponent<MeshComponent>();
+            if (meshComp)
+            {
+                meshComp->Path = "assets://models/przybory_kuchenne/mikser/blender.gltf";
+                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
+            }
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
@@ -147,11 +184,20 @@ protected:
         }
         else
         {
+            auto* meshComp = GetComponent<MeshComponent>();
+            if (meshComp)
+            {
+                meshComp->Path = "assets://models/przybory_kuchenne/mikser/blender.gltf";
+                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
+            }
+
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
                 GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
+
+            StopMixingSound();
         }
     }
 

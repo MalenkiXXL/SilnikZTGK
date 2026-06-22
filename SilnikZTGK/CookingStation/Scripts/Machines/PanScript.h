@@ -3,11 +3,23 @@
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Core/GameProgress.h"
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
+#include "CookingStation/Core/AudioEngine.h"
 
 class PanScript : public MachineScript
 {
     float m_BaseCookTime = 4.0f;
     float m_ExtraBaconTime = 2.0f;
+
+    ma_sound* m_FryingSound = nullptr;
+
+    void StopFryingSound()
+    {
+        if (m_FryingSound)
+        {
+            AudioEngine::StopLoopingSound(m_FryingSound);
+            m_FryingSound = nullptr;
+        }
+    }
 
 public:
     void OnCreate() override
@@ -35,6 +47,11 @@ public:
         SetSmoking(false);
     }
 
+    void OnDestroy() override
+    {
+        StopFryingSound();
+    }
+
     void OnUpdate(Timestep ts) override
     {
         MachineScript::OnUpdate(ts);
@@ -56,6 +73,9 @@ public:
             {
                 m_IsReady = true;
                 SetSmoking(false);
+
+                StopFryingSound();
+
                 AudioEngine::Play("assets://sounds/dish_ready.mp3");
                 UpdateVisuals();
             }
@@ -106,14 +126,17 @@ public:
         }
 
         UpdateVisuals();
-        AudioEngine::Play("assets://sounds/put_in_pot.mp3");
 
         if (HasIngredient(IngredientType::Egg)) {
             SetSmoking(true);
-            AudioEngine::Play("assets://sounds/cooking.mp3");
+
+            if (!m_FryingSound) {
+                m_FryingSound = AudioEngine::PlayLoopingSound("assets://sounds/frying.mp3", 0.15f);
+            }
         }
         else {
             SetSmoking(false);
+            StopFryingSound();
         }
 
         return true;
@@ -169,6 +192,11 @@ protected:
                 GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
+
+            if (m_Ingredients.empty())
+            {
+                StopFryingSound();
+            }
         }
     }
 
@@ -211,6 +239,7 @@ protected:
     {
         MachineScript::ResetMachineState();
         SetSmoking(false, true);
+        StopFryingSound();
 
         auto* mesh = GetComponent<MeshComponent>();
         if (mesh)

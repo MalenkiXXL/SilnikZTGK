@@ -45,6 +45,14 @@ public:
             m_IsReady = false;
             m_CurrentTime = 0.0f;
             spdlog::info("Piekarnik: Rozpoczeto pieczenie!");
+
+            auto* meshComp = GetComponent<MeshComponent>();
+            if (meshComp)
+            {
+                meshComp->Path = "assets://models/przybory_kuchenne/piekarnik/piekarnik_on.gltf";
+                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
+            }
+
             return true;
         }
 
@@ -114,6 +122,13 @@ protected:
                 spdlog::info("Piekarnik: Przepis na bagietke odblokowany!");
             }
 
+            auto* meshComp = GetComponent<MeshComponent>();
+            if (meshComp)
+            {
+                meshComp->Path = "assets://models/przybory_kuchenne/piekarnik/piekarnik.gltf";
+                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
+            }
+
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
@@ -141,6 +156,13 @@ protected:
         }
         else
         {
+            auto* meshComp = GetComponent<MeshComponent>();
+            if (meshComp)
+            {
+                meshComp->Path = "assets://models/przybory_kuchenne/piekarnik/piekarnik.gltf";
+                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
+            }
+
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
                 GetScene()->DestroyEntity(m_SpawnedFood);
@@ -148,7 +170,6 @@ protected:
             }
         }
     }
-
     void OnTransferToPlate(Entity plate) override
     {
         PlaceSpawnedFoodOnPlate(plate);
