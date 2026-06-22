@@ -773,16 +773,23 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     if (cloudPos.y < gameY + 10.0f) cloudPos.y = gameY + 10.0f;
 
     glm::vec2 mousePos = Gui::GetMappedMousePos();
-    float hoverRadius = (state == QuestEventState::WaitingForAccept ? 150.0f : 100.0f) * baseScale;
+    float hoverRadius = (state == QuestEventState::WaitingForAccept ? 70.0f : 60.0f) * baseScale;
     float dx = mousePos.x - boothScreenX;
-    float dy = mousePos.y - (boothScreenY + 30.0f * baseScale);
+    float dy = mousePos.y - boothScreenY;
     bool isHovering3D = ((dx * dx + dy * dy) <= (hoverRadius * hoverRadius));
 
     float margin = 30.0f * baseScale;
     bool isHoveringPanel = (mousePos.x >= cloudPos.x - margin && mousePos.x <= cloudPos.x + cloudSize.x + margin &&
         mousePos.y >= cloudPos.y - margin && mousePos.y <= cloudPos.y + cloudSize.y + margin);
 
-    if (!isHovering3D && !isHoveringPanel) return;
+    static bool s_IsQuestPanelVisible = false;
+
+    if (!isHovering3D && !(s_IsQuestPanelVisible && isHoveringPanel)) {
+        s_IsQuestPanelVisible = false;
+        return;
+    }
+
+    s_IsQuestPanelVisible = true;
     Input::SetUICaptureMouse(true);
 
     if (state == QuestEventState::QuestActive)

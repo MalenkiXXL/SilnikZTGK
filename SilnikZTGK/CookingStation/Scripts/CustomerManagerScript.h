@@ -14,7 +14,6 @@ private:
     float m_SpawnInterval = 5.0f;
     int m_TotalSpawned = 0;
 
-    // Zwykli klienci
     std::vector<std::string> m_CustomerModels = {
         "assets://models/klienci/klient.gltf",
         "assets://models/klienci/klient2.gltf",
@@ -24,7 +23,6 @@ private:
         "assets://models/klienci/klientka3.gltf",
     };
 
-    // Helper klienci
     std::vector<std::string> m_HelperModels = {
         "assets://models/warzywka/marchewka/marchewka.gltf",
         "assets://models/warzywka/pomidor/pomidor.gltf",
@@ -55,13 +53,17 @@ private:
         }
 
         m_TotalSpawned++;
-        bool isHelper = (m_TotalSpawned % 3 == 0);
+        bool isGrandma = (m_TotalSpawned == 10);
+        bool isHelper = (m_TotalSpawned % 3 == 0 && !isGrandma);
 
         std::random_device rd;
         std::mt19937 gen(rd());
         std::string chosenModel;
 
-        if (isHelper) {
+        if (isGrandma) {
+            chosenModel = "assets://models/klienci/babcia.gltf";
+        }
+        else if (isHelper) {
             std::uniform_int_distribution<> dist(0, (int)m_HelperModels.size() - 1);
             chosenModel = m_HelperModels[dist(gen)];
         }
@@ -70,31 +72,39 @@ private:
             chosenModel = m_CustomerModels[dist(gen)];
         }
 
-        glm::vec3 finalScale = glm::vec3(3.0f);
+        glm::vec3 finalScale = isGrandma ? glm::vec3(0.3f) : glm::vec3(3.0f);
         float rotationOffsetY = 90.0f;
-        float heightOffset = 1.0f;
+
+        float heightOffset = isGrandma ? 0.0f : 1.0f;
+
         std::string animPath = "";
         std::string targetTag = "NormalCustomer";
 
-        if (isHelper)
+        if (isGrandma)
+        {
+            animPath = "CookingStation/Assets/models/animacje/babcia/babcia-siedzi.gltf";
+            targetTag = "GrandmaCustomer";
+            rotationOffsetY = 0.0f;
+        }
+        else if (isHelper)
         {
             if (chosenModel.find("marchewka") != std::string::npos || chosenModel.find("test.gltf") != std::string::npos)
             {
-                finalScale = glm::vec3(1.0f, 1.0f, 1.0f);
+                finalScale = glm::vec3(1.0f);
                 rotationOffsetY = -90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/marchewka-siedzi.gltf";
                 targetTag = "HelperCustomer_Marchewka";
             }
             else if (chosenModel.find("pomidor") != std::string::npos)
             {
-                finalScale = glm::vec3(1.0f, 1.0f, 1.0f);
+                finalScale = glm::vec3(1.0f);
                 rotationOffsetY = -90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/pomidor-siedzi.gltf";
                 targetTag = "HelperCustomer_Pomidor";
             }
             else if (chosenModel.find("rzodkiewka") != std::string::npos)
             {
-                finalScale = glm::vec3(1.2f, 1.2f, 1.2f);
+                finalScale = glm::vec3(1.2f);
                 rotationOffsetY = 90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/rzodkiewka-siedzi.gltf";
                 targetTag = "HelperCustomer_Rzodkiewka";
@@ -111,31 +121,32 @@ private:
         auto* chairTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(targetChair);
         TransformComponent tc;
 
-        // --- OBLICZANIE POZYCJI GLOBALNEJ KRZES£A ---
         glm::vec3 chairPos = chairTransform->GetPosition();
 
         auto* chairRel = GetScene()->GetWorld().GetComponent<RelationshipComponent>(targetChair);
         if (chairRel && chairRel->Parent != NULL_ENTITY) {
             Entity parentEntity;
             parentEntity.id = chairRel->Parent;
-
             auto* parentTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(parentEntity);
             if (parentTransform) {
                 chairPos += parentTransform->GetPosition();
             }
         }
-        // --------------------------------------------
 
-        tc.SetPosition(chairPos + glm::vec3(0.0f, heightOffset, 0.0f));
-        tc.SetScale(finalScale);
-
-        // Aplikowanie wyliczonego Obrotu
         glm::vec3 tablePos = FindNearestTablePosition(chairPos);
         glm::vec3 direction = tablePos - chairPos;
         float angle = glm::degrees(std::atan2(direction.x, direction.z));
         glm::vec3 finalRotation = { 0.0f, angle + rotationOffsetY, 0.0f };
-        tc.SetRotation(finalRotation);
 
+        if (isGrandma) {
+            tc.SetPosition(glm::vec3(-3.0f, chairPos.y + heightOffset, -37.0f));
+        }
+        else {
+            tc.SetPosition(chairPos + glm::vec3(0.0f, heightOffset, 0.0f));
+            tc.SetRotation(finalRotation);
+        }
+
+        tc.SetScale(finalScale);
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
@@ -146,27 +157,45 @@ private:
         bc.Size = { 1.0f, 2.0f, 1.0f };
         builder.With<BoxColliderComponent>(bc);
 
-        // Aplikowanie Animacji
         AnimatorComponent animatorComp;
         animatorComp.AnimatorInstance = std::make_shared<Animator>();
-        auto sitAnimation = std::make_shared<Animation>(animPath, mesh.ModelPtr.get());
-        animatorComp.AnimatorInstance->AddAnimation("SitIdle", sitAnimation);
-        animatorComp.AnimatorInstance->PlayAnimation("SitIdle");
+
+        if (isGrandma) {
+            auto walkAnim = std::make_shared<Animation>("CookingStation/Assets/models/animacje/babcia/babcia-chodzi.gltf", mesh.ModelPtr.get());
+            animatorComp.AnimatorInstance->AddAnimation("Walk", walkAnim);
+            animatorComp.AnimatorInstance->PlayAnimation("Walk");
+
+            auto sitAnim = std::make_shared<Animation>(animPath, mesh.ModelPtr.get());
+            animatorComp.AnimatorInstance->AddAnimation("SitIdle", sitAnim);
+        }
+        else {
+            auto sitAnim = std::make_shared<Animation>(animPath, mesh.ModelPtr.get());
+            animatorComp.AnimatorInstance->AddAnimation("SitIdle", sitAnim);
+            animatorComp.AnimatorInstance->PlayAnimation("SitIdle");
+        }
 
         builder.With<AnimatorComponent>(animatorComp);
 
         NativeScriptComponent nsc;
-
         if (isHelper) {
             nsc.AddScript<HelperCustomerScript>("HelperCustomerScript");
         }
         else {
             nsc.AddScript<CustomerScript>("CustomerScript");
         }
-
         builder.With<NativeScriptComponent>(nsc);
 
-        spdlog::info("Zespawnowano nowego {} (Model: {}) - Patrzy na stolik!", isHelper ? "Helpera" : "Klienta", chosenModel);
+        if (isGrandma) {
+            CustomerScript::s_GrandmaTargetChair = targetChair;
+
+            float grandmaSittingHeight = 0.8f;
+
+            CustomerScript::s_GrandmaTargetPos = chairPos + glm::vec3(0.0f, grandmaSittingHeight, 0.0f);
+            CustomerScript::s_GrandmaFinalRotation = finalRotation;
+        }
+
+        builder.Build();
+        spdlog::info("Zespawnowano nowego {} (Model: {})", isHelper ? "Helpera" : "Klienta", chosenModel);
     }
 
     Entity FindEmptyChair()
@@ -177,7 +206,6 @@ private:
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
             const std::string& tagName = tags->dense[i].Tag;
-
             if (tagName.find("Chair") != std::string::npos || tagName.find("Krzeslo") != std::string::npos) {
                 Entity chairEntity = tags->reverse[i];
                 if (IsChairEmpty(chairEntity))
@@ -189,25 +217,54 @@ private:
         return { std::numeric_limits<std::size_t>::max() };
     }
 
+    Entity FindChairNear(glm::vec3 pos)
+    {
+        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+        if (!tags || !transforms) return { std::numeric_limits<std::size_t>::max() };
+
+        for (size_t i = 0; i < tags->dense.size(); ++i) {
+            const std::string& tagName = tags->dense[i].Tag;
+            if (tagName.find("Chair") != std::string::npos || tagName.find("Krzeslo") != std::string::npos) {
+                Entity chairEntity = tags->reverse[i];
+                auto* tf = transforms->Get(chairEntity);
+                if (tf) {
+                    glm::vec3 chairPos = tf->GetPosition();
+                    auto* chairRel = GetScene()->GetWorld().GetComponent<RelationshipComponent>(chairEntity);
+                    if (chairRel && chairRel->Parent != NULL_ENTITY) {
+                        Entity parentEntity;
+                        parentEntity.id = chairRel->Parent;
+                        auto* parentTransform = transforms->Get(parentEntity);
+                        if (parentTransform) chairPos += parentTransform->GetPosition();
+                    }
+                    if (std::abs(chairPos.x - pos.x) < 1.0f && std::abs(chairPos.z - pos.z) < 1.0f) {
+                        return chairEntity;
+                    }
+                }
+            }
+        }
+        return { std::numeric_limits<std::size_t>::max() };
+    }
+
     bool IsChairEmpty(Entity chair)
     {
+        if (chair.id != std::numeric_limits<std::size_t>::max() && chair.id == CustomerScript::s_GrandmaTargetChair.id) {
+            return false;
+        }
+
         auto* chairTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(chair);
         if (!chairTransform) return false;
 
-        // --- PRAWDZIWA POZYCJA GLOBALNA KRZES£A ---
         glm::vec3 chairPos = chairTransform->GetPosition();
-
         auto* chairRel = GetScene()->GetWorld().GetComponent<RelationshipComponent>(chair);
         if (chairRel && chairRel->Parent != NULL_ENTITY) {
             Entity parentEntity;
             parentEntity.id = chairRel->Parent;
-
             auto* parentTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(parentEntity);
             if (parentTransform) {
                 chairPos += parentTransform->GetPosition();
             }
         }
-        // ------------------------------------------
 
         glm::vec2 chairPos2D = { chairPos.x, chairPos.z };
 
@@ -219,7 +276,7 @@ private:
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
             std::string tag = tags->dense[i].Tag;
-            if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos || tag.find("NajedzonyPomocnik") != std::string::npos) {
+            if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos || tag.find("NajedzonyPomocnik") != std::string::npos || tag == "GrandmaCustomer") {
                 Entity customer = tags->reverse[i];
                 auto* custTransform = transforms->Get(customer);
 

@@ -487,7 +487,7 @@ void GameManagerScript::CompleteQuest()
 
             TransformComponent tc;
             tc.SetPosition(glm::vec3(-9.0f, pair.second - 30.0f, -1.0f));
-            tc.SetRotation(glm::vec3(0.0f, glm::radians(90.0f), 0.0f));
+            tc.SetRotation(glm::vec3(0.0f, 180.0f, 0.0f));
             builder.With<TransformComponent>(tc);
 
             MeshComponent mesh;
@@ -524,6 +524,25 @@ void GameManagerScript::CompleteQuest()
             pair.first = newBelt;
         }
 
+        for (auto& pair : m_MainIslandQuestGroup) {
+            auto* tagComp = GetScene()->GetWorld().GetComponent<TagComponent>(pair.first);
+            if (tagComp && tagComp->Tag == "tasma_switch_quest") {
+                auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
+                if (tf) {
+                    glm::vec3 rot = tf->GetRotation();
+                    rot.y = 180.0f;
+                    tf->SetRotation(rot);
+                }
+                auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(pair.first);
+                if (nsc) {
+                    for (auto& s : nsc->Scripts) {
+                        if (s.Instance) {
+                            static_cast<ConveyorScript*>(s.Instance)->SetPushDirection();
+                        }
+                    }
+                }
+            }
+        }
         GetScene()->RebuildConveyorCache();
     }
 }
