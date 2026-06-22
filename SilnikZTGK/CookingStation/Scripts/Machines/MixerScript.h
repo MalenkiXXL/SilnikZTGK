@@ -140,6 +140,8 @@ public:
         else if (!m_IsAutomated)
         {
             spdlog::warn("Mikser: Brakuje talerza! Podstaw talerz, zeby wyciagnac ciasto.");
+            AudioEngine::Play("assets://sounds/error.mp3");
+
         }
     }
 

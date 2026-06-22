@@ -57,6 +57,8 @@ public:
         else
         {
             spdlog::warn("Brak talerza w bezpiecznym promieniu od maszyny!");
+            AudioEngine::Play("assets://sounds/error.mp3");
+
         }
     }
 
@@ -431,8 +433,6 @@ protected:
 
         if (success)
         {
-            AudioEngine::Play("assets://sounds/plate_down.wav");
-
             m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
         }
         else

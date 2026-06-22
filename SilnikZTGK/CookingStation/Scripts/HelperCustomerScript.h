@@ -12,7 +12,8 @@
 class HelperCustomerScript : public CustomerScript
 {
 public:
-    float m_YOffset = 0.5f;
+    float m_YOffset = 0.2f;
+    float m_ActionYOffset = 0.4f;
     Entity m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
     glm::vec3 m_HighlightColor = glm::vec3(0.2f, 0.8f, 0.2f);
     float m_RotationOffset = -90.0f;
@@ -33,49 +34,68 @@ public:
     float m_PulseTimer = 0.0f;
     std::size_t m_ClickSubId = 0;
 
+    std::shared_ptr<Model> m_OriginalModel = nullptr;
+    std::shared_ptr<Model> m_ActionModel = nullptr;
+    bool m_IsWorking = false;
+    std::size_t m_ProcessingSubId = 0;
+
+
     void OnCreate() override
     {
         CustomerScript::OnCreate();
+
+        auto* meshComp = GetComponent<MeshComponent>();
+        if (meshComp) {
+            m_OriginalModel = meshComp->ModelPtr;
+        }
 
         auto* tagComp = GetComponent<TagComponent>();
         if (tagComp) {
             if (tagComp->Tag.find("Marchewka") != std::string::npos) {
                 m_HighlightColor = glm::vec3(0.3f, 0.4f, 0.71f);
+                m_ActionModel = AssetManager::GetModel("assets://models/animacje/klienci/marchewka-kroi/marchewka-kroi.gltf");
             }
             else if (tagComp->Tag.find("Pomidor") != std::string::npos) {
                 m_HighlightColor = glm::vec3(0.94f, 0.31f, 0.47f);
+                m_ActionModel = AssetManager::GetModel("assets://models/animacje/klienci/pomidor-kroi/pomidor-kroi.gltf");
             }
             else if (tagComp->Tag.find("Rzodkiewka") != std::string::npos) {
                 m_HighlightColor = glm::vec3(0.66f, 0.52f, 0.95f);
                 m_RotationOffset = 90.0f;
                 m_WaitingRotation = 90.0f;
+                m_ActionModel = AssetManager::GetModel("assets://models/animacje/klienci/rzodkiewka-kroi/rzodkiewka-kroi.gltf");
             }
         }
 
-        // --- NAS£UCHIWANIE NA KLIKNIÊCIE ---
+        // --- NASï¿½UCHIWANIE NA KLIKNIï¿½CIE ---
         m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
             [this](const EntityClickedEvent& e) {
-                // Pozwalamy z³apaæ pracownika tylko jeœli siedzi w poczekalni (nie spada i nie zosta³ ju¿ u¿yty)
+                // Pozwalamy zï¿½apaï¿½ pracownika tylko jeï¿½li siedzi w poczekalni (nie spada i nie zostaï¿½ juï¿½ uï¿½yty)
                 if (e.TargetEntity.id == m_Entity.id && m_IsWaitingForPickup && !m_IsFalling) {
                     m_IsWaitingForPickup = false;
                     m_IsDragged = true;
                     m_DragDelayTimer = 0.0f;
 
-                    // Resetujemy skalê do naturalnej i wy³¹czamy fioletowy shader
+                    if (m_IsWorking) {
+                        m_IsWorking = false;
+                        SwapModel(false);
+                    }
+
+                    // Resetujemy skalï¿½ do naturalnej i wyï¿½ï¿½czamy fioletowy shader
                     auto* myTransform = GetComponent<TransformComponent>();
                     if (myTransform) myTransform->SetScale(m_BaseScale);
 
                     auto* mesh = GetComponent<MeshComponent>();
                     if (mesh) mesh->ShaderName = "Default";
 
-                    // Wy³¹czamy nieskoñczone œwiat³o w menad¿erze
+                    // Wyï¿½ï¿½czamy nieskoï¿½czone ï¿½wiatï¿½o w menadï¿½erze
                     if (m_IsFirstHelperInstance) {
                         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                             m_Entity, glm::vec3(0.0f), 0.01f, false
                             });
                     }
 
-                    // Kasujemy kafelek z pod³ogi
+                    // Kasujemy kafelek z podï¿½ogi
                     if (m_FloorTile.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_FloorTile });
                         m_FloorTile = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -83,11 +103,39 @@ public:
                 }
             }
         );
+
+
+        m_ProcessingSubId = GetScene()->GetWorld().GetEventBus().Subscribe<MachineProcessingEvent>(
+                [this](const MachineProcessingEvent& e) {
+                    if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max() && e.Machine.id == m_AssignedMachine.id) {
+
+                        bool isCuttingBoard = false;
+                        auto* machineTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_AssignedMachine);
+                        if (machineTag && (machineTag->Tag.find("CuttingBoard") != std::string::npos ||
+                                           machineTag->Tag.find("Deska") != std::string::npos ||
+                                           machineTag->Tag.find("deska") != std::string::npos)) {
+                            isCuttingBoard = true;
+                        }
+
+                        if (e.IsProcessing && isCuttingBoard && !m_IsWorking) {
+                            m_IsWorking = true;
+                            SwapModel(true);
+                            PlayAnimation("Cut");
+                        }
+                        else if (!e.IsProcessing && m_IsWorking) {
+                            m_IsWorking = false;
+                            SwapModel(false);
+                            PlayAnimation("SitIdle");
+                        }
+                    }
+                }
+        );
     }
 
     void OnDestroy() override
     {
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<MachineProcessingEvent>(m_ProcessingSubId);
 
         if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
             SetMachineAutomated(m_AssignedMachine, false);
@@ -170,21 +218,20 @@ public:
             return;
         }
 
-        // --- PRZECI¥GANIE DO MASZYNY ---
+        // --- PRZECIÄ„GANIE DO MASZYNY ---
         if (m_IsDragged) {
             glm::vec3 mousePos = GetMouseWorldPosition();
 
-            // Matematyczne przyci¹ganie do siatki (grid snapping) bez BuildMode
+            // Matematyczne przyciÄ…ganie do siatki
             float snapX = std::round((mousePos.x - 1.0f) / 2.0f) * 2.0f + 1.0f;
             float snapZ = std::round((mousePos.z - 1.0f) / 2.0f) * 2.0f + 1.0f;
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (myTransform) {
-                myTransform->SetPosition({ snapX, 0.0f, snapZ });
+                myTransform->SetPosition({ snapX, m_YOffset, snapZ });
             }
 
             m_DragDelayTimer += ts.GetSeconds();
-            // Mo¿na od³o¿yæ dopiero po u³amku sekundy, by unikn¹æ upuszczenia w klatce klikniêcia
             if (m_DragDelayTimer > 0.15f && Input::IsMouseButtonJustPressed(0)) {
                 m_IsDragged = false;
             }
@@ -198,8 +245,13 @@ public:
         Entity closestMachine = FindAdjacentMachine(transform->GetPosition());
 
         if (closestMachine.id != m_AssignedMachine.id) {
+
             if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
                 SetMachineAutomated(m_AssignedMachine, false);
+
+                m_IsWorking = false;
+                SwapModel(false);
+                PlayAnimation("SitIdle");
             }
 
             m_AssignedMachine = closestMachine;
@@ -209,18 +261,18 @@ public:
                 RotateTowardsMachine(transform, m_AssignedMachine);
 
                 glm::vec3 snapPos = transform->GetPosition();
-                snapPos.y = 0.0f;
+                snapPos.y = m_YOffset;
                 transform->SetPosition(snapPos);
 
                 glm::vec3 highlightColor = m_HighlightColor;
 
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    m_Entity, highlightColor, 0.8f, false
-                    });
+                        m_Entity, highlightColor, 0.8f, false
+                });
 
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    m_AssignedMachine, highlightColor, 0.8f, false
-                    });
+                        m_AssignedMachine, highlightColor, 0.8f, false
+                });
 
                 auto* rels = GetScene()->GetWorld().GetComponentVector<RelationshipComponent>();
                 if (rels) {
@@ -239,8 +291,8 @@ public:
 
                             if (!isItem) {
                                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                                    childEnt, highlightColor, 0.8f, false
-                                    });
+                                        childEnt, highlightColor, 0.8f, false
+                                });
                             }
                         }
                     }
@@ -250,11 +302,37 @@ public:
         else if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
             RotateTowardsMachine(transform, m_AssignedMachine);
 
+            float currentTargetY = m_IsWorking ? m_ActionYOffset : m_YOffset;
+
             glm::vec3 snapPos = transform->GetPosition();
-            if (snapPos.y != 0.0f) {
-                snapPos.y = 0.0f;
+            if (std::abs(snapPos.y - currentTargetY) > 0.001f) {
+                snapPos.y = currentTargetY;
                 transform->SetPosition(snapPos);
             }
+        }
+    }
+
+protected:
+    void PlayAnimation(const std::string& name)
+    {
+        auto* animComp = GetComponent<AnimatorComponent>();
+        if (animComp && animComp->AnimatorInstance)
+        {
+            animComp->AnimatorInstance->PlayAnimation(name);
+            animComp->IsPlaying = true;
+        }
+    }
+
+    void SwapModel(bool useActionModel)
+    {
+        auto* meshComp = GetComponent<MeshComponent>();
+        if (!meshComp) return;
+
+        if (useActionModel && m_ActionModel) {
+            meshComp->ModelPtr = m_ActionModel;
+        }
+        else if (!useActionModel && m_OriginalModel) {
+            meshComp->ModelPtr = m_OriginalModel;
         }
     }
 

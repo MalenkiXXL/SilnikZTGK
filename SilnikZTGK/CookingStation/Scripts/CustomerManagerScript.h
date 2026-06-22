@@ -78,6 +78,7 @@ private:
         float heightOffset = isGrandma ? 0.0f : 1.0f;
 
         std::string animPath = "";
+        std::string cutAnimPath = "";
         std::string targetTag = "NormalCustomer";
 
         if (isGrandma)
@@ -93,6 +94,7 @@ private:
                 finalScale = glm::vec3(1.0f);
                 rotationOffsetY = -90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/marchewka-siedzi.gltf";
+                cutAnimPath = "CookingStation/Assets/models/animacje/klienci/marchewka-kroi/marchewka-kroi.gltf";
                 targetTag = "HelperCustomer_Marchewka";
             }
             else if (chosenModel.find("pomidor") != std::string::npos)
@@ -100,6 +102,7 @@ private:
                 finalScale = glm::vec3(1.0f);
                 rotationOffsetY = -90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/pomidor-siedzi.gltf";
+                cutAnimPath = "CookingStation/Assets/models/animacje/klienci/pomidor-kroi/pomidor-kroi.gltf";
                 targetTag = "HelperCustomer_Pomidor";
             }
             else if (chosenModel.find("rzodkiewka") != std::string::npos)
@@ -107,6 +110,7 @@ private:
                 finalScale = glm::vec3(1.2f);
                 rotationOffsetY = 90.0f;
                 animPath = "CookingStation/Assets/models/animacje/klienci/rzodkiewka-siedzi.gltf";
+                cutAnimPath = "CookingStation/Assets/models/animacje/klienci/rzodkiewka-kroi/rzodkiewka-kroi.gltf";
                 targetTag = "HelperCustomer_Rzodkiewka";
             }
         }
@@ -172,6 +176,11 @@ private:
             auto sitAnim = std::make_shared<Animation>(animPath, mesh.ModelPtr.get());
             animatorComp.AnimatorInstance->AddAnimation("SitIdle", sitAnim);
             animatorComp.AnimatorInstance->PlayAnimation("SitIdle");
+
+            if (isHelper && !cutAnimPath.empty()) {
+                auto cutAnim = std::make_shared<Animation>(cutAnimPath, mesh.ModelPtr.get());
+                animatorComp.AnimatorInstance->AddAnimation("Cut", cutAnim);
+            }
         }
 
         builder.With<AnimatorComponent>(animatorComp);

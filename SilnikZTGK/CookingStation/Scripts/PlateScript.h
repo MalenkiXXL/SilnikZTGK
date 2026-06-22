@@ -2,6 +2,7 @@
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scripts/Managers/IngredientType.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
+#include "CookingStation/Core/AudioEngine.h"
 #include <vector>
 #include <algorithm>
 #include <random>
@@ -37,6 +38,7 @@ public:
         }
 
         m_Ingredients.push_back(type);
+        AudioEngine::Play("assets://sounds/put_ingredient_on_plate.mp3");
 
         SpawnIngredientVisual(type);
 
@@ -88,6 +90,7 @@ public:
 
         GetScene()->SetParent(dishEntity, m_Entity);
         m_VisualModels.push_back(dishEntity);
+        AudioEngine::Play("assets://sounds/plate_down.wav");
 
         spdlog::info("Talerz: Przyjeto gotowe danie z maszyny (rozpoznawane po Tagu)!");
         return true;

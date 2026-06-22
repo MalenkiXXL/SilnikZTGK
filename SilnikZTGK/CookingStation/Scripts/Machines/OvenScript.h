@@ -2,16 +2,41 @@
 #include "CookingStation/Scripts/Machines/MachineScript.h"
 #include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Core/GameProgress.h"
+#include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Events/GameEvents.h"
 
 class OvenScript : public MachineScript
 {
 public:
+    ma_sound* m_BakingSoundPtr = nullptr;
+
+    void StopBakingSound()
+    {
+        if (m_BakingSoundPtr)
+        {
+            AudioEngine::StopLoopingSound(m_BakingSoundPtr);
+            m_BakingSoundPtr = nullptr;
+        }
+    }
+
     void OnCreate() override
     {
         MachineScript::OnCreate();
         m_CookTime = 8.0f;
     }
+
+    void OnDestroy() override
+    {
+        StopBakingSound();
+        MachineScript::OnDestroy();
+    }
+
+    void ResetMachineState() override
+    {
+        StopBakingSound();
+        MachineScript::ResetMachineState();
+    }
+
 
     void OnUpdate(Timestep ts) override
     {
@@ -24,6 +49,9 @@ public:
             if (m_CurrentTime >= m_CookTime)
             {
                 m_IsReady = true;
+
+                StopBakingSound();
+
                 AudioEngine::Play("assets://sounds/dish_ready.mp3");
                 UpdateVisuals();
             }
@@ -45,6 +73,10 @@ public:
             m_IsReady = false;
             m_CurrentTime = 0.0f;
             spdlog::info("Piekarnik: Rozpoczeto pieczenie!");
+
+            if (!m_BakingSoundPtr) {
+                m_BakingSoundPtr = AudioEngine::PlayLoopingSound("assets://sounds/baking.mp3", 0.15f);
+            }
 
             auto* meshComp = GetComponent<MeshComponent>();
             if (meshComp)
@@ -97,15 +129,8 @@ public:
         }
         else if (!m_IsAutomated)
         {
-            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-            {
-                GetScene()->DestroyEntity(m_SpawnedFood);
-                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-
-                DragAndDropScript::StartDrag(IngredientType::Baguette);
-                ResetMachineState();
-                ClearHighlight();
-            }
+            spdlog::warn("Piekarnik: Brak talerza! Nie można wyciągnąć bagietki bez talerza.");
+            AudioEngine::Play("assets://sounds/error.mp3");
         }
     }
 
