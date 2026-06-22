@@ -8,7 +8,8 @@
 		{
 			"name":"Scene",
 			"nodes":[
-				0
+				0,
+				1
 			]
 		}
 	],
@@ -16,6 +17,10 @@
 		{
 			"mesh":0,
 			"name":"Sphere"
+		},
+		{
+			"mesh":1,
+			"name":"Sphere.001"
 		}
 	],
 	"animations":[
@@ -32,9 +37,28 @@
 			"name":"SphereAction",
 			"samplers":[
 				{
-					"input":16,
+					"input":20,
 					"interpolation":"LINEAR",
-					"output":17
+					"output":21
+				}
+			]
+		},
+		{
+			"channels":[
+				{
+					"sampler":0,
+					"target":{
+						"node":1,
+						"path":"rotation"
+					}
+				}
+			],
+			"name":"SphereAction.001",
+			"samplers":[
+				{
+					"input":20,
+					"interpolation":"LINEAR",
+					"output":21
 				}
 			]
 		}
@@ -83,6 +107,23 @@
 				"metallicFactor":0.5,
 				"roughnessFactor":0.20000000298023224
 			}
+		},
+		{
+			"alphaMode":"BLEND",
+			"doubleSided":true,
+			"name":"Material",
+			"pbrMetallicRoughness":{
+				"baseColorFactor":[
+					1,
+					1,
+					1,
+					0.949999988079071
+				],
+				"baseColorTexture":{
+					"index":4
+				},
+				"metallicFactor":0.30000001192092896
+			}
 		}
 	],
 	"meshes":[
@@ -126,6 +167,20 @@
 					"material":3
 				}
 			]
+		},
+		{
+			"name":"Sphere.001",
+			"primitives":[
+				{
+					"attributes":{
+						"POSITION":16,
+						"NORMAL":17,
+						"TEXCOORD_0":18
+					},
+					"indices":19,
+					"material":4
+				}
+			]
 		}
 	],
 	"textures":[
@@ -143,6 +198,10 @@
 		},
 		{
 			"sampler":0,
+			"source":0
+		},
+		{
+			"sampler":1,
 			"source":0
 		}
 	],
@@ -293,6 +352,40 @@
 		{
 			"bufferView":16,
 			"componentType":5126,
+			"count":360,
+			"max":[
+				1.0022776126861572,
+				1.0878944396972656,
+				2.2546792030334473
+			],
+			"min":[
+				-1.004561185836792,
+				0.9668347835540771,
+				0.24474549293518066
+			],
+			"type":"VEC3"
+		},
+		{
+			"bufferView":17,
+			"componentType":5126,
+			"count":360,
+			"type":"VEC3"
+		},
+		{
+			"bufferView":18,
+			"componentType":5126,
+			"count":360,
+			"type":"VEC2"
+		},
+		{
+			"bufferView":19,
+			"componentType":5123,
+			"count":540,
+			"type":"SCALAR"
+		},
+		{
+			"bufferView":20,
+			"componentType":5126,
 			"count":1,
 			"max":[
 				0.041666666666666664
@@ -303,7 +396,7 @@
 			"type":"SCALAR"
 		},
 		{
-			"bufferView":17,
+			"bufferView":21,
 			"componentType":5126,
 			"count":1,
 			"type":"VEC4"
@@ -408,25 +501,53 @@
 		},
 		{
 			"buffer":0,
+			"byteLength":4320,
+			"byteOffset":160536,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":4320,
+			"byteOffset":164856,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":2880,
+			"byteOffset":169176,
+			"target":34962
+		},
+		{
+			"buffer":0,
+			"byteLength":1080,
+			"byteOffset":172056,
+			"target":34963
+		},
+		{
+			"buffer":0,
 			"byteLength":4,
-			"byteOffset":160536
+			"byteOffset":173136
 		},
 		{
 			"buffer":0,
 			"byteLength":16,
-			"byteOffset":160540
+			"byteOffset":173140
 		}
 	],
 	"samplers":[
 		{
 			"magFilter":9728,
 			"minFilter":9984
+		},
+		{
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":160556,
-			"uri":"blender.bin"
+			"byteLength":173156,
+			"uri":"blender_on.bin"
 		}
 	]
 }

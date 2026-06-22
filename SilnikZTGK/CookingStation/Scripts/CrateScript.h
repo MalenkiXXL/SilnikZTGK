@@ -21,6 +21,7 @@ public:
     float m_SpawnCooldown = 0.0f;
     bool m_HasStock = false;
     bool m_IsInitialized = false;
+    bool m_WasHovered = false;
 
     void OnCreate() override
     {
@@ -85,15 +86,22 @@ public:
         {
             if (SpawnIngredientOnConveyor()) {
                 m_SpawnCooldown = 0.2f;
+
+                AudioEngine::Play("CookingStation/Assets/sounds/put_on_conveyor.mp3");
+
                 GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ m_CrateIngredient, 1 });
             }
             else {
+
+                AudioEngine::Play("CookingStation/Assets/sounds/error.mp3");
                 TriggerErrorHighlight();
             }
         }
         else
         {
             spdlog::warn("Skrzynka: Brak zapasow tego skladnika w magazynie (0 sztuk)!");
+
+            AudioEngine::Play("CookingStation/Assets/sounds/error.mp3");
             TriggerErrorHighlight();
         }
     }
@@ -132,11 +140,20 @@ public:
             HandleClick();
         }
 
+        if (!m_IsHovered) {
+            m_WasHovered = false;
+        }
+
         m_IsHovered = false;
     }
 
     void OnHoverCursor() override
     {
+        if (!m_WasHovered) {
+            AudioEngine::PlayLoopingSound("CookingStation/Assets/sounds/hover_in_game.mp3", 0.15f, false);
+            m_WasHovered = true;
+        }
+
         m_IsHovered = true;
 
         if (m_HasStock && m_VisualFood.id != std::numeric_limits<std::size_t>::max())

@@ -1,12 +1,14 @@
 #pragma once
 #include "MachineScript.h"
-#include "CookingStation/Layers/AssetLayer/AssetManager.h" 
+#include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Core/GameProgress.h"
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
 
 class PotScript : public MachineScript
 {
 private:
+    ma_sound* m_BoilingSound = nullptr;
+
     void SetSmoking(bool state, bool clearInstatly = false)
     {
         auto* scriptComp = GetComponent<NativeScriptComponent>();
@@ -29,12 +31,26 @@ private:
         }
     }
 
+    void StopBoilingSound()
+    {
+        if (m_BoilingSound)
+        {
+            AudioEngine::StopLoopingSound(m_BoilingSound);
+            m_BoilingSound = nullptr;
+        }
+    }
+
 public:
     void OnCreate() override
     {
         MachineScript::OnCreate();
         m_CookTime = 3.0f;
         SetSmoking(false);
+    }
+
+    void OnDestroy() override
+    {
+        StopBoilingSound();
     }
 
     void OnUpdate(Timestep ts) override
@@ -56,6 +72,7 @@ public:
             if (m_CookTime - m_CurrentTime <= 0.8f)
             {
                 SetSmoking(false);
+                StopBoilingSound();
             }
         }
 
@@ -78,7 +95,13 @@ public:
         {
             m_Ingredients.push_back(type);
             m_IsReady = false;
+
             SetSmoking(true);
+
+            if (!m_BoilingSound) {
+                m_BoilingSound = AudioEngine::PlayLoopingSound("CookingStation/Assets/sounds/Risotto_Boil_pot.wav", 0.15f);
+            }
+
             m_CurrentTime = 0.0f;
             UpdateVisuals();
             spdlog::info("Garnek: Przyjeto pokrojonego pomidora, zaczynamy gotowanie!");
@@ -134,6 +157,11 @@ protected:
             {
                 GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+            }
+
+            if (m_Ingredients.empty())
+            {
+                StopBoilingSound();
             }
         }
     }

@@ -275,3 +275,49 @@ bool AudioEngine::AreSoundsEnabled()
 {
     return s_SoundsEnabled;
 }
+
+ma_sound* AudioEngine::PlayLoopingSound(const std::string& filepath, float volume, bool loop)
+{
+    if (!s_Engine || !s_SoundsEnabled) return nullptr;
+
+    std::string vfsPath = filepath;
+    std::replace(vfsPath.begin(), vfsPath.end(), '\\', '/');
+
+    const std::string prefix = "CookingStation/Assets/";
+    if (vfsPath.find(prefix) == 0) {
+        vfsPath = "assets://" + vfsPath.substr(prefix.length());
+    }
+
+    ma_sound* sound = new ma_sound();
+
+    ma_result result = ma_sound_init_from_file(s_Engine, vfsPath.c_str(), 0, NULL, NULL, sound);
+    if (result != MA_SUCCESS)
+    {
+        std::cerr << "[AudioEngine] Blad ladowania zapetlonego dzwieku: " << vfsPath << std::endl;
+        delete sound;
+        return nullptr;
+    }
+
+    ma_sound_set_volume(sound, volume);
+    ma_sound_set_looping(sound, loop ? MA_TRUE : MA_FALSE);
+    ma_sound_start(sound);
+
+    return sound;
+}
+
+void AudioEngine::ReplaySound(ma_sound* sound)
+{
+    if (!sound) return;
+
+    ma_sound_seek_to_pcm_frame(sound, 0);
+    ma_sound_start(sound);
+}
+
+void AudioEngine::StopLoopingSound(ma_sound* sound)
+{
+    if (!sound) return;
+
+    ma_sound_stop(sound);
+    ma_sound_uninit(sound);
+    delete sound;
+}

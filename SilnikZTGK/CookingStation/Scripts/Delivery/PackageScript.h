@@ -3,12 +3,11 @@
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Events/GameEvents.h"
 #include "CookingStation/Scripts/PoofEmitterScript.h"
+#include "CookingStation/Core/AudioEngine.h"
 
 class PackageScript : public ScriptableEntity{
 public:
     inline static std::vector<Entity> s_ActivePackages;
-
-    void SetHovered(bool isHovered) { m_IsHovered = isHovered; }
 
     void OnCreate() override {
         spdlog::info("[PackageScript] Utworzono paczke typu {}", (int)m_Type);
@@ -36,7 +35,6 @@ public:
 
         GetScene()->GetWorld().GetEventBus().Publish(PackageSpawnedEvent{ m_Entity });
     }
-
 
     void OnUpdate(Timestep ts) override {
         m_TimeAlive += (float)ts;
@@ -81,11 +79,9 @@ public:
             }
 
             float wave = std::sin(m_TimeAlive * 4.0f);
-
             transform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
 
             float currentOpacity = (wave + 1.0f) * 0.5f;
-
             float maxOpacity = 0.6f;
             currentOpacity *= maxOpacity;
 
@@ -94,6 +90,8 @@ public:
                 mesh->HighlightColor = glm::vec4(1.0f, 0.9f, 0.0f, currentOpacity);
             } else {
                 mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity);
+
+                m_WasHovered = false;
             }
 
             m_IsHovered = false;
@@ -103,6 +101,11 @@ public:
     void HandleClick();
 
     void OnDestroy() override {
+        if (m_HoverSound) {
+            AudioEngine::StopLoopingSound(m_HoverSound);
+            m_HoverSound = nullptr;
+        }
+
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<ConfigurePackageEvent>(m_ConfigSubId);
         auto it = std::find_if(s_ActivePackages.begin(), s_ActivePackages.end(),
@@ -117,6 +120,15 @@ public:
     int getIngredientAmount() const { return m_IngredientAmount; }
 
     void OnHoverCursor() override {
+        if (!m_WasHovered) {
+            if (!m_HoverSound) {
+                m_HoverSound = AudioEngine::PlayLoopingSound("CookingStation/Assets/sounds/hover_in_game.mp3", 0.15f, false);
+            } else {
+                AudioEngine::ReplaySound(m_HoverSound);
+            }
+            m_WasHovered = true;
+        }
+
         m_IsHovered = true;
     }
 
@@ -125,6 +137,10 @@ public:
 private:
     float m_TimeAlive = 0.0f;
     bool m_IsHovered = false;
+    bool m_WasHovered = false;
+
+    ma_sound* m_HoverSound = nullptr;
+
     glm::vec3 m_BaseScale = glm::vec3(0.0f);
     bool m_BaseScaleInitialized = false;
 
@@ -139,8 +155,6 @@ private:
 
     bool m_IsPoofing = false;
     float m_PoofTimer = 0.0f;
-
 };
-
 
 #endif //SILNIKZTGK_PACKAGESCRIPT_H
