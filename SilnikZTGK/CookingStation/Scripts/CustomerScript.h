@@ -46,10 +46,10 @@ public:
         auto* tagComp = GetComponent<TagComponent>();
         IsGrandma = (tagComp && tagComp->Tag == "GrandmaCustomer");
 
-        std::vector<IngredientType> menu = { IngredientType::Tomato
-            //,IngredientType::Cheese
-            //, IngredientType::Ham,
-            //IngredientType::Sandwich 
+        std::vector<IngredientType> menu = { IngredientType::Tomato,
+            IngredientType::Cheese,
+            IngredientType::Ham,
+            IngredientType::Sandwich 
         };
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -69,7 +69,6 @@ public:
 
         OrderTaken = false;
 
-        // Przywrócone losowanie ceny z poprzedniego kodu
         std::vector<float> prices = { 25.0f, 50.0f, 75.0f };
         std::uniform_int_distribution<> priceDist(0, (int)prices.size() - 1);
         OrderPrice = prices[priceDist(gen)];
@@ -101,17 +100,15 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
-        // 1. Sprawdzanie czy klient jest w trakcie odchodzenia (reakcja na jedzenie)
         if (State == CustomerState::LeavingReaction) {
             m_ReactionTimer -= ts.GetSeconds();
             if (m_ReactionTimer <= 0.0f && !IsPendingDestroy) {
                 IsPendingDestroy = true;
                 GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
             }
-            return; // Zakoñcz update, nie rób nic wiêcej
+            return; 
         }
 
-        // 2. Chodzenie do stolika
         if (State == CustomerState::WalkingToChair)
         {
             auto* tf = GetComponent<TransformComponent>();
@@ -154,7 +151,6 @@ public:
             }
             else
             {
-                // Naprawiony kod chodzenia (poprzednio popl¹tany z LeavingReaction)
                 dir = glm::normalize(dir);
                 pos += dir * step;
                 tf->SetPosition(pos);
@@ -165,7 +161,6 @@ public:
         }
     }
 
-    // PRZYWRÓCONA FUNKCJA!
     bool IsOrderMatching(const std::vector<IngredientType>& ingredientsOnPlate)
     {
         if (ingredientsOnPlate.empty()) return false;
