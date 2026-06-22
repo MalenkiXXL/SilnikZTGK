@@ -34,6 +34,7 @@ class TutorialManagerScript : public ScriptableEntity {
 public:
     void OnCreate() override;
     void OnUpdate(Timestep ts) override;
+    static bool s_AllowConveyorSwitch;
 
 private:
     TutorialState m_State = TutorialState::Start;
@@ -60,6 +61,7 @@ private:
     glm::vec3 m_PotOriginalPos;
     glm::vec3 m_BurnerOriginalPos;
 
+    bool m_WalkAnimPlayed = false;
 
     Entity FindEntityByName(const std::string& name);
     void HideUnderground(Entity e);

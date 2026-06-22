@@ -230,7 +230,7 @@ void MainMenuLayer::PlayGame()
     auto activeScene = SceneManager::NewScene();
     SceneSerializer serializer(activeScene.get());
 
-    if (serializer.Deserialize("assets://saves/tuto.json")) {
+    if (serializer.Deserialize("assets://levels/tutorial.json")) {
         activeScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
         Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
         activeScene->SetState(SceneState::Play);
@@ -240,11 +240,11 @@ void MainMenuLayer::PlayGame()
 
         Application::Get().GetEventBus().Publish(GameResumedEvent{});
 
-        spdlog::info("Pomyslnie zaladowano level02.json!");
+        spdlog::info("Pomyslnie zaladowano tutorial.json!");
     }
     else {
         m_IsActive = true;
-        spdlog::error("Blad: Nie udalo sie wczytac level02.json");
+        spdlog::error("Blad: Nie udalo sie wczytac tutorial.json");
     }
 }
 void MainMenuLayer::OnEvent(Event& e) {

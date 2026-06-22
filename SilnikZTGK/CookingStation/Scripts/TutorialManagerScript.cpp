@@ -1,5 +1,6 @@
 #include "TutorialManagerScript.h"
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
+#include "CookingStation/Scripts/Waiter/WaiterScript.h"
 #include "CookingStation/Events/GameEvents.h"
 #include "CookingStation/Core/Input.h" 
 #include "CookingStation/Scripts/PoofEmitterScript.h"
@@ -11,6 +12,14 @@
 #include "CookingStation/Scripts/Machines/PotScript.h"
 #include "CookingStation/Scripts/PlateScript.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
+#include "CookingStation/Scene/SceneManager.h"
+#include "CookingStation/Scene/SceneSerializer.h"
+#include "CookingStation/Core/Application.h"
+#include "CookingStation/Layers/GuiLayer/Utils/Gui.h"
+
+bool TutorialManagerScript::s_AllowConveyorSwitch = false;
+
+static glm::vec3 s_WaiterOriginalSpawnPos = glm::vec3(0.0f);
 
 Entity TutorialManagerScript::FindEntityByName(const std::string& name) {
     auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -86,7 +95,6 @@ float TutorialManagerScript::UpdateLerp(bool condition, float currentLerp, float
     return std::clamp(currentLerp, 0.0f, 1.0f);
 }
 
-// 1. ZREFAKTORYZOWANY POOF
 void TutorialManagerScript::PlayPoofAt(glm::vec3 pos) {
     RestorePosition(m_Poof, pos);
     auto* poofNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_Poof);
@@ -130,7 +138,7 @@ Entity TutorialManagerScript::FindClosestPlate(glm::vec3 targetPos, PlateScript*
 
                     if (mustBeEmpty && pScript) {
                         if (!pScript->m_Ingredients.empty() || pScript->m_CompletedDish != IngredientType::None) {
-                            continue; // Talerz nie jest pusty, ignorujemy go!
+                            continue; 
                         }
                     }
 
@@ -144,7 +152,6 @@ Entity TutorialManagerScript::FindClosestPlate(glm::vec3 targetPos, PlateScript*
     return closestPlate;
 }
 
-// 3. ZREFAKTORYZOWANE SPRAWDZANIE HOVERA
 bool TutorialManagerScript::IsHovering(Entity e, glm::vec3 mousePos, float radius) {
     if (Input::IsUICapturingMouse() || e.id == std::numeric_limits<std::size_t>::max()) return false;
     auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
@@ -152,12 +159,9 @@ bool TutorialManagerScript::IsHovering(Entity e, glm::vec3 mousePos, float radiu
     return glm::distance(glm::vec2(mousePos.x, mousePos.z), glm::vec2(tf->GetPosition().x, tf->GetPosition().z)) < radius;
 }
 
-// ==========================================
-// --- G£ÓWNA LOGIKA ---
-// ==========================================
-
 void TutorialManagerScript::OnCreate() {
     GameManagerScript::s_IsTutorialMode = true;
+    TutorialManagerScript::s_AllowConveyorSwitch = false;
     GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ IngredientType::Tomato, 5 });
 
     glm::vec4 walterColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f);
@@ -179,6 +183,11 @@ void TutorialManagerScript::OnCreate() {
     m_Waiter = FindEntityByName("Pan Grzybek_1");
     m_Poof = FindEntityByName("TutorialPoof");
 
+    Entity upgradedWaiter = FindEntityByName("Pan Grzybek_Kelner");
+    if (upgradedWaiter.id != std::numeric_limits<std::size_t>::max()) {
+        HideUnderground(upgradedWaiter);
+    }
+
     auto* crateTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TomatoCrate);
     if (crateTc) m_CrateOriginalPos = crateTc->GetPosition();
 
@@ -193,6 +202,9 @@ void TutorialManagerScript::OnCreate() {
 
     auto* burnerTc = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Burner);
     if (burnerTc) m_BurnerOriginalPos = burnerTc->GetPosition();
+
+    auto* waiterStartTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_Waiter);
+    if (waiterStartTf) s_WaiterOriginalSpawnPos = waiterStartTf->GetPosition();
 
     HideUnderground(m_Pot);
     HideUnderground(m_Burner);
@@ -730,7 +742,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
         if (!potScript) break;
 
-        // --- ZABÓJCA CRASHÓW ---
         if (!potScript->m_IsReady && potScript->m_Ingredients.empty()) {
             Entity successPlate = FindClosestPlate(potTf ? potTf->GetPosition() : glm::vec3(0.0f));
 
@@ -795,16 +806,15 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     case TutorialState::WaitForDelivery: {
         static float switchHoverLerp = 0.0f;
         static float transitionLerp = 0.0f;
-        static float initialRotY = -999.0f; // Zmienna do œledzenia pocz¹tkowej rotacji
+        static float initialRotY = -999.0f; 
 
         if (m_StateTimer < 0.05f) {
             m_TypewriterTimer = 0.0f;
             switchHoverLerp = 0.0f;
             transitionLerp = 0.0f;
+            TutorialManagerScript::s_AllowConveyorSwitch = true;
         }
 
-        // --- 1. INTELIGENTNE ZNAJDOWANIE ZWROTNICY ---
-        // Skanujemy komponenty, ¿eby znaleŸæ encjê, która posiada "ConveyorSwitchScript"
         Entity switchEntity = { std::numeric_limits<std::size_t>::max(), 0 };
         auto* nscVector = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
 
@@ -822,23 +832,17 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
         auto* switchTf = switchEntity.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(switchEntity) : nullptr;
 
-        // Jeœli zwrotnica jakimœ cudem nie istnieje, uciekamy
         if (!switchTf) break;
 
-        // Zapisujemy startow¹ rotacjê tylko raz na pocz¹tku stanu
         if (m_StateTimer < 0.05f) {
             initialRotY = switchTf->GetRotation().y;
         }
 
-        // --- 2. RZUTOWANIE MYSZKI I HOVER (U¿ycie naszych piêknych funkcji DRY!) ---
         glm::vec3 preciseMousePos = GetRaycastedMousePos(switchTf->GetPosition().y);
-
-        // Zasiêg 1.5f jest idealny, bo celujemy p³asko w zwrotnicê
         bool isHoveringSwitch = IsHovering(switchEntity, preciseMousePos, 1.5f);
 
-        // --- 3. P£YNNE KOLORY ---
         switchHoverLerp = UpdateLerp(isHoveringSwitch, switchHoverLerp, ts.GetSeconds());
-        transitionLerp = UpdateLerp(true, transitionLerp, ts.GetSeconds(), 3.0f); // Pulsowanie w³¹cza siê od razu
+        transitionLerp = UpdateLerp(true, transitionLerp, ts.GetSeconds(), 3.0f); // Pulsowanie wï¿½ï¿½cza siï¿½ od razu
 
         glm::vec3 baseGray = glm::vec3(0.4f, 0.4f, 0.4f);
         glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
@@ -847,47 +851,40 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
         glm::vec3 activeSwitchColor = glm::mix(basePink, hoverGold, switchHoverLerp);
         glm::vec3 switchColor = glm::mix(baseGray, activeSwitchColor, transitionLerp);
 
-        // Wysy³amy œwiat³o jednym zgrabnym poleceniem!
         SetHighlight(switchEntity, switchColor, glm::mix(32.0f, 8.0f, transitionLerp), true);
 
-        // --- 4. OBS£UGA UI KROPEK ---
         UpdateWaitingUI(ts.GetSeconds());
 
-        // --- 5. WARUNEK PRZEJŒCIA DALEJ ---
-        // Czekamy, a¿ Twój natywny EventBus z³apie klikniêcie i obróci zwrotnicê.
-        // Jeœli aktualny k¹t Y ró¿ni siê od pocz¹tkowego (o wiêcej ni¿ 1.0 stopieñ) -> SUKCES!
         if (std::abs(switchTf->GetRotation().y - initialRotY) > 1.0f) {
-
-            // Satysfakcjonuj¹cy zielony b³ysk na po¿egnanie
             SetHighlight(switchEntity, glm::vec3(0.1f, 1.0f, 0.2f), 1.5f, false);
-
             GameManagerScript::s_ShowTutorialDialog = false;
 
-            // Zmieñ na swój OSTATNI stan, np. czekanie a¿ talerz dojedzie do kelnera!
-            // Upewnij siê, ¿e masz ten enum dodany w pliku TutorialManagerScript.h
             m_State = TutorialState::WaitForEnd;
             m_StateTimer = 0.0f;
+
+            m_WalkAnimPlayed = false;
         }
         break;
     }
     case TutorialState::WaitForEnd: {
-        // Zmienne statyczne do zarz¹dzania kinow¹ sekwencj¹
         static int endPhase = 0;
-        static glm::vec3 waiterOriginalPos = glm::vec3(0.0f);
         static glm::vec3 stationPos = glm::vec3(0.0f);
         static Entity targetPlate = { std::numeric_limits<std::size_t>::max(), 0 };
+        static Entity upgradedWaiter = { std::numeric_limits<std::size_t>::max(), 0 };
 
         auto* waiterTf = m_Waiter.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(m_Waiter) : nullptr;
         if (!waiterTf) break;
 
-        // Zapamiêtanie oryginalnej pozycji kelnera przy pierwszym wejœciu w ten stan
-        if (m_StateTimer < 0.05f && endPhase == 0) {
-            waiterOriginalPos = waiterTf->GetPosition();
+        if (m_StateTimer <= ts.GetSeconds() && endPhase == 0) {
+            endPhase = 0;
             m_TypewriterTimer = 0.0f;
             GameManagerScript::s_TutorialCharsRevealed = 0;
+            m_WalkAnimPlayed = false;
+
+            upgradedWaiter = FindEntityByName("Pan Grzybek_Kelner");
         }
 
-        // --- FAZA 0: Czekamy a¿ zupa przyjedzie na wydawkê ---
+        // --- FAZA 0: Czekamy aÅ¼ zupa przyjedzie na wydawkÄ™ ---
         if (endPhase == 0) {
             Entity stationEntity = { std::numeric_limits<std::size_t>::max(), 0 };
             auto* nscVector = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
@@ -895,7 +892,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             if (nscVector) {
                 for (size_t i = 0; i < nscVector->dense.size(); ++i) {
                     for (auto& s : nscVector->dense[i].Scripts) {
-                        // Skanujemy mapê w poszukiwaniu wydawki
                         if (s.Name == "WaiterPickupStationScript") {
                             stationEntity = nscVector->reverse[i];
                             break;
@@ -908,78 +904,91 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             auto* stationTf = stationEntity.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(stationEntity) : nullptr;
             if (stationTf) {
                 stationPos = stationTf->GetPosition();
-
-                // Szukamy talerza na wydawce (nie musi byæ pusty, w koñcu ma pyszn¹ zupê!)
                 targetPlate = FindClosestPlate(stationPos, nullptr, false);
 
                 if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
                     auto* plateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(targetPlate);
-                    // Jeœli talerz uderzy³ w zasiêg stacji wydawczej -> uruchamiamy spacer kelnera!
                     if (plateTf && glm::distance(plateTf->GetPosition(), stationPos) < 1.5f) {
                         endPhase = 1;
                     }
                 }
             }
         }
-        // --- FAZA 1: Kelner maszeruje do wydawki ---
+        // --- FAZA 1: Kelner idzie do wydawki ---
         else if (endPhase == 1) {
+            if (!m_WalkAnimPlayed) {
+                auto* animComp = GetScene()->GetWorld().GetComponent<AnimatorComponent>(m_Waiter);
+                if (animComp && animComp->AnimatorInstance) animComp->AnimatorInstance->PlayAnimation("Walk");
+                m_WalkAnimPlayed = true;
+            }
+
             glm::vec3 currentPos = waiterTf->GetPosition();
             glm::vec3 targetWalkPos = stationPos;
-            targetWalkPos.y = currentPos.y; // Zachowujemy sta³¹ wysokoœæ kelnera
+            targetWalkPos.y = currentPos.y;
 
             float dist = glm::distance(currentPos, targetWalkPos);
-            if (dist > 0.5f) {
+
+            if (dist > 1.5f) {
                 glm::vec3 dir = glm::normalize(targetWalkPos - currentPos);
-                waiterTf->SetPosition(currentPos + dir * 3.0f * (float)ts.GetSeconds()); // Spacer
-
-                // Kelner patrzy tam, gdzie idzie (u¿ywamy czystego glm!)
-                float targetAngle = glm::degrees(glm::atan(dir.x, dir.z));
-                waiterTf->SetRotation(glm::vec3(0.0f, targetAngle, 0.0f));
-            }
-            else {
-                // Dotar³ na miejsce! Podnosimy talerz z zup¹
-                if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
-                    auto* plateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(targetPlate);
-                    if (plateTf) {
-                        // Magia podpiêcia do kelnera
-                        GetScene()->SetParent(targetPlate, m_Waiter);
-                        // Lewituje idealnie miêdzy jego rêkami
-                        plateTf->SetPosition(glm::vec3(0.0f, 1.2f, 0.8f));
-                    }
-                }
-                endPhase = 2;
-            }
-        }
-        // --- FAZA 2: Kelner wraca zadowolony na swoje miejsce ---
-        else if (endPhase == 2) {
-            glm::vec3 currentPos = waiterTf->GetPosition();
-            float dist = glm::distance(currentPos, waiterOriginalPos);
-
-            if (dist > 0.1f) {
-                glm::vec3 dir = glm::normalize(waiterOriginalPos - currentPos);
                 waiterTf->SetPosition(currentPos + dir * 3.0f * (float)ts.GetSeconds());
 
                 float targetAngle = glm::degrees(glm::atan(dir.x, dir.z));
                 waiterTf->SetRotation(glm::vec3(0.0f, targetAngle, 0.0f));
             }
             else {
-                waiterTf->SetPosition(waiterOriginalPos);
+                if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
+                    auto* plateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(targetPlate);
+                    if (plateTf) {
+                        GetScene()->SetParent(targetPlate, m_Waiter);
+
+                        plateTf->SetPosition(glm::vec3(0.0f, 0.0f, 0.6f));
+                        plateTf->SetScale(glm::vec3(0.22f, 0.22f, 0.22f));
+                    }
+                }
+                m_WalkAnimPlayed = false;
+                auto* animComp2 = GetScene()->GetWorld().GetComponent<AnimatorComponent>(m_Waiter);
+                if (animComp2 && animComp2->AnimatorInstance) animComp2->AnimatorInstance->PlayAnimation("Idle");
+
+                endPhase = 2;
+            }
+        }
+        // --- FAZA 2: Kelner wraca na swoje miejsce ---
+        else if (endPhase == 2) {
+            if (!m_WalkAnimPlayed) {
+                auto* animComp = GetScene()->GetWorld().GetComponent<AnimatorComponent>(m_Waiter);
+                if (animComp && animComp->AnimatorInstance) animComp->AnimatorInstance->PlayAnimation("Walk");
+                m_WalkAnimPlayed = true;
+            }
+
+            glm::vec3 currentPos = waiterTf->GetPosition();
+            float dist = glm::distance(currentPos, s_WaiterOriginalSpawnPos);
+
+            if (dist > 0.1f) {
+                glm::vec3 dir = glm::normalize(s_WaiterOriginalSpawnPos - currentPos);
+                waiterTf->SetPosition(currentPos + dir * 3.0f * (float)ts.GetSeconds());
+
+                float targetAngle = glm::degrees(glm::atan(dir.x, dir.z));
+                waiterTf->SetRotation(glm::vec3(0.0f, targetAngle, 0.0f));
+            }
+            else {
+                auto* animComp2 = GetScene()->GetWorld().GetComponent<AnimatorComponent>(m_Waiter);
+                if (animComp2 && animComp2->AnimatorInstance) animComp2->AnimatorInstance->PlayAnimation("Idle");
+
+                waiterTf->SetPosition(s_WaiterOriginalSpawnPos);
                 m_TypewriterTimer = 0.0f;
                 GameManagerScript::s_TutorialCharsRevealed = 0;
                 endPhase = 3;
             }
         }
-        // --- FAZA 3: Zbli¿enie kamery, konsumpcja zupy i wielki dialog ---
+        // --- FAZA 3: ZbliÅ¼enie kamery i dialog ---
         else if (endPhase == 3) {
             auto* camera = GetScene()->GetCamera();
             if (camera) {
-                // Kamera zje¿d¿a z powrotem na twarz kelnera, dok³adnie tak samo jak na pocz¹tku
                 camera->TargetPosition = waiterTf->GetPosition() + glm::vec3(0.0f, 0.8f, 0.0f);
                 waiterTf->SetRotation(glm::vec3(0.0f, 45.0f, 0.0f));
                 camera->Zoom += (8.0f - camera->Zoom) * 3.0f * ts.GetSeconds();
             }
 
-            // --- Zupa siê zmniejsza (symulacja jedzenia!) ---
             if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
                 Entity soupModel = { std::numeric_limits<std::size_t>::max(), 0 };
 
@@ -990,9 +999,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                         for (auto& s : plateNsc->Scripts) {
                             if (s.Name == "PlateScript" && s.Instance) {
                                 auto* pScript = static_cast<PlateScript*>(s.Instance);
-                                if (!pScript->m_VisualModels.empty()) {
-                                    soupModel = pScript->m_VisualModels.back(); // Pobieramy model zupy z talerza
-                                }
+                                if (!pScript->m_VisualModels.empty()) soupModel = pScript->m_VisualModels.back();
                             }
                         }
                     }
@@ -1002,14 +1009,13 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                     auto* soupTf = GetScene()->GetWorld().GetComponent<TransformComponent>(soupModel);
                     if (soupTf) {
                         glm::vec3 scale = soupTf->GetScale();
-                        scale -= glm::vec3(1.0f) * 0.2f * (float)ts.GetSeconds(); // Zupa znika
-                        scale = glm::max(scale, glm::vec3(0.0f)); // Zabezpieczenie przed ujemn¹ skal¹
+                        scale -= glm::vec3(1.0f) * 0.2f * (float)ts.GetSeconds();
+                        scale = glm::max(scale, glm::vec3(0.0f));
                         soupTf->SetScale(scale);
                     }
                 }
             }
 
-            // --- Dialog fina³owy ---
             GameManagerScript::s_ShowTutorialDialog = true;
             GameManagerScript::s_TutorialSpeaker = "Walter:";
             GameManagerScript::s_TutorialSpeakerColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f);
@@ -1021,7 +1027,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             m_TypewriterTimer += ts.GetSeconds();
             if (m_TypewriterTimer > 0.05f) {
                 m_TypewriterTimer = 0.0f;
-                // Rzutowanie do inta zabezpiecza nas przed wszelkimi warningami z unsigned size_t!
                 if (GameManagerScript::s_TutorialCharsRevealed < (int)text.length()) {
                     GameManagerScript::s_TutorialCharsRevealed++;
                 }
@@ -1034,7 +1039,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 GameManagerScript::s_TutorialIconAlpha = 0.0f;
             }
 
-            // Czekamy na klikniêcie zamykaj¹ce tutorial
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
             if (isActionPressed) {
                 if (GameManagerScript::s_TutorialCharsRevealed < (int)text.length()) {
@@ -1043,58 +1047,135 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 else {
                     GameManagerScript::s_ShowTutorialDialog = false;
                     endPhase = 4;
+                    m_StateTimer = 0.0f;
+                    PlayPoofAt(waiterTf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
                 }
             }
         }
-        // --- FAZA 4: Wielki Poof i Zmiana Modelu! ---
+        // --- FAZA 4: Zamiana w kelnera ---
         else if (endPhase == 4) {
-            // Epicki strza³ efektu cz¹steczkowego
-            PlayPoofAt(waiterTf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
+            static bool swapped = false;
 
-            spdlog::info("[Tutorial] FAZA 4: Proba zmiany modelu kelnera...");
+            Entity activeWaiter = swapped ? upgradedWaiter : m_Waiter;
+            auto* activeTf = activeWaiter.id != std::numeric_limits<std::size_t>::max() ? GetScene()->GetWorld().GetComponent<TransformComponent>(activeWaiter) : nullptr;
 
-            // Podmiana siatki modelu przez Twój AssetManager
-            auto* meshComp = GetScene()->GetWorld().GetComponent<MeshComponent>(m_Waiter);
+            if (activeTf) {
+                glm::vec3 rot = activeTf->GetRotation();
+                rot.y += 1500.0f * (float)ts.GetSeconds();
+                activeTf->SetRotation(rot);
+            }
 
-            if (meshComp) {
-                spdlog::info("[Tutorial] Znaleziono MeshComponent kelnera. Szukam modelu...");
-
-                std::string newModelPath = "assets://models/warzywka/grzybek/grzybek.gltf";
-                auto newModel = AssetManager::GetModel(newModelPath);
-
-                if (newModel) {
-                    spdlog::info("[Tutorial] SUKCES! Wczytano model z dysku. Podmieniam siatke.");
-                    meshComp->ModelPtr = newModel;
+            if (m_StateTimer > 0.25f && !swapped) {
+                if (upgradedWaiter.id != std::numeric_limits<std::size_t>::max()) {
+                    auto* newTf = GetScene()->GetWorld().GetComponent<TransformComponent>(upgradedWaiter);
+                    if (newTf && waiterTf) {
+                        newTf->SetPosition(waiterTf->GetPosition());
+                        newTf->SetRotation(waiterTf->GetRotation());
+                    }
+                    HideUnderground(m_Waiter);
                 }
-                else {
-                    spdlog::error("[Tutorial] BLAD! AssetManager nie mogl wczytac modelu z podanej sciezki: {}", newModelPath);
-                    spdlog::warn("[Tutorial] Upewnij sie, ze plik istnieje i czy na pewno ma rozszerzenie .gltf (a moze to .glb lub .obj?)");
+
+                if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
+                    GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ targetPlate });
                 }
+                swapped = true;
+            }
+
+            if (m_StateTimer > 0.6f) {
+                if (upgradedWaiter.id != std::numeric_limits<std::size_t>::max()) {
+                    auto* newTf = GetScene()->GetWorld().GetComponent<TransformComponent>(upgradedWaiter);
+                    if (newTf) newTf->SetRotation(glm::vec3(0.0f, 45.0f, 0.0f));
+                }
+
+                HideUnderground(m_Poof);
+                m_StateTimer = 0.0f;
+                m_TypewriterTimer = 0.0f;
+                GameManagerScript::s_TutorialCharsRevealed = 0;
+                swapped = false;
+                endPhase = 5;
+            }
+        }
+        // --- FAZA 5: Monolog Walter the Waiter ---
+        else if (endPhase == 5) {
+            GameManagerScript::s_ShowTutorialDialog = true;
+            GameManagerScript::s_TutorialSpeaker = "Walter the Waiter:";
+            GameManagerScript::s_TutorialSpeakerColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f); // Ten sam fioletowy!
+
+            std::string text = "Now you are ready! Just remember to serve customers in order. Maybe some will even join your kitchen as employees!";
+            GameManagerScript::s_TutorialText = text;
+            GameManagerScript::s_TutorialDialogIsBottom = false;
+
+            m_TypewriterTimer += ts.GetSeconds();
+            if (m_TypewriterTimer > 0.05f) {
+                m_TypewriterTimer = 0.0f;
+                if (GameManagerScript::s_TutorialCharsRevealed < (int)text.length()) {
+                    GameManagerScript::s_TutorialCharsRevealed++;
+                }
+            }
+
+            if (GameManagerScript::s_TutorialCharsRevealed >= (int)text.length()) {
+                GameManagerScript::s_TutorialIconAlpha = std::min(1.0f, GameManagerScript::s_TutorialIconAlpha + (float)ts.GetSeconds() * 3.0f);
             }
             else {
-                spdlog::error("[Tutorial] BLAD! Kelner (m_Waiter) nie posiada MeshComponent!");
+                GameManagerScript::s_TutorialIconAlpha = 0.0f;
             }
 
-            // Talerz wyparowuje z r¹k
-            if (targetPlate.id != std::numeric_limits<std::size_t>::max()) {
-                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ targetPlate });
-            }
+            bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
+            if (isActionPressed) {
+                if (GameManagerScript::s_TutorialCharsRevealed < (int)text.length()) {
+                    GameManagerScript::s_TutorialCharsRevealed = (int)text.length();
+                }
+                else {
+                    GameManagerScript::s_ShowTutorialDialog = false;
+                    m_StateTimer = 0.0f;
 
-            endPhase = 5;
+                    // Odpalamy poÅ¼egnalny wybuch gwiazdek/dymu na czeÅ›Ä‡ koÅ„ca tutoriala!
+                    if (upgradedWaiter.id != std::numeric_limits<std::size_t>::max()) {
+                        auto* newTf = GetScene()->GetWorld().GetComponent<TransformComponent>(upgradedWaiter);
+                        if (newTf) PlayPoofAt(newTf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
+                    }
+                    endPhase = 6;
+                }
             }
-        // --- FAZA 5: Koniec Samouczka ---
-        else if (endPhase == 5) {
+        }
+        // --- FAZA 6: PrzejÅ›cie do gry wÅ‚aÅ›ciwej  ---
+        else if (endPhase == 6) {
             auto* camera = GetScene()->GetCamera();
             if (camera) {
-                // P³ynny odjazd kamery do standardowej pozycji w grze
                 camera->Zoom += (32.0f - camera->Zoom) * 4.0f * ts.GetSeconds();
             }
 
-            // Mo¿esz tu dorzuciæ wyjœcie z tutoriala (np. s_IsTutorialMode = false) i co tylko sobie zaplanowa³aœ!
+            if (m_StateTimer > 1.5f) {
+                GameManagerScript::s_IsTutorialMode = false;
+
+                spdlog::info("[Tutorial] Rozpoczynam ladowanie wlasciwej gry (level02.json)...");
+
+                // Logika Å‚adowania sceny
+                auto activeScene = SceneManager::NewScene();
+                SceneSerializer serializer(activeScene.get());
+
+                if (serializer.Deserialize("assets://levels/level02.json")) {
+                    auto windowSize = Input::GetWindowSize();
+                    activeScene->SetViewportSize((float)windowSize.first, (float)windowSize.second);
+                    Gui::SetScreenSize((float)windowSize.first, (float)windowSize.second); // Wymaga zainkludowania Gui.h!
+
+                    activeScene->SetState(SceneState::Play);
+                    activeScene->OnRuntimeStart();
+
+                    Application::Get().GetEventBus().Publish(GameStartedEvent{});
+                    Application::Get().GetEventBus().Publish(GameResumedEvent{});
+
+                    spdlog::info("[Tutorial] TUTORIAL UKONCZONY! Pomyslnie zaladowano level02.json!");
+                }
+                else {
+                    spdlog::error("[Tutorial] BLAD: Nie udalo sie wczytac assets://levels/level02.json");
+                }
+                m_StateTimer = -9999.0f;
+                endPhase = 7;
+            }
         }
         break;
     }
-
 
     default:
         break;

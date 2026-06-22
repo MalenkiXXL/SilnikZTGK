@@ -4,6 +4,8 @@
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Scripts/TutorialManagerScript.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 
 
 class ConveyorSwitchScript : public ConveyorScript {
@@ -47,6 +49,10 @@ public:
 
 
     void HandleClick() override{
+
+        if (GameManagerScript::s_IsTutorialMode && !TutorialManagerScript::s_AllowConveyorSwitch) {
+            return; 
+        }
         auto *transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
