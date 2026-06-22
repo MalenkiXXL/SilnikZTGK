@@ -178,7 +178,10 @@ void Window::CharCallback(GLFWwindow* window, unsigned int keycode)
 }
 
 void Window::ProcessCharInput(unsigned int keycode)
-{}
+{
+    KeyTypedEvent event(keycode);
+    m_EventCallbackFn(event);
+}
 
 void Window::MouseMoveCallback(GLFWwindow* window, double xPos, double yPos)
 {
