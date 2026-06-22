@@ -43,7 +43,7 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/cuttingBoardMachine.png"), 0 });
     m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   0 });
     m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  0 });
-    m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/oven.png"), 0 });
+    m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/pan.png"), 0 });
 }
 
 void BuildModePanel::ForceReset() {
@@ -121,6 +121,14 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
     bool inBounds = mouse.x >= basePos.x && mouse.x <= basePos.x + baseSize.x &&
         mouse.y >= basePos.y && mouse.y <= basePos.y + baseSize.y;
 
+    static bool s_wasBuildHovered = false;
+    if (inBounds && !s_wasBuildHovered && !isBlocked) {
+        AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
+        s_wasBuildHovered = true;
+    } else if (!inBounds || isBlocked) {
+        s_wasBuildHovered = false;
+    }
+
     float targetScale = inBounds ? 1.08f : 1.0f;
     m_ButtonScale += (targetScale - m_ButtonScale) * dt * 15.0f;
 
@@ -192,6 +200,9 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
     glm::vec2 mouse = Gui::GetMappedMousePos();
     int currentMoney = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetMoney() : 0;
 
+    int currentlyHoveredSlot = -1;
+    static int s_lastHoveredMachineSlot = -1;
+
     for (int i = 0; i < count; ++i) {
         auto& entry = m_MachineEntries[i];
         bool canAfford = currentMoney >= entry.Price;
@@ -215,6 +226,10 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
             mouse.y >= (iy - padY) && mouse.y <= (iy + iconH + padY);
 
         const bool isHeld = (m_HeldMachineIndex == i);
+
+        if (inIcon && m_IsActive) {
+            currentlyHoveredSlot = i;
+        }
 
         glm::vec4 iconColor = { 1.0f, 1.0f, 1.0f, 1.0f };
         glm::vec4 unaffordableColorNormal = { 0.55f, 0.45f, 0.45f, 0.9f };
@@ -279,6 +294,7 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
             Input::SetUICaptureMouse(true);
             if (Input::IsMouseButtonJustPressed(0) && m_HeldMachineIndex == -1) {
                 if (canAfford) {
+                    AudioEngine::Play("assets://sounds/button_click_in_game.mp3");
                     m_HeldMachineIndex = i;
                     m_JustSelectedFromPanel = true;
                 }
@@ -291,6 +307,13 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
             }
         }
     }
+    if (currentlyHoveredSlot != s_lastHoveredMachineSlot) {
+        if (currentlyHoveredSlot != -1) {
+            AudioEngine::Play("assets://sounds/hover_in_game.mp3");
+        }
+        s_lastHoveredMachineSlot = currentlyHoveredSlot;
+    }
+
 
     if (m_HeldMachineIndex >= 0 && m_SlideY > 0.95f) {
         const std::string hint = "LPM: postaw   PPM / Tab: anuluj";
@@ -533,6 +556,10 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
     if (!activeScene) return;
 
     if (Input::IsMouseButtonJustPressed(1) || Input::IsKeyPressed(GLFW_KEY_TAB)) {
+        if (m_HeldMachineIndex != -1 || m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max() || !m_PreviewGroup.empty()) {
+            AudioEngine::Play("assets://sounds/cancel.mp3");
+        }
+
         if (!m_PreviewGroup.empty()) {
             for (auto& [ent, offset] : m_PreviewGroup) {
                 activeScene->GetWorld().DestroyEntity(ent);
@@ -609,6 +636,7 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
             }
             else {
                 spdlog::warn("BuildMode: Miejsce zajete!");
+                AudioEngine::Play("assets://sounds/error.mp3");
             }
         }
         m_JustSelectedFromPanel = false;
@@ -703,6 +731,7 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
         }
         else {
             spdlog::warn("BuildMode: Miejsce zajete!");
+            AudioEngine::Play("assets://sounds/error.mp3");
         }
     }
     m_JustSelectedFromPanel = false;
@@ -711,6 +740,8 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
 void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos, int hoverState, float gameX, float gameY, float gameW, float gameH) {
     const float cell = GridSystem::CELL_SIZE;
     const float t = 0.06f;
+
+    static glm::ivec2 s_lastHoveredCell = { -999, -999 };
 
     glm::vec4 lineColor = { 0.6f, 0.6f, 0.6f, 0.40f };
     glm::vec4 hoverColor;
@@ -750,6 +781,14 @@ void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camP
 
     if (hoverPos.x < 90000.0f && IsWithinBuildArea(hoverPos)) {
         glm::ivec2 hCell = GridSystem::WorldToCell(hoverPos);
+
+        if (hCell != s_lastHoveredCell) {
+            if (m_HeldMachineIndex >= 0 || m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max()) {
+                AudioEngine::Play("assets://sounds/hover_in_game.mp3");
+            }
+            s_lastHoveredCell = hCell;
+        }
+
         glm::vec3  hCenter = { (hCell.x + 0.5f) * cell, 0.01f, (hCell.y + 0.5f) * cell };
         Renderer2D::DrawQuad(FlatQuad(hCenter, cell, cell), hoverColor);
     }

@@ -167,3 +167,9 @@ struct LevelCompletedEvent {
     int EarnedMoney;
     int StarsEarned;
 };
+
+struct MachineProcessingEvent
+{
+    Entity Machine;
+    bool IsProcessing;
+};

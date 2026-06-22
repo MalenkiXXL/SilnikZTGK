@@ -157,6 +157,19 @@ protected:
             if (hasHam) type = IngredientType::EggWithHam;
             else if (hasTomato) type =  IngredientType::Shakshuka;
 
+            if (type == IngredientType::FriedEgg && !GameProgress::IsRecipeUnlocked("FriedEggs")) {
+                GameProgress::UnlockRecipe("FriedEggs");
+                spdlog::info("Patelnia: Odblokowano przepis na Fried Eggs!");
+            }
+            else if (type == IngredientType::EggWithHam && !GameProgress::IsRecipeUnlocked("EggsAndBacon")) {
+                GameProgress::UnlockRecipe("EggsAndBacon");
+                spdlog::info("Patelnia: Odblokowano przepis na Eggs & Bacon!");
+            }
+            else if (type == IngredientType::Shakshuka && !GameProgress::IsRecipeUnlocked("Shakshuka")) {
+                GameProgress::UnlockRecipe("Shakshuka");
+                spdlog::info("Patelnia: Odblokowano przepis na Shakshuka!");
+            }
+
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
@@ -221,8 +234,6 @@ protected:
 
             if (foodTag)
                 foodTag->Tag = "UgotowaneDanie";
-
-            AudioEngine::Play("assets://sounds/plate_down.wav");
 
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                 m_SpawnedFood, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false

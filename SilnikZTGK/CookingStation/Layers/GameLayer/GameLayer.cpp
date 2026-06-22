@@ -276,7 +276,7 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
         });
 
     eventBus.Subscribe<PlateGrabbedEvent>([](const PlateGrabbedEvent& e) {
-        AudioEngine::Play("assets://sounds/plate_pickup.wav");
+        AudioEngine::Play("assets://sounds/plate_down.wav");
         });
 
     eventBus.Subscribe<IngredientUsedEvent>([](const IngredientUsedEvent& e) {

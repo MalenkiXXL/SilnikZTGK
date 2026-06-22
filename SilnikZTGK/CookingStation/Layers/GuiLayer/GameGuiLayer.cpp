@@ -227,6 +227,18 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
     glm::vec2 cloudSize = { coinSize.x + spacing + textWidth + (paddingX * 2.0f), std::max(coinSize.y, textHeight) + (paddingY * 2.0f) };
     glm::vec2 cloudPos = { coinPos.x - paddingX, textCenterY - (cloudSize.y * 0.5f) };
 
+    glm::vec2 mouse = Gui::GetMappedMousePos();
+    bool isHoveringCloud = (mouse.x >= cloudPos.x && mouse.x <= cloudPos.x + cloudSize.x &&
+                            mouse.y >= cloudPos.y && mouse.y <= cloudPos.y + cloudSize.y);
+
+    static bool s_wasMoneyCloudHovered = false;
+    if (isHoveringCloud && !s_wasMoneyCloudHovered && !m_IsGamePaused) {
+        AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
+        s_wasMoneyCloudHovered = true;
+    } else if (!isHoveringCloud) {
+        s_wasMoneyCloudHovered = false;
+    }
+
     if (isWarning) {
         if (m_CoinCloudIcon)
             Renderer2D::DrawQuad(cloudPos, cloudSize, m_CoinCloudIcon, { 0.95f, 0.85f, 0.85f, 0.95f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
@@ -1016,6 +1028,16 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     bool isHoveringPanel = (mousePos.x >= cloudPos.x - margin && mousePos.x <= cloudPos.x + cloudSize.x + margin &&
         mousePos.y >= cloudPos.y - margin && mousePos.y <= cloudPos.y + cloudSize.y + margin);
 
+    static bool s_wasEventHovered = false;
+    bool isHoveringAny = isHovering3D || isHoveringPanel;
+
+    if (isHoveringAny && !s_wasEventHovered) {
+        AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
+        s_wasEventHovered = true;
+    } else if (!isHoveringAny) {
+        s_wasEventHovered = false;
+    }
+
     static bool s_IsQuestPanelVisible = false;
 
     if (!isHovering3D && !(s_IsQuestPanelVisible && isHoveringPanel)) {
@@ -1220,6 +1242,22 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     bool acceptHit = (mouse.x >= acceptBasePos.x && mouse.x <= acceptBasePos.x + acceptBaseW && mouse.y >= acceptBasePos.y && mouse.y <= acceptBasePos.y + acceptBaseH);
     bool skipHit = (mouse.x >= skipBasePos.x && mouse.x <= skipBasePos.x + skipBaseW && mouse.y >= skipBasePos.y && mouse.y <= skipBasePos.y + skipBaseH);
 
+    static bool s_wasAcceptHit = false;
+    if (acceptHit && !s_wasAcceptHit) {
+        AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
+        s_wasAcceptHit = true;
+    } else if (!acceptHit) {
+        s_wasAcceptHit = false;
+    }
+
+    static bool s_wasSkipHit = false;
+    if (skipHit && !s_wasSkipHit) {
+        AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
+        s_wasSkipHit = true;
+    } else if (!skipHit) {
+        s_wasSkipHit = false;
+    }
+
     static float s_accScale = 1.0f;
     static float s_skipScale = 1.0f;
 
@@ -1278,11 +1316,15 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     float bakedFlagBottomY = newCloudPos.y + cloudH * 0.78f;
     Gui::DrawGuiText(flagText, { bakedFlagCenterX - flagTextW * 0.5f, bakedFlagBottomY }, flagTextScale, flagTextColor);
 
-    if (acceptHit && Input::IsMouseButtonJustPressed(0))
+    if (acceptHit && Input::IsMouseButtonJustPressed(0)) {
+        AudioEngine::Play("assets://sounds/button_click_in_game.mp3");
         GameManagerScript::s_Instance->AcceptQuest();
+    }
 
-    if (skipHit && skipsLeft > 0 && Input::IsMouseButtonJustPressed(0))
+    if (skipHit && skipsLeft > 0 && Input::IsMouseButtonJustPressed(0)) {
+        AudioEngine::Play("assets://sounds/button_click_in_game.mp3");
         GameManagerScript::s_Instance->SkipQuest();
+    }
 }
 
 void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)

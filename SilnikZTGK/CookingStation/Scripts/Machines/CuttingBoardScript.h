@@ -19,6 +19,7 @@ private:
     Entity m_CursorKnife = { std::numeric_limits<std::size_t>::max(), 0 };
 
     bool m_WasShowingKnife = false;
+    bool m_WasProcessing = false;
 
     std::pair<std::string, std::string> GetModelPathsForIngredient(IngredientType type)
     {
@@ -72,7 +73,7 @@ public:
         m_ChopCount++;
         m_ChopCooldown = 0.2f;
         spdlog::info("Ciach! ({}/{})", m_ChopCount, m_ChopsRequired);
-        AudioEngine::Play("assets://sounds/chop.wav");
+        AudioEngine::Play("assets://sounds/chop.mp3");
 
         m_VisualJumpY = 0.3f;
 
@@ -165,6 +166,13 @@ public:
 
         if (m_ChopCooldown > 0.0f) {
             m_ChopCooldown -= ts.GetSeconds();
+        }
+
+        bool isProcessingNow = m_IsAutomated && !m_Ingredients.empty() && !m_IsReady && !m_IsHeld;
+
+        if (isProcessingNow != m_WasProcessing) {
+            m_WasProcessing = isProcessingNow;
+            GetScene()->GetWorld().GetEventBus().Publish(MachineProcessingEvent{ m_Entity, isProcessingNow });
         }
 
         if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
