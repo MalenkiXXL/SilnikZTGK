@@ -165,12 +165,12 @@ private:
         animatorComp.AnimatorInstance = std::make_shared<Animator>();
 
         if (isGrandma) {
-            auto walkAnim = std::make_shared<Animation>("CookingStation/Assets/models/animacje/babcia/babcia-chodzi.gltf", mesh.ModelPtr.get());
-            animatorComp.AnimatorInstance->AddAnimation("Walk", walkAnim);
-            animatorComp.AnimatorInstance->PlayAnimation("Walk");
-
             auto sitAnim = std::make_shared<Animation>(animPath, mesh.ModelPtr.get());
             animatorComp.AnimatorInstance->AddAnimation("SitIdle", sitAnim);
+            animatorComp.AnimatorInstance->PlayAnimation("SitIdle");
+
+            auto walkAnim = std::make_shared<Animation>("CookingStation/Assets/models/animacje/babcia/babcia-chodzi.gltf", mesh.ModelPtr.get());
+            animatorComp.AnimatorInstance->AddAnimation("Walk", walkAnim);
         }
         else {
             auto sitAnim = std::make_shared<Animation>(animPath, mesh.ModelPtr.get());

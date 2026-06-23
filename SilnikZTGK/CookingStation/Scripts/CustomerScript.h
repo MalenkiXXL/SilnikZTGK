@@ -4,6 +4,7 @@
 #include "CookingStation/Events/GameEvents.h"
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Scripts/Managers/GameManagerScript.h" 
+#include "CookingStation/Scripts/PoofEmitterScript.h"
 #include <string>
 #include <vector>
 #include <spdlog/spdlog.h>
@@ -40,6 +41,10 @@ public:
     std::size_t m_ServedSubId = 0;
     std::size_t m_OrderSubId = 0;
     float OrderPrice = 50.0f;
+    float m_SpawnTimer = 0.0f;
+    bool m_PoofPlayed = false;
+    bool m_PoofStarted = false;
+    Entity m_PoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
     void OnCreate() override
     {
@@ -52,10 +57,13 @@ public:
 
         if (IsGrandma) {
             WantedIngredient = IngredientType::Sandwich;
-            State = CustomerState::WalkingToChair;
+            State = CustomerState::Spawning;
             TargetChair = s_GrandmaTargetChair;
             TargetPos = s_GrandmaTargetPos;
             FinalRotation = s_GrandmaFinalRotation;
+            m_SpawnTimer = 0.0f;
+            m_PoofPlayed = false;
+            m_PoofStarted = false;
         }
         else {
             std::uniform_int_distribution<> dist(0, (int)menu.size() - 1);
@@ -97,6 +105,69 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
+        if (State == CustomerState::Spawning)
+        {
+            float dt = (float)ts.GetSeconds();
+            if (dt > 0.5f) dt = 0.016f;
+
+            if (!m_PoofPlayed)
+            {
+                m_PoofPlayed = true;
+
+                auto* tf = GetComponent<TransformComponent>();
+                if (tf)
+                {
+                    TransformComponent poofTf;
+                    glm::vec3 targetPos = tf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
+                    poofTf.SetPosition(targetPos);
+                    poofTf.SetScale(glm::vec3(1.0f));
+
+                    poofTf.WorldMatrix[3][0] = targetPos.x;
+                    poofTf.WorldMatrix[3][1] = targetPos.y;
+                    poofTf.WorldMatrix[3][2] = targetPos.z;
+
+                    NativeScriptComponent poofNsc;
+                    poofNsc.AddScript<PoofEmitterScript>("PoofEmitterScript");
+
+                    m_PoofEntity = GetScene()->GetWorld().BuildEntity()
+                        .With<TagComponent>({ "PoofEmitter" })
+                        .With<TransformComponent>(poofTf)
+                        .With<NativeScriptComponent>(poofNsc)
+                        .Build();
+                }
+            }
+
+            if (!m_PoofStarted && m_PoofEntity.id != std::numeric_limits<std::size_t>::max())
+            {
+                auto* addedNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_PoofEntity);
+                if (addedNsc && !addedNsc->Scripts.empty() && addedNsc->Scripts[0].Instance)
+                {
+                    static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
+                    m_PoofStarted = true;
+                    spdlog::info("PoofEmitter uruchomiony poprawnie");
+                }
+            }
+
+            m_SpawnTimer += dt;
+
+            if (m_SpawnTimer >= 2.0f)
+            {
+                if (m_PoofEntity.id != std::numeric_limits<std::size_t>::max())
+                {
+                    GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_PoofEntity });
+                    m_PoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+                }
+
+                State = CustomerState::WalkingToChair;
+
+                auto* animator = GetComponent<AnimatorComponent>();
+                if (animator && animator->AnimatorInstance) {
+                    animator->AnimatorInstance->PlayAnimation("Walk");
+                }
+            }
+            return;
+        }
+
         // 1. Sprawdzanie czy klient jest w trakcie odchodzenia (reakcja na jedzenie)
         if (State == CustomerState::LeavingReaction) {
             m_ReactionTimer -= ts.GetSeconds();
@@ -213,6 +284,11 @@ public:
         }
         if (IsGrandma && State == CustomerState::WalkingToChair) {
             s_GrandmaTargetChair = { std::numeric_limits<std::size_t>::max(), 0 };
+        }
+
+        if (m_PoofEntity.id != std::numeric_limits<std::size_t>::max())
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_PoofEntity });
         }
     }
 };

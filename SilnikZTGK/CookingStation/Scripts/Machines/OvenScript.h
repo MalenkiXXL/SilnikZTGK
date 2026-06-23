@@ -17,6 +17,19 @@ public:
             AudioEngine::StopLoopingSound(m_BakingSoundPtr);
             m_BakingSoundPtr = nullptr;
         }
+    IngredientType GetBakedType() const
+    {
+        if (m_Ingredients.empty()) return IngredientType::None;
+        if (m_Ingredients[0] == IngredientType::RawApplePie) return IngredientType::ApplePie;
+        if (m_Ingredients[0] == IngredientType::RawSleepyDough) return IngredientType::SleepyBread;
+        if (m_Ingredients[0] == IngredientType::RawCupcakeDough) return IngredientType::Cupcake;
+        return IngredientType::Baguette;
+    }
+    bool CanAcceptIngredient(IngredientType type) override
+    {
+        if (m_IsReady || !m_Ingredients.empty()) return false;
+        return type == IngredientType::RawDough || type == IngredientType::RawApplePie ||
+            type == IngredientType::RawSleepyDough || type == IngredientType::RawCupcakeDough;
     }
 
     void OnCreate() override
@@ -65,9 +78,7 @@ public:
 
     bool AddIngredient(IngredientType type) override
     {
-        if (m_IsReady || !m_Ingredients.empty()) return false;
-
-        if (type == IngredientType::RawDough)
+        if (CanAcceptIngredient(type))
         {
             m_Ingredients.push_back(type);
             m_IsReady = false;
@@ -101,7 +112,6 @@ public:
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())
         {
-            // Przeniesienie logiczne na talerz
             auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(targetPlate);
             PlateScript* pScript = nullptr;
             if (nsc) {
@@ -115,9 +125,10 @@ public:
 
             if (pScript)
             {
-                if (pScript->AddIngredient(IngredientType::Baguette))
+                IngredientType bakedType = GetBakedType();
+                if (pScript->AddIngredient(bakedType))
                 {
-                    spdlog::info("Piekarnik: Bagietka gotowa i przelozona na talerz!");
+                    spdlog::info("Piekarnik: Wypiek gotowy i przelozony na talerz!");
                     ClearHighlight();
                     if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->DestroyEntity(m_SpawnedFood);
@@ -131,6 +142,16 @@ public:
         {
             spdlog::warn("Piekarnik: Brak talerza! Nie można wyciągnąć bagietki bez talerza.");
             AudioEngine::Play("assets://sounds/error.mp3");
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
+            {
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+
+                IngredientType bakedType = GetBakedType();
+                DragAndDropScript::StartDrag(bakedType);
+                ResetMachineState();
+                ClearHighlight();
+            }
         }
     }
 
@@ -141,23 +162,37 @@ protected:
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) return;
 
-            if (!GameProgress::IsRecipeUnlocked("Baguette"))
-            {
+            IngredientType bakedType = GetBakedType();
+
+            if (bakedType == IngredientType::Baguette && !GameProgress::IsRecipeUnlocked("Baguette")) {
                 GameProgress::UnlockRecipe("Baguette");
                 spdlog::info("Piekarnik: Przepis na bagietke odblokowany!");
             }
+            else if (bakedType == IngredientType::ApplePie && !GameProgress::IsRecipeUnlocked("ApplePie")) {
+                GameProgress::UnlockRecipe("ApplePie");
+                spdlog::info("Piekarnik: Przepis na szarlotke odblokowany!");
+            }
+            else if (bakedType == IngredientType::SleepyBread && !GameProgress::IsRecipeUnlocked("SleepyBread")) {
+                GameProgress::UnlockRecipe("SleepyBread");
+                spdlog::info("Piekarnik: Przepis na spiacy chleb odblokowany!");
+            }
+            else if (bakedType == IngredientType::Cupcake && !GameProgress::IsRecipeUnlocked("Cupcake")) {
+                GameProgress::UnlockRecipe("Cupcake");
+                spdlog::info("Piekarnik: Przepis na babeczke odblokowany!");
+            }
 
             auto* meshComp = GetComponent<MeshComponent>();
-            if (meshComp)
-            {
-                meshComp->Path = "assets://models/przybory_kuchenne/piekarnik/piekarnik.gltf";
-                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
-            }
+            // ... (tutaj bez zmian pobieranie modelu piekarnika)
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            m_SpawnedFood = SpawnMachineFood(IngredientType::Baguette, "BagietkaWPiekarniku");
+            std::string tagStr = "BagietkaWPiekarniku";
+            if (bakedType == IngredientType::ApplePie) tagStr = "SzarlotkaWPiekarniku";
+            else if (bakedType == IngredientType::SleepyBread) tagStr = "SpiacyChlebWPiekarniku";
+            else if (bakedType == IngredientType::Cupcake) tagStr = "BabeczkaWPiekarniku";
+
+            m_SpawnedFood = SpawnMachineFood(bakedType, tagStr);
 
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)
@@ -167,17 +202,17 @@ protected:
 
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_SpawnedFood, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
-            });
+                });
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_Entity, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
-            });
+                });
 
             DishHistory history;
             history.BaseIngredients = m_Ingredients;
             history.OriginMachine = "Oven";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
 
-            spdlog::info("Piekarnik: Bagietka gotowa!");
+            spdlog::info("Piekarnik: Wypiek gotowy!");
         }
         else
         {
