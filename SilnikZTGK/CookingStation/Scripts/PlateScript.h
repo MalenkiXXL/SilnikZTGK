@@ -119,17 +119,9 @@ private:
         IngredientMetadata meta = GetIngredientMetadata(type);
         tc.SetScale(meta.scale);
 
-        // LOSOWA ROTACJA (Wokół osi Y)
-        std::random_device rd;
-        std::mt19937 gen(rd());
+        // SZTYWNA ROTACJA Z METADANYCH (IngredientType.h)
+        tc.SetRotation(meta.rotation);
 
-        std::uniform_real_distribution<float> distrib(-35.0f, 35.0f);
-        float randomYRotation = distrib(gen);
-
-        glm::vec3 finalRotation = meta.rotation;
-        finalRotation.y += randomYRotation;
-
-        tc.SetRotation(finalRotation);
         builder.With<TransformComponent>(tc);
 
         MeshComponent mesh;
