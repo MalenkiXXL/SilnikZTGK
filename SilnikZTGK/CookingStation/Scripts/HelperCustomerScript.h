@@ -13,7 +13,7 @@ class HelperCustomerScript : public CustomerScript
 {
 public:
     float m_YOffset = 0.2f;
-    float m_ActionYOffset = 0.4f;
+    float m_ActionYOffset = 0.0f;
     Entity m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
     glm::vec3 m_HighlightColor = glm::vec3(0.2f, 0.8f, 0.2f);
     float m_RotationOffset = -90.0f;
@@ -53,16 +53,19 @@ public:
             if (tagComp->Tag.find("Marchewka") != std::string::npos) {
                 m_HighlightColor = glm::vec3(0.3f, 0.4f, 0.71f);
                 m_ActionModel = AssetManager::GetModel("assets://models/animacje/klienci/marchewka-kroi/marchewka-kroi.gltf");
+                m_ActionYOffset = 0.4f;
             }
             else if (tagComp->Tag.find("Pomidor") != std::string::npos) {
                 m_HighlightColor = glm::vec3(0.94f, 0.31f, 0.47f);
                 m_ActionModel = AssetManager::GetModel("assets://models/animacje/klienci/pomidor-kroi/pomidor-kroi.gltf");
+                m_ActionYOffset = 0.2f;
             }
             else if (tagComp->Tag.find("Rzodkiewka") != std::string::npos) {
                 m_HighlightColor = glm::vec3(0.66f, 0.52f, 0.95f);
                 m_RotationOffset = 90.0f;
                 m_WaitingRotation = 90.0f;
                 m_ActionModel = AssetManager::GetModel("assets://models/animacje/klienci/rzodkiewka-kroi/rzodkiewka-kroi.gltf");
+                m_ActionYOffset = 0.3f;
             }
         }
 

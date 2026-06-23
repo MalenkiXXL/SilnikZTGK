@@ -46,7 +46,7 @@ public:
         auto* tagComp = GetComponent<TagComponent>();
         IsGrandma = (tagComp && tagComp->Tag == "GrandmaCustomer");
 
-        std::vector<IngredientType> menu = { IngredientType::Tomato, IngredientType::Cheese, IngredientType::Ham, IngredientType::Sandwich };
+        std::vector<IngredientType> menu = { IngredientType::Tomato };
         std::random_device rd;
         std::mt19937 gen(rd());
 
@@ -65,7 +65,7 @@ public:
 
         OrderTaken = false;
 
-        // Przywrócone losowanie ceny z poprzedniego kodu
+        // Przywrï¿½cone losowanie ceny z poprzedniego kodu
         std::vector<float> prices = { 25.0f, 50.0f, 75.0f };
         std::uniform_int_distribution<> priceDist(0, (int)prices.size() - 1);
         OrderPrice = prices[priceDist(gen)];
@@ -104,7 +104,7 @@ public:
                 IsPendingDestroy = true;
                 GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
             }
-            return; // Zakoñcz update, nie rób nic wiêcej
+            return; // Zakoï¿½cz update, nie rï¿½b nic wiï¿½cej
         }
 
         // 2. Chodzenie do stolika
@@ -150,7 +150,7 @@ public:
             }
             else
             {
-                // Naprawiony kod chodzenia (poprzednio popl¹tany z LeavingReaction)
+                // Naprawiony kod chodzenia (poprzednio poplï¿½tany z LeavingReaction)
                 dir = glm::normalize(dir);
                 pos += dir * step;
                 tf->SetPosition(pos);
@@ -161,7 +161,7 @@ public:
         }
     }
 
-    // PRZYWRÓCONA FUNKCJA!
+    // PRZYWRï¿½CONA FUNKCJA!
     bool IsOrderMatching(const std::vector<IngredientType>& ingredientsOnPlate)
     {
         if (ingredientsOnPlate.empty()) return false;
