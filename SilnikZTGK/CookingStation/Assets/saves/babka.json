@@ -517,23 +517,23 @@
         {
             "collider": {
                 "offset": [
-                    0.0,
-                    0.5,
-                    0.0
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
                 ],
                 "size": [
-                    1.0,
-                    0.5,
-                    1.0
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
                 ]
             },
-            "id": 19,
-            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_7",
+            "id": 241,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaPyl_79",
             "position": [
-                1.0,
+                15.0,
                 0.0,
-                9.0
+                -17.0
             ],
             "rotation": [
                 0.0,
@@ -541,23 +541,34 @@
                 0.0
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
             ],
             "scripts": [
-                "ConveyorScript"
+                "CrateScript"
             ]
         },
         {
-            "id": 20,
-            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_7",
-            "parent_id": 19,
+            "collider": {
+                "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 242,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaJajko_80",
             "position": [
+                15.0,
                 0.0,
-                0.009999999776482582,
-                0.0
+                -15.0
             ],
             "rotation": [
                 0.0,
@@ -565,58 +576,66 @@
                 0.0
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
             ],
             "scripts": [
-                "BeltVisualScript"
+                "CrateScript"
             ]
         },
         {
             "collider": {
                 "offset": [
                     0.0,
-                    0.5,
+                    0.0,
                     0.0
                 ],
                 "size": [
                     1.0,
-                    0.5,
+                    1.0,
                     1.0
                 ]
             },
-            "id": 21,
-            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_8",
+            "id": 249,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/kosz/kosz.gltf",
+            "name": "kosz",
             "position": [
-                1.0,
+                9.0,
                 0.0,
-                7.0
+                -15.0
             ],
             "rotation": [
                 0.0,
-                90.0,
+                0.0,
                 0.0
             ],
             "scale": [
                 1.0,
                 1.0,
                 1.0
-            ],
-            "scripts": [
-                "ConveyorScript"
             ]
         },
         {
-            "id": 22,
-            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_8",
-            "parent_id": 21,
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "id": 243,
+            "model_path": "assets://models/przybory_kuchenne/piekarnik/piekarnik.gltf",
+            "name": "Mixer_83",
             "position": [
-                0.0,
-                0.009999999776482582,
-                0.0
+                15.0,
+                1.0,
+                -9.0
             ],
             "rotation": [
                 0.0,
@@ -624,12 +643,12 @@
                 0.0
             ],
             "scale": [
-                1.0,
-                1.0,
-                1.0
+                0.6000000238418579,
+                0.6000000238418579,
+                0.699999988079071
             ],
             "scripts": [
-                "BeltVisualScript"
+                "OvenScript"
             ]
         },
         {
@@ -3113,23 +3132,23 @@
         {
             "collider": {
                 "offset": [
-                    -0.041800498962402344,
-                    0.5518043041229248,
-                    0.02514415979385376
+                    0.0,
+                    0.5,
+                    0.0
                 ],
                 "size": [
-                    1.1955444812774658,
-                    0.5411014556884766,
-                    1.0827584266662598
+                    1.0,
+                    0.5,
+                    1.0
                 ]
             },
-            "id": 165,
-            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
-            "name": "SkrzynkaTruskawka",
+            "id": 19,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_91",
             "position": [
-                -1.0,
+                1.0,
                 0.0,
-                11.0
+                9.0
             ],
             "rotation": [
                 0.0,
@@ -3137,34 +3156,23 @@
                 0.0
             ],
             "scale": [
-                0.8999999761581421,
-                0.8999999761581421,
-                0.8999999761581421
+                1.0,
+                1.0,
+                1.0
             ],
             "scripts": [
-                "CrateScript"
+                "ConveyorScript"
             ]
         },
         {
-            "collider": {
-                "offset": [
-                    -0.041800498962402344,
-                    0.5518043041229248,
-                    0.02514415979385376
-                ],
-                "size": [
-                    1.1955444812774658,
-                    0.5411014556884766,
-                    1.0827584266662598
-                ]
-            },
-            "id": 166,
-            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
-            "name": "SkrzynkaKawa",
+            "id": 20,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_91",
+            "parent_id": 19,
             "position": [
-                3.0,
                 0.0,
-                11.0
+                0.009999999776482582,
+                0.0
             ],
             "rotation": [
                 0.0,
@@ -3172,12 +3180,12 @@
                 0.0
             ],
             "scale": [
-                0.8999999761581421,
-                0.8999999761581421,
-                0.8999999761581421
+                1.0,
+                1.0,
+                1.0
             ],
             "scripts": [
-                "CrateScript"
+                "BeltVisualScript"
             ]
         },
         {
@@ -3193,13 +3201,13 @@
                     1.0
                 ]
             },
-            "id": 109,
-            "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_58",
+            "id": 107,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/switch/base.gltf",
+            "name": "switch_92",
             "position": [
                 9.0,
                 0.0,
-                -7.0
+                -9.0
             ],
             "rotation": [
                 0.0,
@@ -3212,14 +3220,14 @@
                 1.0
             ],
             "scripts": [
-                "ConveyorScript"
+                "ConveyorSwitchScript"
             ]
         },
         {
-            "id": 110,
-            "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_58",
-            "parent_id": 109,
+            "id": 108,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "swtich_pas_92",
+            "parent_id": 107,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -3380,7 +3388,7 @@
             ],
             "rotation": [
                 0.0,
-                0.0,
+                90.0,
                 0.0
             ],
             "scale": [
@@ -3455,7 +3463,7 @@
             "model_path": "assets://models/wystroj/podloga.gltf",
             "name": "Wielka_Podloga",
             "position": [
-                -1.0,
+                3.450000286102295,
                 -0.800000011920929,
                 0.0
             ],
@@ -3465,7 +3473,7 @@
                 0.0
             ],
             "scale": [
-                1.0,
+                1.2999999523162842,
                 1.0,
                 1.2000000476837158
             ],
@@ -4301,10 +4309,45 @@
             ]
         },
         {
-            "id": 170,
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    1.7999999523162842,
+                    2.299999952316284
+                ]
+            },
+            "id": 259,
+            "model_path": "assets://models/przybory_kuchenne/mikser/blender.gltf",
+            "name": "Mixer_165",
+            "position": [
+                15.0,
+                0.0,
+                5.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.4000000059604645,
+                0.4000000059604645,
+                0.4000000059604645
+            ],
+            "scripts": [
+                "MixerScript"
+            ]
+        },
+        {
+            "id": 192,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_3",
-            "parent_id": 169,
+            "name": "tasma_pas_145",
+            "parent_id": 191,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -4322,38 +4365,6 @@
             ],
             "scripts": [
                 "BeltVisualScript"
-            ]
-        },
-        {
-            "collider": {
-                "offset": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "size": [
-                    1.0,
-                    1.0,
-                    1.0
-                ]
-            },
-            "id": 171,
-            "model_path": "CookingStation/Assets/models/przybory_kuchenne/kosz/kosz.gltf",
-            "name": "kosz",
-            "position": [
-                9.0,
-                0.0,
-                -15.0
-            ],
-            "rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "scale": [
-                1.0,
-                1.0,
-                1.0
             ]
         },
         {
@@ -4425,17 +4436,17 @@
                     1.0
                 ]
             },
-            "id": 169,
+            "id": 191,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_3",
+            "name": "tasma_145",
             "position": [
-                9.0,
+                11.0,
                 0.0,
-                -13.0
+                -1.0
             ],
             "rotation": [
                 0.0,
-                270.0,
+                90.0,
                 0.0
             ],
             "scale": [
@@ -4448,10 +4459,10 @@
             ]
         },
         {
-            "id": 168,
+            "id": 182,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "tasma_pas_2",
-            "parent_id": 167,
+            "name": "swtich_pas_144",
+            "parent_id": 181,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -4815,6 +4826,76 @@
         {
             "collider": {
                 "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 165,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaTruskawka",
+            "position": [
+                -1.0,
+                0.0,
+                11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
+            ],
+            "scripts": [
+                "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 166,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaKawa",
+            "position": [
+                3.0,
+                0.0,
+                11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
+            ],
+            "scripts": [
+                "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
                     0.0,
                     0.5,
                     0.0
@@ -4825,17 +4906,17 @@
                     1.0
                 ]
             },
-            "id": 107,
-            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/switch/base.gltf",
-            "name": "switch_1",
+            "id": 167,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_11",
             "position": [
-                9.0,
+                11.0,
                 0.0,
-                -9.0
+                7.0
             ],
             "rotation": [
                 0.0,
-                90.0,
+                180.0,
                 0.0
             ],
             "scale": [
@@ -4844,14 +4925,14 @@
                 1.0
             ],
             "scripts": [
-                "ConveyorSwitchScript"
+                "ConveyorScript"
             ]
         },
         {
-            "id": 108,
+            "id": 168,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
-            "name": "swtich_pas_1",
-            "parent_id": 107,
+            "name": "tasma_pas_11",
+            "parent_id": 167,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -4884,9 +4965,658 @@
                     1.0
                 ]
             },
-            "id": 167,
+            "id": 169,
             "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
-            "name": "tasma_2",
+            "name": "tasma_34",
+            "position": [
+                15.0,
+                0.0,
+                15.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 170,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_34",
+            "parent_id": 169,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 171,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_35",
+            "position": [
+                15.0,
+                0.0,
+                13.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 172,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_35",
+            "parent_id": 171,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 173,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_36",
+            "position": [
+                15.0,
+                0.0,
+                11.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 174,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_36",
+            "parent_id": 173,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 175,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_37",
+            "position": [
+                15.0,
+                0.0,
+                9.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 176,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_37",
+            "parent_id": 175,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 177,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_38",
+            "position": [
+                13.0,
+                0.0,
+                7.0
+            ],
+            "rotation": [
+                0.0,
+                180.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 178,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_38",
+            "parent_id": 177,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 179,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_39",
+            "position": [
+                15.0,
+                3.814697265625e-06,
+                7.0
+            ],
+            "rotation": [
+                0.0,
+                180.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 180,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_39",
+            "parent_id": 179,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 253,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_142",
+            "position": [
+                11.0,
+                0.0,
+                5.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 254,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_142",
+            "parent_id": 253,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 183,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/switch/base.gltf",
+            "name": "switch_105",
+            "position": [
+                13.0,
+                0.0,
+                -3.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorSwitchScript"
+            ]
+        },
+        {
+            "id": 184,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "swtich_pas_105",
+            "parent_id": 183,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 185,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_42",
+            "position": [
+                17.0,
+                0.0,
+                7.0
+            ],
+            "rotation": [
+                0.0,
+                180.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 186,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_42",
+            "parent_id": 185,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 187,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_43",
+            "position": [
+                19.0,
+                0.0,
+                7.0
+            ],
+            "rotation": [
+                0.0,
+                180.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 188,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_43",
+            "parent_id": 187,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 247,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_95",
+            "position": [
+                9.0,
+                0.0,
+                -13.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 248,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_95",
+            "parent_id": 247,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 245,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_94",
             "position": [
                 9.0,
                 0.0,
@@ -4904,6 +5634,1938 @@
             ],
             "scripts": [
                 "ConveyorScript"
+            ]
+        },
+        {
+            "id": 246,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_94",
+            "parent_id": 245,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 21,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_89",
+            "position": [
+                1.0,
+                0.0,
+                7.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 22,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_89",
+            "parent_id": 21,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 109,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_93",
+            "position": [
+                9.0,
+                0.0,
+                -7.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 110,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_93",
+            "parent_id": 109,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 237,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_76",
+            "position": [
+                17.0,
+                0.0,
+                -17.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 238,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_76",
+            "parent_id": 237,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 239,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaJajko_77",
+            "position": [
+                19.0,
+                0.0,
+                -15.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
+            ],
+            "scripts": [
+                "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 240,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaJajko_78",
+            "position": [
+                19.0,
+                0.0,
+                -17.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
+            ],
+            "scripts": [
+                "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 235,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_75",
+            "position": [
+                19.0,
+                0.0,
+                -11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 236,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_75",
+            "parent_id": 235,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 203,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_51",
+            "position": [
+                13.0,
+                0.0,
+                -5.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 204,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_51",
+            "parent_id": 203,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 205,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_52",
+            "position": [
+                13.0,
+                0.0,
+                -7.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 206,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_52",
+            "parent_id": 205,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 207,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_53",
+            "position": [
+                13.0,
+                0.0,
+                -9.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 208,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_53",
+            "parent_id": 207,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 209,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_54",
+            "position": [
+                21.0,
+                0.0,
+                -3.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 210,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_54",
+            "parent_id": 209,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 211,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaJajko_59",
+            "position": [
+                13.0,
+                0.0,
+                15.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
+            ],
+            "scripts": [
+                "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 212,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaPyl_60",
+            "position": [
+                17.0,
+                0.0,
+                15.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
+            ],
+            "scripts": [
+                "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 213,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaPyl_61",
+            "position": [
+                17.0,
+                0.0,
+                13.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
+            ],
+            "scripts": [
+                "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 214,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaPyl_62",
+            "position": [
+                13.0,
+                0.0,
+                13.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
+            ],
+            "scripts": [
+                "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 215,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaPyl_63",
+            "position": [
+                13.0,
+                0.0,
+                11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
+            ],
+            "scripts": [
+                "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    -0.041800498962402344,
+                    0.5518043041229248,
+                    0.02514415979385376
+                ],
+                "size": [
+                    1.1955444812774658,
+                    0.5411014556884766,
+                    1.0827584266662598
+                ]
+            },
+            "id": 216,
+            "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
+            "name": "SkrzynkaPyl_64",
+            "position": [
+                17.0,
+                0.0,
+                11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.8999999761581421,
+                0.8999999761581421,
+                0.8999999761581421
+            ],
+            "scripts": [
+                "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 217,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_65",
+            "position": [
+                21.0,
+                0.0,
+                -5.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 218,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_65",
+            "parent_id": 217,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 219,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_66",
+            "position": [
+                21.0,
+                0.0,
+                -7.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 220,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_66",
+            "parent_id": 219,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 221,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_67",
+            "position": [
+                21.0,
+                0.0,
+                -9.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 222,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_67",
+            "parent_id": 221,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 223,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_68",
+            "position": [
+                21.0,
+                0.0,
+                -11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 224,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_68",
+            "parent_id": 223,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 225,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_69",
+            "position": [
+                17.0,
+                0.0,
+                -15.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 226,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_69",
+            "parent_id": 225,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 227,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_70",
+            "position": [
+                17.0,
+                0.0,
+                -13.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 228,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_70",
+            "parent_id": 227,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 229,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_71",
+            "position": [
+                13.0,
+                0.0,
+                -11.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 230,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_71",
+            "parent_id": 229,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 231,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_73",
+            "position": [
+                15.0,
+                0.0,
+                -11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 232,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_73",
+            "parent_id": 231,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 233,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_74",
+            "position": [
+                17.0,
+                0.0,
+                -11.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 234,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_74",
+            "parent_id": 233,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 201,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_96",
+            "position": [
+                21.0,
+                0.0,
+                7.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 202,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_96",
+            "parent_id": 201,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 197,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_97",
+            "position": [
+                21.0,
+                0.0,
+                5.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 198,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_97",
+            "parent_id": 197,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 199,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_98",
+            "position": [
+                21.0,
+                0.0,
+                3.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 200,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_98",
+            "parent_id": 199,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 193,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_99",
+            "position": [
+                21.0,
+                0.0,
+                1.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 194,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_99",
+            "parent_id": 193,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 195,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_100",
+            "position": [
+                21.0,
+                0.0,
+                -1.0
+            ],
+            "rotation": [
+                0.0,
+                270.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 196,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_100",
+            "parent_id": 195,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 251,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_112",
+            "position": [
+                15.0,
+                -3.814697265625e-06,
+                -3.0
+            ],
+            "rotation": [
+                0.0,
+                180.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 252,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_112",
+            "parent_id": 251,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 244,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_113",
+            "position": [
+                17.0,
+                0.0,
+                -3.0
+            ],
+            "rotation": [
+                0.0,
+                180.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 250,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_113",
+            "parent_id": 244,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 189,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_114",
+            "position": [
+                19.0,
+                0.0,
+                -3.0
+            ],
+            "rotation": [
+                0.0,
+                180.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 190,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_114",
+            "parent_id": 189,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 255,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_141",
+            "position": [
+                11.0,
+                0.0,
+                3.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 256,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_141",
+            "parent_id": 255,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 257,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
+            "name": "tasma_140",
+            "position": [
+                11.0,
+                0.0,
+                1.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorScript"
+            ]
+        },
+        {
+            "id": 258,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
+            "name": "tasma_pas_140",
+            "parent_id": 257,
+            "position": [
+                0.0,
+                0.009999999776482582,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "BeltVisualScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    0.5,
+                    1.0
+                ]
+            },
+            "id": 181,
+            "model_path": "CookingStation/Assets/models/przybory_kuchenne/tasma/switch/base.gltf",
+            "name": "switch_144",
+            "position": [
+                11.0,
+                0.0,
+                -3.0
+            ],
+            "rotation": [
+                0.0,
+                90.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "scripts": [
+                "ConveyorSwitchScript"
             ]
         }
     ]
