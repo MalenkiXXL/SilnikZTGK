@@ -17,6 +17,8 @@ public:
             AudioEngine::StopLoopingSound(m_BakingSoundPtr);
             m_BakingSoundPtr = nullptr;
         }
+    } // <--- TEJ KLAMRY BRAKOWAŁO
+
     IngredientType GetBakedType() const
     {
         if (m_Ingredients.empty()) return IngredientType::None;
@@ -25,6 +27,7 @@ public:
         if (m_Ingredients[0] == IngredientType::RawCupcakeDough) return IngredientType::Cupcake;
         return IngredientType::Baguette;
     }
+
     bool CanAcceptIngredient(IngredientType type) override
     {
         if (m_IsReady || !m_Ingredients.empty()) return false;
@@ -49,7 +52,6 @@ public:
         StopBakingSound();
         MachineScript::ResetMachineState();
     }
-
 
     void OnUpdate(Timestep ts) override
     {
@@ -181,8 +183,13 @@ protected:
                 spdlog::info("Piekarnik: Przepis na babeczke odblokowany!");
             }
 
+            // NAPRAWA KOMENTARZA: PRZYWRÓCONY KOD ŁADOWANIA MODELU
             auto* meshComp = GetComponent<MeshComponent>();
-            // ... (tutaj bez zmian pobieranie modelu piekarnika)
+            if (meshComp)
+            {
+                meshComp->Path = "assets://models/przybory_kuchenne/piekarnik/piekarnik.gltf";
+                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
+            }
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
@@ -230,6 +237,7 @@ protected:
             }
         }
     }
+
     void OnTransferToPlate(Entity plate) override
     {
         PlaceSpawnedFoodOnPlate(plate);
