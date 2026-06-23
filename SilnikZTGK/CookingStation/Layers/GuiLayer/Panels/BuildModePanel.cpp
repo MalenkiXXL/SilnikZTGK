@@ -35,6 +35,19 @@ static glm::vec3 ClampToBuildArea(const glm::vec3& pos) {
     return clamped;
 }
 
+static bool IsIgnoredByBuildSystem(const std::string& tag) {
+    if (tag.empty()) return false;
+    if (tag == "__BuildPreview__") return true;
+    if (tag.find("Wielka_Pod") != std::string::npos) return true; 
+    if (tag.find("Krzeslo1") != std::string::npos) return true;  
+    if (tag.find("Krzeslo2") != std::string::npos) return true;   
+    if (tag.find("Krzeslo3") != std::string::npos) return true;   
+    if (tag.find("Krzeslo4") != std::string::npos) return true;   
+    if (tag.find("Krzeslo5") != std::string::npos) return true;   
+    if (tag.find("Krzeslo6") != std::string::npos) return true;   
+    return false;
+}
+
 void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.clear();
     m_CoinIcon = coinIcon;
@@ -129,7 +142,8 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
     if (inBounds && !s_wasBuildHovered && !isBlocked) {
         AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
         s_wasBuildHovered = true;
-    } else if (!inBounds || isBlocked) {
+    }
+    else if (!inBounds || isBlocked) {
         s_wasBuildHovered = false;
     }
 
@@ -169,18 +183,15 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
     }
 
     if (m_TabIcon && m_TabIcon->GetRendererID() != 0) {
-        // Wysokość to np. 35 pikseli, ale skaluje się razem z animacją "puchnięcia" przycisku
         float tabHeight = 25.0f * baseScale * m_ButtonScale;
         float tabAspect = (float)m_TabIcon->GetWidth() / (float)m_TabIcon->GetHeight();
         glm::vec2 tabSize = { tabHeight * tabAspect, tabHeight };
 
-        // Wyśrodkowane w poziomie względem głównego przycisku. Y rośnie w dół, więc dodajemy wysokość przycisku + margines
         glm::vec2 tabPos = {
             scaledPos.x + (scaledSize.x - tabSize.x) * 0.5f,
             scaledPos.y + scaledSize.y + (12.0f * baseScale)
         };
 
-        // Lekko przezroczyste, żeby wyglądało jak subtelna podpowiedź
         glm::vec4 tabTint = { 1.0f, 1.0f, 1.0f, 0.85f };
         Renderer2D::DrawQuad(tabPos, tabSize, m_TabIcon, tabTint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     }
@@ -335,14 +346,11 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         s_lastHoveredMachineSlot = currentlyHoveredSlot;
     }
 
-
-    // --- POPRAWKA: Wskazówki sterowania ---
     bool isHoldingFromPanel = (m_HeldMachineIndex >= 0);
     bool isMovingExisting = (m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max());
 
     if ((isHoldingFromPanel || isMovingExisting) && m_SlideY > 0.95f) {
 
-        // WIELKOŚĆ ELEMENTÓW (Zwiększona dla czytelności)
         float textScale = 0.85f * baseScale;
         float targetIconHeight = 75.0f * baseScale;
         float textSpacing = 15.0f * baseScale;
@@ -355,7 +363,6 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         float cancelTextW = Gui::MeasureTextWidth(cancelText, textScale);
         float textH = Gui::MeasureTextHeight("P", textScale);
 
-        // MAGIA ASPECT RATIO: Pobieramy szerokość zachowującą proporcje obrazka
         float leftIconW = targetIconHeight;
         if (m_LeftMouseIcon && m_LeftMouseIcon->GetRendererID() != 0) {
             leftIconW = targetIconHeight * ((float)m_LeftMouseIcon->GetWidth() / (float)m_LeftMouseIcon->GetHeight());
@@ -366,10 +373,9 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
             rightIconW = targetIconHeight * ((float)m_RightMouseIcon->GetWidth() / (float)m_RightMouseIcon->GetHeight());
         }
 
-        // Całkowita szerokość grupy wyliczona z doskonałymi proporcjami
         float totalWidth = (leftIconW + textSpacing + placeTextW) + groupSpacing + (rightIconW + textSpacing + cancelTextW);
         float startX = gameX + (gameWidth - totalWidth) * 0.5f;
-        float centerY = panelY - 45.0f * baseScale; // Uniesione wyżej
+        float centerY = panelY - 45.0f * baseScale;
 
         glm::vec4 textColor = { 0.95f, 0.95f, 0.95f, 0.95f };
         glm::vec4 textShadow = { 0.0f, 0.0f, 0.0f, 0.6f };
@@ -377,7 +383,6 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
 
         float cursorX = startX;
 
-        // --- GRUPA 1: LEFT MOUSE + "Place" ---
         if (m_LeftMouseIcon) {
             Renderer2D::DrawQuad({ cursorX, centerY - targetIconHeight * 0.5f }, { leftIconW, targetIconHeight }, m_LeftMouseIcon, iconColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
@@ -388,7 +393,6 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         Gui::DrawGuiText(placeText, { cursorX, labelY }, textScale, textColor);
         cursorX += placeTextW + groupSpacing;
 
-        // --- GRUPA 2: RIGHT MOUSE + "Cancel" ---
         if (m_RightMouseIcon) {
             Renderer2D::DrawQuad({ cursorX, centerY - targetIconHeight * 0.5f }, { rightIconW, targetIconHeight }, m_RightMouseIcon, iconColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
@@ -443,7 +447,9 @@ bool BuildModePanel::IsPlacementValid(std::shared_ptr<Scene>& activeScene, const
         if (ignored) continue;
 
         auto* tagComp = tags ? tags->Get(e) : nullptr;
-        if (tagComp && tagComp->Tag == "__BuildPreview__") continue;
+
+        // UŻYWAMY NOWEJ FUNKCJI IGNORUJĄCEJ
+        if (tagComp && IsIgnoredByBuildSystem(tagComp->Tag)) continue;
 
         glm::vec3 pos = transforms->dense[i].GetPosition();
         if (pos.y < -0.2f) continue;
@@ -514,7 +520,9 @@ int BuildModePanel::GetCellState(std::shared_ptr<Scene>& activeScene, const glm:
 
         if (GridSystem::WorldToCell(pos) == targetCell) {
             auto* tagComp = tags ? tags->Get(e) : nullptr;
-            if (tagComp && tagComp->Tag == "__BuildPreview__") continue;
+
+            // UŻYWAMY NOWEJ FUNKCJI IGNORUJĄCEJ
+            if (tagComp && IsIgnoredByBuildSystem(tagComp->Tag)) continue;
 
             auto* nsc = scripts ? scripts->Get(e) : nullptr;
             bool isMachine = false;
@@ -588,7 +596,6 @@ void BuildModePanel::DrawActiveGrid(std::shared_ptr<Scene>& activeScene, float g
     Ray ray = Physics::CastRayFromMouse(mouseX, mouseY, gameW, gameH, proj, view);
     glm::vec3 snappedPos(0.0f);
 
-    // Zabezpieczenie przed stawianiem obiektów pod panelem
     bool mouseOverPanel = (rawMouse.second >= (gameY + gameH - 200.0f * baseScale));
 
     int hoverState = 0;
@@ -623,7 +630,6 @@ void BuildModePanel::DrawOverlay(float gameX, float gameY, float gameW, float ga
         float aspect = (float)pausedTextTex->GetWidth() / (float)pausedTextTex->GetHeight();
         glm::vec2 tSize = { gameW * 0.20f, (gameW * 0.20f) / aspect };
         float yPos = gameH * 0.18f;
-        // Obliczamy wycentrowaną pozycję X bazując na obszarze renderowania gameX i gameW
         Renderer2D::DrawQuad({ gameX + (gameW - tSize.x) * 0.5f, gameY + yPos }, tSize, pausedTextTex->GetRendererID(), { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
     }
 }
@@ -687,6 +693,67 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
 
     bool mouseOverPanel = (rawMouse.second >= (gameY + gameH - 200.0f * baseScale));
 
+    // LOKALNA FUNKCJA POMOCNICZA DO WYSZUKANIA BLOKUJĄCEGO OBIEKTU W CELU LOGOWANIA
+    auto getBlockerName = [&]() -> std::string {
+        std::string blocker = "Poza plansza";
+        std::vector<glm::ivec2> tCells;
+        std::vector<Entity> igEnts;
+
+        if (m_HeldMachineIndex >= 0) {
+            for (auto& [ent, offset] : m_PreviewGroup) {
+                glm::vec3 pos = snappedPos + offset;
+                if (!IsWithinBuildArea(pos)) return blocker;
+                tCells.push_back(GridSystem::WorldToCell(pos));
+                igEnts.push_back(ent);
+            }
+        }
+        else if (m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max()) {
+            if (!IsWithinBuildArea(snappedPos)) return blocker;
+            tCells.push_back(GridSystem::WorldToCell(snappedPos));
+            igEnts.push_back(m_MovingMachineEntity);
+            for (auto& [ent, offset] : m_MovingGroup) {
+                glm::vec3 pos = snappedPos + offset;
+                if (!IsWithinBuildArea(pos)) return blocker;
+                tCells.push_back(GridSystem::WorldToCell(pos));
+                igEnts.push_back(ent);
+            }
+        }
+        else {
+            if (!IsWithinBuildArea(snappedPos)) return blocker;
+            tCells.push_back(GridSystem::WorldToCell(snappedPos));
+        }
+
+        auto* tfs = activeScene->GetWorld().GetComponentVector<TransformComponent>();
+        auto* tgs = activeScene->GetWorld().GetComponentVector<TagComponent>();
+        if (!tfs) return "Nieznany obiekt";
+
+        for (size_t i = 0; i < tfs->dense.size(); ++i) {
+            Entity e = tfs->reverse[i];
+            bool ignored = false;
+            for (auto& ig : igEnts) {
+                if (e.id == ig.id) { ignored = true; break; }
+            }
+            if (ignored) continue;
+
+            auto* tagC = tgs ? tgs->Get(e) : nullptr;
+
+            // UŻYWAMY NOWEJ FUNKCJI IGNORUJĄCEJ
+            if (tagC && IsIgnoredByBuildSystem(tagC->Tag)) continue;
+
+            glm::vec3 pos = tfs->dense[i].GetPosition();
+            if (pos.y < -0.2f) continue;
+
+            glm::ivec2 c = GridSystem::WorldToCell(pos);
+            for (auto& tc : tCells) {
+                if (tc == c) {
+                    if (tagC && !tagC->Tag.empty()) return tagC->Tag;
+                    return "Obiekt bez nazwy (ID: " + std::to_string(e.id) + ")";
+                }
+            }
+        }
+        return "Nieznany obiekt";
+        };
+
     if (m_HeldMachineIndex < 0 && m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max()) {
         auto& world = activeScene->GetWorld();
         auto* tc = world.GetComponent<TransformComponent>(m_MovingMachineEntity);
@@ -711,7 +778,7 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
                 m_MovingGroup.clear();
             }
             else {
-                spdlog::warn("BuildMode: Miejsce zajete!");
+                spdlog::warn("BuildMode: Miejsce zajete przez: {}", getBlockerName());
                 AudioEngine::Play("assets://sounds/error.mp3");
             }
         }
@@ -738,6 +805,12 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
                         for (size_t idx = 0; idx < transforms->dense.size(); ++idx) {
                             Entity candidate = transforms->reverse[idx];
                             if (candidate.id == hitMachine.id) continue;
+
+                            auto* candTag = activeScene->GetWorld().GetComponent<TagComponent>(candidate);
+
+                            // UŻYWAMY NOWEJ FUNKCJI IGNORUJĄCEJ W GRUPOWANIU
+                            if (candTag && IsIgnoredByBuildSystem(candTag->Tag)) continue;
+
                             glm::vec3 candPos = transforms->dense[idx].GetPosition();
                             if (GridSystem::WorldToCell(candPos) == machineCell) {
                                 m_MovingGroup.push_back({ candidate, candPos - tc->GetPosition() });
@@ -745,6 +818,32 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
                         }
                     }
                 }
+            }
+            else if (cellState == 2) {
+                // LOGIKA: KLIKNIĘTO Z PUSTYMI RĘKAMI W CZERWONY KAFEL (PRZESZKODĘ)
+                std::string obstacleName = "Nieznany obiekt";
+                auto* tfs = activeScene->GetWorld().GetComponentVector<TransformComponent>();
+                auto* tgs = activeScene->GetWorld().GetComponentVector<TagComponent>();
+
+                if (tfs) {
+                    glm::ivec2 targetCell = GridSystem::WorldToCell(snappedPos);
+                    for (size_t idx = 0; idx < tfs->dense.size(); ++idx) {
+                        Entity candidate = tfs->reverse[idx];
+                        auto* candTag = tgs ? tgs->Get(candidate) : nullptr;
+
+                        // UŻYWAMY NOWEJ FUNKCJI IGNORUJĄCEJ
+                        if (candTag && IsIgnoredByBuildSystem(candTag->Tag)) continue;
+
+                        if (tfs->dense[idx].GetPosition().y < -0.2f) continue;
+
+                        if (GridSystem::WorldToCell(tfs->dense[idx].GetPosition()) == targetCell) {
+                            if (candTag && !candTag->Tag.empty()) obstacleName = candTag->Tag;
+                            break;
+                        }
+                    }
+                }
+                spdlog::warn("BuildMode: Kliknieto w przeszkode: {}", obstacleName);
+                AudioEngine::Play("assets://sounds/error.mp3");
             }
         }
         return;
@@ -806,7 +905,7 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
             }
         }
         else {
-            spdlog::warn("BuildMode: Miejsce zajete!");
+            spdlog::warn("BuildMode: Miejsce zajete przez: {}", getBlockerName());
             AudioEngine::Play("assets://sounds/error.mp3");
         }
     }
@@ -888,9 +987,6 @@ void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camP
     }
 
     Renderer2D::EndScene();
-
-    // ZMIANA: CAŁKOWICIE USUNIĘTO glEnable(GL_DEPTH_TEST)
-    // To właśnie ta funkcja powodowała Z-fighting i chowanie się UI pod tłem!
 
     glViewport(0, 0, (int)windowSize.first, (int)windowSize.second);
 }
