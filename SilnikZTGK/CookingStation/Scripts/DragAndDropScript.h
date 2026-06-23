@@ -235,22 +235,21 @@ private:
 
             auto neighbor = FindClosestNeighbor(itemTf->GetPosition(), [hoveredType](const std::string& name, ScriptableEntity* instance) {
                 MachineScript* mScript = dynamic_cast<MachineScript*>(instance);
-                if (!mScript || (mScript->m_IsReady && name != "PanScript")) return false;
+                if (!mScript || (mScript->m_IsReady && name != "PanScript" && name != "MixerScript")) return false;
 
                 if (name == "CuttingBoardScript") {
                     return mScript->m_Ingredients.empty() &&
                         (hoveredType == IngredientType::Tomato || hoveredType == IngredientType::Baguette ||
-                            hoveredType == IngredientType::Cheese || hoveredType == IngredientType::Ham || hoveredType == IngredientType::Mozzarella);
+                            hoveredType == IngredientType::Cheese || hoveredType == IngredientType::Ham || hoveredType == IngredientType::Mozzarella || hoveredType == IngredientType::Apple);
                 }
                 else if (name == "PotScript") {
                     return mScript->m_Ingredients.size() < 2 && (hoveredType == IngredientType::ChoppedTomato);
                 }
                 else if (name == "MixerScript") {
-                    bool hasType = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), hoveredType) != mScript->m_Ingredients.end();
-                    return mScript->m_Ingredients.size() < 2 && !hasType && (hoveredType == IngredientType::Flour || hoveredType == IngredientType::Milk);
+                    return mScript->CanAcceptIngredient(hoveredType);
                 }
                 else if (name == "OvenScript") {
-                    return mScript->m_Ingredients.empty() && (hoveredType == IngredientType::RawDough);
+                    return mScript->CanAcceptIngredient(hoveredType);
                 }
                 else if (name == "PanScript") {
                     return mScript->CanAcceptIngredient(hoveredType);
@@ -294,7 +293,7 @@ private:
             }
         }
 
-        if (hoveredMachineScript && (!hoveredMachineScript->m_IsReady || machineName == "PanScript")) {
+        if (hoveredMachineScript && (!hoveredMachineScript->m_IsReady || machineName == "PanScript" || machineName == "MixerScript")) {
             Entity closestBeltItem = { std::numeric_limits<std::size_t>::max(), 0 };
             float closestDist = 999.0f;
             IngredientType foundType = IngredientType::None;
@@ -318,17 +317,16 @@ private:
 
                                 bool canAccept = false;
                                 if (machineName == "CuttingBoardScript" && hoveredMachineScript->m_Ingredients.empty()) {
-                                    canAccept = (type == IngredientType::Tomato || type == IngredientType::Baguette || type == IngredientType::Cheese || type == IngredientType::Ham || type == IngredientType::Mozzarella);
+                                    canAccept = (type == IngredientType::Tomato || type == IngredientType::Baguette || type == IngredientType::Cheese || type == IngredientType::Ham || type == IngredientType::Mozzarella || type == IngredientType::Apple);
                                 }
                                 else if (machineName == "PotScript" && hoveredMachineScript->m_Ingredients.size() < 2) {
                                     canAccept = (type == IngredientType::ChoppedTomato);
                                 }
-                                else if (machineName == "MixerScript" && hoveredMachineScript->m_Ingredients.size() < 2) {
-                                    bool hasType = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), type) != hoveredMachineScript->m_Ingredients.end();
-                                    canAccept = (!hasType && (type == IngredientType::Flour || type == IngredientType::Milk));
+                                else if (machineName == "MixerScript") {
+                                    canAccept = hoveredMachineScript->CanAcceptIngredient(type);
                                 }
-                                else if (machineName == "OvenScript" && hoveredMachineScript->m_Ingredients.empty()) {
-                                    canAccept = (type == IngredientType::RawDough);
+                                else if (machineName == "OvenScript") {
+                                    canAccept = hoveredMachineScript->CanAcceptIngredient(type);
                                 }
                                 else if (machineName == "PanScript") {
                                     canAccept = hoveredMachineScript->CanAcceptIngredient(type);
@@ -428,7 +426,7 @@ private:
             }
         }
 
-        if (hoveredMachineScript && (!hoveredMachineScript->m_IsReady || machineName == "PanScript")) {
+        if (hoveredMachineScript && (!hoveredMachineScript->m_IsReady || machineName == "PanScript" || machineName == "MixerScript")) {
             auto* machineTf = GetScene()->GetWorld().GetComponent<TransformComponent>(hoveredMachineEntity);
             if (!machineTf) return;
 
@@ -443,14 +441,13 @@ private:
                 }
                 else if (machineName == "CuttingBoardScript" && hoveredMachineScript->m_Ingredients.empty()) {
                     return topIngredient == IngredientType::Tomato || topIngredient == IngredientType::Baguette ||
-                        topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella;
+                        topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella || topIngredient == IngredientType::Apple;
                 }
-                else if (machineName == "MixerScript" && hoveredMachineScript->m_Ingredients.size() < 2) {
-                    bool hasType = std::find(hoveredMachineScript->m_Ingredients.begin(), hoveredMachineScript->m_Ingredients.end(), topIngredient) != hoveredMachineScript->m_Ingredients.end();
-                    return (!hasType && (topIngredient == IngredientType::Flour || topIngredient == IngredientType::Milk));
+                else if (machineName == "MixerScript") {
+                    return hoveredMachineScript->CanAcceptIngredient(topIngredient);
                 }
-                else if (machineName == "OvenScript" && hoveredMachineScript->m_Ingredients.empty()) {
-                    return topIngredient == IngredientType::RawDough;
+                else if (machineName == "OvenScript") {
+                    return hoveredMachineScript->CanAcceptIngredient(topIngredient);
                 }
                 else if (machineName == "PanScript") {
                     return hoveredMachineScript->CanAcceptIngredient(topIngredient);
@@ -507,20 +504,19 @@ private:
 
             auto neighbor = FindClosestNeighbor(plateTf->GetPosition(), [topIngredient](const std::string& name, ScriptableEntity* instance) {
                 MachineScript* mScript = dynamic_cast<MachineScript*>(instance);
-                if (!mScript || (mScript->m_IsReady && name != "PanScript")) return false;
+                if (!mScript || (mScript->m_IsReady && name != "PanScript" && name != "MixerScript")) return false;
 
                 if (name == "PotScript") {
                     return mScript->m_Ingredients.size() < 2 && topIngredient == IngredientType::ChoppedTomato;
                 }
                 else if (name == "CuttingBoardScript") {
-                    return mScript->m_Ingredients.empty() && (topIngredient == IngredientType::Tomato || topIngredient == IngredientType::Baguette || topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella);
+                    return mScript->m_Ingredients.empty() && (topIngredient == IngredientType::Tomato || topIngredient == IngredientType::Baguette || topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella || topIngredient == IngredientType::Apple);
                 }
                 else if (name == "MixerScript") {
-                    bool hasType = std::find(mScript->m_Ingredients.begin(), mScript->m_Ingredients.end(), topIngredient) != mScript->m_Ingredients.end();
-                    return mScript->m_Ingredients.size() < 2 && !hasType && (topIngredient == IngredientType::Flour || topIngredient == IngredientType::Milk);
+                    return mScript->CanAcceptIngredient(topIngredient);
                 }
                 else if (name == "OvenScript") {
-                    return mScript->m_Ingredients.empty() && topIngredient == IngredientType::RawDough;
+                    return mScript->CanAcceptIngredient(topIngredient);
                 }
                 else if (name == "PanScript") {
                     return mScript->CanAcceptIngredient(topIngredient);

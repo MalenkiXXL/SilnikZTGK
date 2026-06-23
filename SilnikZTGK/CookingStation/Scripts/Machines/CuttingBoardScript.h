@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
+#include "CookingStation/Scripts/DragAndDropScript.h"
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Core/Application.h"
 #include <GLFW/glfw3.h>
@@ -34,6 +35,8 @@ private:
             return { "assets://models/skladniki/szynka/szynka.gltf", "assets://models/skladniki/szynka/szynka-pokrojona.gltf" };
         case IngredientType::Mozzarella:
             return { "assets://models/skladniki/pomidor/mozzarella.gltf", "assets://models/skladniki/pomidor/mozzarella-pokrojona.gltf" };
+        case IngredientType::Apple:
+            return { "assets://models/skladniki/jablko/apple1.gltf", "assets://models/skladniki/pomidor/pomidor-pokrojony.gltf" };
         default:
             return { "", "" };
         }
@@ -47,6 +50,7 @@ private:
         case IngredientType::Cheese: return IngredientType::ChoppedCheese;
         case IngredientType::Ham: return IngredientType::ChoppedHam;
         case IngredientType::Mozzarella: return IngredientType::ChoppedMozzarella;
+        case IngredientType::Apple: return IngredientType::ChoppedApple;
         default: return IngredientType::None;
         }
     }
@@ -120,8 +124,6 @@ public:
     {
         if (m_ChopCooldown > 0.0f) return;
 
-        // NAPRAWA: Zamiast ufać zapamiętanej zmiennej wizualnej, wymuszamy 
-        // przeliczenie odległości GridSystemu dokładnie w klatce kliknięcia!
         Entity targetPlate = GetClosestAvailablePlate();
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())
@@ -144,7 +146,7 @@ public:
                 if (pScript->AddIngredient(choppedType))
                 {
                     spdlog::info("Składnik z deski przeniesiony na talerz!");
-                    ClearHighlight(); // Czyścimy wizualia po udanym transferze
+                    ClearHighlight();
                     ResetMachineState();
                 }
                 else
@@ -153,9 +155,22 @@ public:
                 }
             }
         }
-        else
+        else if (!m_IsAutomated)
         {
-            spdlog::warn("Brak talerza w promieniu kratki - nie można nałożyć!");
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
+            {
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+
+                IngredientType choppedType = GetChoppedType(m_Ingredients[0]);
+                DragAndDropScript::StartDrag(choppedType);
+                ResetMachineState();
+                ClearHighlight();
+            }
+            else
+            {
+                spdlog::warn("Brak talerza w promieniu kratki - nie można nałożyć!");
+            }
         }
     }
 
@@ -335,7 +350,8 @@ public:
             type == IngredientType::Baguette ||
             type == IngredientType::Cheese ||
             type == IngredientType::Ham ||
-            type == IngredientType::Mozzarella)
+            type == IngredientType::Mozzarella ||
+            type == IngredientType::Apple)
         {
             m_Ingredients.push_back(type);
             m_ChopCount = 0;

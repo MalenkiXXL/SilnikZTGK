@@ -36,7 +36,7 @@ enum class IngredientType : uint32_t
     Mushroom, ChoppedMushroom, Carrot,
 
     // Słodkie / Owoce
-    Apple, Raspberry, Strawberry, ApplePie, Pancakes, Honey, MilkWithHoney, Candy,
+    Apple, Raspberry, Strawberry, ApplePie, Pancakes, Honey, MilkWithHoney, Candy, ChoppedApple, RawApplePie,
 
     // Napoje
     Coffee, MilkCoffee, CoffeeBeans, ShakeCup, AppleShake, CoffeeShake, RaspberryShake, StrawberryShake
@@ -46,6 +46,7 @@ enum class IngredientType : uint32_t
 struct IngredientMetadata {
     glm::vec3 scale;
     glm::vec3 rotation;
+    glm::vec3 offset;
 };
 
 inline std::string IngredientTypeToString(IngredientType type)
@@ -119,6 +120,8 @@ inline std::string IngredientTypeToString(IngredientType type)
         case IngredientType::CoffeeShake:               return "CoffeeShake";
         case IngredientType::RaspberryShake:            return "RaspberryShake";
         case IngredientType::StrawberryShake:           return "StrawberryShake";
+        case IngredientType::ChoppedApple:              return "ChoppedApple";
+        case IngredientType::RawApplePie:               return "RawApplePie";
         default:                                        return "Unknown";
     }
 }
@@ -153,6 +156,22 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
             return { glm::vec3(0.4f), glm::vec3(0.0f, glm::radians(90.0f), 0.0f) };
         case IngredientType::Egg:
             return { glm::vec3(0.4f), glm::vec3(0.0f) };
+
+        case IngredientType::Apple:
+            return { glm::vec3(0.3f), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::Raspberry:
+            return { glm::vec3(0.7f), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::CoffeeBeans:
+            return { glm::vec3(0.6f), glm::vec3(90.0f, 90.0f, 0.0f), glm::vec3(0.0f) };
+        case IngredientType::Strawberry:
+            return { glm::vec3(1.1f), glm::vec3(-90.0f, 0.0f, 90.0f), glm::vec3(0.0f) };
+
+        case IngredientType::ChoppedApple:
+            return { glm::vec3(0.4f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(0.0f) };
+        case IngredientType::RawApplePie:
+            return { glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::ApplePie:
+            return { glm::vec3(2.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
 
         default:
             return { glm::vec3(1.0f), glm::vec3(0.0f) };
@@ -247,6 +266,9 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::CoffeeShake:               return "assets://models/skladniki/shake/shake-kawa.gltf";
         case IngredientType::RaspberryShake:            return "assets://models/skladniki/shake/shake-malina.gltf";
         case IngredientType::StrawberryShake:           return "assets://models/skladniki/shake/shake-truskawka.gltf";
+
+        case IngredientType::ChoppedApple:              return "assets://models/skladniki/pomidor/pomidor-pokrojony.gltf";
+        case IngredientType::RawApplePie:               return "assets://models/skladniki/ciasta_nieupieczone/ciasto.gltf";
 
         default: return "";
     }

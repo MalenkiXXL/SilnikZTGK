@@ -44,6 +44,14 @@ public:
                 m_CrateIngredient = IngredientType::Egg;
             else if (name.find("Mozzarella") != std::string::npos || name.find("Mozzarela") != std::string::npos)
                 m_CrateIngredient = IngredientType::Mozzarella;
+            else if (name.find("Apple") != std::string::npos || name.find("Jablko") != std::string::npos)
+                m_CrateIngredient = IngredientType::Apple;
+            else if (name.find("Raspberry") != std::string::npos || name.find("Malina") != std::string::npos)
+                m_CrateIngredient = IngredientType::Raspberry;
+            else if (name.find("Strawberry") != std::string::npos || name.find("Truskawka") != std::string::npos)
+                m_CrateIngredient = IngredientType::Strawberry;
+            else if (name.find("CoffeeBeans") != std::string::npos || name.find("Kawa") != std::string::npos || name.find("Ziarna") != std::string::npos)
+                m_CrateIngredient = IngredientType::CoffeeBeans;
         }
 
         if (m_CrateIngredient == IngredientType::None) {
@@ -203,6 +211,10 @@ private:
         case IngredientType::Flour: return "assets://models/skladniki/maka/maka.gltf";
         case IngredientType::Egg: return "assets://models/skladniki/jajko_w_skorupce/egg_withshell.gltf";
         case IngredientType::Mozzarella: return "assets://models/skladniki/pomidor/mozzarella.gltf";
+        case IngredientType::Apple: return "assets://models/skladniki/jablko/apple1.gltf";
+        case IngredientType::Raspberry: return "assets://models/skladniki/malina/malina.gltf";
+        case IngredientType::Strawberry: return "assets://models/skladniki/truskawka/strawberry.gltf";
+        case IngredientType::CoffeeBeans: return "assets://models/skladniki/napoje/ziarnokawy.gltf";
         default: return "";
         }
     }
@@ -218,7 +230,7 @@ private:
         TransformComponent tc;
         IngredientMetadata meta = GetIngredientMetadata(m_CrateIngredient);
         tc.SetScale(meta.scale * 0.7f);
-        tc.SetPosition(GetComponent<TransformComponent>()->GetPosition() + glm::vec3(0.0f, 0.4f, 0.0f));
+        tc.SetPosition(GetComponent<TransformComponent>()->GetPosition() + glm::vec3(0.0f, 0.4f, 0.0f) + meta.offset);
         tc.SetRotation(meta.rotation);
         builder.With<TransformComponent>(tc);
 

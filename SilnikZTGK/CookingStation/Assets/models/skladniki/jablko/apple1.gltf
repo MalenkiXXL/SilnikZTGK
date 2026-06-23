@@ -89,8 +89,8 @@
 	],
 	"images":[
 		{
-			"mimeType": "image/png",
-			"name": "palette",
+			"mimeType":"image/png",
+			"name":"palette",
 			"uri": "../../../textures/palette.png"
 		}
 	],
@@ -98,119 +98,119 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":567,
+			"count":902,
 			"max":[
 				1.7803117036819458,
-				1.274545669555664,
+				1.2738834619522095,
 				1.7797120809555054
 			],
 			"min":[
-				-1.7775949239730835,
-				-1.424192190170288,
-				-1.7805157899856567
+				-1.7798353433609009,
+				-1.4250500202178955,
+				-1.7800099849700928
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":567,
+			"count":902,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":567,
+			"count":902,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":2784,
+			"count":4608,
 			"type":"SCALAR"
 		},
 		{
 			"bufferView":4,
 			"componentType":5126,
-			"count":376,
+			"count":1085,
 			"max":[
-				0.2489880919456482,
-				2.194735527038574,
-				0.10657510161399841
+				0.2488698959350586,
+				2.204033613204956,
+				0.10721805691719055
 			],
 			"min":[
-				-0.3020170331001282,
-				-0.1395167112350464,
-				-0.11509208381175995
+				-0.3016485571861267,
+				-0.13471591472625732,
+				-0.11562910676002502
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":5,
 			"componentType":5126,
-			"count":376,
+			"count":1085,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":6,
 			"componentType":5126,
-			"count":376,
+			"count":1085,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":7,
 			"componentType":5123,
-			"count":1350,
+			"count":4608,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":6804,
+			"byteLength":10824,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":6804,
-			"byteOffset":6804,
+			"byteLength":10824,
+			"byteOffset":10824,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4536,
-			"byteOffset":13608,
+			"byteLength":7216,
+			"byteOffset":21648,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":5568,
-			"byteOffset":18144,
+			"byteLength":9216,
+			"byteOffset":28864,
 			"target":34963
 		},
 		{
 			"buffer":0,
-			"byteLength":4512,
-			"byteOffset":23712,
+			"byteLength":13020,
+			"byteOffset":38080,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":4512,
-			"byteOffset":28224,
+			"byteLength":13020,
+			"byteOffset":51100,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":3008,
-			"byteOffset":32736,
+			"byteLength":8680,
+			"byteOffset":64120,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":2700,
-			"byteOffset":35744,
+			"byteLength":9216,
+			"byteOffset":72800,
 			"target":34963
 		}
 	],
@@ -222,7 +222,7 @@
 	],
 	"buffers":[
 		{
-			"byteLength":38444,
+			"byteLength":82016,
 			"uri":"apple1.bin"
 		}
 	]
