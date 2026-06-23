@@ -12,8 +12,6 @@
 class HelperCustomerScript : public CustomerScript
 {
 public:
-    bool m_IsHovered = false;
-    bool m_WasHovered = false;
     float m_YOffset = 0.2f;
     float m_ActionYOffset = 0.4f;
     Entity m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -34,20 +32,12 @@ public:
     bool m_BaseScaleInitialized = false;
     float m_PulseTimer = 0.0f;
     std::size_t m_ClickSubId = 0;
-    // NOWE: subskrypcja na hover przez event bus
-    std::size_t m_HoverSubId = 0;
 
     std::shared_ptr<Model> m_OriginalModel = nullptr;
     std::shared_ptr<Model> m_ActionModel = nullptr;
     bool m_IsWorking = false;
     std::size_t m_ProcessingSubId = 0;
 
-    // OnHoverCursor zostawiamy jako fallback — może zadziała gdy tile nie blokuje
-    void OnHoverCursor() override
-    {
-        if (!m_IsWaitingForPickup || m_IsFalling) return;
-        m_IsHovered = true;
-    }
 
     void OnCreate() override
     {
@@ -82,7 +72,6 @@ public:
                     m_IsWaitingForPickup = false;
                     m_IsDragged = true;
                     m_DragDelayTimer = 0.0f;
-                    m_IsHovered = false;
 
                     if (m_IsWorking) {
                         m_IsWorking = false;
@@ -109,14 +98,6 @@ public:
             }
         );
 
-        // NOWE: subskrybujemy hover przez event bus — działa nawet jeśli tile blokuje OnHoverCursor
-        m_HoverSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityHoveredEvent>(
-            [this](const EntityHoveredEvent& e) {
-                if (e.TargetEntity.id == m_Entity.id && m_IsWaitingForPickup && !m_IsFalling) {
-                    m_IsHovered = true;
-                }
-            }
-        );
 
         m_ProcessingSubId = GetScene()->GetWorld().GetEventBus().Subscribe<MachineProcessingEvent>(
             [this](const MachineProcessingEvent& e) {
@@ -148,7 +129,6 @@ public:
     void OnDestroy() override
     {
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
-        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId); // NOWE
         GetScene()->GetWorld().GetEventBus().Unsubscribe<MachineProcessingEvent>(m_ProcessingSubId);
 
         if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
@@ -186,25 +166,79 @@ public:
 
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, highlightColor, 2.0f, false });
         m_WasCorrect = isCorrectOrder;
+
+        // Zmieniamy stan na odliczanie przed zniknięciem (usunięto stąd błędne spawnowanie puffa)
         State = CustomerState::LeavingReaction;
         m_ReactionTimer = 2.0f;
     }
 
     void OnUpdate(Timestep ts) override
     {
+        // Spawning przechodzi przez bazowy CustomerScript (gdzie puff jest wdrożony poprawnie)
+        if (State == CustomerState::Spawning || State == CustomerState::WalkingToChair) {
+            CustomerScript::OnUpdate(ts);
+            return;
+        }
+
         if (State == CustomerState::LeavingReaction) {
             m_ReactionTimer -= ts.GetSeconds();
             if (m_ReactionTimer <= 0.0f) {
-                if (m_WasCorrect) {
-                    State = CustomerState::Seated;
-                    auto* tagComp = GetComponent<TagComponent>();
-                    if (tagComp) tagComp->Tag = "NajedzonyPomocnik";
-                    TeleportToWaitingArea();
+                // Gdy nadszedł moment zniknięcia
+                if (!m_ExitPoofStarted) {
+                    m_ExitPoofStarted = true;
+                    m_ReactionTimer = 2.0f; // Resetujemy timer, dajemy chmurce czas na opadnięcie
+
+                    auto* tf = GetComponent<TransformComponent>();
+                    if (tf)
+                    {
+                        TransformComponent poofTf;
+                        glm::vec3 targetPos = tf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
+                        poofTf.SetPosition(targetPos);
+                        poofTf.SetScale(glm::vec3(1.0f));
+
+                        poofTf.WorldMatrix[3][0] = targetPos.x;
+                        poofTf.WorldMatrix[3][1] = targetPos.y;
+                        poofTf.WorldMatrix[3][2] = targetPos.z;
+
+                        NativeScriptComponent poofNsc;
+                        poofNsc.AddScript<PoofEmitterScript>("PoofEmitterScript");
+
+                        m_ExitPoofEntity = GetScene()->GetWorld().BuildEntity()
+                            .With<TagComponent>({ "PoofEmitter" })
+                            .With<TransformComponent>(poofTf)
+                            .With<NativeScriptComponent>(poofNsc)
+                            .Build();
+
+                        auto* addedNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_ExitPoofEntity);
+                        if (addedNsc && !addedNsc->Scripts.empty() && addedNsc->Scripts[0].Instance)
+                        {
+                            static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
+                        }
+
+                        // Ukrywamy helpera pod mapę, by wydawało się że znika pod dymem
+                        glm::vec3 hidePos = tf->GetPosition();
+                        hidePos.y -= 100.0f;
+                        tf->SetPosition(hidePos);
+                    }
                 }
                 else {
-                    if (!IsPendingDestroy) {
-                        IsPendingDestroy = true;
-                        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
+                    // Puff opadł - usunięcie puffa i teleportacja / destrukcja na dobre
+                    if (m_ExitPoofEntity.id != std::numeric_limits<std::size_t>::max()) {
+                        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ExitPoofEntity });
+                        m_ExitPoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+                    }
+
+                    if (m_WasCorrect) {
+                        State = CustomerState::Seated; // Reset stanu
+                        auto* tagComp = GetComponent<TagComponent>();
+                        if (tagComp) tagComp->Tag = "NajedzonyPomocnik";
+                        TeleportToWaitingArea(); // Skrypt przywróci właściwy Y helperowi
+                    }
+                    else {
+                        if (!IsPendingDestroy) {
+                            IsPendingDestroy = true;
+                            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
+                        }
                     }
                 }
             }
@@ -237,33 +271,22 @@ public:
         }
 
         if (m_IsWaitingForPickup) {
-            m_PulseTimer += ts.GetSeconds();
-            float wave = std::sin(m_PulseTimer * 4.0f);
+            if (m_IsFirstHelperInstance) {
+                m_PulseTimer += ts.GetSeconds();
+                float wave = std::sin(m_PulseTimer * 4.0f);
 
-            auto* myTransform = GetComponent<TransformComponent>();
-            auto* mesh = GetComponent<MeshComponent>();
-
-            if (myTransform) myTransform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
-
-            if (mesh) {
-                float currentOpacity = (wave + 1.0f) * 0.5f * 0.6f;
-                mesh->ShaderName = "HighlightShader";
-
-                if (m_IsHovered) {
-                    // ŻÓŁTY gdy kursor na helperze — priorytet nad różowym
-                    mesh->HighlightColor = glm::vec4(1.0f, 0.9f, 0.0f, currentOpacity);
+                auto* myTransform = GetComponent<TransformComponent>();
+                if (myTransform) {
+                    myTransform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
                 }
-                else if (m_IsFirstHelperInstance) {
-                    // RÓŻOWY puls tylko dla pierwszego helpera
+
+                auto* mesh = GetComponent<MeshComponent>();
+                if (mesh) {
+                    float currentOpacity = (wave + 1.0f) * 0.5f * 0.6f;
+                    mesh->ShaderName = "HighlightShader";
                     mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity);
                 }
-                else {
-                    // Pozostałe helpery: subtelny fioletowy żeby było widać że są klikalne
-                    mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity * 0.4f);
-                }
             }
-
-            m_IsHovered = false; // reset co klatkę
             return;
         }
 
@@ -429,10 +452,6 @@ private:
         tileTf.SetScale({ 0.07f, 0.3f, 0.07f });
         builder.With<TransformComponent>(tileTf);
 
-        // WAŻNE: tile NIE dostaje MeshComponent — tylko pozycja do synchronizacji spadania.
-        // Zamiast tego helper sam renderuje podłogę przez własny shader.
-        // Jeśli potrzebujesz widocznego tile'a, dodaj MeshComponent z powrotem,
-        // ale wtedy tile będzie blokował hover — to był pierwotny problem.
         MeshComponent tileMesh;
         tileMesh.ModelPtr = AssetManager::GetModel("assets://models/wystroj/podloga.gltf");
         builder.With<MeshComponent>(tileMesh);
@@ -449,6 +468,7 @@ private:
                 m_BaseScale = myTransform->GetScale();
                 m_BaseScaleInitialized = true;
             }
+            // Zwracamy helpera w widoczne Y u góry
             myTransform->SetPosition(targetPos + glm::vec3(0.0f, m_CurrentFallY, 0.0f));
             myTransform->SetRotation({ 0.0f, m_WaitingRotation, 0.0f });
         }

@@ -33,7 +33,6 @@ public:
     std::size_t m_ValidationResponseSubId = 0;
     bool IsPendingDestroy = false;
 
-    // G³ówny sk³adnik i dodatkowy wymóg (inny sk³adnik lub maszyna)
     IngredientType WantedIngredient = IngredientType::None;
     OrderSecondaryRequirement SecondaryReq;
 
@@ -45,10 +44,16 @@ public:
     std::size_t m_ServedSubId = 0;
     std::size_t m_OrderSubId = 0;
     float OrderPrice = 50.0f;
+
+    // Zmienne do efektów na wejœcie
     float m_SpawnTimer = 0.0f;
     bool m_PoofPlayed = false;
     bool m_PoofStarted = false;
     Entity m_PoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+
+    // Zmienne do efektów na znikniêcie
+    bool m_ExitPoofStarted = false;
+    Entity m_ExitPoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
     void OnCreate() override
     {
@@ -69,6 +74,7 @@ public:
             m_SpawnTimer = 0.0f;
             m_PoofPlayed = false;
             m_PoofStarted = false;
+            m_ExitPoofStarted = false;
         }
         else {
             struct Combo {
@@ -76,7 +82,6 @@ public:
                 OrderSecondaryRequirement Secondary;
             };
 
-            // BAZA PRZEPISÓW (Generowanie zadañ: G³ówny sk³adnik + Wymóg Maszyny / Wymóg Innego Sk³adnika)
             std::vector<Combo> combos = {
                 { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Garnek", "assets://UI/pot.png" } },
                 { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Deska", "assets://UI/cuttingBoardMachine.png" } },
@@ -102,7 +107,11 @@ public:
             WantedIngredient = selected.Primary;
             SecondaryReq = selected.Secondary;
 
-            State = CustomerState::Seated;
+            State = CustomerState::Spawning;
+            m_SpawnTimer = 0.0f;
+            m_PoofPlayed = false;
+            m_PoofStarted = false;
+            m_ExitPoofStarted = false;
         }
 
         OrderTaken = false;
@@ -112,10 +121,6 @@ public:
         OrderPrice = prices[priceDist(gen)];
 
         auto& bus = GetScene()->GetWorld().GetEventBus();
-
-        if (!IsGrandma) {
-            bus.Publish(CustomerSeatedEvent{ m_Entity });
-        }
 
         m_ServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
             if (e.Customer.id == m_Entity.id) {
@@ -179,7 +184,7 @@ public:
                 {
                     static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
                     m_PoofStarted = true;
-                    spdlog::info("PoofEmitter uruchomiony poprawnie");
+                    spdlog::info("PoofEmitter uruchomiony poprawnie (Spawn)");
                 }
             }
 
@@ -193,22 +198,76 @@ public:
                     m_PoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
                 }
 
-                State = CustomerState::WalkingToChair;
-
-                auto* animator = GetComponent<AnimatorComponent>();
-                if (animator && animator->AnimatorInstance) {
-                    animator->AnimatorInstance->PlayAnimation("Walk");
+                if (IsGrandma)
+                {
+                    State = CustomerState::WalkingToChair;
+                    auto* animator = GetComponent<AnimatorComponent>();
+                    if (animator && animator->AnimatorInstance) {
+                        animator->AnimatorInstance->PlayAnimation("Walk");
+                    }
+                }
+                else
+                {
+                    State = CustomerState::Seated;
+                    GetScene()->GetWorld().GetEventBus().Publish(CustomerSeatedEvent{ m_Entity });
+                    GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, { 1.0f, 0.8f, 0.2f }, 0.0f, true });
                 }
             }
             return;
         }
 
-        // 1. Sprawdzanie czy klient jest w trakcie odchodzenia (reakcja na jedzenie)
+        // 1. Sprawdzanie czy klient jest w trakcie odchodzenia (po zjedzeniu)
         if (State == CustomerState::LeavingReaction) {
             m_ReactionTimer -= ts.GetSeconds();
+
             if (m_ReactionTimer <= 0.0f && !IsPendingDestroy) {
-                IsPendingDestroy = true;
-                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
+                // Gdy minie 2s na reakcjê (buŸkê), odpalamy puffa i znikamy klienta
+                if (!m_ExitPoofStarted) {
+                    m_ExitPoofStarted = true;
+                    m_ReactionTimer = 2.0f; // Czas potrzebny, aby poof opad³ przed usuniêciem klienta z pamiêci
+
+                    auto* tf = GetComponent<TransformComponent>();
+                    if (tf)
+                    {
+                        TransformComponent poofTf;
+                        glm::vec3 targetPos = tf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
+                        poofTf.SetPosition(targetPos);
+                        poofTf.SetScale(glm::vec3(1.0f));
+
+                        poofTf.WorldMatrix[3][0] = targetPos.x;
+                        poofTf.WorldMatrix[3][1] = targetPos.y;
+                        poofTf.WorldMatrix[3][2] = targetPos.z;
+
+                        NativeScriptComponent poofNsc;
+                        poofNsc.AddScript<PoofEmitterScript>("PoofEmitterScript");
+
+                        m_ExitPoofEntity = GetScene()->GetWorld().BuildEntity()
+                            .With<TagComponent>({ "PoofEmitter" })
+                            .With<TransformComponent>(poofTf)
+                            .With<NativeScriptComponent>(poofNsc)
+                            .Build();
+
+                        auto* addedNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_ExitPoofEntity);
+                        if (addedNsc && !addedNsc->Scripts.empty() && addedNsc->Scripts[0].Instance)
+                        {
+                            static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
+                        }
+
+                        // Z³udzenie znikniêcia: Ukrywamy klienta g³êboko pod map¹
+                        glm::vec3 hidePos = tf->GetPosition();
+                        hidePos.y -= 100.0f;
+                        tf->SetPosition(hidePos);
+                    }
+                }
+                else {
+                    // Puff zakoñczy³ dzia³anie - ca³kowicie niszczymy encje
+                    if (m_ExitPoofEntity.id != std::numeric_limits<std::size_t>::max()) {
+                        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ExitPoofEntity });
+                        m_ExitPoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+                    }
+                    IsPendingDestroy = true;
+                    GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
+                }
             }
             return;
         }
@@ -249,8 +308,8 @@ public:
                     }
 
                     auto& bus = GetScene()->GetWorld().GetEventBus();
-                    bus.Publish(CustomerSeatedEvent{ m_Entity });
-                    bus.Publish(TriggerHighlightEvent{ m_Entity, { 1.0f, 0.8f, 0.2f }, 0.0f, true });
+                    GetScene()->GetWorld().GetEventBus().Publish(CustomerSeatedEvent{ m_Entity });
+                    GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, { 1.0f, 0.8f, 0.2f }, 0.0f, true });
                 }
             }
             else
@@ -265,9 +324,7 @@ public:
         }
     }
 
-    // =========================================================
-    // PRZYWRÓCONA FUNKCJA, KTÓREJ BRAKOWA£O!
-    // =========================================================
+
     bool IsOrderMatching(const std::vector<IngredientType>& ingredientsOnPlate)
     {
         if (ingredientsOnPlate.empty()) return false;
@@ -277,7 +334,6 @@ public:
         }
         return false;
     }
-    // =========================================================
 
     virtual void ReceiveFood(bool isCorrectOrder = true)
     {
@@ -305,6 +361,8 @@ public:
 
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, highlightColor, 2.0f, false });
         m_WasCorrect = isCorrectOrder;
+
+        // Uruchamiamy odliczanie do znikniêcia/puffa
         State = CustomerState::LeavingReaction;
         m_ReactionTimer = 2.0f;
     }
@@ -325,6 +383,10 @@ public:
         if (m_PoofEntity.id != std::numeric_limits<std::size_t>::max())
         {
             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_PoofEntity });
+        }
+        if (m_ExitPoofEntity.id != std::numeric_limits<std::size_t>::max())
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ExitPoofEntity });
         }
     }
 };

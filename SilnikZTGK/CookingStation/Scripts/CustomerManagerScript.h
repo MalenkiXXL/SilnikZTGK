@@ -205,7 +205,6 @@ private:
             CustomerScript::s_GrandmaFinalRotation = finalRotation;
         }
 
-        builder.Build();
         spdlog::info("Zespawnowano nowego {} (Model: {})", isHelper ? "Helpera" : "Klienta", chosenModel);
     }
 
