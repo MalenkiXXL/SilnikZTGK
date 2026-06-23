@@ -95,12 +95,27 @@ public:
                 }
 
                 spdlog::info("Mikser: Rozpoczynam mieszanie (zmiana modelu i dzwiek)!");
+            }else if (m_Ingredients.size() == 1)
+            {
+                GetScene()->GetWorld().GetEventBus().Publish(MachineNeedsMoreIngredientsEvent{
+                        m_Entity, 0.5f
+                });
             }
 
             return true;
         }
 
         return false;
+    }
+
+    void OnHoverCursor() override
+    {
+        if (!m_IsReady && m_Ingredients.size() == 1)
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(MachineNeedsMoreIngredientsEvent{
+                    m_Entity, 0.2f
+            });
+        }
     }
 
     void TryTransferToPlate() override

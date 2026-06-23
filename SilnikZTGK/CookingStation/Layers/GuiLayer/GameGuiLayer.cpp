@@ -151,6 +151,15 @@ void GameGuiLayer::OnAttach()
                         Application::Get().GetEventBus().Publish(e);
                     }
                 );
+
+                m_MachineWarningSubId = m_ActiveScene->GetWorld().GetEventBus().Subscribe<MachineNeedsMoreIngredientsEvent>(
+                        [this](const MachineNeedsMoreIngredientsEvent& e) {
+                            m_MachineWarning.MachineEnt = e.Machine;
+                            m_MachineWarning.Line1 = e.MessageLine1;
+                            m_MachineWarning.Line2 = e.MessageLine2;
+                            m_MachineWarning.Timer = e.Duration;
+                        }
+                );
             }
 
             SetVisible(true);
@@ -186,6 +195,7 @@ void GameGuiLayer::OnDetach()
         if (m_MushroomAppearedSubId != 0) { bus.Unsubscribe<DeliveryMushroomAppearedEvent>(m_MushroomAppearedSubId); m_MushroomAppearedSubId = 0; }
         if (m_DeliveryCollectedSubId != 0) { bus.Unsubscribe<DeliveryCollectedEvent>(m_DeliveryCollectedSubId); m_DeliveryCollectedSubId = 0; }
         if (m_LevelCompletedSubId != 0) { bus.Unsubscribe<LevelCompletedEvent>(m_LevelCompletedSubId); m_LevelCompletedSubId = 0; }
+        if (m_MachineWarningSubId != 0) { bus.Unsubscribe<MachineNeedsMoreIngredientsEvent>(m_MachineWarningSubId); m_MachineWarningSubId = 0; }
     }
 
     auto& appBus = Application::Get().GetEventBus();
@@ -312,8 +322,8 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         }
 
         if (isPlaying) {
-            // ZMIANA: Usuwamy karteczkê tylko, gdy klient faktycznie odchodzi ze sceny,
-            // ALBO jest obs³u¿ony ale jakimœ cudem omin¹³ fazê LeavingReaction
+            // ZMIANA: Usuwamy karteczkï¿½ tylko, gdy klient faktycznie odchodzi ze sceny,
+            // ALBO jest obsï¿½uï¿½ony ale jakimï¿½ cudem ominï¿½ï¿½ fazï¿½ LeavingReaction
             if (!custScript || custScript->IsPendingDestroy ||
                 (custScript->IsServed && custScript->State != CustomerState::LeavingReaction)) {
                 it = m_ActiveOrderTickets.erase(it);
@@ -353,13 +363,13 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
             glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin, currentY };
 
             // ZMIANA: Barwienie karteczki
-            glm::vec4 ticketColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // Domyœlny, bia³y
+            glm::vec4 ticketColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // Domyï¿½lny, biaï¿½y
             if (custScript && custScript->State == CustomerState::LeavingReaction) {
-                if (custScript->m_WasCorrect) ticketColor = { 0.4f, 1.0f, 0.4f, 1.0f }; // Zielonkawy odcieñ (dobrze)
-                else ticketColor = { 1.0f, 0.4f, 0.4f, 1.0f }; // Czerwonawy odcieñ (Ÿle)
+                if (custScript->m_WasCorrect) ticketColor = { 0.4f, 1.0f, 0.4f, 1.0f }; // Zielonkawy odcieï¿½ (dobrze)
+                else ticketColor = { 1.0f, 0.4f, 0.4f, 1.0f }; // Czerwonawy odcieï¿½ (ï¿½le)
             }
 
-            // Przekazanie ticketColor zamiast "na sztywno" bia³ego
+            // Przekazanie ticketColor zamiast "na sztywno" biaï¿½ego
             Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, ticketColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
             if (custScript) {
@@ -503,6 +513,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         }
 
         DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+        DrawMachineWarningInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
 
         if (!GameManagerScript::s_IsTutorialMode)
         {
@@ -675,12 +686,12 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         }
 
 
-            // --- POPRAWKA 2: PRZYCISK HOLD TO SKIP Z TEKSTUR¥ ---
+            // --- POPRAWKA 2: PRZYCISK HOLD TO SKIP Z TEKSTURï¿½ ---
             if (GameManagerScript::s_IsTutorialMode && TutorialManagerScript::s_AllowSkip) {
                 static float skipHoldProgress = 0.0f;
                 static float skipBtnScale = 1.0f;
 
-                // Pobieramy now¹ teksturê (skipTutoButton.png)
+                // Pobieramy nowï¿½ teksturï¿½ (skipTutoButton.png)
                 static std::shared_ptr<Texture> s_SkipBtnTex = nullptr;
                 if (!s_SkipBtnTex) {
                     s_SkipBtnTex = AssetManager::GetTexture("assets://UI/skipTutoButton.png");
@@ -711,8 +722,8 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                         skipHoldProgress = 0.0f;
                         g_TriggerCloudTransition = true;
 
-                        //// --- ROZWI¥ZANIE PROBLEMU Z KAMER¥ ---
-                        //// Resetujemy kamerê na OBECNEJ scenie, zanim silnik skopiuje jej zepsuty stan!
+                        //// --- ROZWIï¿½ZANIE PROBLEMU Z KAMERï¿½ ---
+                        //// Resetujemy kamerï¿½ na OBECNEJ scenie, zanim silnik skopiuje jej zepsuty stan!
                         //if (m_ActiveScene) {
                         //    auto* oldCam = m_ActiveScene->GetCamera();
                         //    if (oldCam) {
@@ -818,12 +829,12 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     }
 
     if (s_CloudTransState > 0) {
-        Input::SetUICaptureMouse(true); // Blokujemy klikanie na czas przejœcia!
+        Input::SetUICaptureMouse(true); // Blokujemy klikanie na czas przejï¿½cia!
         glEnable(GL_BLEND);
         glDisable(GL_DEPTH_TEST);
         Renderer2D::BeginScene(uiProj);
 
-        float speed = 1.5f * dt; // Chmura zas³oni ekran w ~0.6 sekundy
+        float speed = 1.5f * dt; // Chmura zasï¿½oni ekran w ~0.6 sekundy
         if (s_CloudTransState == 1) {
             s_CloudTransProgress += speed;
             if (s_CloudTransProgress >= 1.0f) {
@@ -838,7 +849,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                     }
                 }
 
-                // --- £ADOWANIE SCENY, GDY EKRAN JEST CA£KIEM BIA£Y ---
+                // --- ï¿½ADOWANIE SCENY, GDY EKRAN JEST CAï¿½KIEM BIAï¿½Y ---
                 GameManagerScript::s_IsTutorialMode = false;
                 auto activeScene = SceneManager::NewScene();
                 SceneSerializer serializer(activeScene.get());
@@ -870,12 +881,12 @@ void GameGuiLayer::OnUpdate(Timestep ts)
             }
         }
 
-        // Rysowanie pêczniej¹cej chmurki na³o¿onej na wszystko
+        // Rysowanie pï¿½czniejï¿½cej chmurki naï¿½oï¿½onej na wszystko
         if (m_BookCloudIcon) {
             float t = s_CloudTransProgress;
-            float easeScale = t * t * (3.0f - 2.0f * t); // Smoothstep dla p³ynnego ruchu
+            float easeScale = t * t * (3.0f - 2.0f * t); // Smoothstep dla pï¿½ynnego ruchu
 
-            // Ekstremalnie du¿a skala, ¿eby na pewno przykryæ ca³y ekran
+            // Ekstremalnie duï¿½a skala, ï¿½eby na pewno przykryï¿½ caï¿½y ekran
             float maxCloudSize = std::max(m_ViewportWidth, m_ViewportHeight) * 3.5f;
             float currentSize = maxCloudSize * easeScale;
 
@@ -1346,7 +1357,7 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
     for (size_t i = 0; i < tags->dense.size(); ++i) {
         std::string tag = tags->dense[i].Tag;
 
-        // ZMIANA: Szukamy równie¿ tagów "ZadowolonyKlient" oraz "ZlyKlient", bo klient zmienia swój tag w trakcie reakcji!
+        // ZMIANA: Szukamy rï¿½wnieï¿½ tagï¿½w "ZadowolonyKlient" oraz "ZlyKlient", bo klient zmienia swï¿½j tag w trakcie reakcji!
         if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos ||
             tag == "ZadowolonyKlient" || tag == "ZlyKlient")
         {
@@ -1582,4 +1593,91 @@ void GameGuiLayer::DrawMushroomBubble(float gameX, float gameY, float gameWidth,
 
     Gui::DrawGuiText(line1, line1Pos, textScale, titleColor);
     Gui::DrawGuiText(line2, line2Pos, textScale, titleColor);
+}
+
+void GameGuiLayer::DrawMachineWarningInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt)
+{
+    if (m_MachineWarning.Timer <= 0.0f) return;
+    if (m_MachineWarning.MachineEnt.id == std::numeric_limits<std::size_t>::max()) return;
+    if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
+
+    m_MachineWarning.Timer -= dt;
+
+    auto* transforms = m_ActiveScene->GetWorld().GetComponentVector<TransformComponent>();
+    if (!transforms) return;
+
+    auto* tf = transforms->Get(m_MachineWarning.MachineEnt);
+    if (!tf) return;
+
+    float finalHeightOffset = 1.5f;
+
+    auto* collider = m_ActiveScene->GetWorld().GetComponent<BoxColliderComponent>(m_MachineWarning.MachineEnt);
+    if (collider)
+    {
+        finalHeightOffset = collider->Size.y + 0.2f;
+
+    }
+
+    glm::vec3 machinePos = tf->GetPosition() + glm::vec3(0.0f, finalHeightOffset, 0.0f);
+
+    auto* camera = m_ActiveScene->GetCamera();
+    glm::mat4 view = camera->GetViewMatrix();
+    float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+    float orthoSize = 10.0f * (camera->Zoom / 45.0f);
+    glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+    glm::mat4 viewProj = proj3D * view;
+
+    glm::vec4 clipSpace = viewProj * glm::vec4(machinePos, 1.0f);
+    if (clipSpace.w <= 0.0f) return;
+    glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
+
+    float screenX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
+    float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
+
+    float alpha = std::clamp(m_MachineWarning.Timer / 0.2f, 0.0f, 1.0f);
+
+    float cloudW = 160.0f * baseScale; // Zmniejszone z 200.0f
+    float cloudAspect = m_CoinCloudIcon ? ((float)m_CoinCloudIcon->GetHeight() / (float)m_CoinCloudIcon->GetWidth()) : 0.6f;
+    float cloudH = cloudW * cloudAspect;
+
+    glm::vec2 cloudPos = { screenX - cloudW * 0.5f, screenY - cloudH };
+
+    if (m_CoinCloudIcon) {
+        Renderer2D::DrawQuad(cloudPos, { cloudW, cloudH }, m_CoinCloudIcon, { 1.0f, 1.0f, 1.0f, 0.95f * alpha }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    }
+
+    float textScale = 0.62f * baseScale;
+    float line1W = Gui::MeasureTextWidth(m_MachineWarning.Line1, textScale);
+    float line2W = Gui::MeasureTextWidth(m_MachineWarning.Line2, textScale);
+    float textHeight = Gui::MeasureTextHeight("A", textScale);
+
+    bool hasLine2 = !m_MachineWarning.Line2.empty();
+    float lineSpacing = textHeight * 0.2f;
+    float totalTextHeight = hasLine2 ? (textHeight * 2.0f + lineSpacing) : textHeight;
+
+    float visualBellyCenterY = cloudPos.y + (cloudH * 0.44f);
+
+    float tweakX = 0.0f * baseScale;
+    float tweakY = 0.0f * baseScale;
+
+    float startY = visualBellyCenterY - (totalTextHeight * 0.5f) + tweakY;
+
+    glm::vec2 line1Pos = {
+            cloudPos.x + (cloudW - line1W) * 0.5f + tweakX,
+            startY
+    };
+
+    glm::vec2 line2Pos = {
+            cloudPos.x + (cloudW - line2W) * 0.5f + tweakX,
+            startY + textHeight + lineSpacing
+    };
+
+    glm::vec4 currentTextColor = titleColor;
+    currentTextColor.a *= alpha;
+
+    Gui::DrawGuiText(m_MachineWarning.Line1, line1Pos, textScale, currentTextColor);
+
+    if (hasLine2) {
+        Gui::DrawGuiText(m_MachineWarning.Line2, line2Pos, textScale, currentTextColor);
+    }
 }
