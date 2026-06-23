@@ -114,10 +114,20 @@ struct DishCreatedEvent {
     DishHistory History;
 };
 
+struct OrderSecondaryRequirement {
+    enum class Type { None, Ingredient, Machine };
+
+    Type           RequirementType = Type::None;
+    IngredientType RequiredIngredient = IngredientType::None; 
+    std::string    MachineName = "";                   
+    std::string    MachineIconPath = "";                  
+};
+
 struct ValidateOrderRequestEvent {
     Entity Customer;
     Entity ServedFood;
     IngredientType WantedIngredient;
+    OrderSecondaryRequirement Secondary;
 };
 
 struct ValidateOrderResponseEvent {

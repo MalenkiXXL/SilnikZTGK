@@ -31,7 +31,11 @@ public:
 
     std::size_t m_ValidationResponseSubId = 0;
     bool IsPendingDestroy = false;
+
+    // G³ówny sk³adnik i dodatkowy wymóg (inny sk³adnik lub maszyna)
     IngredientType WantedIngredient = IngredientType::None;
+    OrderSecondaryRequirement SecondaryReq;
+
     bool IsServed = false;
     bool OrderTaken = false;
 
@@ -46,30 +50,56 @@ public:
         auto* tagComp = GetComponent<TagComponent>();
         IsGrandma = (tagComp && tagComp->Tag == "GrandmaCustomer");
 
-        std::vector<IngredientType> menu = { IngredientType::Tomato,
-            IngredientType::Cheese,
-            IngredientType::Ham,
-            IngredientType::Sandwich 
-        };
         std::random_device rd;
         std::mt19937 gen(rd());
 
         if (IsGrandma) {
             WantedIngredient = IngredientType::Sandwich;
+            SecondaryReq.RequirementType = OrderSecondaryRequirement::Type::None;
+
             State = CustomerState::WalkingToChair;
             TargetChair = s_GrandmaTargetChair;
             TargetPos = s_GrandmaTargetPos;
             FinalRotation = s_GrandmaFinalRotation;
         }
         else {
-            std::uniform_int_distribution<> dist(0, (int)menu.size() - 1);
-            WantedIngredient = menu[dist(gen)];
+            struct Combo {
+                IngredientType Primary;
+                OrderSecondaryRequirement Secondary;
+            };
+
+            // BAZA PRZEPISÓW (Generowanie zadañ: G³ówny sk³adnik + Wymóg Maszyny / Wymóg Innego Sk³adnika)
+            std::vector<Combo> combos = {
+                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Garnek", "assets://UI/pot.png" } },
+                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Deska", "assets://UI/cuttingBoardMachine.png" } },
+                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Patelnia", "assets://UI/pan.png" } },
+                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Cheese, "", "" } },
+                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Ham, "", "" } },
+
+                { IngredientType::Cheese, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Deska", "assets://UI/cuttingBoardMachine.png" } },
+                { IngredientType::Cheese, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Tomato, "", "" } },
+
+                { IngredientType::Ham, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Deska", "assets://UI/cuttingBoardMachine.png" } },
+                { IngredientType::Ham, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Patelnia", "assets://UI/pan.png" } },
+
+                { IngredientType::Flour, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Milk, "", "" } },
+                { IngredientType::Flour, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Mikser", "assets://UI/blender.png" } },
+                { IngredientType::Milk, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Mikser", "assets://UI/blender.png" } },
+                { IngredientType::Flour, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Piekarnik", "assets://UI/oven.png" } }
+            };
+
+            std::uniform_int_distribution<> distCombo(0, (int)combos.size() - 1);
+            Combo selected = combos[distCombo(gen)];
+
+            WantedIngredient = selected.Primary;
+            SecondaryReq = selected.Secondary;
+
             State = CustomerState::Seated;
         }
 
         OrderTaken = false;
 
-        std::vector<float> prices = { 25.0f, 50.0f, 75.0f };
+        std::vector<float> prices = { 25.0f, 50.0f, 75.0f, 100.0f };
         std::uniform_int_distribution<> priceDist(0, (int)prices.size() - 1);
         OrderPrice = prices[priceDist(gen)];
 
@@ -82,7 +112,9 @@ public:
         m_ServedSubId = bus.Subscribe<CustomerServedEvent>([this](const CustomerServedEvent& e) {
             if (e.Customer.id == m_Entity.id) {
                 m_ReceivedFood = e.ServedFood;
-                GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderRequestEvent{ m_Entity, e.ServedFood, WantedIngredient });
+                GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderRequestEvent{
+                    m_Entity, e.ServedFood, WantedIngredient, SecondaryReq
+                    });
             }
             });
 
@@ -106,7 +138,7 @@ public:
                 IsPendingDestroy = true;
                 GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
             }
-            return; 
+            return;
         }
 
         if (State == CustomerState::WalkingToChair)
@@ -161,6 +193,9 @@ public:
         }
     }
 
+    // =========================================================
+    // PRZYWRÓCONA FUNKCJA, KTÓREJ BRAKOWA£O!
+    // =========================================================
     bool IsOrderMatching(const std::vector<IngredientType>& ingredientsOnPlate)
     {
         if (ingredientsOnPlate.empty()) return false;
@@ -170,6 +205,7 @@ public:
         }
         return false;
     }
+    // =========================================================
 
     virtual void ReceiveFood(bool isCorrectOrder = true)
     {

@@ -229,13 +229,14 @@ void GameGuiLayer::DrawIconWithText(const std::string& text, const std::shared_p
 
     glm::vec2 mouse = Gui::GetMappedMousePos();
     bool isHoveringCloud = (mouse.x >= cloudPos.x && mouse.x <= cloudPos.x + cloudSize.x &&
-                            mouse.y >= cloudPos.y && mouse.y <= cloudPos.y + cloudSize.y);
+        mouse.y >= cloudPos.y && mouse.y <= cloudPos.y + cloudSize.y);
 
     static bool s_wasMoneyCloudHovered = false;
     if (isHoveringCloud && !s_wasMoneyCloudHovered && !m_IsGamePaused) {
         AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
         s_wasMoneyCloudHovered = true;
-    } else if (!isHoveringCloud) {
+    }
+    else if (!isHoveringCloud) {
         s_wasMoneyCloudHovered = false;
     }
 
@@ -312,8 +313,6 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         }
 
         if (isPlaying) {
-            // ZMIANA: Usuwamy karteczkê tylko, gdy klient faktycznie odchodzi ze sceny,
-            // ALBO jest obs³u¿ony ale jakimœ cudem omin¹³ fazê LeavingReaction
             if (!custScript || custScript->IsPendingDestroy ||
                 (custScript->IsServed && custScript->State != CustomerState::LeavingReaction)) {
                 it = m_ActiveOrderTickets.erase(it);
@@ -352,39 +351,79 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
             glm::vec2 ticketSize = GuiUtils::CalculateAspectSize(ticketTex, ticketHeight);
             glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin, currentY };
 
-            // ZMIANA: Barwienie karteczki
-            glm::vec4 ticketColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // Domyœlny, bia³y
+            glm::vec4 ticketColor = { 1.0f, 1.0f, 1.0f, 1.0f };
             if (custScript && custScript->State == CustomerState::LeavingReaction) {
-                if (custScript->m_WasCorrect) ticketColor = { 0.4f, 1.0f, 0.4f, 1.0f }; // Zielonkawy odcieñ (dobrze)
-                else ticketColor = { 1.0f, 0.4f, 0.4f, 1.0f }; // Czerwonawy odcieñ (Ÿle)
+                if (custScript->m_WasCorrect) ticketColor = { 0.4f, 1.0f, 0.4f, 1.0f };
+                else ticketColor = { 1.0f, 0.4f, 0.4f, 1.0f };
             }
 
-            // Przekazanie ticketColor zamiast "na sztywno" bia³ego
             Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, ticketColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
             if (custScript) {
-                std::shared_ptr<Texture> iconToDraw = nullptr;
-
-                switch (custScript->WantedIngredient) {
-                case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
-                case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
-                case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
-                case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
-                case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
-                case IngredientType::Sandwich:   iconToDraw = AssetManager::GetTexture("assets://UI/sandwich.png"); break;
-                default: iconToDraw = m_QuestionMarkIcon; break;
-                }
-
-                if (iconToDraw) {
-                    float iconH = isFirst ? (70.0f * baseScale) : (40.0f * baseScale);
-                    glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, iconH);
-
-                    glm::vec2 iconPos = {
-                        ticketPos.x + (ticketSize.x - iconSize.x) * 0.5f,
-                        ticketPos.y + (ticketSize.y - iconSize.y) * 0.40f
+                // --- LAMBDA POMOCNICZA DO IKON SK£ADNIKÓW ---
+                auto getIngredientIcon = [&](IngredientType type) -> std::shared_ptr<Texture> {
+                    switch (type) {
+                    case IngredientType::Tomato: return m_TomatoIcon;
+                    case IngredientType::Cheese: return m_CheeseIcon;
+                    case IngredientType::Ham:    return m_HamIcon;
+                    case IngredientType::Milk:   return m_MilkIcon;
+                    case IngredientType::Flour:  return m_FlourIcon;
+                    case IngredientType::Sandwich:   return AssetManager::GetTexture("assets://UI/sandwich.png");
+                    default: return m_QuestionMarkIcon;
+                    }
                     };
 
-                    Renderer2D::DrawQuad(iconPos, iconSize, iconToDraw, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+                // --- POBIERANIE IKON NA PODSTAWIE WYMAGAÑ ---
+                std::shared_ptr<Texture> primaryIcon = getIngredientIcon(custScript->WantedIngredient);
+                std::shared_ptr<Texture> secondaryIcon = nullptr;
+
+                if (custScript->SecondaryReq.RequirementType == OrderSecondaryRequirement::Type::Ingredient) {
+                    secondaryIcon = getIngredientIcon(custScript->SecondaryReq.RequiredIngredient);
+                }
+                else if (custScript->SecondaryReq.RequirementType == OrderSecondaryRequirement::Type::Machine) {
+                    secondaryIcon = AssetManager::GetTexture(custScript->SecondaryReq.MachineIconPath);
+                    if (!secondaryIcon) secondaryIcon = m_QuestionMarkIcon; // Zabezpieczenie przed brakiem pliku
+                }
+
+                if (primaryIcon) {
+                    // WARIANT 1: Tylko jeden cel zamówienia (np. Kanapka dla Babci)
+                    if (!secondaryIcon) {
+                        float iconH = isFirst ? (70.0f * baseScale) : (40.0f * baseScale);
+                        glm::vec2 iconSize = GuiUtils::CalculateAspectSize(primaryIcon, iconH);
+                        glm::vec2 iconPos = {
+                            ticketPos.x + (ticketSize.x - iconSize.x) * 0.5f,
+                            ticketPos.y + (ticketSize.y - iconSize.y) * 0.40f
+                        };
+
+                        Renderer2D::DrawQuad(iconPos, iconSize, primaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+                    }
+                    // WARIANT 2: Z³o¿one zamówienie (Sk³adnik + Sk³adnik lub Sk³adnik + Maszyna)
+                    else {
+                        float iconH = isFirst ? (50.0f * baseScale) : (30.0f * baseScale);
+                        glm::vec2 pSize = GuiUtils::CalculateAspectSize(primaryIcon, iconH);
+                        glm::vec2 sSize = GuiUtils::CalculateAspectSize(secondaryIcon, iconH);
+
+                        float plusScale = isFirst ? (0.6f * baseScale) : (0.4f * baseScale);
+                        std::string plusStr = "+";
+                        float plusW = Gui::MeasureTextWidth(plusStr, plusScale);
+                        float gap = 5.0f * baseScale;
+
+                        float totalW = pSize.x + gap + plusW + gap + sSize.x;
+                        float startX = ticketPos.x + (ticketSize.x - totalW) * 0.5f;
+                        float centerY = ticketPos.y + ticketSize.y * 0.50f;
+
+                        // G³ówny Sk³adnik
+                        glm::vec2 pPos = { startX, centerY - pSize.y * 0.5f };
+                        Renderer2D::DrawQuad(pPos, pSize, primaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+                        // Znak plusa
+                        glm::vec2 plusPos = { startX + pSize.x + gap, centerY - plusScale * 6.0f };
+                        Gui::DrawGuiText(plusStr, plusPos, plusScale, { 0.1f, 0.1f, 0.1f, 1.0f });
+
+                        // Cel poboczny (Sk³adnik/Maszyna)
+                        glm::vec2 sPos = { startX + pSize.x + gap + plusW + gap, centerY - sSize.y * 0.5f };
+                        Renderer2D::DrawQuad(sPos, sSize, secondaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+                    }
 
                     if (!isHelper) {
                         std::string rewardText = std::to_string((int)custScript->OrderPrice);
@@ -407,6 +446,7 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         }
     }
 }
+
 void GameGuiLayer::OnUpdate(Timestep ts)
 {
 #ifdef CS_DISTRIBUTION
@@ -675,96 +715,93 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         }
 
 
-            // --- POPRAWKA 2: PRZYCISK HOLD TO SKIP Z TEKSTUR¥ ---
-            if (GameManagerScript::s_IsTutorialMode && TutorialManagerScript::s_AllowSkip) {
-                static float skipHoldProgress = 0.0f;
-                static float skipBtnScale = 1.0f;
+        if (GameManagerScript::s_IsTutorialMode && TutorialManagerScript::s_AllowSkip) {
+            static float skipHoldProgress = 0.0f;
+            static float skipBtnScale = 1.0f;
 
-                // Pobieramy now¹ teksturê (skipTutoButton.png)
-                static std::shared_ptr<Texture> s_SkipBtnTex = nullptr;
-                if (!s_SkipBtnTex) {
-                    s_SkipBtnTex = AssetManager::GetTexture("assets://UI/skipTutoButton.png");
-                }
-
-                float baseH = 65.0f * baseScale;
-                float baseW = 200.0f * baseScale;
-                if (s_SkipBtnTex && s_SkipBtnTex->GetHeight() > 0) {
-                    float aspect = (float)s_SkipBtnTex->GetWidth() / (float)s_SkipBtnTex->GetHeight();
-                    baseW = baseH * aspect;
-                }
-
-                glm::vec2 basePos = { gameX + gameWidth - baseW - 30.0f * baseScale, gameY + gameHeight - baseH - 30.0f * baseScale };
-
-                glm::vec2 mouse = Gui::GetMappedMousePos();
-                bool isHovered = (mouse.x >= basePos.x && mouse.x <= basePos.x + baseW && mouse.y >= basePos.y && mouse.y <= basePos.y + baseH);
-
-                skipBtnScale += ((isHovered ? 1.08f : 1.0f) - skipBtnScale) * (dt * 15.0f);
-
-                float btnW = baseW * skipBtnScale;
-                float btnH = baseH * skipBtnScale;
-                glm::vec2 btnPos = basePos - glm::vec2((btnW - baseW) * 0.5f, (btnH - baseH) * 0.5f);
-                glm::vec2 btnSize = { btnW, btnH };
-
-                if (isHovered && Input::IsMouseButtonPressed(0)) {
-                    skipHoldProgress += dt * 0.66f;
-                    if (skipHoldProgress >= 1.0f) {
-                        skipHoldProgress = 0.0f;
-                        g_TriggerCloudTransition = true;
-
-                        //// --- ROZWI¥ZANIE PROBLEMU Z KAMER¥ ---
-                        //// Resetujemy kamerê na OBECNEJ scenie, zanim silnik skopiuje jej zepsuty stan!
-                        //if (m_ActiveScene) {
-                        //    auto* oldCam = m_ActiveScene->GetCamera();
-                        //    if (oldCam) {
-                        //        oldCam->Zoom = 45.0f;
-                        //        oldCam->TargetPosition = glm::vec3(0.0f);
-                        //    }
-                        //}
-
-                        //GameManagerScript::s_IsTutorialMode = false;
-                        //auto activeScene = SceneManager::NewScene();
-                        //SceneSerializer serializer(activeScene.get());
-
-                        //if (serializer.Deserialize("assets://levels/level02.json")) {
-                        //    auto windowSize = Input::GetWindowSize();
-                        //    activeScene->SetViewportSize((float)windowSize.first, (float)windowSize.second);
-                        //    Gui::SetScreenSize((float)windowSize.first, (float)windowSize.second);
-
-                        //    activeScene->SetState(SceneState::Play);
-                        //    activeScene->OnRuntimeStart();
-
-                        //    // Zabezpieczenie dla nowej sceny (na wszelki wypadek)
-                        //    auto* newCam = activeScene->GetCamera();
-                        //    if (newCam) {
-                        //        newCam->Zoom = 45.0f;
-                        //        newCam->TargetPosition = glm::vec3(0.0f);
-                        //    }
-
-                        //    Application::Get().GetEventBus().Publish(GameStartedEvent{});
-                        //    Application::Get().GetEventBus().Publish(GameResumedEvent{});
-                        //}
-                        //return;
-                    }
-                }
-                else {
-                    skipHoldProgress -= dt * 2.0f;
-                    if (skipHoldProgress < 0.0f) skipHoldProgress = 0.0f;
-                }
-
-                if (s_SkipBtnTex) {
-                    Renderer2D::DrawQuad(btnPos, btnSize, s_SkipBtnTex, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 1.0f }, { 1.0f, 0.0f });
-
-                    if (skipHoldProgress > 0.0f) {
-                        glm::vec2 fillSize = { btnSize.x * skipHoldProgress, btnSize.y };
-                        glm::vec2 fillUv1 = { skipHoldProgress, 0.0f };
-                        Renderer2D::DrawQuad(btnPos, fillSize, s_SkipBtnTex, glm::vec4(0.85f, 0.55f, 1.0f, 1.0f), { 0.0f, 1.0f }, fillUv1);
-                    }
-                }
-
-                if (isHovered) Input::SetUICaptureMouse(true);
+            static std::shared_ptr<Texture> s_SkipBtnTex = nullptr;
+            if (!s_SkipBtnTex) {
+                s_SkipBtnTex = AssetManager::GetTexture("assets://UI/skipTutoButton.png");
             }
+
+            float baseH = 65.0f * baseScale;
+            float baseW = 200.0f * baseScale;
+            if (s_SkipBtnTex && s_SkipBtnTex->GetHeight() > 0) {
+                float aspect = (float)s_SkipBtnTex->GetWidth() / (float)s_SkipBtnTex->GetHeight();
+                baseW = baseH * aspect;
+            }
+
+            glm::vec2 basePos = { gameX + gameWidth - baseW - 30.0f * baseScale, gameY + gameHeight - baseH - 30.0f * baseScale };
+
+            glm::vec2 mouse = Gui::GetMappedMousePos();
+            bool isHovered = (mouse.x >= basePos.x && mouse.x <= basePos.x + baseW && mouse.y >= basePos.y && mouse.y <= basePos.y + baseH);
+
+            skipBtnScale += ((isHovered ? 1.08f : 1.0f) - skipBtnScale) * (dt * 15.0f);
+
+            float btnW = baseW * skipBtnScale;
+            float btnH = baseH * skipBtnScale;
+            glm::vec2 btnPos = basePos - glm::vec2((btnW - baseW) * 0.5f, (btnH - baseH) * 0.5f);
+            glm::vec2 btnSize = { btnW, btnH };
+
+            if (isHovered && Input::IsMouseButtonPressed(0)) {
+                skipHoldProgress += dt * 0.66f;
+                if (skipHoldProgress >= 1.0f) {
+                    skipHoldProgress = 0.0f;
+                    g_TriggerCloudTransition = true;
+
+                   
+                    //if (m_ActiveScene) {
+                    //    auto* oldCam = m_ActiveScene->GetCamera();
+                    //    if (oldCam) {
+                    //        oldCam->Zoom = 45.0f;
+                    //        oldCam->TargetPosition = glm::vec3(0.0f);
+                    //    }
+                    //}
+
+                    //GameManagerScript::s_IsTutorialMode = false;
+                    //auto activeScene = SceneManager::NewScene();
+                    //SceneSerializer serializer(activeScene.get());
+
+                    //if (serializer.Deserialize("assets://levels/level02.json")) {
+                    //    auto windowSize = Input::GetWindowSize();
+                    //    activeScene->SetViewportSize((float)windowSize.first, (float)windowSize.second);
+                    //    Gui::SetScreenSize((float)windowSize.first, (float)windowSize.second);
+
+                    //    activeScene->SetState(SceneState::Play);
+                    //    activeScene->OnRuntimeStart();
+
+                    //    // Zabezpieczenie dla nowej sceny (na wszelki wypadek)
+                    //    auto* newCam = activeScene->GetCamera();
+                    //    if (newCam) {
+                    //        newCam->Zoom = 45.0f;
+                    //        newCam->TargetPosition = glm::vec3(0.0f);
+                    //    }
+
+                    //    Application::Get().GetEventBus().Publish(GameStartedEvent{});
+                    //    Application::Get().GetEventBus().Publish(GameResumedEvent{});
+                    //}
+                    //return;
+                }
+            }
+            else {
+                skipHoldProgress -= dt * 2.0f;
+                if (skipHoldProgress < 0.0f) skipHoldProgress = 0.0f;
+            }
+
+            if (s_SkipBtnTex) {
+                Renderer2D::DrawQuad(btnPos, btnSize, s_SkipBtnTex, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f), { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+                if (skipHoldProgress > 0.0f) {
+                    glm::vec2 fillSize = { btnSize.x * skipHoldProgress, btnSize.y };
+                    glm::vec2 fillUv1 = { skipHoldProgress, 0.0f };
+                    Renderer2D::DrawQuad(btnPos, fillSize, s_SkipBtnTex, glm::vec4(0.85f, 0.55f, 1.0f, 1.0f), { 0.0f, 1.0f }, fillUv1);
+                }
+            }
+
+            if (isHovered) Input::SetUICaptureMouse(true);
         }
-    
+    }
+
 
     if (m_ShowFPS) {
         static float s_FpsUpdateTimer = 0.0f;
@@ -818,17 +855,17 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     }
 
     if (s_CloudTransState > 0) {
-        Input::SetUICaptureMouse(true); // Blokujemy klikanie na czas przejœcia!
+        Input::SetUICaptureMouse(true); 
         glEnable(GL_BLEND);
         glDisable(GL_DEPTH_TEST);
         Renderer2D::BeginScene(uiProj);
 
-        float speed = 1.5f * dt; // Chmura zas³oni ekran w ~0.6 sekundy
+        float speed = 1.5f * dt; 
         if (s_CloudTransState == 1) {
             s_CloudTransProgress += speed;
             if (s_CloudTransProgress >= 1.0f) {
                 s_CloudTransProgress = 1.0f;
-                s_CloudTransState = 2; // Zmieniamy stan na "odkrywanie"
+                s_CloudTransState = 2; 
 
                 if (m_ActiveScene) {
                     auto* oldCam = m_ActiveScene->GetCamera();
@@ -838,7 +875,6 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                     }
                 }
 
-                // --- £ADOWANIE SCENY, GDY EKRAN JEST CA£KIEM BIA£Y ---
                 GameManagerScript::s_IsTutorialMode = false;
                 auto activeScene = SceneManager::NewScene();
                 SceneSerializer serializer(activeScene.get());
@@ -866,16 +902,14 @@ void GameGuiLayer::OnUpdate(Timestep ts)
             s_CloudTransProgress -= speed;
             if (s_CloudTransProgress <= 0.0f) {
                 s_CloudTransProgress = 0.0f;
-                s_CloudTransState = 0; // Koniec animacji
+                s_CloudTransState = 0; 
             }
         }
 
-        // Rysowanie pêczniej¹cej chmurki na³o¿onej na wszystko
         if (m_BookCloudIcon) {
             float t = s_CloudTransProgress;
-            float easeScale = t * t * (3.0f - 2.0f * t); // Smoothstep dla p³ynnego ruchu
+            float easeScale = t * t * (3.0f - 2.0f * t); 
 
-            // Ekstremalnie du¿a skala, ¿eby na pewno przykryæ ca³y ekran
             float maxCloudSize = std::max(m_ViewportWidth, m_ViewportHeight) * 3.5f;
             float currentSize = maxCloudSize * easeScale;
 
@@ -1034,7 +1068,8 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     if (isHoveringAny && !s_wasEventHovered) {
         AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
         s_wasEventHovered = true;
-    } else if (!isHoveringAny) {
+    }
+    else if (!isHoveringAny) {
         s_wasEventHovered = false;
     }
 
@@ -1246,7 +1281,8 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     if (acceptHit && !s_wasAcceptHit) {
         AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
         s_wasAcceptHit = true;
-    } else if (!acceptHit) {
+    }
+    else if (!acceptHit) {
         s_wasAcceptHit = false;
     }
 
@@ -1254,7 +1290,8 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     if (skipHit && !s_wasSkipHit) {
         AudioEngine::PlayLoopingSound("assets://sounds/hover_in_game.mp3", 0.15f, false);
         s_wasSkipHit = true;
-    } else if (!skipHit) {
+    }
+    else if (!skipHit) {
         s_wasSkipHit = false;
     }
 
@@ -1346,7 +1383,6 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
     for (size_t i = 0; i < tags->dense.size(); ++i) {
         std::string tag = tags->dense[i].Tag;
 
-        // ZMIANA: Szukamy równie¿ tagów "ZadowolonyKlient" oraz "ZlyKlient", bo klient zmienia swój tag w trakcie reakcji!
         if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos ||
             tag == "ZadowolonyKlient" || tag == "ZlyKlient")
         {
