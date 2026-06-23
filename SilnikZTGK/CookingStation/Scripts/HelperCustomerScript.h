@@ -12,6 +12,8 @@
 class HelperCustomerScript : public CustomerScript
 {
 public:
+    bool m_IsHovered = false;
+    bool m_WasHovered = false;
     float m_YOffset = 0.2f;
     float m_ActionYOffset = 0.4f;
     Entity m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -32,12 +34,20 @@ public:
     bool m_BaseScaleInitialized = false;
     float m_PulseTimer = 0.0f;
     std::size_t m_ClickSubId = 0;
+    // NOWE: subskrypcja na hover przez event bus
+    std::size_t m_HoverSubId = 0;
 
     std::shared_ptr<Model> m_OriginalModel = nullptr;
     std::shared_ptr<Model> m_ActionModel = nullptr;
     bool m_IsWorking = false;
     std::size_t m_ProcessingSubId = 0;
 
+    // OnHoverCursor zostawiamy jako fallback — może zadziała gdy tile nie blokuje
+    void OnHoverCursor() override
+    {
+        if (!m_IsWaitingForPickup || m_IsFalling) return;
+        m_IsHovered = true;
+    }
 
     void OnCreate() override
     {
@@ -72,13 +82,13 @@ public:
                     m_IsWaitingForPickup = false;
                     m_IsDragged = true;
                     m_DragDelayTimer = 0.0f;
+                    m_IsHovered = false;
 
                     if (m_IsWorking) {
                         m_IsWorking = false;
                         SwapModel(false);
                     }
 
-                    // Resetujemy skal� do naturalnej i wy��czamy fioletowy shader
                     auto* myTransform = GetComponent<TransformComponent>();
                     if (myTransform) myTransform->SetScale(m_BaseScale);
 
@@ -99,37 +109,46 @@ public:
             }
         );
 
+        // NOWE: subskrybujemy hover przez event bus — działa nawet jeśli tile blokuje OnHoverCursor
+        m_HoverSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityHoveredEvent>(
+            [this](const EntityHoveredEvent& e) {
+                if (e.TargetEntity.id == m_Entity.id && m_IsWaitingForPickup && !m_IsFalling) {
+                    m_IsHovered = true;
+                }
+            }
+        );
 
         m_ProcessingSubId = GetScene()->GetWorld().GetEventBus().Subscribe<MachineProcessingEvent>(
-                [this](const MachineProcessingEvent& e) {
-                    if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max() && e.Machine.id == m_AssignedMachine.id) {
+            [this](const MachineProcessingEvent& e) {
+                if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max() && e.Machine.id == m_AssignedMachine.id) {
 
-                        bool isCuttingBoard = false;
-                        auto* machineTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_AssignedMachine);
-                        if (machineTag && (machineTag->Tag.find("CuttingBoard") != std::string::npos ||
-                                           machineTag->Tag.find("Deska") != std::string::npos ||
-                                           machineTag->Tag.find("deska") != std::string::npos)) {
-                            isCuttingBoard = true;
-                        }
+                    bool isCuttingBoard = false;
+                    auto* machineTag = GetScene()->GetWorld().GetComponent<TagComponent>(m_AssignedMachine);
+                    if (machineTag && (machineTag->Tag.find("CuttingBoard") != std::string::npos ||
+                        machineTag->Tag.find("Deska") != std::string::npos ||
+                        machineTag->Tag.find("deska") != std::string::npos)) {
+                        isCuttingBoard = true;
+                    }
 
-                        if (e.IsProcessing && isCuttingBoard && !m_IsWorking) {
-                            m_IsWorking = true;
-                            SwapModel(true);
-                            PlayAnimation("Cut");
-                        }
-                        else if (!e.IsProcessing && m_IsWorking) {
-                            m_IsWorking = false;
-                            SwapModel(false);
-                            PlayAnimation("SitIdle");
-                        }
+                    if (e.IsProcessing && isCuttingBoard && !m_IsWorking) {
+                        m_IsWorking = true;
+                        SwapModel(true);
+                        PlayAnimation("Cut");
+                    }
+                    else if (!e.IsProcessing && m_IsWorking) {
+                        m_IsWorking = false;
+                        SwapModel(false);
+                        PlayAnimation("SitIdle");
                     }
                 }
+            }
         );
     }
 
     void OnDestroy() override
     {
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId); // NOWE
         GetScene()->GetWorld().GetEventBus().Unsubscribe<MachineProcessingEvent>(m_ProcessingSubId);
 
         if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
@@ -156,7 +175,7 @@ public:
 
         if (isCorrectOrder)
         {
-            if (tagComp) tagComp->Tag = "ZadowolonyKlient"; // Zmieniamy tymczasowo, by narysowa� ikonk� na GUI
+            if (tagComp) tagComp->Tag = "ZadowolonyKlient";
             highlightColor = { 0.1f, 1.0f, 0.2f };
         }
         else
@@ -173,14 +192,13 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
-        // === ZMIANA: Obs�uga czasu reakcji dla Helpera ===
         if (State == CustomerState::LeavingReaction) {
             m_ReactionTimer -= ts.GetSeconds();
             if (m_ReactionTimer <= 0.0f) {
                 if (m_WasCorrect) {
-                    State = CustomerState::Seated; // Reset stanu
+                    State = CustomerState::Seated;
                     auto* tagComp = GetComponent<TagComponent>();
-                    if (tagComp) tagComp->Tag = "NajedzonyPomocnik"; // Zmieniamy na ostateczny tag przed teleportem
+                    if (tagComp) tagComp->Tag = "NajedzonyPomocnik";
                     TeleportToWaitingArea();
                 }
                 else {
@@ -190,7 +208,7 @@ public:
                     }
                 }
             }
-            return; // Przerwij reszt� logiki p�ki �wieci
+            return;
         }
 
         if (!IsServed) return;
@@ -219,22 +237,33 @@ public:
         }
 
         if (m_IsWaitingForPickup) {
-            if (m_IsFirstHelperInstance) {
-                m_PulseTimer += ts.GetSeconds();
-                float wave = std::sin(m_PulseTimer * 4.0f);
+            m_PulseTimer += ts.GetSeconds();
+            float wave = std::sin(m_PulseTimer * 4.0f);
 
-                auto* myTransform = GetComponent<TransformComponent>();
-                if (myTransform) {
-                    myTransform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
+            auto* myTransform = GetComponent<TransformComponent>();
+            auto* mesh = GetComponent<MeshComponent>();
+
+            if (myTransform) myTransform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
+
+            if (mesh) {
+                float currentOpacity = (wave + 1.0f) * 0.5f * 0.6f;
+                mesh->ShaderName = "HighlightShader";
+
+                if (m_IsHovered) {
+                    // ŻÓŁTY gdy kursor na helperze — priorytet nad różowym
+                    mesh->HighlightColor = glm::vec4(1.0f, 0.9f, 0.0f, currentOpacity);
                 }
-
-                auto* mesh = GetComponent<MeshComponent>();
-                if (mesh) {
-                    float currentOpacity = (wave + 1.0f) * 0.5f * 0.6f;
-                    mesh->ShaderName = "HighlightShader";
+                else if (m_IsFirstHelperInstance) {
+                    // RÓŻOWY puls tylko dla pierwszego helpera
                     mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity);
                 }
+                else {
+                    // Pozostałe helpery: subtelny fioletowy żeby było widać że są klikalne
+                    mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity * 0.4f);
+                }
             }
+
+            m_IsHovered = false; // reset co klatkę
             return;
         }
 
@@ -285,11 +314,11 @@ public:
 
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                         m_Entity, highlightColor, 0.8f, false
-                });
+                    });
 
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                         m_AssignedMachine, highlightColor, 0.8f, false
-                });
+                    });
 
                 auto* rels = GetScene()->GetWorld().GetComponentVector<RelationshipComponent>();
                 if (rels) {
@@ -309,7 +338,7 @@ public:
                             if (!isItem) {
                                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                                         childEnt, highlightColor, 0.8f, false
-                                });
+                                    });
                             }
                         }
                     }
@@ -400,6 +429,10 @@ private:
         tileTf.SetScale({ 0.07f, 0.3f, 0.07f });
         builder.With<TransformComponent>(tileTf);
 
+        // WAŻNE: tile NIE dostaje MeshComponent — tylko pozycja do synchronizacji spadania.
+        // Zamiast tego helper sam renderuje podłogę przez własny shader.
+        // Jeśli potrzebujesz widocznego tile'a, dodaj MeshComponent z powrotem,
+        // ale wtedy tile będzie blokował hover — to był pierwotny problem.
         MeshComponent tileMesh;
         tileMesh.ModelPtr = AssetManager::GetModel("assets://models/wystroj/podloga.gltf");
         builder.With<MeshComponent>(tileMesh);
