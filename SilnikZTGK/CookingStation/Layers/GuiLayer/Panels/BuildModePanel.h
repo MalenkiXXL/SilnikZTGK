@@ -45,6 +45,10 @@ private:
     std::shared_ptr<Texture> m_CoinIcon;
     std::shared_ptr<Scene> m_CurrentScene;
 
+    std::shared_ptr<Texture> m_LeftMouseIcon;
+    std::shared_ptr<Texture> m_RightMouseIcon;
+    std::shared_ptr<Texture> m_TabIcon;
+
     std::vector<MachineEntry> m_MachineEntries;
     std::vector<std::pair<Entity, glm::vec3>> m_PreviewGroup;
     Entity m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
