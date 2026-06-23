@@ -8,6 +8,40 @@
 class MixerScript : public MachineScript
 {
 private:
+    IngredientType GetMixerResult() const
+    {
+        bool hasMilk = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Milk) != m_Ingredients.end();
+        bool hasFlour = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Flour) != m_Ingredients.end();
+        bool hasChoppedApple = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedApple) != m_Ingredients.end();
+        bool hasSleepyDust = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::SleepyDust) != m_Ingredients.end();
+        bool hasChoppedRaspberry = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedRaspberry) != m_Ingredients.end();
+
+        // Sprawdzenie dla 3 sk�adnik�w (Szarlotka, �pi�cy Chleb, Babeczka)
+        if (m_Ingredients.size() == 3) {
+            if (hasMilk && hasFlour && hasChoppedApple) return IngredientType::RawApplePie;
+            if (hasMilk && hasFlour && hasSleepyDust) return IngredientType::RawSleepyDough;
+            if (hasMilk && hasFlour && hasChoppedRaspberry) return IngredientType::RawCupcakeDough;
+            return IngredientType::None;
+        }
+
+        // Sprawdzenie dla 2 sk�adnik�w (Ciasto lub Szejki)
+        if (m_Ingredients.size() == 2) {
+            if (!hasMilk) return IngredientType::None;
+            if (hasFlour) return IngredientType::RawDough;
+
+            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Apple) != m_Ingredients.end())
+                return IngredientType::AppleShake;
+            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Raspberry) != m_Ingredients.end())
+                return IngredientType::RaspberryShake;
+            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Strawberry) != m_Ingredients.end())
+                return IngredientType::StrawberryShake;
+            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::CoffeeBeans) != m_Ingredients.end())
+                return IngredientType::CoffeeShake;
+        }
+
+        return IngredientType::None;
+    }
+
     ma_sound* m_MixingSound = nullptr;
 
     void StopMixingSound()
@@ -20,6 +54,55 @@ private:
     }
 
 public:
+    bool CanAcceptIngredient(IngredientType type) override
+    {
+        // Je�li jest ju� gotowe zwyk�e ciasto, pozwalamy TYLKO dorzuci� dodatek
+        if (m_IsReady) {
+            if (GetMixerResult() == IngredientType::RawDough &&
+                (type == IngredientType::ChoppedApple || type == IngredientType::SleepyDust || type == IngredientType::ChoppedRaspberry)) return true;
+            return false;
+        }
+
+        // Limit do 3 sk�adnik�w
+        if (m_Ingredients.size() >= 3) return false;
+
+        // Blokada duplikat�w (nie wrzucamy dw�ch mlek itp.)
+        if (std::find(m_Ingredients.begin(), m_Ingredients.end(), type) != m_Ingredients.end())
+            return false;
+
+        std::vector<IngredientType> testList = m_Ingredients;
+        testList.push_back(type);
+
+        bool hasMilk = std::find(testList.begin(), testList.end(), IngredientType::Milk) != testList.end();
+        bool hasFlour = std::find(testList.begin(), testList.end(), IngredientType::Flour) != testList.end();
+        bool hasApple = std::find(testList.begin(), testList.end(), IngredientType::ChoppedApple) != testList.end();
+        bool hasDust = std::find(testList.begin(), testList.end(), IngredientType::SleepyDust) != testList.end();
+        bool hasRaspberry = std::find(testList.begin(), testList.end(), IngredientType::ChoppedRaspberry) != testList.end();
+
+        // Zezw�l na dobicie do 3 sk�adnik�w TYLKO je�li tworz� co� sensownego
+        if (testList.size() == 3) {
+            return (hasMilk && hasFlour && (hasApple || hasDust || hasRaspberry));
+        }
+
+        // Zezw�l na parowanie okre�lonych rzeczy
+        if (testList.size() == 2) {
+            if (hasMilk) return true; // Mleko z czymkolwiek dozwolonym jest ok
+            if (hasFlour && (hasApple || hasDust || hasRaspberry)) return true; // Dodatek i m�ka mog� czeka� na mleko
+            return false;
+        }
+
+        // Pusty mikser przyjmie ka�dy z dozwolonych startowych sk�adnik�w
+        if (testList.size() == 1) {
+            return type == IngredientType::Flour || type == IngredientType::Milk ||
+                type == IngredientType::ChoppedApple || type == IngredientType::Apple ||
+                type == IngredientType::Raspberry || type == IngredientType::Strawberry ||
+                type == IngredientType::CoffeeBeans || type == IngredientType::SleepyDust ||
+                type == IngredientType::ChoppedRaspberry;
+        }
+
+        return false;
+    }
+
     void OnCreate() override
     {
         MachineScript::OnCreate();
@@ -39,25 +122,19 @@ public:
         // Logika mieszania
         if (!m_IsReady)
         {
-            bool hasFlour = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Flour) != m_Ingredients.end();
-            bool hasMilk = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Milk) != m_Ingredients.end();
-
-            if (hasFlour && hasMilk)
+            if (GetMixerResult() != IngredientType::None)
             {
                 m_CurrentTime += ts.GetSeconds();
                 if (m_CurrentTime >= m_CookTime)
                 {
                     m_IsReady = true;
-
                     StopMixingSound();
-
                     AudioEngine::Play("assets://sounds/dish_ready.mp3");
                     UpdateVisuals();
                 }
             }
         }
 
-        // Automatyzacja 
         if (m_IsAutomated && m_IsReady)
         {
             TryTransferToPlate();
@@ -66,41 +143,35 @@ public:
 
     bool AddIngredient(IngredientType type) override
     {
-        if (m_IsReady || m_Ingredients.size() >= 2) return false;
+        if (!CanAcceptIngredient(type)) return false;
 
-        if (type == IngredientType::Flour || type == IngredientType::Milk)
+        m_Ingredients.push_back(type);
+        m_IsReady = false;
+        m_CurrentTime = 0.0f;
+        spdlog::info("Mikser: Przyjeto skladnik!");
+
+        if (GetMixerResult() != IngredientType::None)
         {
-            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), type) != m_Ingredients.end())
+            auto* meshComp = GetComponent<MeshComponent>();
+            if (meshComp)
             {
-                spdlog::warn("Mikser: Ten skladnik juz tu jest!");
-                return false;
+                meshComp->Path = "assets://models/przybory_kuchenne/mikser/blender_on.gltf";
+                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
             }
 
-            m_Ingredients.push_back(type);
-            m_IsReady = false;
-            m_CurrentTime = 0.0f;
-            spdlog::info("Mikser: Przyjeto skladnik!");
-
-            if (m_Ingredients.size() == 2)
-            {
-                auto* meshComp = GetComponent<MeshComponent>();
-                if (meshComp)
-                {
-                    meshComp->Path = "assets://models/przybory_kuchenne/mikser/blender_on.gltf";
-                    meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
-                }
-
-                if (!m_MixingSound) {
-                    m_MixingSound = AudioEngine::PlayLoopingSound("CookingStation/Assets/sounds/mixer.mp3", 0.15f);
-                }
-
-                spdlog::info("Mikser: Rozpoczynam mieszanie (zmiana modelu i dzwiek)!");
+            if (!m_MixingSound) {
+                m_MixingSound = AudioEngine::PlayLoopingSound("CookingStation/Assets/sounds/mixer.mp3", 0.15f);
             }
 
-            return true;
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+            }
+
+            spdlog::info("Mikser: Rozpoczynam mieszanie (zmiana modelu i dzwiek)!");
         }
 
-        return false;
+        return true;
     }
 
     void TryTransferToPlate() override
@@ -125,9 +196,9 @@ public:
 
             if (pScript)
             {
-                if (pScript->AddIngredient(IngredientType::RawDough))
+                if (pScript->AddIngredient(GetMixerResult()))
                 {
-                    spdlog::info("Mikser: Ciasto logicznie przeniesione na talerz!");
+                    spdlog::info("Mikser: Produkt logicznie przeniesiony na talerz!");
                     ClearHighlight();
                     if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->DestroyEntity(m_SpawnedFood);
@@ -141,7 +212,6 @@ public:
         {
             spdlog::warn("Mikser: Brakuje talerza! Podstaw talerz, zeby wyciagnac ciasto.");
             AudioEngine::Play("assets://sounds/error.mp3");
-
         }
     }
 
@@ -162,7 +232,7 @@ protected:
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            m_SpawnedFood = SpawnMachineFood(IngredientType::RawDough, "WyrobioneCiasto");
+            m_SpawnedFood = SpawnMachineFood(GetMixerResult(), "GotowyProduktZMiksera");
 
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)
@@ -172,17 +242,17 @@ protected:
 
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_SpawnedFood, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
-            });
+                });
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_Entity, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
-            });
+                });
 
             DishHistory history;
             history.BaseIngredients = m_Ingredients;
             history.OriginMachine = "Mixer";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
 
-            spdlog::info("Mikser: Ciasto gotowe!");
+            spdlog::info("Mikser: Gotowe!");
         }
         else
         {
@@ -207,4 +277,4 @@ protected:
     {
         PlaceSpawnedFoodOnPlate(plate);
     }
-};
+};  

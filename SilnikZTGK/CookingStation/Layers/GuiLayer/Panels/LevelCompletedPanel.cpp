@@ -5,6 +5,8 @@
 #include "CookingStation/Core/Application.h"
 #include "CookingStation/Events/GameEvents.h"
 #include <spdlog/spdlog.h>
+#include <cmath>     
+#include <algorithm> 
 
 LevelCompletedPanel::LevelCompletedPanel() {}
 
@@ -33,12 +35,11 @@ void LevelCompletedPanel::Show(int earnedMoney, int stars) {
 void LevelCompletedPanel::OnUpdate(float dt) {
     if (!m_IsOpen) return;
 
+    m_AnimationTimer += dt;
+
     if (m_AnimationTimer < ANIMATION_DURATION) {
-        m_AnimationTimer += dt;
         float progress = std::min(m_AnimationTimer / ANIMATION_DURATION, 1.0f);
-
         float easeOut = 1.0f - (1.0f - progress) * (1.0f - progress);
-
         m_DisplayMoney = easeOut * m_EarnedMoney;
     }
     else {
@@ -53,34 +54,63 @@ void LevelCompletedPanel::Draw(float screenW, float screenH, float baseScale) {
     float bgH = bgW * ((float)m_BgTexture->GetHeight() / (float)m_BgTexture->GetWidth());
     glm::vec2 bgPos = { (screenW - bgW) * 0.5f, (screenH - bgH) * 0.5f };
 
-    // T³o (Dream Completed)
     Renderer2D::DrawQuad(bgPos, { bgW, bgH }, m_BgTexture, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
-    // --- UK£AD GWIAZDEK (£UK) ---
-    float starW = 120.0f * baseScale;
-    float starH = starW;
-    float midStarW = starW * 1.25f;
-    float midStarH = starH * 1.25f;
+    float baseStarW = 120.0f * baseScale;
+    float baseStarH = baseStarW;
+    float baseMidStarW = baseStarW * 1.25f;
+    float baseMidStarH = baseStarH * 1.25f;
 
     float spacing = 20.0f * baseScale;
-    float totalStarsW = starW + spacing + midStarW + spacing + starW;
+    float totalStarsW = baseStarW + spacing + baseMidStarW + spacing + baseStarW;
     float startX = bgPos.x + (bgW - totalStarsW) * 0.5f;
 
     // Gwiazdki wy¿ej nad panelem
     float sideStarY = bgPos.y - 75.0f * baseScale;
     float midStarY = sideStarY - 35.0f * baseScale;
 
-    auto texLeft = (m_Stars >= 1) ? m_LeftStarYellow : m_LeftStarGrey;
-    auto texMiddle = (m_Stars >= 2) ? m_MiddleStarYellow : m_MiddleStarGrey;
-    auto texRight = (m_Stars == 3) ? m_RightStarYellow : m_RightStarGrey;
-
     float leftX = startX;
-    float midX = leftX + starW + spacing;
-    float rightX = midX + midStarW + spacing;
+    float midX = leftX + baseStarW + spacing;
+    float rightX = midX + baseMidStarW + spacing;
 
-    if (texLeft) Renderer2D::DrawQuad({ leftX, sideStarY }, { starW, starH }, texLeft, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-    if (texMiddle) Renderer2D::DrawQuad({ midX, midStarY }, { midStarW, midStarH }, texMiddle, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-    if (texRight) Renderer2D::DrawQuad({ rightX, sideStarY }, { starW, starH }, texRight, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+    float trigger1 = 0.3f; // Kiedy zapala siê 1 gwiazdka (Lewa)
+    float trigger2 = 0.7f; // Kiedy zapala siê 2 gwiazdka (Prawa)
+    float trigger3 = 1.1f; // Kiedy zapala siê 3 gwiazdka (Œrodkowa)
+    float popDuration = 0.4f; // Jak d³ugo trwa powiêkszenie
+
+    // Funkcja wyliczaj¹ca p³ynn¹ skalê (powiêksza o 40% w szczycie sinusa)
+    auto getScale = [&](float trigger) {
+        if (m_AnimationTimer >= trigger && m_AnimationTimer < trigger + popDuration) {
+            float t = (m_AnimationTimer - trigger) / popDuration; // Zmienna od 0.0 do 1.0
+            return 1.0f + 0.4f * std::sin(t * 3.14159265f); // 3.14 to po³owa cyklu sinusa
+        }
+        return 1.0f; // Domyœlna skala przed i po animacji
+        };
+
+    // ZMIANA: Przypisanie czasów i wymaganej liczby gwiazdek do nowej kolejnoœci
+    float scaleLeft = (m_Stars >= 1) ? getScale(trigger1) : 1.0f;
+    float scaleRight = (m_Stars >= 2) ? getScale(trigger2) : 1.0f; // Prawa zapala siê jako druga
+    float scaleMid = (m_Stars == 3) ? getScale(trigger3) : 1.0f; // Œrodkowa zapala siê jako trzecia
+
+    // ZMIANA: Wybieramy z³ot¹ teksturê zgodnie z now¹ kolejnoœci¹
+    auto texLeft = (m_Stars >= 1 && m_AnimationTimer >= trigger1) ? m_LeftStarYellow : m_LeftStarGrey;
+    auto texRight = (m_Stars >= 2 && m_AnimationTimer >= trigger2) ? m_RightStarYellow : m_RightStarGrey;
+    auto texMiddle = (m_Stars == 3 && m_AnimationTimer >= trigger3) ? m_MiddleStarYellow : m_MiddleStarGrey;
+
+    // Funkcja renderuj¹ca z zachowaniem wyœrodkowania
+    auto drawStar = [&](std::shared_ptr<Texture> tex, float x, float y, float w, float h, float scale) {
+        if (!tex) return;
+        float finalW = w * scale;
+        float finalH = h * scale;
+        float finalX = x - (finalW - w) * 0.5f;
+        float finalY = y - (finalH - h) * 0.5f;
+        Renderer2D::DrawQuad({ finalX, finalY }, { finalW, finalH }, tex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+        };
+
+    // Rysowanie poszczególnych gwiazdek (tutaj kolejnoœæ wywo³añ nie ma znaczenia, licz¹ siê parametry wy¿ej)
+    drawStar(texLeft, leftX, sideStarY, baseStarW, baseStarH, scaleLeft);
+    drawStar(texMiddle, midX, midStarY, baseMidStarW, baseMidStarH, scaleMid);
+    drawStar(texRight, rightX, sideStarY, baseStarW, baseStarH, scaleRight);
 
     // --- ANIMOWANY TEKST PIENIÊDZY ---
     std::string moneyText = "$" + std::to_string((int)m_DisplayMoney);
@@ -116,7 +146,7 @@ bool LevelCompletedPanel::OnEvent(Event& e) {
 
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<MouseButtonPressedEvent>([this](MouseButtonPressedEvent& ev) {
-        if (ev.GetButton() == 0) { 
+        if (ev.GetButton() == 0) {
             glm::vec2 mousePos = Gui::GetMappedMousePos();
 
             if (mousePos.x >= m_BtnPos.x && mousePos.x <= m_BtnPos.x + m_BtnSize.x &&

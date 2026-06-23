@@ -84,7 +84,8 @@ private:
     std::size_t m_ValidateOrderSubId = 0;
     int m_CustomersServed = 0;
     int m_TotalMoneyEarned = 0;
-    const int MAX_CUSTOMERS = 10;;
+    const int MAX_CUSTOMERS = 15;;
+
 
     //questy
     QuestEventState m_CurrentQuestState = QuestEventState::WaitingForTimer;
