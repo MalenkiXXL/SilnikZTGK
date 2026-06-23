@@ -52,6 +52,8 @@ public:
                 m_CrateIngredient = IngredientType::Strawberry;
             else if (name.find("CoffeeBeans") != std::string::npos || name.find("Kawa") != std::string::npos || name.find("Ziarna") != std::string::npos)
                 m_CrateIngredient = IngredientType::CoffeeBeans;
+            else if (name.find("SleepyDust") != std::string::npos || name.find("Pyl") != std::string::npos)
+                m_CrateIngredient = IngredientType::SleepyDust;
         }
 
         if (m_CrateIngredient == IngredientType::None) {
@@ -215,6 +217,7 @@ private:
         case IngredientType::Raspberry: return "assets://models/skladniki/malina/malina.gltf";
         case IngredientType::Strawberry: return "assets://models/skladniki/truskawka/strawberry.gltf";
         case IngredientType::CoffeeBeans: return "assets://models/skladniki/napoje/ziarnokawy.gltf";
+        case IngredientType::SleepyDust: return "assets://models/skladniki/pyl/pyl.gltf";
         default: return "";
         }
     }
@@ -332,7 +335,8 @@ private:
             IngredientMetadata meta = GetIngredientMetadata(m_CrateIngredient);
             tc.SetScale(meta.scale);
             tc.SetRotation(meta.rotation);
-            tc.SetPosition(spawnPos);
+            // Dodajemy offset początkowy, żeby obiekt zespawnował się niżej
+            tc.SetPosition(spawnPos + meta.offset);
             builder.With<TransformComponent>(tc);
 
             MeshComponent mesh;
@@ -341,6 +345,9 @@ private:
 
             BoxColliderComponent collider;
             collider.Size = glm::vec3(0.5f) / meta.scale;
+            // Magia fizyki: odwracamy offset dla kolajdera.
+            // Dzięki temu fizyka kładzie niewidzialny blok na taśmie, wciskając model graficzny idealnie w dół.
+            collider.Offset = -meta.offset / meta.scale;
             builder.With<BoxColliderComponent>(collider);
 
             NativeScriptComponent nsc;

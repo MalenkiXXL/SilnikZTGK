@@ -13,10 +13,14 @@ private:
         bool hasMilk = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Milk) != m_Ingredients.end();
         bool hasFlour = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Flour) != m_Ingredients.end();
         bool hasChoppedApple = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedApple) != m_Ingredients.end();
+        bool hasSleepyDust = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::SleepyDust) != m_Ingredients.end();
+        bool hasChoppedRaspberry = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedRaspberry) != m_Ingredients.end();
 
-        // Sprawdzenie dla 3 sk³adników (tylko Szarlotka)
+        // Sprawdzenie dla 3 sk³adników (Szarlotka, Œpi¹cy Chleb, Babeczka)
         if (m_Ingredients.size() == 3) {
             if (hasMilk && hasFlour && hasChoppedApple) return IngredientType::RawApplePie;
+            if (hasMilk && hasFlour && hasSleepyDust) return IngredientType::RawSleepyDough;
+            if (hasMilk && hasFlour && hasChoppedRaspberry) return IngredientType::RawCupcakeDough;
             return IngredientType::None;
         }
 
@@ -52,9 +56,10 @@ private:
 public:
     bool CanAcceptIngredient(IngredientType type) override
     {
-        // Jeœli jest ju¿ gotowe zwyk³e ciasto, pozwalamy TYLKO dorzuciæ jab³ko
+        // Jeœli jest ju¿ gotowe zwyk³e ciasto, pozwalamy TYLKO dorzuciæ dodatek
         if (m_IsReady) {
-            if (GetMixerResult() == IngredientType::RawDough && type == IngredientType::ChoppedApple) return true;
+            if (GetMixerResult() == IngredientType::RawDough &&
+                (type == IngredientType::ChoppedApple || type == IngredientType::SleepyDust || type == IngredientType::ChoppedRaspberry)) return true;
             return false;
         }
 
@@ -65,26 +70,24 @@ public:
         if (std::find(m_Ingredients.begin(), m_Ingredients.end(), type) != m_Ingredients.end())
             return false;
 
-        // Tworzymy testow¹ listê, ¿eby zobaczyæ co by by³o gdybyœmy przyjêli sk³adnik
         std::vector<IngredientType> testList = m_Ingredients;
         testList.push_back(type);
 
-        // Zezwól na dobicie do 3 sk³adników TYLKO jeœli tworz¹ szarlotkê
+        bool hasMilk = std::find(testList.begin(), testList.end(), IngredientType::Milk) != testList.end();
+        bool hasFlour = std::find(testList.begin(), testList.end(), IngredientType::Flour) != testList.end();
+        bool hasApple = std::find(testList.begin(), testList.end(), IngredientType::ChoppedApple) != testList.end();
+        bool hasDust = std::find(testList.begin(), testList.end(), IngredientType::SleepyDust) != testList.end();
+        bool hasRaspberry = std::find(testList.begin(), testList.end(), IngredientType::ChoppedRaspberry) != testList.end();
+
+        // Zezwól na dobicie do 3 sk³adników TYLKO jeœli tworz¹ coœ sensownego
         if (testList.size() == 3) {
-            bool hasMilk = std::find(testList.begin(), testList.end(), IngredientType::Milk) != testList.end();
-            bool hasFlour = std::find(testList.begin(), testList.end(), IngredientType::Flour) != testList.end();
-            bool hasApple = std::find(testList.begin(), testList.end(), IngredientType::ChoppedApple) != testList.end();
-            return (hasMilk && hasFlour && hasApple);
+            return (hasMilk && hasFlour && (hasApple || hasDust || hasRaspberry));
         }
 
         // Zezwól na parowanie okreœlonych rzeczy
         if (testList.size() == 2) {
-            bool hasMilk = std::find(testList.begin(), testList.end(), IngredientType::Milk) != testList.end();
-            bool hasFlour = std::find(testList.begin(), testList.end(), IngredientType::Flour) != testList.end();
-            bool hasApple = std::find(testList.begin(), testList.end(), IngredientType::ChoppedApple) != testList.end();
-
             if (hasMilk) return true; // Mleko z czymkolwiek dozwolonym jest ok
-            if (hasFlour && hasApple) return true; // Jab³ko i m¹ka mog¹ czekaæ na mleko
+            if (hasFlour && (hasApple || hasDust || hasRaspberry)) return true; // Dodatek i m¹ka mog¹ czekaæ na mleko
             return false;
         }
 
@@ -93,7 +96,8 @@ public:
             return type == IngredientType::Flour || type == IngredientType::Milk ||
                 type == IngredientType::ChoppedApple || type == IngredientType::Apple ||
                 type == IngredientType::Raspberry || type == IngredientType::Strawberry ||
-                type == IngredientType::CoffeeBeans;
+                type == IngredientType::CoffeeBeans || type == IngredientType::SleepyDust ||
+                type == IngredientType::ChoppedRaspberry;
         }
 
         return false;
@@ -142,11 +146,10 @@ public:
         if (!CanAcceptIngredient(type)) return false;
 
         m_Ingredients.push_back(type);
-        m_IsReady = false; // Jeœli dorzuciliœmy jab³ko do ciasta, maszyna znów musi chwilê pokrêciæ
+        m_IsReady = false;
         m_CurrentTime = 0.0f;
         spdlog::info("Mikser: Przyjeto skladnik!");
 
-        // W³¹czamy model dzia³ania i dŸwiêk, jeœli zestaw tworzy gotowy produkt (Ciasto, Szejk, Szarlotkê)
         if (GetMixerResult() != IngredientType::None)
         {
             auto* meshComp = GetComponent<MeshComponent>();
@@ -273,4 +276,4 @@ protected:
     {
         PlaceSpawnedFoodOnPlate(plate);
     }
-};
+};  

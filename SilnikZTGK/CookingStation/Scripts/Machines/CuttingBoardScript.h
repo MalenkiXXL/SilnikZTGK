@@ -37,6 +37,8 @@ private:
             return { "assets://models/skladniki/pomidor/mozzarella.gltf", "assets://models/skladniki/pomidor/mozzarella-pokrojona.gltf" };
         case IngredientType::Apple:
             return { "assets://models/skladniki/jablko/apple1.gltf", "assets://models/skladniki/pomidor/pomidor-pokrojony.gltf" };
+        case IngredientType::Raspberry:
+            return { "assets://models/skladniki/malina/malina.gltf", "assets://models/skladniki/szynka/szynka-pokrojona.gltf" };
         default:
             return { "", "" };
         }
@@ -51,6 +53,7 @@ private:
         case IngredientType::Ham: return IngredientType::ChoppedHam;
         case IngredientType::Mozzarella: return IngredientType::ChoppedMozzarella;
         case IngredientType::Apple: return IngredientType::ChoppedApple;
+        case IngredientType::Raspberry: return IngredientType::ChoppedRaspberry;
         default: return IngredientType::None;
         }
     }
@@ -351,7 +354,8 @@ public:
             type == IngredientType::Cheese ||
             type == IngredientType::Ham ||
             type == IngredientType::Mozzarella ||
-            type == IngredientType::Apple)
+            type == IngredientType::Apple ||
+            type == IngredientType::Raspberry)
         {
             m_Ingredients.push_back(type);
             m_ChopCount = 0;

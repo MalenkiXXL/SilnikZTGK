@@ -11,13 +11,15 @@ public:
     {
         if (m_Ingredients.empty()) return IngredientType::None;
         if (m_Ingredients[0] == IngredientType::RawApplePie) return IngredientType::ApplePie;
+        if (m_Ingredients[0] == IngredientType::RawSleepyDough) return IngredientType::SleepyBread;
+        if (m_Ingredients[0] == IngredientType::RawCupcakeDough) return IngredientType::Cupcake;
         return IngredientType::Baguette;
     }
-
     bool CanAcceptIngredient(IngredientType type) override
     {
         if (m_IsReady || !m_Ingredients.empty()) return false;
-        return type == IngredientType::RawDough || type == IngredientType::RawApplePie;
+        return type == IngredientType::RawDough || type == IngredientType::RawApplePie ||
+            type == IngredientType::RawSleepyDough || type == IngredientType::RawCupcakeDough;
     }
 
     void OnCreate() override
@@ -130,28 +132,34 @@ protected:
 
             IngredientType bakedType = GetBakedType();
 
-            if (bakedType == IngredientType::Baguette && !GameProgress::IsRecipeUnlocked("Baguette"))
-            {
+            if (bakedType == IngredientType::Baguette && !GameProgress::IsRecipeUnlocked("Baguette")) {
                 GameProgress::UnlockRecipe("Baguette");
                 spdlog::info("Piekarnik: Przepis na bagietke odblokowany!");
             }
-            else if (bakedType == IngredientType::ApplePie && !GameProgress::IsRecipeUnlocked("ApplePie"))
-            {
+            else if (bakedType == IngredientType::ApplePie && !GameProgress::IsRecipeUnlocked("ApplePie")) {
                 GameProgress::UnlockRecipe("ApplePie");
                 spdlog::info("Piekarnik: Przepis na szarlotke odblokowany!");
             }
+            else if (bakedType == IngredientType::SleepyBread && !GameProgress::IsRecipeUnlocked("SleepyBread")) {
+                GameProgress::UnlockRecipe("SleepyBread");
+                spdlog::info("Piekarnik: Przepis na spiacy chleb odblokowany!");
+            }
+            else if (bakedType == IngredientType::Cupcake && !GameProgress::IsRecipeUnlocked("Cupcake")) {
+                GameProgress::UnlockRecipe("Cupcake");
+                spdlog::info("Piekarnik: Przepis na babeczke odblokowany!");
+            }
 
             auto* meshComp = GetComponent<MeshComponent>();
-            if (meshComp)
-            {
-                meshComp->Path = "assets://models/przybory_kuchenne/piekarnik/piekarnik.gltf";
-                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
-            }
+            // ... (tutaj bez zmian pobieranie modelu piekarnika)
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            std::string tagStr = (bakedType == IngredientType::ApplePie) ? "SzarlotkaWPiekarniku" : "BagietkaWPiekarniku";
+            std::string tagStr = "BagietkaWPiekarniku";
+            if (bakedType == IngredientType::ApplePie) tagStr = "SzarlotkaWPiekarniku";
+            else if (bakedType == IngredientType::SleepyBread) tagStr = "SpiacyChlebWPiekarniku";
+            else if (bakedType == IngredientType::Cupcake) tagStr = "BabeczkaWPiekarniku";
+
             m_SpawnedFood = SpawnMachineFood(bakedType, tagStr);
 
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);

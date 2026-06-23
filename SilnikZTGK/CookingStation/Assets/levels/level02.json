@@ -3975,7 +3975,7 @@
       },
       "id": 136,
       "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
-      "name": "Skrzynka",
+      "name": "SkrzynkaPyl",
       "position": [
         3.0,
         0.0,
