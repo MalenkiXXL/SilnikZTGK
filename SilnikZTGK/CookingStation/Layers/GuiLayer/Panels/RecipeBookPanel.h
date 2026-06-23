@@ -43,4 +43,10 @@ private:
     std::shared_ptr<Texture> m_EggsAndBaconRecipeTex;
     std::shared_ptr<Texture> m_ShakshukaRecipeTex;
     std::shared_ptr<Texture> m_BaguetteRecipeTex;
+
+    int m_LastUnlockedCount = 0;
+    float m_GlowTimer = 0.0f;
+    float m_GameTime = 0.0f;
+    bool m_HasShownLostHint = false;
+    float m_LostHintTimer = 0.0f;
 };

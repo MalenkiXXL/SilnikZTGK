@@ -287,7 +287,7 @@ void GameGuiLayer::DrawIngredientClouds(float gameX, float gameY, float gameWidt
     }
 }
 
-void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale) {
+void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt) {
     if (!m_ActiveScene) return;
 
     auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
@@ -312,8 +312,7 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         }
 
         if (isPlaying) {
-            // ZMIANA: Usuwamy karteczkê tylko, gdy klient faktycznie odchodzi ze sceny,
-            // ALBO jest obs³u¿ony ale jakimœ cudem omin¹³ fazê LeavingReaction
+            // Usuwamy karteczkê tylko, gdy klient odchodzi, albo jakoœ uciek³ z kolejki
             if (!custScript || custScript->IsPendingDestroy ||
                 (custScript->IsServed && custScript->State != CustomerState::LeavingReaction)) {
                 it = m_ActiveOrderTickets.erase(it);
@@ -323,7 +322,25 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         ++it;
     }
 
-    float currentY = gameY + (15.0f * baseScale);
+    // --- STRUKTURA DO ZARZ¥DZANIA PIÊKNYMI ANIMACJAMI KARTECZEK ---
+    struct TicketAnimState {
+        float introTimer = 0.0f;
+        float currentY = -1.0f;
+        float currentHeight = -1.0f;
+    };
+    static std::unordered_map<std::size_t, TicketAnimState> s_TicketStates;
+
+    // Czyszczenie usuniêtych karteczek z pamiêci
+    for (auto it = s_TicketStates.begin(); it != s_TicketStates.end(); ) {
+        bool found = false;
+        for (auto& cust : m_ActiveOrderTickets) {
+            if (cust.id == it->first) { found = true; break; }
+        }
+        if (!found) it = s_TicketStates.erase(it);
+        else ++it;
+    }
+
+    float targetY = gameY + (15.0f * baseScale);
     float rightMargin = 20.0f * baseScale;
 
     for (size_t i = 0; i < m_ActiveOrderTickets.size(); ++i) {
@@ -342,24 +359,44 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         }
 
         bool isFirst = (i == 0);
-        float ticketHeight = isFirst ? (220.0f * baseScale) : (140.0f * baseScale);
+        float targetHeight = isFirst ? (220.0f * baseScale) : (140.0f * baseScale);
         bool isHelper = (tagComp->Tag.find("HelperCustomer") != std::string::npos);
 
         std::shared_ptr<Texture> ticketTex = isHelper ? m_HelperOrderTex : m_CustomerOrderTex;
         if (!ticketTex) ticketTex = m_BookCloudIcon;
 
         if (ticketTex) {
-            glm::vec2 ticketSize = GuiUtils::CalculateAspectSize(ticketTex, ticketHeight);
-            glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin, currentY };
+            // --- LOGIKA ANIMACJI P£YNNEGO PRZESUWANIA I WJE¯D¯ANIA ---
+            auto& state = s_TicketStates[custEntity.id];
 
-            // ZMIANA: Barwienie karteczki
-            glm::vec4 ticketColor = { 1.0f, 1.0f, 1.0f, 1.0f }; // Domyœlny, bia³y
+            // Wjazd z boku
+            state.introTimer += dt * 3.5f;
+            if (state.introTimer > 1.0f) state.introTimer = 1.0f;
+
+            // Animacja przesuwania w pionie (gdy jedna karteczka znika, reszta p³ynnie jedzie do góry)
+            if (state.currentY < 0.0f) state.currentY = targetY; // Pojawia siê od razu na swoim miejscu
+            else state.currentY += (targetY - state.currentY) * dt * 12.0f; // Miêkki ruch na now¹ pozycjê
+
+            // Animacja roœniêcia (gdy karteczka staje siê t¹ "pierwsz¹" i najwa¿niejsz¹)
+            if (state.currentHeight < 0.0f) state.currentHeight = targetHeight;
+            else state.currentHeight += (targetHeight - state.currentHeight) * dt * 10.0f;
+
+            // Wyliczanie piêknego wyhamowania
+            float easeIn = 1.0f - std::pow(1.0f - state.introTimer, 3.0f);
+            float offsetX = (1.0f - easeIn) * (300.0f * baseScale); // Startuje 300px z prawej krawêdzi
+
+            glm::vec2 ticketSize = GuiUtils::CalculateAspectSize(ticketTex, state.currentHeight);
+            glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin + offsetX, state.currentY };
+
+            glm::vec4 ticketColor = { 1.0f, 1.0f, 1.0f, 1.0f };
             if (custScript && custScript->State == CustomerState::LeavingReaction) {
-                if (custScript->m_WasCorrect) ticketColor = { 0.4f, 1.0f, 0.4f, 1.0f }; // Zielonkawy odcieñ (dobrze)
-                else ticketColor = { 1.0f, 0.4f, 0.4f, 1.0f }; // Czerwonawy odcieñ (Ÿle)
+                if (custScript->m_WasCorrect)
+                    ticketColor = { 0.75f, 1.0f, 0.75f, 1.0f }; // Jasna pastelowa zieleñ
+                else
+                    ticketColor = { 1.0f, 0.75f, 0.75f, 1.0f }; // Malinowy ró¿
             }
 
-            // Przekazanie ticketColor zamiast "na sztywno" bia³ego
+            // Renderowanie samej karteczki
             Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, ticketColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
             if (custScript) {
@@ -376,7 +413,11 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 }
 
                 if (iconToDraw) {
-                    float iconH = isFirst ? (70.0f * baseScale) : (40.0f * baseScale);
+                    // Magiczna interpolacja: zawartoœæ w œrodku roœnie dok³adnie w tym samym tempie co papierowa karteczka!
+                    float t = (state.currentHeight - 140.0f * baseScale) / (80.0f * baseScale);
+                    t = std::clamp(t, 0.0f, 1.0f);
+
+                    float iconH = glm::mix(40.0f * baseScale, 70.0f * baseScale, t);
                     glm::vec2 iconSize = GuiUtils::CalculateAspectSize(iconToDraw, iconH);
 
                     glm::vec2 iconPos = {
@@ -388,10 +429,10 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
 
                     if (!isHelper) {
                         std::string rewardText = std::to_string((int)custScript->OrderPrice);
-                        float textScale = isFirst ? (0.75f * baseScale) : (0.55f * baseScale);
+                        float textScale = glm::mix(0.55f * baseScale, 0.75f * baseScale, t);
                         float textWidth = Gui::MeasureTextWidth(rewardText, textScale);
 
-                        float textYOffset = isFirst ? (18.0f * baseScale) : (12.0f * baseScale);
+                        float textYOffset = glm::mix(12.0f * baseScale, 18.0f * baseScale, t);
                         glm::vec2 textPos = {
                             ticketPos.x + (ticketSize.x - textWidth) * 0.5f,
                             ticketPos.y + ticketSize.y - textYOffset * 2.75f
@@ -403,10 +444,12 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 }
             }
 
-            currentY += ticketHeight + (10.0f * baseScale);
+            // Nastêpna karteczka bêdzie rysowana ni¿ej, u¿ywaj¹c aktualnego (animowanego) rozmiaru 
+            targetY += state.currentHeight + (10.0f * baseScale);
         }
     }
 }
+
 void GameGuiLayer::OnUpdate(Timestep ts)
 {
 #ifdef CS_DISTRIBUTION
@@ -511,7 +554,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
             DrawIngredientClouds(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
             m_RecipeBookPanel.Draw(gameX, gameY, gameWidth, gameHeight, baseScale, dt, m_IsGamePaused);
             DrawCustomerOrders(gameX, gameY, gameWidth, gameHeight, baseScale);
-            DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale);
+            DrawOrderTickets(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
             DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
             m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
             m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
