@@ -119,6 +119,15 @@ public:
         MachineScript::OnUpdate(ts);
         if (m_IsHeld) return;
 
+        if (m_IsReady && !m_IsAutomated && !GlobalIsMachineHeld)
+        {
+            Entity closestPlate = GetClosestAvailablePlate();
+            if (closestPlate.id != std::numeric_limits<std::size_t>::max())
+            {
+                SetPlateHighlight(closestPlate, true);
+            }
+        }
+
         // Logika mieszania
         if (!m_IsReady)
         {
