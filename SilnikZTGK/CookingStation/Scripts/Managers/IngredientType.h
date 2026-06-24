@@ -193,6 +193,10 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
             return { glm::vec3(7.5f), glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f) };
         case IngredientType::RawCupcakeDough:
             return { glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::FriedEgg:
+        case IngredientType::EggWithHam:
+        case IngredientType::Shakshuka:
+            return { glm::vec3(0.35f), glm::vec3(0.0f), glm::vec3(0.0f) };
 
         case IngredientType::Cupcake:
             return { glm::vec3(6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f) };

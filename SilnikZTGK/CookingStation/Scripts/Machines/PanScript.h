@@ -235,10 +235,6 @@ protected:
 
         if (foodTransform && plateTransform && myTransform)
         {
-            glm::vec3 plateScale = plateTransform->GetScale();
-            glm::vec3 myScale = myTransform->GetScale();
-
-            foodTransform->SetScale((myScale * 0.5f) / plateScale);
             foodTransform->SetPosition(glm::vec3(0.0f, 0.2f, 0.0f));
 
             GetScene()->SetParent(m_SpawnedFood, plate);
