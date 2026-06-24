@@ -302,9 +302,6 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
         }
         });
 
-    eventBus.Subscribe<MoneyChangedEvent>([](const MoneyChangedEvent& e) {
-        AudioEngine::Play("assets://sounds/coin.mp3");
-        });
 
     eventBus.Subscribe<OrderFulfilledEvent>([](const OrderFulfilledEvent& e) {
         AudioEngine::Play("assets://sounds/success.mp3");

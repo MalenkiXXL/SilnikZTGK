@@ -2,6 +2,8 @@
 #include "CookingStation/Core/Texture.h"
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Scene/Entity.h"
+#include "CookingStation/Core/AudioEngine.h"
+#include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 #include <glm/glm.hpp>
 #include <vector>
 #include <string>
@@ -25,7 +27,8 @@ public:
     void Deactivate();
     void ForceReset();
 
-    void Toggle() { if (m_IsActive) Deactivate(); else Activate(); }
+    void Toggle() { if (m_IsActive) { Deactivate(); } else Activate();
+        AudioEngine::Play(AudioConfig::BuildModeSound); }
     bool IsActive() const { return m_IsActive; }
 
 private:

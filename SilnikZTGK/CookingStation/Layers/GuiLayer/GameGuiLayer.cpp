@@ -1204,7 +1204,6 @@ void GameGuiLayer::OnEvent(Event& e)
         if (ev.GetKeyCode() == 258 && ev.GetRepeatCode() == 0) {
             if (GameManagerScript::s_IsTutorialMode) return true;
             m_BuildModePanel.Toggle();
-            AudioEngine::Play(AudioConfig::BuildModeSound);
             return true;
         }
         return false;

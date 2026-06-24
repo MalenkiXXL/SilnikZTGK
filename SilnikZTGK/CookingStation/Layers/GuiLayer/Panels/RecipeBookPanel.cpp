@@ -51,7 +51,7 @@ void RecipeBookPanel::Init() {
     m_CupcakeRecipeTex = AssetManager::GetTexture("assets://UI/CupcakeRecipe.png");
     m_CroissantRecipeTex = AssetManager::GetTexture("assets://UI/CroissantRecipe.png");
 
-    m_CoffeeRecipeTex = AssetManager::GetTexture("assets://UI/CoffeRecipe.png");
+    m_CoffeeRecipeTex = AssetManager::GetTexture("assets://UI/CoffeeRecipe.png");
     m_CandyRecipeTex = AssetManager::GetTexture("assets://UI/CandyRecipe.png");
 }
 
@@ -92,7 +92,7 @@ void RecipeBookPanel::DrawRecipeIcon(const std::string& recipeId, const std::str
 
     BubblyUI::DrawBubblyImage(m_BubblyStates, "Recipe_" + recipeId, iconTex, pos, size, dt, isBlocked, 1.15f, true, 0.5f, tint);
 
-    // K³ódka (zostaje na œrodku slota)
+    // Kï¿½ï¿½dka (zostaje na ï¿½rodku slota)
     if (isGrandmaLocked && m_LockClosedIcon) {
         float lockSize = targetWidth * 0.45f;
         float lockAspect = (float)m_LockClosedIcon->GetWidth() / (float)m_LockClosedIcon->GetHeight();
@@ -322,7 +322,7 @@ void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float game
                 { col4, row3 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked);
         }
         else if (m_CurrentPage == 1) {
-            // ZMIANA: Przesuwamy kawê w PRAWO (dodatnia wartoœæ X offsetu)
+            // ZMIANA: Przesuwamy kawï¿½ w PRAWO (dodatnia wartoï¿½ï¿½ X offsetu)
             DrawRecipeIcon("Coffee", "Coffee", m_CoffeeIcon, m_CoffeeRecipeTex,
                 { col1, row1 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked, 0.8f, { 8.0f * baseScale, 0.0f });
 

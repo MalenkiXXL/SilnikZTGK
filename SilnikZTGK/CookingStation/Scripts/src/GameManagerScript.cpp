@@ -381,7 +381,9 @@ int GameManagerScript::GetMoney() {
 }
 
 bool GameManagerScript::AddMoney(int amount) {
+    if (amount <= 0) return false;
     money += amount;
+    AudioEngine::Play("assets://sounds/coin.mp3");
     GetScene()->GetWorld().GetEventBus().Publish(MoneyChangedEvent{ money });
     return true;
 }
@@ -389,6 +391,7 @@ bool GameManagerScript::AddMoney(int amount) {
 bool GameManagerScript::SpendMoney(int amount) {
     if (money >= amount) {
         money -= amount;
+        AudioEngine::Play("assets://sounds/coin.mp3");
         GetScene()->GetWorld().GetEventBus().Publish(MoneyChangedEvent{ money });
         return true;
     }

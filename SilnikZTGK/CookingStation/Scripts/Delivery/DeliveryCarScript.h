@@ -47,5 +47,6 @@ private:
 
     std::size_t m_PauseSubId = 0;
     std::size_t m_ResumeSubId = 0;
+    std::size_t m_MainMenuSubId = 0;
 
 };

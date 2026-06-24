@@ -86,6 +86,15 @@ void DeliveryCarScript::OnCreate()
                 }
             }
     );
+
+    m_MainMenuSubId = appBus.Subscribe<ShowMainMenuEvent>(
+            [this](const ShowMainMenuEvent&) {
+                if (m_EngineSound) {
+                    ma_sound_stop(m_EngineSound);
+                    m_EngineSoundStarted = false;
+                }
+            }
+    );
 }
 
 void DeliveryCarScript::OnDestroy()
@@ -96,6 +105,7 @@ void DeliveryCarScript::OnDestroy()
     auto& appBus = Application::Get().GetEventBus();
     if (m_PauseSubId != 0) appBus.Unsubscribe<GamePausedEvent>(m_PauseSubId);
     if (m_ResumeSubId != 0) appBus.Unsubscribe<GameResumedEvent>(m_ResumeSubId);
+    if (m_MainMenuSubId != 0) appBus.Unsubscribe<ShowMainMenuEvent>(m_MainMenuSubId);
 
     if (m_EngineSound) {
         AudioEngine::StopLoopingSound(m_EngineSound);
