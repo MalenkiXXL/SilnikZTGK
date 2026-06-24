@@ -8,6 +8,8 @@
 #include <glm/glm.hpp>
 #include <limits>
 #include <cmath>
+#include "CookingStation/Core/GridSystem.h"
+#include "CookingStation/Core/AudioEngine.h"
 
 class HelperCustomerScript : public CustomerScript
 {
@@ -328,15 +330,37 @@ public:
 
             float snapX = std::round((mousePos.x - 1.0f) / 2.0f) * 2.0f + 1.0f;
             float snapZ = std::round((mousePos.z - 1.0f) / 2.0f) * 2.0f + 1.0f;
+            glm::vec3 snappedPos = { snapX, m_YOffset, snapZ };
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (myTransform) {
-                myTransform->SetPosition({ snapX, m_YOffset, snapZ });
+                myTransform->SetPosition(snappedPos);
+            }
+
+            // Sprawdzamy czy miejsce jest wolne
+            bool isOccupied = IsTileOccupied(snappedPos);
+            auto* mesh = GetComponent<MeshComponent>();
+
+            // Kolorujemy Helpera podczas trzymania
+            if (mesh) {
+                mesh->ShaderName = "HighlightShader";
+                if (isOccupied) {
+                    mesh->HighlightColor = glm::vec4(0.9f, 0.2f, 0.2f, 0.6f); // Czerwony (zablokowane)
+                }
+                else {
+                    mesh->HighlightColor = glm::vec4(0.2f, 0.9f, 0.2f, 0.6f); // Zielony (wolne)
+                }
             }
 
             m_DragDelayTimer += ts.GetSeconds();
             if (m_DragDelayTimer > 0.15f && Input::IsMouseButtonJustPressed(0)) {
-                m_IsDragged = false;
+                if (!isOccupied) {
+                    m_IsDragged = false;
+                    if (mesh) mesh->ShaderName = "Default"; // Przywracamy normalny wygląd
+                }
+                else {
+                    AudioEngine::Play("assets://sounds/error.mp3"); // Dźwięk błędu!
+                }
             }
             return;
         }
@@ -586,5 +610,66 @@ private:
                 myTf->SetRotation({ 0.0f, angle + m_RotationOffset, 0.0f });
             }
         }
+    }
+    bool IsTileOccupied(glm::vec3 pos)
+    {
+        // Sprawdzamy granice kuchni (jak w BuildMode)
+        if (pos.x < -15.0f || pos.x > 14.0f || pos.z < -18.0f || pos.z > 18.0f) return true;
+
+        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+        auto* colliders = GetScene()->GetWorld().GetComponentVector<BoxColliderComponent>();
+
+        if (!transforms) return false;
+
+        glm::ivec2 targetCell = GridSystem::WorldToCell(pos);
+
+        for (size_t i = 0; i < transforms->dense.size(); ++i) {
+            Entity e = transforms->reverse[i];
+            if (e.id == m_Entity.id) continue; // Ignorujemy samego siebie
+
+            glm::vec3 otherPos = transforms->dense[i].GetPosition();
+            if (otherPos.y < -0.2f) continue; // Podłoga nas nie interesuje
+
+            if (GridSystem::WorldToCell(otherPos) == targetCell) {
+                auto* tagComp = tags ? tags->Get(e) : nullptr;
+                if (tagComp) {
+                    std::string t = tagComp->Tag;
+                    // Ignorujemy wielką podłogę, podglądy i platformy Helperów
+                    if (t.find("Wielka_Pod") != std::string::npos || t.find("__BuildPreview__") != std::string::npos || t.find("HelperFloorTile") != std::string::npos) continue;
+                }
+
+                auto* col = colliders ? colliders->Get(e) : nullptr;
+                if (col) return true; // Cokolwiek z kolizją zajmuje miejsce!
+
+                if (tagComp) {
+                    std::string t = tagComp->Tag;
+                    if (t.find("Table") != std::string::npos ||
+                        t.find("Tasma") != std::string::npos ||
+                        t.find("tasma") != std::string::npos ||
+                        t.find("Conveyor") != std::string::npos ||
+                        t.find("Chair") != std::string::npos ||
+                        t.find("krzeslo") != std::string::npos ||
+                        t.find("Krzeslo") != std::string::npos ||
+                        t.find("wydawka") != std::string::npos ||
+                        t.find("Wydawka") != std::string::npos ||
+                        t.find("naroznik") != std::string::npos ||
+                        t.find("PlateSpawner") != std::string::npos ||
+                        t.find("Garnek") != std::string::npos ||
+                        t.find("Deska") != std::string::npos ||
+                        t.find("Mixer") != std::string::npos ||
+                        t.find("Piekarnik") != std::string::npos ||
+                        t.find("Crate") != std::string::npos ||
+                        t.find("Item") != std::string::npos ||
+                        t.find("Plate") != std::string::npos ||
+                        t.find("NajedzonyPomocnik") != std::string::npos ||
+                        t.find("HelperCustomer") != std::string::npos)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 };
