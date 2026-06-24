@@ -54,6 +54,19 @@ private:
 public:
     bool CanAcceptIngredient(IngredientType type) override
     {
+
+        bool incomingIsRaw = IsRaw(type);
+        bool incomingIsChopped = IsChopped(type);
+
+        for (auto existing : m_Ingredients) {
+            if (incomingIsRaw && IsChopped(existing)) return false;
+            if (incomingIsChopped && IsRaw(existing)) return false;
+        }
+
+        if (m_IsReady && GetMixerResult() == IngredientType::RawDough && incomingIsChopped) {
+            return false;
+        }
+
         if (m_IsReady) {
             if (GetMixerResult() == IngredientType::RawDough &&
                 (type == IngredientType::ChoppedApple || type == IngredientType::SleepyDust || type == IngredientType::ChoppedRaspberry)) return true;

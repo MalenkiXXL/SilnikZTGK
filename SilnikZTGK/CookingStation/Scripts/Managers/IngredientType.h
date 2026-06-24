@@ -370,3 +370,112 @@ inline std::string GetUIIconPathForIngredient(IngredientType type)
         default:                            return "";
     }
 }
+
+inline bool IsRaw(IngredientType type)
+{
+    return type == IngredientType::RawDough ||
+           type == IngredientType::RawPizzaDough ||
+           type == IngredientType::RawApplePie ||
+           type == IngredientType::RawSleepyDough ||
+           type == IngredientType::RawCupcakeDough ||
+           type == IngredientType::RawKopytkaDough;
+}
+
+inline bool IsChopped(IngredientType type)
+{
+    return type == IngredientType::ChoppedTomato ||
+           type == IngredientType::ChoppedMushroom ||
+           type == IngredientType::ChoppedPotato ||
+           type == IngredientType::Carrot ||
+           type == IngredientType::ChoppedApple ||
+           type == IngredientType::ChoppedRaspberry ||
+           type == IngredientType::ChoppedEgg ||
+           type == IngredientType::ChoppedCheese ||
+           type == IngredientType::ChoppedHam ||
+           type == IngredientType::ChoppedMozzarella ||
+           type == IngredientType::CutBaguette;
+}
+
+inline bool IsFinishedDish(IngredientType type)
+{
+    return type == IngredientType::TomatoSoup ||
+           type == IngredientType::Kopytka ||
+           type == IngredientType::GoldenKopytka ||
+           type == IngredientType::Candy ||
+           type == IngredientType::Baguette ||
+           type == IngredientType::ApplePie ||
+           type == IngredientType::SleepyBread ||
+           type == IngredientType::Cupcake ||
+           type == IngredientType::Bread ||
+           type == IngredientType::Cookies ||
+           type == IngredientType::Pizza ||
+           type == IngredientType::MushroomPizza ||
+           type == IngredientType::BakedPizza ||
+           type == IngredientType::CheesePizza ||
+           type == IngredientType::SaucePizza ||
+           type == IngredientType::HamPizza ||
+           type == IngredientType::HamMushroomPizza ||
+           type == IngredientType::HamMushroomTomatoPizza ||
+           type == IngredientType::FriedEgg ||
+           type == IngredientType::EggWithHam ||
+           type == IngredientType::Shakshuka ||
+           type == IngredientType::TomatoCheeseSandwich ||
+           type == IngredientType::HamTomatoSandwich ||
+           type == IngredientType::HamCheeseSandwich ||
+           type == IngredientType::EggSandwich ||
+           type == IngredientType::Caprese ||
+           type == IngredientType::Pancakes ||
+           type == IngredientType::MilkWithHoney ||
+           type == IngredientType::Coffee ||
+           type == IngredientType::MilkCoffee ||
+           type == IngredientType::AppleShake ||
+           type == IngredientType::CoffeeShake ||
+           type == IngredientType::RaspberryShake ||
+           type == IngredientType::StrawberryShake ||
+           type == IngredientType::Noodle ||
+           type == IngredientType::Spaghetti ||
+           type == IngredientType::Ramen ||
+           type == IngredientType::Fries;
+}
+
+inline bool IsSweet(IngredientType type)
+{
+    // Owoce, słodkie wypieki, słodycze
+    return type == IngredientType::Apple ||
+           type == IngredientType::Raspberry ||
+           type == IngredientType::Strawberry ||
+           type == IngredientType::Honey ||
+           type == IngredientType::Candy ||
+           type == IngredientType::ApplePie ||
+           type == IngredientType::Cupcake ||
+           type == IngredientType::ChoppedApple ||
+           type == IngredientType::ChoppedRaspberry ||
+           type == IngredientType::RawApplePie ||
+           type == IngredientType::RawCupcakeDough ||
+           type == IngredientType::Pancakes ||
+           type == IngredientType::AppleShake ||
+           type == IngredientType::RaspberryShake ||
+           type == IngredientType::StrawberryShake;
+}
+
+inline bool IsSavory(IngredientType type)
+{
+    // Warzywa, mięsa, sery, dania główne
+    return type == IngredientType::Tomato ||
+           type == IngredientType::ChoppedTomato ||
+           type == IngredientType::Cheese ||
+           type == IngredientType::ChoppedCheese ||
+           type == IngredientType::Ham ||
+           type == IngredientType::ChoppedHam ||
+           type == IngredientType::Mozzarella ||
+           type == IngredientType::ChoppedMozzarella ||
+           type == IngredientType::Potato ||
+           type == IngredientType::ChoppedPotato ||
+           type == IngredientType::Mushroom ||
+           type == IngredientType::ChoppedMushroom ||
+           type == IngredientType::Carrot ||
+           type == IngredientType::Baguette ||
+           type == IngredientType::CutBaguette ||
+           type == IngredientType::Egg ||
+           type == IngredientType::ChoppedEgg;
+}

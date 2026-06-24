@@ -20,9 +20,91 @@ public:
 
     bool AddIngredient(IngredientType type)
     {
-        if (m_CompletedDish != IngredientType::None) return false;
+        if (m_CompletedDish != IngredientType::None)
+        {
+            spdlog::warn("Talerz: Nie można dodawać składników do gotowego dania!");
+            AudioEngine::Play("assets://sounds/error.mp3");
+            return false;
+        }
 
-        if (m_Ingredients.size() >= 5) return false;
+        for (auto existing : m_Ingredients)
+        {
+            if (IsFinishedDish(existing))
+            {
+                spdlog::warn("Talerz: Nie można dodawać składników do gotowego dania!");
+                AudioEngine::Play("assets://sounds/error.mp3");
+                return false;
+            }
+        }
+
+        if (!m_Ingredients.empty() && IsFinishedDish(type))
+        {
+            spdlog::warn("Talerz: Nie można położyć gotowego dania na talerz z innymi składnikami!");
+            AudioEngine::Play("assets://sounds/error.mp3");
+            return false;
+        }
+
+        if (!m_Ingredients.empty() && !m_VisualModels.empty() && IsFinishedDish(type))
+        {
+            spdlog::warn("Talerz: Nie można położyć gotowego dania na talerz z innymi składnikami!");
+            AudioEngine::Play("assets://sounds/error.mp3");
+            return false;
+        }
+
+        if (m_Ingredients.size() >= 5)
+        {
+            spdlog::warn("Talerz: Osiągnięto limit składników (5)!");
+            AudioEngine::Play("assets://sounds/error.mp3");
+            return false;
+        }
+
+        if (std::find(m_Ingredients.begin(), m_Ingredients.end(), type) != m_Ingredients.end())
+        {
+            spdlog::warn("Talerz: Taki składnik ({}) już leży na talerzu!", IngredientTypeToString(type));
+            AudioEngine::Play("assets://sounds/error.mp3");
+            return false;
+        }
+
+        bool incomingIsRaw = IsRaw(type);
+        bool incomingIsChopped = IsChopped(type);
+
+        for (auto existing : m_Ingredients)
+        {
+            if (incomingIsRaw && IsChopped(existing))
+            {
+                spdlog::warn("Talerz: Zakaz kładzenia surowego na pokrojone!");
+                AudioEngine::Play("assets://sounds/error.mp3");
+                return false;
+            }
+            if (incomingIsChopped && IsRaw(existing))
+            {
+                spdlog::warn("Talerz: Zakaz kładzenia pokrojonego na surowe!");
+                AudioEngine::Play("assets://sounds/error.mp3");
+                return false;
+            }
+        }
+
+        if (!m_Ingredients.empty())
+        {
+            bool incomingIsSweet = IsSweet(type);
+            bool incomingIsSavory = IsSavory(type);
+
+            for (auto existing : m_Ingredients)
+            {
+                if (incomingIsSweet && IsSavory(existing))
+                {
+                    spdlog::warn("Talerz: Nie można kłaść słodkiego na słone!");
+                    AudioEngine::Play("assets://sounds/error.mp3");
+                    return false;
+                }
+                if (incomingIsSavory && IsSweet(existing))
+                {
+                    spdlog::warn("Talerz: Nie można kłaść słonego na słodkie!");
+                    AudioEngine::Play("assets://sounds/error.mp3");
+                    return false;
+                }
+            }
+        }
 
         auto* tagSet = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         if (tagSet)
@@ -34,7 +116,8 @@ public:
                     Entity childEntity = tagSet->reverse[i];
                     if (GetScene()->GetParent(childEntity).id == m_Entity.id)
                     {
-                        spdlog::warn("Talerz ma juz gotowe danie z maszyny!");
+                        spdlog::warn("Talerz ma już gotowe danie z maszyny!");
+                        AudioEngine::Play("assets://sounds/error.mp3");
                         return false;
                     }
                 }
@@ -51,12 +134,12 @@ public:
 
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                 m_Entity, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
-            });
+        });
 
         for (Entity e : m_VisualModels) {
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     e, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
-                });
+            });
         }
 
         return true;
