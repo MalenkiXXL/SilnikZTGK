@@ -90,7 +90,15 @@ public:
         }
 
         auto* tagComp = GetScene()->GetWorld().GetComponent<TagComponent>(dishEntity);
-        if (tagComp) tagComp->Tag = "UgotowaneDanie";
+        if (tagComp)
+        {
+            if (tagComp->Tag == "BagietkaWPiekarniku") m_CompletedDish = IngredientType::Baguette;
+            else if (tagComp->Tag == "SzarlotkaWPiekarniku") m_CompletedDish = IngredientType::ApplePie;
+            else if (tagComp->Tag == "SpiacyChlebWPiekarniku") m_CompletedDish = IngredientType::SleepyBread;
+            else if (tagComp->Tag == "BabeczkaWPiekarniku") m_CompletedDish = IngredientType::Cupcake;
+
+            tagComp->Tag = "UgotowaneDanie";
+        }
 
         auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(dishEntity);
         if (foodTransform) {
