@@ -89,15 +89,12 @@ public:
 
             std::vector<Combo> combos = {
                 { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Garnek", "assets://UI/pot.png" } },
-                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Deska", "assets://UI/cuttingBoardMachine.png" } },
                 { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Patelnia", "assets://UI/pan.png" } },
                 { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Cheese, "", "" } },
                 { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Ham, "", "" } },
 
-                { IngredientType::Cheese, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Deska", "assets://UI/cuttingBoardMachine.png" } },
                 { IngredientType::Cheese, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Tomato, "", "" } },
 
-                { IngredientType::Ham, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Deska", "assets://UI/cuttingBoardMachine.png" } },
                 { IngredientType::Ham, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Patelnia", "assets://UI/pan.png" } },
 
                 { IngredientType::Flour, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Milk, "", "" } },

@@ -3,6 +3,98 @@
 #include "CookingStation/Scripts/Managers/CloudManagerScript.h"
 #include "CookingStation/Scripts/Managers/HighlightManagerScript.h"
 #include <spdlog/spdlog.h>
+#include <string>
+#include <unordered_map>
+
+namespace {
+    bool IsRawProcessedPair(IngredientType have, IngredientType want) {
+        struct Pair { IngredientType Raw; IngredientType Processed; };
+        static const Pair pairs[] = {
+            { IngredientType::Tomato,     IngredientType::ChoppedTomato },
+            { IngredientType::Cheese,     IngredientType::ChoppedCheese },
+            { IngredientType::Ham,        IngredientType::ChoppedHam },
+            { IngredientType::Mozzarella, IngredientType::ChoppedMozzarella },
+            { IngredientType::Apple,      IngredientType::ChoppedApple },
+            { IngredientType::Raspberry,  IngredientType::ChoppedRaspberry },
+            { IngredientType::Baguette,   IngredientType::CutBaguette },
+
+            // --- DODANE ŁATKI DLA PIEKARNIKA I MIKSERA ---
+            { IngredientType::Flour,      IngredientType::RawDough },
+            { IngredientType::Flour,      IngredientType::Baguette },
+            { IngredientType::Milk,       IngredientType::RawDough },
+            { IngredientType::Milk,       IngredientType::Baguette }
+        };
+
+        for (const auto& p : pairs) {
+            if (want == p.Raw && have == p.Processed) return true;
+            if (want == p.Processed && have == p.Raw) return true;
+        }
+        return false;
+    }
+
+    bool IngredientSatisfiesRequirement(IngredientType have, IngredientType want) {
+        return have == want || IsRawProcessedPair(have, want);
+    }
+
+    bool OriginMachineMatches(const std::string& recordedOrigin, const std::string& wantedDisplayName) {
+        static const std::unordered_map<std::string, std::string> polishToEnglish = {
+            { "Garnek", "Pot" },
+            { "Patelnia", "Pan" },
+            { "Mikser", "Mixer" },
+            { "Piekarnik", "Oven" },
+        };
+
+        std::string expected = wantedDisplayName;
+        auto it = polishToEnglish.find(wantedDisplayName);
+        if (it != polishToEnglish.end()) expected = it->second;
+
+        return !expected.empty() && recordedOrigin.find(expected) != std::string::npos;
+    }
+
+    std::string IngredientTypeName(IngredientType type) {
+        switch (type) {
+        case IngredientType::None: return "None";
+        case IngredientType::Tomato: return "Tomato";
+        case IngredientType::ChoppedTomato: return "ChoppedTomato";
+        case IngredientType::Cheese: return "Cheese";
+        case IngredientType::ChoppedCheese: return "ChoppedCheese";
+        case IngredientType::Ham: return "Ham";
+        case IngredientType::ChoppedHam: return "ChoppedHam";
+        case IngredientType::Mozzarella: return "Mozzarella";
+        case IngredientType::ChoppedMozzarella: return "ChoppedMozzarella";
+        case IngredientType::Apple: return "Apple";
+        case IngredientType::ChoppedApple: return "ChoppedApple";
+        case IngredientType::Raspberry: return "Raspberry";
+        case IngredientType::ChoppedRaspberry: return "ChoppedRaspberry";
+        case IngredientType::Strawberry: return "Strawberry";
+        case IngredientType::CoffeeBeans: return "CoffeeBeans";
+        case IngredientType::SleepyDust: return "SleepyDust";
+        case IngredientType::Milk: return "Milk";
+        case IngredientType::Flour: return "Flour";
+        case IngredientType::Egg: return "Egg";
+        case IngredientType::RawDough: return "RawDough";
+        case IngredientType::Baguette: return "Baguette";
+        case IngredientType::CutBaguette: return "CutBaguette";
+        case IngredientType::Sandwich: return "Sandwich";
+        case IngredientType::Caprese: return "Caprese";
+        case IngredientType::TomatoSoup: return "TomatoSoup";
+        case IngredientType::RawApplePie: return "RawApplePie";
+        case IngredientType::ApplePie: return "ApplePie";
+        case IngredientType::RawSleepyDough: return "RawSleepyDough";
+        case IngredientType::SleepyBread: return "SleepyBread";
+        case IngredientType::RawCupcakeDough: return "RawCupcakeDough";
+        case IngredientType::Cupcake: return "Cupcake";
+        case IngredientType::FriedEgg: return "FriedEgg";
+        case IngredientType::EggWithHam: return "EggWithHam";
+        case IngredientType::Shakshuka: return "Shakshuka";
+        case IngredientType::AppleShake: return "AppleShake";
+        case IngredientType::RaspberryShake: return "RaspberryShake";
+        case IngredientType::StrawberryShake: return "StrawberryShake";
+        case IngredientType::CoffeeShake: return "CoffeeShake";
+        default: return "Nieznany(" + std::to_string(static_cast<int>(type)) + ")";
+        }
+    }
+}
 
 void GameManagerScript::OnCreate()
 {
@@ -46,19 +138,90 @@ void GameManagerScript::OnCreate()
     m_ValidateOrderSubId = bus.Subscribe<ValidateOrderRequestEvent>(
         [this](const ValidateOrderRequestEvent& e) {
             bool isCorrect = false;
+            IngredientType wantedType = e.WantedIngredient;
 
-            if (m_DishMemory.find(e.ServedFood.id) != m_DishMemory.end()) {
-                const auto& history = m_DishMemory[e.ServedFood.id];
+            auto memIt = m_DishMemory.find(e.ServedFood.id);
+            if (memIt != m_DishMemory.end()) {
+                const auto& history = memIt->second;
 
-                IngredientType wantedType = e.WantedIngredient;
-
+                bool primaryOk = false;
                 for (auto ingredient : history.BaseIngredients) {
-                    if (ingredient == wantedType ||
-                        (wantedType == IngredientType::Tomato && ingredient == IngredientType::ChoppedTomato)) {
-                        isCorrect = true;
+                    if (IngredientSatisfiesRequirement(ingredient, wantedType)) {
+                        primaryOk = true;
                         break;
                     }
                 }
+
+                bool secondaryOk = true;
+                std::string secondaryDebug = "brak (None)";
+
+                switch (e.Secondary.RequirementType) {
+                case OrderSecondaryRequirement::Type::None:
+                    secondaryOk = true;
+                    secondaryDebug = "brak (None)";
+                    break;
+
+                case OrderSecondaryRequirement::Type::Ingredient: {
+                    secondaryOk = false;
+                    for (auto ingredient : history.BaseIngredients) {
+                        if (IngredientSatisfiesRequirement(ingredient, e.Secondary.RequiredIngredient)) {
+                            secondaryOk = true;
+                            break;
+                        }
+                    }
+                    secondaryDebug = "skladnik '" + IngredientTypeName(e.Secondary.RequiredIngredient) + "'";
+                    break;
+                }
+
+                case OrderSecondaryRequirement::Type::Machine: {
+                    secondaryOk = false;
+                    for (const auto& machineName : history.MachineHistory) {
+                        if (OriginMachineMatches(machineName, e.Secondary.MachineName)) {
+                            secondaryOk = true;
+                            break;
+                        }
+                    }
+
+                    if (!secondaryOk) {
+                        secondaryOk = OriginMachineMatches(history.OriginMachine, e.Secondary.MachineName);
+                    }
+
+                    secondaryDebug = "maszyna '" + e.Secondary.MachineName + "'";
+                    break;
+                }
+                }
+
+                isCorrect = primaryOk && secondaryOk;
+
+                if (!isCorrect) {
+                    std::string foundList;
+                    for (auto ingredient : history.BaseIngredients) {
+                        if (!foundList.empty()) foundList += ", ";
+                        foundList += IngredientTypeName(ingredient);
+                    }
+                    spdlog::warn(
+                        "WALIDACJA ZAMOWIENIA: NIEPOPRAWNE (ServedFood ID: {}). "
+                        "Glowny wymog '{}': {}. Wymog dodatkowy {}: {}. "
+                        "Historia skladnikow dania: [{}]. Maszyna pochodzenia (ostatni etap): '{}'.",
+                        e.ServedFood.id,
+                        IngredientTypeName(wantedType), primaryOk ? "OK" : "NIE ZNALEZIONO",
+                        secondaryDebug, secondaryOk ? "OK" : "NIE ZNALEZIONO",
+                        foundList.empty() ? "PUSTA" : foundList,
+                        history.OriginMachine.empty() ? "brak" : history.OriginMachine
+                    );
+                }
+                else {
+                    spdlog::info(
+                        "WALIDACJA ZAMOWIENIA: OK (ServedFood ID: {}). Glowny: '{}'. Dodatkowy: {}.",
+                        e.ServedFood.id, IngredientTypeName(wantedType), secondaryDebug
+                    );
+                }
+            }
+            else {
+                spdlog::warn(
+                    "WALIDACJA ZAMOWIENIA: brak WPISU w m_DishMemory dla ServedFood ID: {} - ta encja nigdy nie opublikowala DishCreatedEvent pod tym ID (albo jej historia zostala nadpisana/utracona przy przekazywaniu miedzy maszyna a talerzem). Wymagany skladnik: '{}'.",
+                    e.ServedFood.id, IngredientTypeName(wantedType)
+                );
             }
 
             GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderResponseEvent{
@@ -100,7 +263,6 @@ void GameManagerScript::OnCreate()
     AddIngredients(IngredientType::Yawn, 5);
     AddIngredients(IngredientType::Potato, 5);
 
-
     auto findEntityByName = [&](const std::string& targetName) -> Entity {
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
         if (tags) {
@@ -125,7 +287,7 @@ void GameManagerScript::OnCreate()
             m_EventIslandGroup.push_back({ e, origX });
 
             glm::vec3 pos = transform->GetPosition();
-            pos.x = origX - 60.0f; 
+            pos.x = origX - 60.0f;
             transform->SetPosition(pos);
         }
     }
@@ -142,7 +304,7 @@ void GameManagerScript::OnCreate()
             m_MainIslandQuestGroup.push_back({ e, origY });
 
             glm::vec3 pos = transform->GetPosition();
-            pos.y = origY + 30.0f; 
+            pos.y = origY + 30.0f;
             transform->SetPosition(pos);
         }
     }
@@ -236,7 +398,7 @@ bool GameManagerScript::SpendMoney(int amount) {
 void GameManagerScript::OnOrderFulfilled(const OrderFulfilledEvent& e)
 {
     AddMoney(static_cast<int>(e.RewardAmount));
-    m_TotalMoneyEarned += static_cast<int>(e.RewardAmount); // Dodajemy do całkowitego zarobku
+    m_TotalMoneyEarned += static_cast<int>(e.RewardAmount);
 
     spdlog::info("Order fulfilled! Reward added: {}", e.RewardAmount);
 
@@ -279,28 +441,6 @@ void GameManagerScript::OnUpdate(Timestep ts)
         spdlog::info("Gotowe! Nowe questy wczytane do gry.");
     }
 
-    /*
-    //finaly 
-
-    if (m_NewQuestsReady) {
-        m_AvailableQuests = QuestManager::LoadQuests("assets://wygenerowane_quests.json");
-        m_NewQuestsReady = false;
-        m_IsGeneratingQuests = false;
-        spdlog::info("Nowe questy pobrane w tle i zaladowane do gry bez scinki!");
-    }
-
-    if (Input::IsKeyPressed(80) && s_PythonCooldown <= 0.0f && !m_IsGeneratingQuests) {
-        spdlog::warn("KLAWISZ P: Odpalam generator questow w tle...");
-        m_IsGeneratingQuests = true;
-        s_PythonCooldown = 10.0f;
-
-        std::thread([](GameManagerScript* manager) {
-            system("python CookingStation\\Tools\\QuestGenerator\\main.py");
-            manager->m_NewQuestsReady = true;
-        }, this).detach();
-    }
-    */
-
     if (m_AvailableQuests.empty()) return;
 
     switch (m_CurrentQuestState)
@@ -322,14 +462,13 @@ void GameManagerScript::OnUpdate(Timestep ts)
         if (m_AnimationProgress > 1.0f) m_AnimationProgress = 1.0f;
 
         float easeOut = 1.0f - (1.0f - m_AnimationProgress) * (1.0f - m_AnimationProgress);
-
         float xOffset = -60.0f * (1.0f - easeOut);
 
         for (auto& pair : m_EventIslandGroup) {
             auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
             if (transform) {
                 glm::vec3 pos = transform->GetPosition();
-                pos.x = pair.second + xOffset; // Animujemy oś X
+                pos.x = pair.second + xOffset;
                 transform->SetPosition(pos);
             }
         }
@@ -347,15 +486,15 @@ void GameManagerScript::OnUpdate(Timestep ts)
     {
         if (m_AnimationProgress < 1.0f) {
             m_AnimationProgress += ts * 0.5f;
-            bool finishedNow = false; 
+            bool finishedNow = false;
             if (m_AnimationProgress >= 1.0f) {
                 m_AnimationProgress = 1.0f;
                 finishedNow = true;
             }
 
             float easeOut = 1.0f - (1.0f - m_AnimationProgress) * (1.0f - m_AnimationProgress);
-
             float yOffset = 30.0f * (1.0f - easeOut);
+
             for (auto& pair : m_MainIslandQuestGroup) {
                 auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
                 if (transform) {
@@ -395,8 +534,8 @@ void GameManagerScript::OnUpdate(Timestep ts)
         if (m_AnimationProgress > 1.0f) m_AnimationProgress = 1.0f;
 
         float easeIn = m_AnimationProgress * m_AnimationProgress;
-
         float xOffset = -60.0f * easeIn;
+
         for (auto& pair : m_EventIslandGroup) {
             auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
             if (transform) {
@@ -429,7 +568,7 @@ void GameManagerScript::OnUpdate(Timestep ts)
         }
 
         if (m_AnimationProgress >= 1.0f) {
-            m_QuestTimer = QUEST_INTERVAL; 
+            m_QuestTimer = QUEST_INTERVAL;
             m_CurrentQuestState = QuestEventState::WaitingForTimer;
             spdlog::info("Koniec cyklu Questa. Zwykle tasmy przywrocone (respawn).");
         }
@@ -454,24 +593,8 @@ void GameManagerScript::SkipQuest()
     if (m_CurrentQuestState == QuestEventState::WaitingForAccept) {
         if (m_SkipsLeft > 0) {
             m_SkipsLeft--;
-
             m_CurrentQuestIndex++;
             if (m_CurrentQuestIndex >= m_AvailableQuests.size()) m_CurrentQuestIndex = 0;
-
-            /*
-            // finaly
-            // if (!m_AvailableQuests.empty()) m_AvailableQuests.erase(m_AvailableQuests.begin());
-            //
-            // if (m_AvailableQuests.empty() && !m_IsGeneratingQuests) {
-            //     spdlog::warn("Pula questow pusta po pominieciu! Odpalam generator w tle...");
-            //     m_IsGeneratingQuests = true;
-            //     std::thread([](GameManagerScript* manager) {
-            //         system("python CookingStation\\Tools\\QuestGenerator\\main.py");
-            //         manager->m_NewQuestsReady = true;
-            //     }, this).detach();
-            // }
-            */
-
             spdlog::info("Quest pominiety! Pozostalo pominięc: {}", m_SkipsLeft);
         }
         else {
@@ -492,20 +615,6 @@ void GameManagerScript::CompleteQuest()
 
         m_CurrentQuestIndex++;
         if (m_CurrentQuestIndex >= m_AvailableQuests.size()) m_CurrentQuestIndex = 0;
-
-        /*
-        //finaly
-        // if (!m_AvailableQuests.empty()) m_AvailableQuests.erase(m_AvailableQuests.begin());
-        //
-        // if (m_AvailableQuests.empty() && !m_IsGeneratingQuests) {
-        //     spdlog::warn("Pula questow pusta! Odpalam generator w tle...");
-        //     m_IsGeneratingQuests = true;
-        //     std::thread([](GameManagerScript* manager) {
-        //         system("python CookingStation\\Tools\\QuestGenerator\\main.py");
-        //         manager->m_NewQuestsReady = true;
-        //     }, this).detach();
-        // }
-        */
 
         m_CurrentQuestState = QuestEventState::IslandLeaving;
         SpawnCollectibleFlag(currentQuest.RewardFlag);
@@ -602,27 +711,25 @@ void GameManagerScript::SpawnCollectibleFlag(const std::string& countryCode)
         }
     }
 
-    glm::vec3 spawnPos = { 12.0f, 1.0f, -9.0f }; 
+    glm::vec3 spawnPos = { 12.0f, 1.0f, -9.0f };
 
     if (wydawkaEntity.id != std::numeric_limits<std::size_t>::max()) {
         auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(wydawkaEntity);
         if (tf) {
-            int flagsPerRow = 3; 
+            int flagsPerRow = 3;
             int row = (m_CollectedFlagsCount / flagsPerRow) % 2;
             int col = m_CollectedFlagsCount % flagsPerRow;
 
-            
             float startX = tf->GetPosition().x - 1.2f;
-            float spacingX = 1.2f; 
+            float spacingX = 1.2f;
             float startZ = tf->GetPosition().z + 0.8f;
-            float spacingZ = -0.8f; 
+            float spacingZ = -0.8f;
 
             spawnPos.x = startX + (col * spacingX);
             spawnPos.y = 3.76f;
             spawnPos.z = startZ + (row * spacingZ);
         }
     }
-
 
     auto& world = GetScene()->GetWorld();
     auto builder = world.BuildEntity();
@@ -631,7 +738,7 @@ void GameManagerScript::SpawnCollectibleFlag(const std::string& countryCode)
 
     TransformComponent tc;
     tc.SetPosition(spawnPos);
-    tc.SetScale(glm::vec3(0.80f)); 
+    tc.SetScale(glm::vec3(0.80f));
     tc.SetRotation(glm::vec3(0.0f, glm::radians(20.0f), 0.0f));
     builder.With<TransformComponent>(tc);
 

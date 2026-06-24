@@ -1,6 +1,6 @@
 #pragma once
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
-#include "CookingStation/Scripts/DragAndDropScript.h"
+#include "CookingStation/Scripts/Machines/MachineScript.h"
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Core/Application.h"
 #include <GLFW/glfw3.h>
@@ -149,11 +149,14 @@ public:
 
                 if (pScript->AddIngredient(choppedType))
                 {
+                    if (!m_DeepHistory.empty()) {
+                        pScript->m_DeepHistory.insert(pScript->m_DeepHistory.end(), m_DeepHistory.begin(), m_DeepHistory.end());
+                    }
                     if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->DestroyEntity(m_SpawnedFood);
                         m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
                     }
-                    spdlog::info("Składnik z deski przeniesiony na talerz!");
+                    spdlog::info("Składnik z deski przeniesiony na talerz (z pełną historią)!");
                     ClearHighlight();
                     ResetMachineState();
                 }
@@ -170,8 +173,6 @@ public:
                 GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
-                IngredientType choppedType = GetChoppedType(m_Ingredients[0]);
-                DragAndDropScript::StartDrag(choppedType);
                 ResetMachineState();
                 ClearHighlight();
             }
@@ -356,7 +357,7 @@ public:
 
     virtual void HandleClick() override {}
 
-    bool AddIngredient(IngredientType type) override
+    bool AddIngredient(IngredientType type, const std::vector<IngredientType>& pastIngredients = {}, const std::vector<std::string>& pastMachines = {}) override
     {
         if (m_IsReady || !m_Ingredients.empty()) return false;
 
@@ -370,6 +371,11 @@ public:
             type == IngredientType::Potato)
         {
             m_Ingredients.push_back(type);
+
+            m_DeepHistory.insert(m_DeepHistory.end(), pastIngredients.begin(), pastIngredients.end());
+            m_DeepHistory.push_back(type);
+            m_MachineHistory.insert(m_MachineHistory.end(), pastMachines.begin(), pastMachines.end());
+
             m_ChopCount = 0;
             m_IsReady = false;
             m_ChopCooldown = 0.2f;
@@ -424,11 +430,12 @@ protected:
                 foodTf->SetRotation(meta.rotation);
             }
         }
-
         if (m_IsReady)
         {
             DishHistory history;
-            history.BaseIngredients = m_Ingredients;
+            history.BaseIngredients = m_DeepHistory;
+            history.MachineHistory = m_MachineHistory; // <-- Nowość
+            history.MachineHistory.push_back("CuttingBoard"); // <-- Nowość
             history.OriginMachine = "CuttingBoard";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
             spdlog::info("Składnik pokrojony i wpisany do rejestru historii.");

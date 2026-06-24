@@ -1,6 +1,7 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scripts/Managers/IngredientType.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h" 
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Core/GameProgress.h"
@@ -12,6 +13,8 @@ class PlateScript : public ScriptableEntity
 {
 public:
     std::vector<IngredientType> m_Ingredients;
+    std::vector<IngredientType> m_DeepHistory; 
+    std::vector<std::string> m_MachineHistory;
     IngredientType m_CompletedDish = IngredientType::None;
     std::vector<Entity> m_VisualModels;
 
@@ -39,6 +42,7 @@ public:
         }
 
         m_Ingredients.push_back(type);
+        m_DeepHistory.push_back(type); // NAPRAWA: przywrocone, odkladamy jako swiezy skladnik prosto z reki
         AudioEngine::Play("assets://sounds/put_ingredient_on_plate.mp3");
 
         SpawnIngredientVisual(type);
@@ -47,12 +51,12 @@ public:
 
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                 m_Entity, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
-        });
+            });
 
         for (Entity e : m_VisualModels) {
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     e, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
-            });
+                });
         }
 
         return true;
@@ -80,6 +84,13 @@ public:
             }
         }
 
+
+        // NAPRAWA: bez tego talerz fizycznie przejmuje danie z maszyny, ale gubi jego historie
+        // skladnikow bazowych - kelner/klient walidowaliby zamowienie wzgledem PUSTEJ historii.
+        if (GameManagerScript::s_Instance) {
+            auto pastHistory = GameManagerScript::s_Instance->GetDishHistory(dishEntity.id);
+            if (!pastHistory.empty()) m_DeepHistory.insert(m_DeepHistory.end(), pastHistory.begin(), pastHistory.end());
+        }
 
         auto* tagComp = GetScene()->GetWorld().GetComponent<TagComponent>(dishEntity);
         if (tagComp) tagComp->Tag = "UgotowaneDanie";
@@ -190,8 +201,8 @@ private:
         }
         // ------------------------------------------------
 
-        std::vector<IngredientType> historyIngredients = m_Ingredients;
-
+        std::vector<IngredientType> historyIngredients = m_DeepHistory; // NAPRAWA: bylo m_Ingredients - gubilo historie skladnikow przejetych z maszyn
+        std::vector<std::string> historyMachines = m_MachineHistory;
         m_CompletedDish = dishType;
         m_Ingredients.clear();
 
@@ -222,6 +233,7 @@ private:
 
         DishHistory history;
         history.BaseIngredients = historyIngredients;
+        history.MachineHistory = historyMachines;
         history.OriginMachine = "Plate";
         GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ dishEntity, history });
 
@@ -231,6 +243,11 @@ private:
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                 dishEntity, glm::vec3(1.0f, 0.8f, 0.0f), 2.0f, false
             });
+
+        // NAPRAWA: czyscimy historie talerza - zostala juz "zapieczetowana" w DishCreatedEvent powyzej,
+        // wiec talerz nie powinien dalej jej dzielic z nastepnym daniem, ktore na nim wyladuje.
+        m_DeepHistory.clear();
+        m_MachineHistory.clear();
     }
 
 };

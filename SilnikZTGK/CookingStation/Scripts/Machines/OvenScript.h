@@ -64,9 +64,7 @@ public:
             if (m_CurrentTime >= m_CookTime)
             {
                 m_IsReady = true;
-
                 StopBakingSound();
-
                 AudioEngine::Play("assets://sounds/dish_ready.mp3");
                 UpdateVisuals();
             }
@@ -78,11 +76,17 @@ public:
         }
     }
 
-    bool AddIngredient(IngredientType type) override
+    bool AddIngredient(IngredientType type, const std::vector<IngredientType>& pastIngredients = {}, const std::vector<std::string>& pastMachines = {}) override
     {
         if (CanAcceptIngredient(type))
         {
             m_Ingredients.push_back(type);
+
+            // Łączenie historii w całość
+            m_DeepHistory.insert(m_DeepHistory.end(), pastIngredients.begin(), pastIngredients.end());
+            m_DeepHistory.push_back(type);
+            m_MachineHistory.insert(m_MachineHistory.end(), pastMachines.begin(), pastMachines.end());
+
             m_IsReady = false;
             m_CurrentTime = 0.0f;
             spdlog::info("Piekarnik: Rozpoczeto pieczenie!");
@@ -111,46 +115,19 @@ public:
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())
         {
-            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(targetPlate);
-            PlateScript* pScript = nullptr;
-            if (nsc) {
-                for (auto& s : nsc->Scripts) {
-                    if (s.Name == "PlateScript" && s.Instance) {
-                        pScript = static_cast<PlateScript*>(s.Instance);
-                        break;
-                    }
-                }
-            }
+            ClearHighlight();
+            Entity foodBeforeTransfer = m_SpawnedFood;
 
-            if (pScript)
+            PlaceSpawnedFoodOnPlate(targetPlate);
+
+            if (m_SpawnedFood.id != foodBeforeTransfer.id)
             {
-                IngredientType bakedType = GetBakedType();
-                if (pScript->AddIngredient(bakedType))
-                {
-                    spdlog::info("Piekarnik: Wypiek gotowy i przelozony na talerz!");
-                    ClearHighlight();
-                    if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
-                        GetScene()->DestroyEntity(m_SpawnedFood);
-                        m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-                    }
-                    ResetMachineState();
-                }
+                ResetMachineState();
             }
         }
         else if (!m_IsAutomated)
         {
             spdlog::warn("Piekarnik: Brak talerza w zasiegu!");
-            AudioEngine::Play("assets://sounds/error.mp3");
-            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-            {
-                GetScene()->DestroyEntity(m_SpawnedFood);
-                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-
-                IngredientType bakedType = GetBakedType();
-                DragAndDropScript::StartDrag(bakedType);
-                ResetMachineState();
-                ClearHighlight();
-            }
         }
     }
 
@@ -211,11 +188,11 @@ protected:
                 });
 
             DishHistory history;
-            history.BaseIngredients = m_Ingredients;
+            history.BaseIngredients = m_DeepHistory;
+            history.MachineHistory = m_MachineHistory; // <-- Nowość
+            history.MachineHistory.push_back("Oven");  // <-- Nowość
             history.OriginMachine = "Oven";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
-
-            spdlog::info("Piekarnik: Wypiek gotowy!");
         }
         else
         {
