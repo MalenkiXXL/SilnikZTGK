@@ -14,7 +14,6 @@
 class HelperCustomerScript : public CustomerScript
 {
 public:
-    // PRZYWRÓCONE: Zmienne do hovera
     bool m_IsHovered = false;
     bool m_WasHovered = false;
     std::size_t m_HoverSubId = 0;
@@ -45,7 +44,6 @@ public:
     bool m_IsWorking = false;
     std::size_t m_ProcessingSubId = 0;
 
-    // PRZYWRÓCONE: Zapasowy OnHoverCursor
     void OnHoverCursor() override
     {
         if (!m_IsWaitingForPickup || m_IsFalling) return;
@@ -88,7 +86,7 @@ public:
                     m_IsWaitingForPickup = false;
                     m_IsDragged = true;
                     m_DragDelayTimer = 0.0f;
-                    m_IsHovered = false; // PRZYWRÓCONE: Reset hovera przy kliknięciu
+                    m_IsHovered = false; 
 
                     if (m_IsWorking) {
                         m_IsWorking = false;
@@ -115,7 +113,6 @@ public:
             }
         );
 
-        // PRZYWRÓCONE: Subskrypcja z EventBusa na hover
         m_HoverSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityHoveredEvent>(
             [this](const EntityHoveredEvent& e) {
                 if (e.TargetEntity.id == m_Entity.id && m_IsWaitingForPickup && !m_IsFalling) {
@@ -154,7 +151,7 @@ public:
     void OnDestroy() override
     {
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
-        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId); // PRZYWRÓCONE
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<MachineProcessingEvent>(m_ProcessingSubId);
 
         if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
@@ -302,26 +299,22 @@ public:
                 myTransform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
             }
 
-            // PRZYWRÓCONE: Logika żółtego i różowego koloru
             if (mesh) {
                 float currentOpacity = (wave + 1.0f) * 0.5f * 0.6f;
                 mesh->ShaderName = "HighlightShader";
 
                 if (m_IsHovered) {
-                    // Żółty podczas najechania myszką
                     mesh->HighlightColor = glm::vec4(1.0f, 0.9f, 0.0f, currentOpacity);
                 }
                 else if (m_IsFirstHelperInstance) {
-                    // Różowy puls dla pierwszego helpera
                     mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity);
                 }
                 else {
-                    // Subtelny fiolet dla pozostałych
                     mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity * 0.4f);
                 }
             }
 
-            m_IsHovered = false; // Resetujemy co klatkę
+            m_IsHovered = false; 
             return;
         }
 
@@ -337,18 +330,16 @@ public:
                 myTransform->SetPosition(snappedPos);
             }
 
-            // Sprawdzamy czy miejsce jest wolne
             bool isOccupied = IsTileOccupied(snappedPos);
             auto* mesh = GetComponent<MeshComponent>();
 
-            // Kolorujemy Helpera podczas trzymania
             if (mesh) {
                 mesh->ShaderName = "HighlightShader";
                 if (isOccupied) {
-                    mesh->HighlightColor = glm::vec4(0.9f, 0.2f, 0.2f, 0.6f); // Czerwony (zablokowane)
+                    mesh->HighlightColor = glm::vec4(0.9f, 0.2f, 0.2f, 0.6f); 
                 }
                 else {
-                    mesh->HighlightColor = glm::vec4(0.2f, 0.9f, 0.2f, 0.6f); // Zielony (wolne)
+                    mesh->HighlightColor = glm::vec4(0.2f, 0.9f, 0.2f, 0.6f); 
                 }
             }
 
@@ -356,10 +347,10 @@ public:
             if (m_DragDelayTimer > 0.15f && Input::IsMouseButtonJustPressed(0)) {
                 if (!isOccupied) {
                     m_IsDragged = false;
-                    if (mesh) mesh->ShaderName = "Default"; // Przywracamy normalny wygląd
+                    if (mesh) mesh->ShaderName = "Default"; 
                 }
                 else {
-                    AudioEngine::Play("assets://sounds/error.mp3"); // Dźwięk błędu!
+                    AudioEngine::Play("assets://sounds/error.mp3"); 
                 }
             }
             return;
@@ -509,13 +500,7 @@ private:
         tileTf.SetScale({ 0.07f, 0.3f, 0.07f });
         builder.With<TransformComponent>(tileTf);
 
-        // PRZYWRÓCONE: Usunięcie widocznego mesha kafelka, by nie blokował podnoszenia Helpera
-        // MeshComponent tileMesh;
-        // tileMesh.ModelPtr = AssetManager::GetModel("assets://models/wystroj/podloga.gltf");
-        // builder.With<MeshComponent>(tileMesh);
-
         m_FloorTile = builder.Build();
-
         m_IsFalling = true;
         m_IsWaitingForPickup = true;
         m_PulseTimer = 0.0f;
@@ -613,7 +598,6 @@ private:
     }
     bool IsTileOccupied(glm::vec3 pos)
     {
-        // Sprawdzamy granice kuchni (jak w BuildMode)
         if (pos.x < -15.0f || pos.x > 14.0f || pos.z < -18.0f || pos.z > 18.0f) return true;
 
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
@@ -626,21 +610,20 @@ private:
 
         for (size_t i = 0; i < transforms->dense.size(); ++i) {
             Entity e = transforms->reverse[i];
-            if (e.id == m_Entity.id) continue; // Ignorujemy samego siebie
+            if (e.id == m_Entity.id) continue;
 
             glm::vec3 otherPos = transforms->dense[i].GetPosition();
-            if (otherPos.y < -0.2f) continue; // Podłoga nas nie interesuje
+            if (otherPos.y < -0.2f) continue;
 
             if (GridSystem::WorldToCell(otherPos) == targetCell) {
                 auto* tagComp = tags ? tags->Get(e) : nullptr;
                 if (tagComp) {
                     std::string t = tagComp->Tag;
-                    // Ignorujemy wielką podłogę, podglądy i platformy Helperów
                     if (t.find("Wielka_Pod") != std::string::npos || t.find("__BuildPreview__") != std::string::npos || t.find("HelperFloorTile") != std::string::npos) continue;
                 }
 
                 auto* col = colliders ? colliders->Get(e) : nullptr;
-                if (col) return true; // Cokolwiek z kolizją zajmuje miejsce!
+                if (col) return true; 
 
                 if (tagComp) {
                     std::string t = tagComp->Tag;

@@ -89,7 +89,6 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
 
     m_LeftMouseIcon = AssetManager::GetTexture("assets://UI/leftMouse.png");
     m_RightMouseIcon = AssetManager::GetTexture("assets://UI/rightMouse.png");
-    m_TabIcon = AssetManager::GetTexture("assets://UI/tab.png");
 }
 
 void BuildModePanel::ForceReset() {
@@ -101,8 +100,6 @@ void BuildModePanel::ForceReset() {
     m_MovingGroup.clear();
     m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     m_CurrentScene = nullptr;
-
-    // --- RESET TIMERA ---
     m_GameTime = 0.0f;
     m_BuildHintTimer = 0.0f;
     m_HasShownBuildHint = false;
@@ -153,7 +150,6 @@ void BuildModePanel::Deactivate() {
 }
 
 void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt, bool isBlocked) {
-    // --- LOGIKA TIMERA PODPOWIEDZI ---
     if (!isBlocked && !m_IsActive) {
         m_GameTime += dt;
         if (!m_HasShownBuildHint && m_GameTime >= 120.0f) {
@@ -166,9 +162,7 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
         m_BuildHintTimer -= dt;
         if (m_BuildHintTimer < 0.0f) m_BuildHintTimer = 0.0f;
     }
-    // ---------------------------------
 
-    if (isBlocked && !m_IsActive) return;
 
     auto buildBtnTex = AssetManager::GetTexture("assets://UI/buildModeButton.png");
 
@@ -217,7 +211,6 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
 
         Renderer2D::DrawQuad(scaledPos, scaledSize, buildBtnTex->GetRendererID(), tint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
-        // --- RYSOWANIE PULSUJĄCEGO BLASKU PRZYCISKU ---
         if (m_BuildHintTimer > 0.0f && !m_IsActive) {
             float alphaFade = 1.0f;
             if (m_BuildHintTimer > 9.5f) { alphaFade = (10.0f - m_BuildHintTimer) / 0.5f; }
@@ -228,7 +221,7 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
             float wave = (std::sin(timeNow * 6.0f) + 1.0f) * 0.5f;
             float flashSpike = std::pow(wave, 4.0f);
 
-            float glowScale = 1.0f + (flashSpike * 0.15f); // Subtelne pulsowanie +15%
+            float glowScale = 1.0f + (flashSpike * 0.15f); 
             glm::vec2 glowSize = scaledSize * glowScale;
             glm::vec2 glowPos = {
                 scaledPos.x - (glowSize.x - scaledSize.x) * 0.5f,
@@ -238,7 +231,6 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
             glm::vec4 flashColor = { 1.0f, 0.65f, 0.95f, flashSpike * 0.95f * alphaFade };
             Renderer2D::DrawQuad(glowPos, glowSize, buildBtnTex->GetRendererID(), flashColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
-        // ----------------------------------------------
     }
     else {
         glm::vec4 bgColor = m_IsActive ? glm::vec4(0.20f, 0.45f, 0.90f, 0.95f) : glm::vec4(0.10f, 0.12f, 0.20f, 0.82f);
@@ -254,21 +246,21 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
         Gui::DrawGuiText(label, textPos, textScale, m_IsActive ? glm::vec4(0.85f, 0.95f, 1.00f, 1.0f) : glm::vec4(0.70f, 0.80f, 1.00f, 1.0f));
     }
 
-    if (m_TabIcon && m_TabIcon->GetRendererID() != 0) {
-        float tabHeight = 25.0f * baseScale * m_ButtonScale;
-        float tabAspect = (float)m_TabIcon->GetWidth() / (float)m_TabIcon->GetHeight();
-        glm::vec2 tabSize = { tabHeight * tabAspect, tabHeight };
+    std::string tabLabel = "[TAB]";
+    float tabTextScale = 0.85f * baseScale * m_ButtonScale;
+    float tabTw = Gui::MeasureTextWidth(tabLabel, tabTextScale);
 
-        glm::vec2 tabPos = {
-            scaledPos.x + (scaledSize.x - tabSize.x) * 0.5f,
-            scaledPos.y + scaledSize.y + (12.0f * baseScale)
-        };
+    glm::vec2 tabTextPos = {
+        scaledPos.x + (scaledSize.x - tabTw) * 0.5f,
+        scaledPos.y + scaledSize.y + 12.0f * baseScale
+    };
 
-        glm::vec4 tabTint = { 1.0f, 1.0f, 1.0f, 0.85f };
-        Renderer2D::DrawQuad(tabPos, tabSize, m_TabIcon, tabTint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-    }
+    glm::vec4 tabShadowColor = { 0.0f, 0.0f, 0.0f, 0.6f };
+    glm::vec4 tabTextColor = { 157.0f / 255.0f, 113.0f / 255.0f, 180.0f / 255.0f, 1.0f }; // Fioletowy
 
-    // --- RYSOWANIE TEKSTU PODPOWIEDZI ---
+    Gui::DrawGuiText(tabLabel, { tabTextPos.x + 1.5f, tabTextPos.y + 1.5f }, tabTextScale, tabShadowColor);
+    Gui::DrawGuiText(tabLabel, tabTextPos, tabTextScale, tabTextColor);
+
     if (m_BuildHintTimer > 0.0f && !m_IsActive) {
         float textAlpha = 1.0f;
         if (m_BuildHintTimer > 9.5f) { textAlpha = (10.0f - m_BuildHintTimer) / 0.5f; }
@@ -306,13 +298,12 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
         Gui::DrawGuiText(line2, { line2X + 1.5f, blockPos.y + lineSpacing + 1.5f }, hintScale, shadowColor);
         Gui::DrawGuiText(line2, { line2X, blockPos.y + lineSpacing }, hintScale, textColor);
     }
-    // ------------------------------------
 
-    if (inBounds) {
+    if (inBounds && !isBlocked) {
         Input::SetUICaptureMouse(true);
         if (Input::IsMouseButtonJustPressed(0)) {
             Toggle();
-            m_BuildHintTimer = 0.0f; // Jeśli gracz kliknie, natychmiast wyłączamy napis
+            m_BuildHintTimer = 0.0f;
         }
     }
 }

@@ -61,7 +61,14 @@ void GameLayer::OnDetach()
 
 void GameLayer::OnUpdate(Timestep ts)
 {
-    if (Input::IsKeyPressed(GLFW_KEY_X)) {
+    bool speedUp = Input::IsKeyPressed(GLFW_KEY_X);
+
+    if (GameManagerScript::s_SpeedUpUIHeld) {
+        speedUp = true;
+        GameManagerScript::s_SpeedUpUIHeld = false; 
+    }
+
+    if (speedUp) {
         m_TimeScale = 4.0f;
     }
     else if (Input::IsKeyPressed(GLFW_KEY_Z)) {
