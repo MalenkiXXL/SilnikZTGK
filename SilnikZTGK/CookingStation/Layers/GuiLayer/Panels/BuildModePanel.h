@@ -14,7 +14,7 @@ public:
     void DrawButton(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt, bool isBlocked);
     void DrawPanel(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt);
 
-    // Zaktualizowane sygnatury - teraz w 100% zgadzaj¹ siê z .cpp!
+    // Zaktualizowane sygnatury - teraz w 100% zgadzajï¿½ siï¿½ z .cpp!
     void DrawOverlay(float gameX, float gameY, float gameW, float gameH, float baseScale);
     void DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos, int hoverState, float gameX, float gameY, float gameW, float gameH);
     void DrawActiveGrid(std::shared_ptr<Scene>& activeScene, float gameX, float gameY, float gameW, float gameH, float baseScale);

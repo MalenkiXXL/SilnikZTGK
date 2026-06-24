@@ -48,6 +48,36 @@ static bool IsIgnoredByBuildSystem(const std::string& tag) {
     return false;
 }
 
+static bool IsNextToConveyor(std::shared_ptr<Scene>& activeScene, const glm::ivec2& cell) {
+    auto& world = activeScene->GetWorld();
+    auto* transforms = world.GetComponentVector<TransformComponent>();
+    auto* tags = world.GetComponentVector<TagComponent>();
+    if (!transforms || !tags) return false;
+
+    glm::ivec2 neighbors[] = {
+            { cell.x + 1, cell.y }, { cell.x - 1, cell.y },
+            { cell.x, cell.y + 1 }, { cell.x, cell.y - 1 }
+    };
+
+    for (size_t i = 0; i < transforms->dense.size(); ++i) {
+        Entity e = transforms->reverse[i];
+        auto* tagComp = tags->Get(e);
+        if (!tagComp) continue;
+
+        if (tagComp->Tag.find("tasma") != std::string::npos || tagComp->Tag.find("Conveyor") != std::string::npos) {
+            glm::ivec2 conveyorCell = GridSystem::WorldToCell(transforms->dense[i].GetPosition());
+            spdlog::info("Znaleziono tasme: tag={}, cell=({},{}), szukamy sasiada ({},{})",
+                         tagComp->Tag, conveyorCell.x, conveyorCell.y, cell.x, cell.y);
+
+            for (auto& n : neighbors) {
+                if (conveyorCell == n) return true;
+            }
+        }
+    }
+    spdlog::warn("Brak tasmy obok celi ({},{})", cell.x, cell.y);
+    return false;
+}
+
 void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.clear();
     m_CoinIcon = coinIcon;
@@ -497,6 +527,13 @@ bool BuildModePanel::IsPlacementValid(std::shared_ptr<Scene>& activeScene, const
             }
         }
     }
+
+    glm::ivec2 machineCell = GridSystem::WorldToCell(snappedPos);
+    if (!IsNextToConveyor(activeScene, machineCell)) {
+        spdlog::warn("BuildMode: Maszynę można postawić tylko obok taśmy!");
+        return false;
+    }
+
     return true;
 }
 
@@ -530,9 +567,15 @@ int BuildModePanel::GetCellState(std::shared_ptr<Scene>& activeScene, const glm:
 
             if (nsc) {
                 for (auto& s : nsc->Scripts) {
-                    if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" ||
-                        s.Name == "OvenScript" || s.Name == "CrateScript" || s.Name == "HelperCustomerScript" ||
-                        s.Name == "CoffeeMakerScript") {
+                    if (s.Name == "PotScript" ||
+                        s.Name == "CuttingBoardScript" ||
+                        s.Name == "MixerScript" ||
+                        s.Name == "OvenScript" ||
+                        s.Name == "CrateScript" ||
+                        s.Name == "HelperCustomerScript" ||
+                        s.Name == "CoffeeMakerScript" ||
+                        s.Name == "PanScript")
+                    {
 
                         isMachine = true;
                         break;
@@ -567,6 +610,7 @@ int BuildModePanel::GetCellState(std::shared_ptr<Scene>& activeScene, const glm:
                     t.find("Item") != std::string::npos ||
                     t.find("Plate") != std::string::npos ||
                     t.find("NajedzonyPomocnik") != std::string::npos ||
+                    t.find("Package") != std::string::npos ||
                     t.find("HelperCustomer") != std::string::npos)
                 {
                     isObstacle = true;
@@ -778,6 +822,9 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
 
         if (Input::IsMouseButtonJustPressed(0) && !mouseOverPanel && !m_JustSelectedFromPanel) {
             if (IsPlacementValid(activeScene, snappedPos)) {
+
+                AudioEngine::Play("assets://sounds/button_click_in_game.mp3");
+
                 m_MovingMachineEntity = { std::numeric_limits<std::size_t>::max(), 0 };
                 m_MovingGroup.clear();
             }
@@ -799,6 +846,8 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
             if (cellState == 1 && hitMachine.id != std::numeric_limits<std::size_t>::max()) {
                 auto* tc = activeScene->GetWorld().GetComponent<TransformComponent>(hitMachine);
                 if (tc) {
+                    AudioEngine::Play("assets://sounds/button_click_in_game.mp3");
+
                     m_MovingMachineOriginalPos = tc->GetPosition();
                     m_MovingMachineEntity = hitMachine;
                     m_MovingGroup.clear();
