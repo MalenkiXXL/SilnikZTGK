@@ -320,7 +320,7 @@ void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float game
                 { col4, row1 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked);
             DrawRecipeIcon("ApplePie", "Apple Pie", m_ApplePieIcon, m_ApplePieRecipeTex,
                 { col3, row2 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked);
-            DrawRecipeIcon("Kopytka", "Gnocchi", m_KopytkaIcon, m_KopytkaRecipeTex,
+            DrawRecipeIcon("Kopytka", "Kopytka", m_KopytkaIcon, m_KopytkaRecipeTex,
                 { col4, row2 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked);
             DrawRecipeIcon("Cupcake", "Cupcake", m_CupcakeIcon, m_CupcakeRecipeTex,
                 { col3, row3 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked);
