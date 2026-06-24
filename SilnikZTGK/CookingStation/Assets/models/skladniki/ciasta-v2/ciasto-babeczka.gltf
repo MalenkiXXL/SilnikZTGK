@@ -1,6 +1,6 @@
 {
 	"asset":{
-		"generator":"Khronos glTF Blender I/O v4.5.48",
+		"generator":"Khronos glTF Blender I/O v5.1.19",
 		"version":"2.0"
 	},
 	"scene":0,
@@ -15,25 +15,25 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Icosphere.008"
+			"name":"Plane"
 		}
 	],
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material",
+			"name":"Material.001",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
 				},
 				"metallicFactor":0,
-				"roughnessFactor":0.800000011920929
+				"roughnessFactor":0.5
 			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"Icosphere",
+			"name":"Plane.001",
 			"primitives":[
 				{
 					"attributes":{
@@ -64,74 +64,74 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":3192,
+			"count":573,
 			"max":[
-				0.46133673191070557,
-				0.9031679630279541,
-				0.4850774109363556
+				0.08464283496141434,
+				0.08646693825721741,
+				0.08189991861581802
 			],
 			"min":[
-				-0.46133676171302795,
-				0.00915515422821045,
-				-0.4850773513317108
+				-0.07915698736906052,
+				-0.008884243667125702,
+				-0.08189990371465683
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":3192,
+			"count":573,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":3192,
+			"count":573,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":10080,
+			"count":2178,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":38304,
+			"byteLength":6876,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":38304,
-			"byteOffset":38304,
+			"byteLength":6876,
+			"byteOffset":6876,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":25536,
-			"byteOffset":76608,
+			"byteLength":4584,
+			"byteOffset":13752,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":20160,
-			"byteOffset":102144,
+			"byteLength":4356,
+			"byteOffset":18336,
 			"target":34963
 		}
 	],
 	"samplers":[
 		{
-			"magFilter":9728,
-			"minFilter":9984
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":122304,
-			"uri":"malina.bin"
+			"byteLength":22692,
+			"uri":"ciasto-babeczka.bin"
 		}
 	]
 }

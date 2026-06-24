@@ -40,7 +40,50 @@ private:
         }
     }
 
+    IngredientType GetPotResult() const
+    {
+        if (m_Ingredients.size() == 1)
+        {
+            if (m_Ingredients[0] == IngredientType::ChoppedTomato) return IngredientType::TomatoSoup;
+            if (m_Ingredients[0] == IngredientType::RawKopytkaDough) return IngredientType::Kopytka;
+        }
+        else if (m_Ingredients.size() == 2)
+        {
+            bool hasRaspberry = (m_Ingredients[0] == IngredientType::ChoppedRaspberry || m_Ingredients[1] == IngredientType::ChoppedRaspberry);
+            bool hasDust = (m_Ingredients[0] == IngredientType::SleepyDust || m_Ingredients[1] == IngredientType::SleepyDust);
+            if (hasRaspberry && hasDust) return IngredientType::Candy;
+
+            bool hasKopytka = (m_Ingredients[0] == IngredientType::RawKopytkaDough || m_Ingredients[1] == IngredientType::RawKopytkaDough);
+            if (hasKopytka && hasDust) return IngredientType::GoldenKopytka;
+        }
+        return IngredientType::None;
+    }
+
 public:
+    bool CanAcceptIngredient(IngredientType type) override
+    {
+        if (m_IsReady) {
+            if (m_Ingredients.size() == 1 && m_Ingredients[0] == IngredientType::RawKopytkaDough && type == IngredientType::SleepyDust) return true;
+            return false;
+        }
+
+        if (m_Ingredients.size() >= 2) return false;
+
+        if (m_Ingredients.empty()) {
+            return type == IngredientType::ChoppedTomato ||
+                type == IngredientType::ChoppedRaspberry ||
+                type == IngredientType::SleepyDust ||
+                type == IngredientType::RawKopytkaDough;
+        }
+
+        if (m_Ingredients.size() == 1) {
+            if (m_Ingredients[0] == IngredientType::ChoppedRaspberry) return type == IngredientType::SleepyDust;
+            if (m_Ingredients[0] == IngredientType::SleepyDust) return type == IngredientType::ChoppedRaspberry || type == IngredientType::RawKopytkaDough;
+            if (m_Ingredients[0] == IngredientType::RawKopytkaDough) return type == IngredientType::SleepyDust;
+        }
+        return false;
+    }
+
     void OnCreate() override
     {
         MachineScript::OnCreate();
@@ -51,6 +94,14 @@ public:
     void OnDestroy() override
     {
         StopBoilingSound();
+        MachineScript::OnDestroy();
+    }
+
+    void ResetMachineState() override
+    {
+        StopBoilingSound();
+        SetSmoking(false);
+        MachineScript::ResetMachineState();
     }
 
     void OnUpdate(Timestep ts) override
@@ -59,7 +110,7 @@ public:
 
         if (m_IsHeld) return;
 
-        if (!m_Ingredients.empty() && !m_IsReady)
+        if (!m_IsReady && GetPotResult() != IngredientType::None)
         {
             m_CurrentTime += ts.GetSeconds();
 
@@ -89,27 +140,32 @@ public:
 
     bool AddIngredient(IngredientType type) override
     {
-        if (m_IsReady || m_Ingredients.size() >= 2) return false;
-
-        if (type == IngredientType::ChoppedTomato)
+        if (!CanAcceptIngredient(type))
         {
-            m_Ingredients.push_back(type);
-            m_IsReady = false;
-
-            SetSmoking(true);
-
-            if (!m_BoilingSound) {
-                m_BoilingSound = AudioEngine::PlayLoopingSound("CookingStation/Assets/sounds/Risotto_Boil_pot.wav", 0.15f);
-            }
-
-            m_CurrentTime = 0.0f;
-            UpdateVisuals();
-            spdlog::info("Garnek: Przyjeto pokrojonego pomidora, zaczynamy gotowanie!");
-            return true;
+            spdlog::warn("Garnek: Nie mozesz tego wrzucic!");
+            return false;
         }
 
-        spdlog::warn("Garnek: Nie wrzucaj tego! Najpierw pokroj na desce!");
-        return false;
+        m_Ingredients.push_back(type);
+        m_IsReady = false;
+
+        if (GetPotResult() != IngredientType::None)
+        {
+            SetSmoking(true);
+            if (!m_BoilingSound)
+            {
+                m_BoilingSound = AudioEngine::PlayLoopingSound("CookingStation/Assets/sounds/Risotto_Boil_pot.wav", 0.15f);
+            }
+            m_CurrentTime = 0.0f;
+            spdlog::info("Garnek: Skladniki skompletowane, zaczynamy gotowanie!");
+        }
+        else
+        {
+            spdlog::info("Garnek: Przyjeto skladnik, czekam na reszte...");
+        }
+
+        UpdateVisuals();
+        return true;
     }
 
 protected:
@@ -120,36 +176,36 @@ protected:
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
                 return;
 
-            if (!GameProgress::IsRecipeUnlocked("TomatoSoup"))
-            {
-                GameProgress::UnlockRecipe("TomatoSoup");
-                spdlog::info("Zupa pomidorowa odblokowana po raz pierwszy!");
-            }
+            IngredientType resultDish = GetPotResult();
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            m_SpawnedFood = SpawnMachineFood(IngredientType::TomatoSoup, "W_Garnku");
+            std::string tagStr = "W_Garnku";
+            if (resultDish == IngredientType::Candy) tagStr = "CukierekWGarnku";
+            else if (resultDish == IngredientType::Kopytka) tagStr = "KopytkaWGarnku";
+            else if (resultDish == IngredientType::GoldenKopytka) tagStr = "ZloteKopytkaWGarnku";
+
+            m_SpawnedFood = SpawnMachineFood(resultDish, tagStr);
 
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)
             {
-                foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
+                float yOff = (resultDish == IngredientType::Candy) ? 0.7f : 1.0f;
+                foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, yOff, 0.0f));
             }
 
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_SpawnedFood, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
-            });
+                });
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_Entity, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
-            });
+                });
 
             DishHistory history;
             history.BaseIngredients = m_Ingredients;
             history.OriginMachine = "Pot";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
-
-            spdlog::info("Danie gotowe, pojawia sie nad garnkiem i zostalo wpisane do rejestru.");
         }
         else
         {
@@ -162,12 +218,34 @@ protected:
             if (m_Ingredients.empty())
             {
                 StopBoilingSound();
+                SetSmoking(false);
             }
         }
     }
 
     void OnTransferToPlate(Entity plate) override
     {
-        PlaceSpawnedFoodOnPlate(plate);
+        auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(plate);
+        PlateScript* pScript = nullptr;
+        if (nsc) {
+            for (auto& s : nsc->Scripts) {
+                if (s.Name == "PlateScript" && s.Instance) {
+                    pScript = static_cast<PlateScript*>(s.Instance);
+                    break;
+                }
+            }
+        }
+
+        if (pScript)
+        {
+            if (pScript->AddIngredient(GetPotResult()))
+            {
+                spdlog::info("Garnek: Danie przelozone na talerz!");
+                if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
+                    GetScene()->DestroyEntity(m_SpawnedFood);
+                    m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+                }
+            }
+        }
     }
 };

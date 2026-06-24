@@ -43,7 +43,11 @@ enum class IngredientType : uint32_t
 
     SleepyDust, RawSleepyDough, SleepyBread,
 
-    ChoppedRaspberry, RawCupcakeDough
+    ChoppedRaspberry, RawCupcakeDough,
+
+    Yawn,
+
+    ChoppedPotato, RawKopytkaDough
 };
 
 // Struktura trzymająca metadane składnika
@@ -131,6 +135,9 @@ inline std::string IngredientTypeToString(IngredientType type)
         case IngredientType::SleepyBread:               return "SleepyBread";
         case IngredientType::ChoppedRaspberry:          return "ChoppedRaspberry";
         case IngredientType::RawCupcakeDough:           return "RawCupcakeDough";
+        case IngredientType::Yawn:                      return "Yawn";
+        case IngredientType::ChoppedPotato:             return "ChoppedPotato";
+        case IngredientType::RawKopytkaDough:           return "RawKopytkaDough";
         default:                                        return "Unknown";
     }
 }
@@ -165,18 +172,22 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
             return { glm::vec3(0.4f), glm::vec3(0.0f, glm::radians(90.0f), 0.0f) };
         case IngredientType::Egg:
             return { glm::vec3(0.4f), glm::vec3(0.0f) };
+        case IngredientType::RawDough:
+            return { glm::vec3(6.0), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::Coffee:
+            return { glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(0.0f) };
 
         case IngredientType::Apple:
             return { glm::vec3(0.3f), glm::vec3(0.0f), glm::vec3(0.0f) };
         case IngredientType::Raspberry:
-            return { glm::vec3(0.7f), glm::vec3(0.0f), glm::vec3(0.0f) };
+            return { glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
         case IngredientType::CoffeeBeans:
             return { glm::vec3(0.6f), glm::vec3(90.0f, 90.0f, 0.0f), glm::vec3(0.0f) };
         case IngredientType::Strawberry:
             return { glm::vec3(1.1f), glm::vec3(-90.0f, 0.0f, 90.0f), glm::vec3(0.0f) };
 
         case IngredientType::ChoppedApple:
-            return { glm::vec3(0.4f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(0.0f) };
+            return { glm::vec3(0.25f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(0.0f) };
         case IngredientType::RawApplePie:
             return { glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
         case IngredientType::ApplePie:
@@ -190,12 +201,28 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
             return { glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
 
         case IngredientType::ChoppedRaspberry:
-            return { glm::vec3(7.5f), glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f) };
+            return { glm::vec3(1.0f), glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f) };
         case IngredientType::RawCupcakeDough:
-            return { glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
+            return { glm::vec3(6.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
 
         case IngredientType::Cupcake:
             return { glm::vec3(6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f) };
+
+        case IngredientType::Yawn:
+            return { glm::vec3(0.2f), glm::vec3(0.0f), glm::vec3(0.0f) };
+
+        case IngredientType::Candy:
+            return { glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::Potato:
+            return { glm::vec3(0.4f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(0.0f) };
+        case IngredientType::ChoppedPotato:
+            return { glm::vec3(0.5f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(0.0f) };
+        case IngredientType::RawKopytkaDough:
+            return { glm::vec3(3.5f), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::Kopytka:
+            return { glm::vec3(3.5f), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::GoldenKopytka:
+            return { glm::vec3(3.5f), glm::vec3(0.0f), glm::vec3(0.0f) };
 
         default:
             return { glm::vec3(1.0f), glm::vec3(0.0f) };
@@ -222,7 +249,7 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::ChoppedHam:                return "assets://models/skladniki/szynka/szynka-pokrojona.gltf";
 
             // Pieczywo i ciasta
-        case IngredientType::RawDough:                  return "assets://models/skladniki/ciasta_nieupieczone/ciasto.gltf";
+        case IngredientType::RawDough:                  return "assets://models/skladniki/ciasta-v2/ciasto-bagietka.gltf";
         case IngredientType::Baguette:                  return "assets://models/skladniki/bagietka/bagietka.gltf";
         case IngredientType::CutBaguette:               return "assets://models/skladniki/bagietka/bagietka-przekrojona.gltf";
         case IngredientType::Sandwich:                  return "assets://models/skladniki/kanapki/kanapka.gltf";
@@ -282,8 +309,7 @@ inline std::string GetModelPath(IngredientType type)
             // Napoje / Mleczne
         case IngredientType::Milk:                      return "assets://models/skladniki/mleko/milk.gltf";
         case IngredientType::MilkWithHoney:             return "assets://models/skladniki/mleko_z_miodem/milk_with_honey.gltf";
-        case IngredientType::Coffee:                    return "assets://models/skladniki/napoje/kawa.gltf";
-        case IngredientType::MilkCoffee:                return "assets://models/skladniki/napoje/kawa-mleko.gltf";
+        case IngredientType::Coffee:                    return "assets://models/skladniki/napoje/kawa-mleko.gltf";
         case IngredientType::CoffeeBeans:               return "assets://models/skladniki/napoje/ziarnokawy.gltf";
         case IngredientType::ShakeCup:                  return "assets://models/skladniki/shake/kubek-shake.gltf";
         case IngredientType::AppleShake:                return "assets://models/skladniki/shake/shake-jablko.gltf";
@@ -291,13 +317,16 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::RaspberryShake:            return "assets://models/skladniki/shake/shake-malina.gltf";
         case IngredientType::StrawberryShake:           return "assets://models/skladniki/shake/shake-truskawka.gltf";
 
-        case IngredientType::ChoppedApple:              return "assets://models/skladniki/pomidor/pomidor-pokrojony.gltf";
+        case IngredientType::ChoppedApple:              return "assets://models/skladniki/jablko/apple-cut.gltf";
         case IngredientType::RawApplePie:               return "assets://models/skladniki/ciasta_nieupieczone/ciasto.gltf";
         case IngredientType::SleepyDust:                return "assets://models/skladniki/pyl/pyl.gltf";
-        case IngredientType::RawSleepyDough:            return "assets://models/skladniki/ciasta_nieupieczone/ciasto.gltf";
+        case IngredientType::RawSleepyDough:            return "assets://models/skladniki/ciasta-v2/ciasto-croissant.gltf";
         case IngredientType::SleepyBread:               return "assets://models/skladniki/chleb/chleb2.gltf";
-        case IngredientType::ChoppedRaspberry:          return "assets://models/skladniki/szynka/szynka-pokrojona.gltf";
-        case IngredientType::RawCupcakeDough:           return "assets://models/skladniki/ciasta_nieupieczone/ciasto.gltf";
+        case IngredientType::ChoppedRaspberry:          return "assets://models/skladniki/malina/malina-cut.gltf";
+        case IngredientType::RawCupcakeDough:           return "assets://models/skladniki/ciasta-v2/ciasto-babeczka.gltf";
+        case IngredientType::Yawn:                      return "assets://models/skladniki/ziewniecie/ziewniecie.gltf";
+        case IngredientType::ChoppedPotato:             return "assets://models/skladniki/ziemniak/potato-cut.gltf";
+        case IngredientType::RawKopytkaDough:           return "assets://models/skladniki/ciasta-v2/ciasto-kopytka.gltf";
 
         default: return "";
     }

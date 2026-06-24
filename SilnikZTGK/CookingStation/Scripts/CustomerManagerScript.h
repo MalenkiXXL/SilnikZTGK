@@ -167,7 +167,6 @@ private:
         if (isGrandma) {
             auto sitAnim = std::make_shared<Animation>(animPath, mesh.ModelPtr.get());
             animatorComp.AnimatorInstance->AddAnimation("SitIdle", sitAnim);
-            animatorComp.AnimatorInstance->PlayAnimation("SitIdle");
 
             auto walkAnim = std::make_shared<Animation>("CookingStation/Assets/models/animacje/babcia/babcia-chodzi.gltf", mesh.ModelPtr.get());
             animatorComp.AnimatorInstance->AddAnimation("Walk", walkAnim);
@@ -193,8 +192,6 @@ private:
             nsc.AddScript<CustomerScript>("CustomerScript");
         }
         builder.With<NativeScriptComponent>(nsc);
-
-        builder.Build();
 
         if (isGrandma) {
             CustomerScript::s_GrandmaTargetChair = targetChair;

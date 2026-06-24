@@ -37,9 +37,11 @@ private:
         case IngredientType::Mozzarella:
             return { "assets://models/skladniki/pomidor/mozzarella.gltf", "assets://models/skladniki/pomidor/mozzarella-pokrojona.gltf" };
         case IngredientType::Apple:
-            return { "assets://models/skladniki/jablko/apple1.gltf", "assets://models/skladniki/pomidor/pomidor-pokrojony.gltf" };
+            return { "assets://models/skladniki/jablko/apple1.gltf", "assets://models/skladniki/jablko/apple-cut.gltf" };
         case IngredientType::Raspberry:
-            return { "assets://models/skladniki/malina/malina.gltf", "assets://models/skladniki/szynka/szynka-pokrojona.gltf" };
+            return { "assets://models/skladniki/malina/malina.gltf", "assets://models/skladniki/malina/malina-cut.gltf" };
+        case IngredientType::Potato:
+            return { "assets://models/skladniki/ziemniak/potato2.gltf", "assets://models/skladniki/ziemniak/potato-cut.gltf" };
         default:
             return { "", "" };
         }
@@ -55,11 +57,10 @@ private:
         case IngredientType::Mozzarella: return IngredientType::ChoppedMozzarella;
         case IngredientType::Apple: return IngredientType::ChoppedApple;
         case IngredientType::Raspberry: return IngredientType::ChoppedRaspberry;
+        case IngredientType::Potato: return IngredientType::ChoppedPotato;
         default: return IngredientType::None;
         }
     }
-
-    
 
     void ResetMachineState() override
     {
@@ -96,7 +97,6 @@ public:
     void OnCreate() override
     {
         MachineScript::OnCreate();
-
 
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_FoodClickSubId);
@@ -149,6 +149,10 @@ public:
 
                 if (pScript->AddIngredient(choppedType))
                 {
+                    if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
+                        GetScene()->DestroyEntity(m_SpawnedFood);
+                        m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+                    }
                     spdlog::info("Składnik z deski przeniesiony na talerz!");
                     ClearHighlight();
                     ResetMachineState();
@@ -266,7 +270,6 @@ public:
         {
             if (!m_WasShowingKnife)
             {
-                // Ukrywa systemowy kursor przez natywne wywołanie GLFW
                 GLFWwindow* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
                 glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
                 m_WasShowingKnife = true;
@@ -363,7 +366,8 @@ public:
             type == IngredientType::Ham ||
             type == IngredientType::Mozzarella ||
             type == IngredientType::Apple ||
-            type == IngredientType::Raspberry)
+            type == IngredientType::Raspberry ||
+            type == IngredientType::Potato)
         {
             m_Ingredients.push_back(type);
             m_ChopCount = 0;

@@ -21,7 +21,7 @@
 	"materials":[
 		{
 			"doubleSided":true,
-			"name":"Material.002",
+			"name":"Material.001",
 			"pbrMetallicRoughness":{
 				"baseColorTexture":{
 					"index":0
@@ -55,8 +55,8 @@
 	],
 	"images":[
 		{
-			"mimeType": "image/png",
-			"name": "palette.png",
+			"mimeType":"image/png",
+			"name":"palette",
 			"uri": "../../../textures/palette.png"
 		}
 	],
@@ -67,12 +67,12 @@
 			"count":433,
 			"max":[
 				1.3062688112258911,
-				0.8908953070640564,
+				1.8220444917678833,
 				0.9945496916770935
 			],
 			"min":[
 				-1.2955187559127808,
-				-0.9160898923873901,
+				0.015059292316436768,
 				-0.9959085583686829
 			],
 			"type":"VEC3"
@@ -124,8 +124,8 @@
 	],
 	"samplers":[
 		{
-			"magFilter":9728,
-			"minFilter":9984
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[

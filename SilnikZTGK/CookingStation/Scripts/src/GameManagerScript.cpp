@@ -97,6 +97,8 @@ void GameManagerScript::OnCreate()
     AddIngredients(IngredientType::Strawberry, 5);
     AddIngredients(IngredientType::CoffeeBeans, 5);
     AddIngredients(IngredientType::SleepyDust, 5);
+    AddIngredients(IngredientType::Yawn, 5);
+    AddIngredients(IngredientType::Potato, 5);
 
 
     auto findEntityByName = [&](const std::string& targetName) -> Entity {

@@ -28,6 +28,7 @@
 #include "CustomerScript.h"
 #include "Machines/CuttingBoardScript.h"
 #include "Waiter/WaiterPickupStationScript.h"
+#include "Machines/CoffeeMakerScript.h"
 #include "Waiter/WaiterScript.h"
 #include "Machines/CuttingBoardScript.h"
 #include "Machines/MixerScript.h"
@@ -61,6 +62,7 @@ public:
     {
         if (!GetRegistry().empty()) return;
         Register<RotationScript>("RotationScript");
+        Register<CoffeeMakerScript>("CoffeeMakerScript");
         Register<ConveyorScript>("ConveyorScript");
         Register<ConveyorSwitchScript>("ConveyorSwitchScript");
         Register<ConveyorPickupScript>("ConveyorPickupScript");
