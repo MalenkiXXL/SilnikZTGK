@@ -138,6 +138,15 @@ public:
             UpdateVisuals();
         }
 
+        if (m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+            auto* crateTf = GetComponent<TransformComponent>();
+            auto* visualTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_VisualFood);
+            if (crateTf && visualTf) {
+                IngredientMetadata meta = GetIngredientMetadata(m_CrateIngredient);
+                visualTf->SetPosition(crateTf->GetPosition() + glm::vec3(0.0f, 0.4f, 0.0f) + meta.offset);
+            }
+        }
+
         if (!GameManagerScript::s_IsTutorialMode && m_IsInitialized && currentStock > m_LastStockCount) {
             if (m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
                 GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{

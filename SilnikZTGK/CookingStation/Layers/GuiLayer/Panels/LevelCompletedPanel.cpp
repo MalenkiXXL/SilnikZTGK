@@ -65,7 +65,7 @@ void LevelCompletedPanel::Draw(float screenW, float screenH, float baseScale) {
     float totalStarsW = baseStarW + spacing + baseMidStarW + spacing + baseStarW;
     float startX = bgPos.x + (bgW - totalStarsW) * 0.5f;
 
-    // Gwiazdki wy¿ej nad panelem
+    // Gwiazdki wy ej nad panelem
     float sideStarY = bgPos.y - 75.0f * baseScale;
     float midStarY = sideStarY - 35.0f * baseScale;
 
@@ -73,31 +73,31 @@ void LevelCompletedPanel::Draw(float screenW, float screenH, float baseScale) {
     float midX = leftX + baseStarW + spacing;
     float rightX = midX + baseMidStarW + spacing;
 
-    float trigger1 = 0.3f; // Kiedy zapala siê 1 gwiazdka (Lewa)
-    float trigger2 = 0.7f; // Kiedy zapala siê 2 gwiazdka (Prawa)
-    float trigger3 = 1.1f; // Kiedy zapala siê 3 gwiazdka (Œrodkowa)
-    float popDuration = 0.4f; // Jak d³ugo trwa powiêkszenie
+    float trigger1 = 0.3f; // Kiedy zapala si  1 gwiazdka (Lewa)
+    float trigger2 = 0.7f; // Kiedy zapala si  2 gwiazdka (Prawa)
+    float trigger3 = 1.1f; // Kiedy zapala si  3 gwiazdka ( rodkowa)
+    float popDuration = 0.4f; // Jak d ugo trwa powi kszenie
 
-    // Funkcja wyliczaj¹ca p³ynn¹ skalê (powiêksza o 40% w szczycie sinusa)
+    // Funkcja wyliczaj ca p ynn  skal  (powi ksza o 40% w szczycie sinusa)
     auto getScale = [&](float trigger) {
         if (m_AnimationTimer >= trigger && m_AnimationTimer < trigger + popDuration) {
             float t = (m_AnimationTimer - trigger) / popDuration; // Zmienna od 0.0 do 1.0
-            return 1.0f + 0.4f * std::sin(t * 3.14159265f); // 3.14 to po³owa cyklu sinusa
+            return 1.0f + 0.4f * std::sin(t * 3.14159265f); // 3.14 to po owa cyklu sinusa
         }
-        return 1.0f; // Domyœlna skala przed i po animacji
+        return 1.0f; // Domy lna skala przed i po animacji
         };
 
-    // ZMIANA: Przypisanie czasów i wymaganej liczby gwiazdek do nowej kolejnoœci
+    // ZMIANA: Przypisanie czas w i wymaganej liczby gwiazdek do nowej kolejno ci
     float scaleLeft = (m_Stars >= 1) ? getScale(trigger1) : 1.0f;
-    float scaleRight = (m_Stars >= 2) ? getScale(trigger2) : 1.0f; // Prawa zapala siê jako druga
-    float scaleMid = (m_Stars == 3) ? getScale(trigger3) : 1.0f; // Œrodkowa zapala siê jako trzecia
+    float scaleRight = (m_Stars >= 2) ? getScale(trigger2) : 1.0f; // Prawa zapala si  jako druga
+    float scaleMid = (m_Stars == 3) ? getScale(trigger3) : 1.0f; //  rodkowa zapala si  jako trzecia
 
-    // ZMIANA: Wybieramy z³ot¹ teksturê zgodnie z now¹ kolejnoœci¹
+    // ZMIANA: Wybieramy z ot  tekstur  zgodnie z now  kolejno ci 
     auto texLeft = (m_Stars >= 1 && m_AnimationTimer >= trigger1) ? m_LeftStarYellow : m_LeftStarGrey;
     auto texRight = (m_Stars >= 2 && m_AnimationTimer >= trigger2) ? m_RightStarYellow : m_RightStarGrey;
     auto texMiddle = (m_Stars == 3 && m_AnimationTimer >= trigger3) ? m_MiddleStarYellow : m_MiddleStarGrey;
 
-    // Funkcja renderuj¹ca z zachowaniem wyœrodkowania
+    // Funkcja renderuj ca z zachowaniem wy rodkowania
     auto drawStar = [&](std::shared_ptr<Texture> tex, float x, float y, float w, float h, float scale) {
         if (!tex) return;
         float finalW = w * scale;
@@ -107,12 +107,12 @@ void LevelCompletedPanel::Draw(float screenW, float screenH, float baseScale) {
         Renderer2D::DrawQuad({ finalX, finalY }, { finalW, finalH }, tex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         };
 
-    // Rysowanie poszczególnych gwiazdek (tutaj kolejnoœæ wywo³añ nie ma znaczenia, licz¹ siê parametry wy¿ej)
+    // Rysowanie poszczeg lnych gwiazdek (tutaj kolejno   wywo a  nie ma znaczenia, licz  si  parametry wy ej)
     drawStar(texLeft, leftX, sideStarY, baseStarW, baseStarH, scaleLeft);
     drawStar(texMiddle, midX, midStarY, baseMidStarW, baseMidStarH, scaleMid);
     drawStar(texRight, rightX, sideStarY, baseStarW, baseStarH, scaleRight);
 
-    // --- ANIMOWANY TEKST PIENIÊDZY ---
+    // --- ANIMOWANY TEKST PIENI DZY ---
     std::string moneyText = "$" + std::to_string((int)m_DisplayMoney);
     float textScale = 3.0f * baseScale;
     float textWidth = Gui::MeasureTextWidth(moneyText, textScale);

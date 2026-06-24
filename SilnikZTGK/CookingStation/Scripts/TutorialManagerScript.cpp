@@ -163,6 +163,7 @@ bool TutorialManagerScript::IsHovering(Entity e, glm::vec3 mousePos, float radiu
 }
 
 void TutorialManagerScript::OnCreate() {
+    ResetTutorial();
     GameManagerScript::s_IsTutorialMode = true;
     TutorialManagerScript::s_AllowConveyorSwitch = false;
     GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ IngredientType::Tomato, 5 });
@@ -1171,7 +1172,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
 
             if (m_StateTimer > 1.5f) {
-                g_TriggerCloudTransition = true; // ODPALAMY CHMURKĘ!
+                g_TriggerCloudTransition = true; 
                 m_StateTimer = -9999.0f;
                 endPhase = 7;
             }
@@ -1182,4 +1183,15 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
     default:
         break;
     }
+}
+
+void TutorialManagerScript::ResetTutorial()
+{
+    m_State = TutorialState::Start; 
+    m_StateTimer = 0.0f;
+    m_DialogIndex = 0;
+
+    GameManagerScript::s_ShowTutorialDialog = false;
+    GameManagerScript::s_TutorialCharsRevealed = 0;
+
 }
