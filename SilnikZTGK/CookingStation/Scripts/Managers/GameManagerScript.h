@@ -80,6 +80,7 @@ public:
 
 private:
     void OnOrderFulfilled(const OrderFulfilledEvent& e);
+    void UnlockNewMapArea();
 
     int money = 0;
     std::unordered_map<IngredientType, int> m_Inventory;
@@ -112,8 +113,13 @@ private:
     int m_CurrentQuestProgress = 0;
 
     int m_CollectedFlagsCount = 0;
+    std::size_t m_GrandmaSatisfiedSubId = 0;
 
-
+    std::vector<std::pair<Entity, glm::vec3>> m_NewMapEntities;
+    Entity m_SmallFloor = { std::numeric_limits<std::size_t>::max(), 0 };
+    Entity m_BigFloor = { std::numeric_limits<std::size_t>::max(), 0 };
+    bool m_IsMapExpanding = false;
+    float m_MapExpandProgress = 0.0f;
     // finaly
     // std::atomic<bool> m_NewQuestsReady{false};
     // bool m_IsGeneratingQuests = false;

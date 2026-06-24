@@ -2,6 +2,7 @@
 #include "CookingStation/Scene/PrefabSerializer.h"
 #include "CookingStation/Scripts/Managers/CloudManagerScript.h"
 #include "CookingStation/Scripts/Managers/HighlightManagerScript.h"
+#include "CookingStation/Scripts/CrateScript.h"
 #include <spdlog/spdlog.h>
 #include <string>
 #include <unordered_map>
@@ -126,6 +127,12 @@ void GameManagerScript::OnCreate()
     m_OrderFulfilledSubId = bus.Subscribe<OrderFulfilledEvent>(
         [this](const OrderFulfilledEvent& e) {
             this->OnOrderFulfilled(e);
+        }
+    );
+
+    m_GrandmaSatisfiedSubId = bus.Subscribe<GrandmaSatisfiedEvent>(
+        [this](const GrandmaSatisfiedEvent& e) {
+            this->UnlockNewMapArea();
         }
     );
 
@@ -304,7 +311,7 @@ void GameManagerScript::OnCreate()
             m_MainIslandQuestGroup.push_back({ e, origY });
 
             glm::vec3 pos = transform->GetPosition();
-            pos.y = origY + 30.0f;
+            pos.y = origY + 100.0f;
             transform->SetPosition(pos);
         }
     }
@@ -331,6 +338,53 @@ void GameManagerScript::OnCreate()
             m_ReplacedByQuestGroup.push_back({ e, origY });
         }
     }
+
+    auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+    if (tags) {
+        for (size_t i = 0; i < tags->dense.size(); ++i) {
+            std::string tag = tags->dense[i].Tag;
+            Entity e = tags->reverse[i];
+
+            if (tag == "Mala_Podloga") {
+                m_SmallFloor = e;
+            }
+            else if (tag == "Wielka_Podloga") {
+                m_BigFloor = e;
+                auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
+                if (tf) {
+                    glm::vec3 pos = tf->GetPosition();
+                    pos.y = -999.0f;
+                    tf->SetPosition(pos);
+                }
+            }
+            else if (tag.find("NewMap_") != std::string::npos) {
+                auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(e);
+                if (tf) {
+                    m_NewMapEntities.push_back({ e, tf->GetPosition() });
+                    glm::vec3 pos = tf->GetPosition();
+                    pos.y = -999.0f;
+                    tf->SetPosition(pos);
+
+                    auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(e);
+                    if (nsc) {
+                        for (auto& s : nsc->Scripts) {
+                            if (s.Name == "CrateScript" && s.Instance) {
+                                auto* crate = static_cast<CrateScript*>(s.Instance);
+                                if (crate->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                                    auto* vfTf = GetScene()->GetWorld().GetComponent<TransformComponent>(crate->m_VisualFood);
+                                    if (vfTf) {
+                                        glm::vec3 vfPos = vfTf->GetPosition();
+                                        vfPos.y = -999.0f;
+                                        vfTf->SetPosition(vfPos);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 void GameManagerScript::OnDestroy()
@@ -342,6 +396,7 @@ void GameManagerScript::OnDestroy()
     bus.Unsubscribe<OrderFulfilledEvent>(m_OrderFulfilledSubId);
     bus.Unsubscribe<DishCreatedEvent>(m_DishCreatedSubId);
     bus.Unsubscribe<ValidateOrderRequestEvent>(m_ValidateOrderSubId);
+    bus.Unsubscribe<GrandmaSatisfiedEvent>(m_GrandmaSatisfiedSubId);
 
     s_Instance = nullptr;
 }
@@ -398,6 +453,12 @@ bool GameManagerScript::SpendMoney(int amount) {
     return false;
 }
 
+void GameManagerScript::UnlockNewMapArea()
+{
+    m_IsMapExpanding = true;
+    m_MapExpandProgress = 0.0f;
+}
+
 void GameManagerScript::OnOrderFulfilled(const OrderFulfilledEvent& e)
 {
     AddMoney(static_cast<int>(e.RewardAmount));
@@ -428,6 +489,79 @@ void GameManagerScript::OnOrderFulfilled(const OrderFulfilledEvent& e)
 
 void GameManagerScript::OnUpdate(Timestep ts)
 {
+    if (m_IsMapExpanding) {
+        m_MapExpandProgress += (float)ts.GetSeconds() * 0.5f;
+
+        if (m_MapExpandProgress >= 0.5f && m_SmallFloor.id != std::numeric_limits<std::size_t>::max()) {
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_SmallFloor });
+            m_SmallFloor = { std::numeric_limits<std::size_t>::max(), 0 };
+
+            if (m_BigFloor.id != std::numeric_limits<std::size_t>::max()) {
+                auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_BigFloor);
+                if (tf) {
+                    glm::vec3 pos = tf->GetPosition();
+                    pos.y = -0.8f;
+                    tf->SetPosition(pos);
+                }
+            }
+        }
+
+        float easeProgress = std::min(m_MapExpandProgress, 1.0f);
+        float easeOut = 1.0f - (1.0f - easeProgress) * (1.0f - easeProgress);
+
+        for (auto& pair : m_NewMapEntities) {
+            auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
+            if (tf) {
+                glm::vec3 currentPos = tf->GetPosition();
+                currentPos.y = -999.0f + (pair.second.y - (-999.0f)) * easeOut;
+                tf->SetPosition(currentPos);
+
+                auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(pair.first);
+                if (nsc) {
+                    for (auto& s : nsc->Scripts) {
+                        if (s.Name == "CrateScript" && s.Instance) {
+                            auto* crate = static_cast<CrateScript*>(s.Instance);
+                            if (crate->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                                auto* vfTf = GetScene()->GetWorld().GetComponent<TransformComponent>(crate->m_VisualFood);
+                                if (vfTf) {
+                                    glm::vec3 vfPos = vfTf->GetPosition();
+                                    vfPos.y = currentPos.y + 0.55f;
+                                    vfTf->SetPosition(vfPos);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if (m_MapExpandProgress >= 1.0f) {
+            for (auto& pair : m_NewMapEntities) {
+                auto* tf = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
+                if (tf) tf->SetPosition(pair.second);
+
+                auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(pair.first);
+                if (nsc) {
+                    for (auto& s : nsc->Scripts) {
+                        if (s.Name == "CrateScript" && s.Instance) {
+                            auto* crate = static_cast<CrateScript*>(s.Instance);
+                            if (crate->m_VisualFood.id != std::numeric_limits<std::size_t>::max()) {
+                                auto* vfTf = GetScene()->GetWorld().GetComponent<TransformComponent>(crate->m_VisualFood);
+                                if (vfTf) {
+                                    glm::vec3 vfPos = vfTf->GetPosition();
+                                    vfPos.y = pair.second.y + 0.55f;
+                                    vfTf->SetPosition(vfPos);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            GetScene()->RebuildConveyorCache();
+            m_IsMapExpanding = false;
+        }
+    }
+
     if (m_MoneyWarningTimer > 0.0f) {
         m_MoneyWarningTimer -= ts;
     }
@@ -496,7 +630,7 @@ void GameManagerScript::OnUpdate(Timestep ts)
             }
 
             float easeOut = 1.0f - (1.0f - m_AnimationProgress) * (1.0f - m_AnimationProgress);
-            float yOffset = 30.0f * (1.0f - easeOut);
+            float yOffset = 100.0f * (1.0f - easeOut);
 
             for (auto& pair : m_MainIslandQuestGroup) {
                 auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
@@ -548,7 +682,7 @@ void GameManagerScript::OnUpdate(Timestep ts)
             }
         }
 
-        float yOffsetMain = 30.0f * easeIn;
+        float yOffsetMain = 100.0f * easeIn;
         for (auto& pair : m_MainIslandQuestGroup) {
             auto* transform = GetScene()->GetWorld().GetComponent<TransformComponent>(pair.first);
             if (transform) {
