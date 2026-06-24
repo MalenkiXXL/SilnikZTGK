@@ -13,6 +13,12 @@ public:
 
     bool IsOpen() const { return m_IsOpen; }
     void Close() { m_IsOpen = false; }
+    void Reset() {
+        m_HasShownLostHint = false;
+        m_GameTime = 0.0f;
+        m_GlowTimer = 0.0f;
+        m_LostHintTimer = 0.0f;
+    }
 
 private:
     // ZMIANA: Dodano customScale i customIconOffset do rêcznego poprawiania niesfornych ikon!
