@@ -563,7 +563,27 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 Gui::DrawGuiText(line2, { line2X + 1.5f, blockPos.y + lineSpacing + 1.5f }, hintScale, shadowColor);
                 Gui::DrawGuiText(line2, { line2X, blockPos.y + lineSpacing }, hintScale, textColor);
             }
-            // --------------------------------------------------------
+
+            if (custScript && custScript->State == CustomerState::LeavingReaction && custScript->m_WasCorrect && custScript->AwardedTip > 0.0f) {
+                std::string tipText = std::to_string((int)custScript->AwardedTip) + "$ Tip!";
+                float tipScale = 0.8f * baseScale; 
+                float tipW = Gui::MeasureTextWidth(tipText, tipScale);
+
+                float timeNow = glfwGetTime();
+                float floatY = std::sin(timeNow * 6.0f) * 6.0f * baseScale;
+
+                glm::vec2 tipPos = {
+                    ticketPos.x + (ticketSize.x - tipW) * 0.8f + 30.0f ,
+                    ticketPos.y + floatY + 170.0f
+                };
+
+                glm::vec4 tipColor = { 1.0f, 0.85f, 0.2f, 1.0f };
+                glm::vec4 shadowColor = { 0.0f, 0.0f, 0.0f, 0.7f };
+
+                Gui::DrawGuiText(tipText, { tipPos.x + 2.5f, tipPos.y + 2.5f }, tipScale, shadowColor);
+                Gui::DrawGuiText(tipText, tipPos, tipScale, tipColor);
+            }
+
             targetY += state.currentHeight + (10.0f * baseScale);
         }
     }

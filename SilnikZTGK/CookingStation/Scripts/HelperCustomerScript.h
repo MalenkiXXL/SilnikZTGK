@@ -163,8 +163,7 @@ public:
         CustomerScript::OnDestroy();
     }
 
-    void ReceiveFood(bool isCorrectOrder = true) override
-    {
+    void ReceiveFood(bool isCorrectOrder = true, bool hasExtraIngredients = false) override {
         if (State == CustomerState::LeavingReaction || IsPendingDestroy) return;
         IsServed = true;
 

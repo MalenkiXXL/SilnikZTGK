@@ -135,6 +135,7 @@ struct ValidateOrderRequestEvent {
 struct ValidateOrderResponseEvent {
     Entity Customer;
     bool IsCorrect;
+    bool HasExtraIngredients = false;
 };
 
 struct KitchenOrderPlacedEvent {
