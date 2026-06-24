@@ -478,11 +478,9 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 }
 
                 if (primaryIcon) {
-                    // --- ZMIANA: Zbalansowane rozmiary ikon ---
-                    float pIconH = glm::mix(35.0f * baseScale, 65.0f * baseScale, t); // Główna ikona ciut mniejsza (było do 75)
+                    float pIconH = glm::mix(35.0f * baseScale, 65.0f * baseScale, t);
                     glm::vec2 pSize = GuiUtils::CalculateAspectSize(primaryIcon, pIconH);
 
-                    // Środek karteczki
                     glm::vec2 pPos = {
                         ticketPos.x + (ticketSize.x - pSize.x) * 0.5f,
                         ticketPos.y + (ticketSize.y - pSize.y) * 0.35f
@@ -491,16 +489,20 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                     Renderer2D::DrawQuad(pPos, pSize, primaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
                     if (secondaryIcon) {
-                        float sIconH = pIconH * 0.85f; // Poboczna ikona wyraźnie większa (aż 85% głównej, było 65%)
+                        float sIconH = pIconH * 0.75f;
                         glm::vec2 sSize = GuiUtils::CalculateAspectSize(secondaryIcon, sIconH);
 
-                        // Dostosowanie nakładania się do nowych rozmiarów
+                        float offsetXMultiplier = 0.25f; 
+
+                        if (primaryIcon == m_HamIcon) {
+                            offsetXMultiplier = 0.65f; 
+                        }
+
                         glm::vec2 sPos = {
-                            pPos.x + pSize.x - (sSize.x * 0.25f), // Lekko w prawo
-                            pPos.y + pSize.y - (sSize.y * 0.65f)  // Lekko w dół
+                            pPos.x + pSize.x - (sSize.x * offsetXMultiplier),
+                            pPos.y + pSize.y - (sSize.y * 0.65f)
                         };
 
-                        // Rysujemy TYLKO drugą ikonkę
                         Renderer2D::DrawQuad(sPos, sSize, secondaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
                     }
 
