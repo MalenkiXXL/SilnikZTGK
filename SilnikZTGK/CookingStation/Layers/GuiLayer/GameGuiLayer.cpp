@@ -1742,15 +1742,9 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
             }
             if (!packScript) continue;
 
-            std::shared_ptr<Texture> iconToDraw = nullptr;
-            switch (packScript->getType()) {
-            case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
-            case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
-            case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
-            case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
-            case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
-            default: iconToDraw = m_QuestionMarkIcon; break;
-            }
+            std::string iconPath = GetUIIconPathForIngredient(packScript->getType());
+            std::shared_ptr<Texture> iconToDraw = iconPath.empty() ? m_QuestionMarkIcon : AssetManager::GetTexture(iconPath);
+
             DrawHoverCloudUI({ screenX, screenY }, iconToDraw, packScript->getIngredientAmount(), baseScale);
         }
     }
@@ -1798,15 +1792,10 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
         float dy = mousePos.y - (screenY + 40.0f * baseScale);
         if ((dx * dx + dy * dy) > hoverRadiusSq) continue;
 
-        std::shared_ptr<Texture> iconToDraw = nullptr;
-        switch (crateScript->m_CrateIngredient) {
-        case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
-        case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
-        case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
-        case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
-        case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
-        default: iconToDraw = m_QuestionMarkIcon; break;
-        }
+        std::string iconPath = GetUIIconPathForIngredient(crateScript->m_CrateIngredient);
+        std::shared_ptr<Texture> iconToDraw = iconPath.empty() ? m_QuestionMarkIcon : AssetManager::GetTexture(iconPath);
+
+
         int amount = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(crateScript->m_CrateIngredient) : 0;
         DrawHoverCloudUI({ screenX, screenY }, iconToDraw, amount, baseScale);
     }

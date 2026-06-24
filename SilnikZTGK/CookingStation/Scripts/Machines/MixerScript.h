@@ -224,7 +224,6 @@ public:
                     if (!m_DeepHistory.empty()) {
                         pScript->m_DeepHistory.insert(pScript->m_DeepHistory.end(), m_DeepHistory.begin(), m_DeepHistory.end());
                     }
-                    // NOWE: Przekazanie starych maszyn + dopisanie Miksera przed położeniem na talerz!
                     pScript->m_MachineHistory.insert(pScript->m_MachineHistory.end(), m_MachineHistory.begin(), m_MachineHistory.end());
                     pScript->m_MachineHistory.push_back("Mixer");
 
@@ -238,24 +237,13 @@ public:
                 }
             }
         }
-        else if (!m_IsAutomated)
+        else
         {
-            spdlog::warn("Mikser: Brak talerza! Odpalam Drag&Drop.");
+            spdlog::warn("Mikser: Brak talerza w pobliżu! Nie można wyjąć produktu.");
             AudioEngine::Play("assets://sounds/error.mp3");
-            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
-                GetScene()->DestroyEntity(m_SpawnedFood);
-                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-
-                // NOWE: Budujemy wektor pod rączki (pod Drag&Drop) i dodajemy do niego Mikser!
-                std::vector<std::string> dragMachines = m_MachineHistory;
-                dragMachines.push_back("Mixer");
-
-                DragAndDropScript::StartDrag(GetMixerResult(), m_DeepHistory, dragMachines);
-                ResetMachineState();
-                ClearHighlight();
-            }
         }
     }
+
 
 protected:
     void UpdateVisuals() override

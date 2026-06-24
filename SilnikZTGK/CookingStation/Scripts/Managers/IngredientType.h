@@ -340,3 +340,33 @@ inline std::string GetTagForIngredient(IngredientType type)
 {
     return IngredientTypeToString(type);
 }
+
+inline std::string GetUIIconPathForIngredient(IngredientType type)
+{
+    switch (type)
+    {
+        // Podstawowe składniki
+        case IngredientType::Tomato:        return "assets://UI/Tomato.png";
+        case IngredientType::Cheese:        return "assets://UI/Cheese.png";
+        case IngredientType::Ham:           return "assets://UI/ham.png";
+        case IngredientType::Milk:          return "assets://UI/milk.png";
+        case IngredientType::Flour:         return "assets://UI/Flour.png";
+        case IngredientType::Egg:           return "assets://UI/egg.png";
+        case IngredientType::Potato:        return "assets://UI/potato.png";
+
+            // Warzywa i Owoce
+        case IngredientType::Carrot:        return "assets://UI/carrot.png";
+        case IngredientType::Apple:         return "assets://UI/Apple.png";
+        case IngredientType::Raspberry:     return "assets://UI/raspberry.png";
+        case IngredientType::Strawberry:    return "assets://UI/strawberry.png";
+
+            // Inne bazowe produkty
+        case IngredientType::Baguette:      return "assets://UI/Baguette.png";
+        case IngredientType::Mozzarella:    return "assets://UI/mozarella.png";
+        case IngredientType::CoffeeBeans:   return "assets://UI/coffeBean.png";
+        case IngredientType::Candy:         return "assets://UI/Candy.png";
+        case IngredientType::SleepyDust:    return "assets://UI/StarPowder.png";
+
+        default:                            return "";
+    }
+}
