@@ -16,17 +16,25 @@
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 
-static const float FLOOR_MIN_X = -15.0f;
-static const float FLOOR_MAX_X = 14.0f;
-static const float FLOOR_MIN_Z = -18.0f;
-static const float FLOOR_MAX_Z = 18.0f;
+static float FLOOR_MIN_X = -15.0f;
+static float FLOOR_MAX_X = 14.0f;
+static float FLOOR_MIN_Z = -18.0f;
+static float FLOOR_MAX_Z = 18.0f;
+
+static void UpdateBuildBounds() {
+    if (GameManagerScript::s_MapExpanded) {
+        FLOOR_MAX_X = 21.0f;
+    }
+}
 
 static bool IsWithinBuildArea(const glm::vec3& pos) {
+    UpdateBuildBounds();
     return (pos.x >= FLOOR_MIN_X - 0.01f && pos.x <= FLOOR_MAX_X + 0.01f &&
         pos.z >= FLOOR_MIN_Z - 0.01f && pos.z <= FLOOR_MAX_Z + 0.01f);
 }
 
 static glm::vec3 ClampToBuildArea(const glm::vec3& pos) {
+    UpdateBuildBounds();
     glm::vec3 clamped = pos;
     if (clamped.x < FLOOR_MIN_X) clamped.x = FLOOR_MIN_X;
     if (clamped.x > FLOOR_MAX_X) clamped.x = FLOOR_MAX_X;
@@ -1049,6 +1057,7 @@ void BuildModePanel::UpdatePlacement(std::shared_ptr<Scene>& activeScene, float 
 }
 
 void BuildModePanel::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos, int hoverState, float gameX, float gameY, float gameW, float gameH) {
+    UpdateBuildBounds();
     const float cell = GridSystem::CELL_SIZE;
     const float t = 0.06f;
 

@@ -558,6 +558,7 @@ void GameManagerScript::OnUpdate(Timestep ts)
                 }
             }
             GetScene()->RebuildConveyorCache();
+            s_MapExpanded = true;
             m_IsMapExpanding = false;
         }
     }

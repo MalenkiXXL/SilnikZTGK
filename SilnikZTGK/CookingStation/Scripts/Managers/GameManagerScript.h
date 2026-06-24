@@ -25,7 +25,7 @@ class GameManagerScript : public ScriptableEntity
 public:
     static inline bool s_IsTutorialMode = false;
     static inline bool s_IsCutscenePlaying = false;
-
+    static inline bool s_MapExpanded = false;
     static inline bool s_ShowTutorialDialog = false;
     static inline std::string s_TutorialSpeaker = "";
     static inline glm::vec4 s_TutorialSpeakerColor = glm::vec4(1.0f);
