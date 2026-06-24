@@ -19,6 +19,7 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cmath> 
+#include "CookingStation/Scripts/HelperCustomerScript.h"
 
 bool g_TriggerCloudTransition = false;
 
@@ -80,12 +81,18 @@ void GameGuiLayer::OnAttach()
                 if (m_DeliveryCollectedSubId != 0) { oldBus.Unsubscribe<DeliveryCollectedEvent>(m_DeliveryCollectedSubId); m_DeliveryCollectedSubId = 0; }
             }
 
+            m_HasShownOrderHint = false;
+            m_RecipeBookPanel.Reset();
+
             m_ActiveScene = SceneManager::GetActiveScene();
             m_ActiveOrderTickets.clear();
             m_LastMoney = -1;
 
             m_FirstOrderTaken = false;
             m_IsLevelIntro = !GameManagerScript::s_IsTutorialMode;
+            m_IsEventIntro = false;
+            m_HasShownEventIntro = false;
+            m_EventIntroTimer = 0.0f;
 
             m_BuildModePanel.ForceReset();
 
@@ -588,6 +595,10 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         Input::SetUICaptureMouse(true);
     }
 
+    if (m_IsEventIntro && m_EventIntroTimer > 0.0f) {
+        Input::SetUICaptureMouse(true);
+    }
+
     Gui::BeginFrame();
     Gui::UpdateDeltaTime(ts.GetSeconds());
     float dt = ts.GetSeconds();
@@ -670,6 +681,62 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         }
     }
 
+    // ==============================================================
+    // KINEMATYCZNE WPROWADZENIE EVENTU (Wyspa)
+    // ==============================================================
+    if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->GetQuestState() == QuestEventState::WaitingForAccept) {
+        if (!m_HasShownEventIntro && !GameManagerScript::s_IsTutorialMode) {
+            m_IsEventIntro = true;
+            m_HasShownEventIntro = true;
+            m_EventIntroTimer = 3.0f; // Kamera będzie podziwiać wyspę przez 3 sekundy
+        }
+    }
+
+    if (m_IsEventIntro && m_ActiveScene) {
+        auto* camera = m_ActiveScene->GetCamera();
+        if (camera) {
+            // Szukamy wysepki na mapie (ma tag "event_78")
+            Entity islandEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+            auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
+            if (tags) {
+                for (size_t i = 0; i < tags->dense.size(); ++i) {
+                    if (tags->dense[i].Tag == "event_78") {
+                        islandEntity = tags->reverse[i];
+                        break;
+                    }
+                }
+            }
+
+            glm::vec3 targetPos = glm::vec3(0.0f);
+            float targetZoom = 35.0f; // Delikatne przybliżenie (domyślne to 45.0f)
+
+            if (islandEntity.id != std::numeric_limits<std::size_t>::max()) {
+                auto* tf = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(islandEntity);
+                if (tf) targetPos = tf->GetPosition();
+            }
+
+            if (m_EventIntroTimer > 0.0f) {
+                m_EventIntroTimer -= dt;
+                // Kamera podąża za (potencjalnie lecącą) wysepką
+                camera->TargetPosition += (targetPos - camera->TargetPosition) * (dt * 3.5f);
+                camera->Zoom += (targetZoom - camera->Zoom) * (dt * 3.0f);
+            }
+            else {
+                // Koniec pokazu - kamera wraca do centrum mapy i standardowego oddalenia
+                camera->TargetPosition += (glm::vec3(0.0f) - camera->TargetPosition) * (dt * 3.5f);
+                camera->Zoom += (45.0f - camera->Zoom) * (dt * 3.0f);
+
+                // Gdy kamera wróci na miejsce, całkowicie zdejmujemy blokady
+                if (std::abs(camera->Zoom - 45.0f) < 0.5f && glm::length(camera->TargetPosition) < 0.5f) {
+                    camera->Zoom = 45.0f;
+                    camera->TargetPosition = glm::vec3(0.0f);
+                    m_IsEventIntro = false;
+                }
+            }
+        }
+    }
+    // ==============================================================
+
 
 #ifdef CS_DISTRIBUTION
     float gameX = 0.0f, gameY = 0.0f, gameWidth = m_ViewportWidth, gameHeight = m_ViewportHeight;
@@ -748,6 +815,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
         DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
         DrawMachineWarningInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+        DrawHelperHint(gameX, gameY, gameWidth, gameHeight, baseScale);
 
         if (!GameManagerScript::s_IsTutorialMode)
         {
@@ -1511,7 +1579,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     std::string coinsStr = std::to_string(activeQuest->RewardCoins);
     float coinsScale = 0.75f * baseScale;
     float coinsW = Gui::MeasureTextWidth(coinsStr, coinsScale);
-    float bakedCoinCenterX = newCloudPos.x + cloudW * 0.40f;
+    float bakedCoinCenterX = newCloudPos.x + cloudW * 0.41f;
     float bakedCoinCenterY = newCloudPos.y + cloudH * 0.78f;
 
     Gui::DrawGuiText(coinsStr, { bakedCoinCenterX - coinsW * 0.5f + 1.5f, bakedCoinCenterY + 1.5f }, coinsScale, { 0.0f, 0.0f, 0.0f, 0.6f });
@@ -1534,6 +1602,24 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         AudioEngine::Play("assets://sounds/button_click_in_game.mp3");
         GameManagerScript::s_Instance->SkipQuest();
     }
+    std::string collectStr = "Collect all flags!";
+    float collectScale = 1.0f * baseScale;
+    float collectW = Gui::MeasureTextWidth(collectStr, collectScale);
+
+    float timeNow = glfwGetTime();
+    float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale; // Ten sam efekt pływania co w podpowiedziach
+
+    // Środek pod chmurką
+    glm::vec2 collectPos = {
+        newCloudPos.x + (cloudW - collectW) * 0.5f,
+        newCloudPos.y + cloudH + 15.0f * baseScale + floatOffset
+    };
+
+    glm::vec4 shadowColor = { 0.0f, 0.0f, 0.0f, 0.6f };
+    glm::vec4 textColor = { 1.0f, 0.85f, 0.2f, 1.0f }; // Dałem przyjemny, złocisty odcień dla klimatu kolekcji!
+
+    Gui::DrawGuiText(collectStr, { collectPos.x + 1.5f, collectPos.y + 1.5f }, collectScale, shadowColor);
+    Gui::DrawGuiText(collectStr, collectPos, collectScale, textColor);
 }
 
 void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
@@ -1599,6 +1685,7 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
             }
         }
     }
+
 }
 
 void GameGuiLayer::DrawHoverCloudUI(const glm::vec2& screenPos, const std::shared_ptr<Texture>& icon, int amount, float baseScale)
@@ -1877,5 +1964,89 @@ void GameGuiLayer::DrawMachineWarningInfo(float gameX, float gameY, float gameWi
 
     if (hasLine2) {
         Gui::DrawGuiText(m_MachineWarning.Line2, line2Pos, textScale, currentTextColor);
+    }
+
+}
+
+void GameGuiLayer::DrawHelperHint(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
+{
+    if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
+
+    auto* scripts = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
+    auto* transforms = m_ActiveScene->GetWorld().GetComponentVector<TransformComponent>();
+    if (!scripts || !transforms) return;
+
+    for (size_t i = 0; i < scripts->dense.size(); ++i) {
+        auto& nsc = scripts->dense[i];
+        HelperCustomerScript* helperScript = nullptr;
+
+        for (auto& s : nsc.Scripts) {
+            if (s.Name == "HelperCustomerScript") {
+                helperScript = (HelperCustomerScript*)s.Instance;
+                break;
+            }
+        }
+
+        // Jeśli to pierwszy helper i nadal czeka na podniesienie z podłogi
+        if (helperScript && helperScript->m_IsFirstHelperInstance && helperScript->m_IsWaitingForPickup) {
+            Entity helperEnt = scripts->reverse[i];
+            auto* tf = transforms->Get(helperEnt);
+            if (!tf) continue;
+
+            // Rzutowanie pozycji 3D nad głową Helpera na ekran 2D
+            auto* camera = m_ActiveScene->GetCamera();
+            glm::mat4 view = camera->GetViewMatrix();
+            float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+            float orthoSize = 10.0f * (camera->Zoom / 45.0f);
+            glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+            glm::mat4 viewProj = proj3D * view;
+
+            glm::vec3 worldPos = tf->GetPosition() + glm::vec3(0.0f, 2.8f, 0.0f); // Wysokość nad głową
+            glm::vec4 clipSpace = viewProj * glm::vec4(worldPos, 1.0f);
+            if (clipSpace.w <= 0.0f) continue;
+            glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
+
+            float screenX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
+            float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
+
+            // --- ANIMACJA I TEKST ---
+            std::string line1 = "This customer wants to help";
+            std::string line2 = "in your kitchen, pick him";
+            std::string line3 = "up and place near a machine!";
+
+            float hintScale = 0.9f * baseScale;
+            float timeNow = glfwGetTime();
+            float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale; // Efekt pływania
+
+            float w1 = Gui::MeasureTextWidth(line1, hintScale);
+            float w2 = Gui::MeasureTextWidth(line2, hintScale);
+            float w3 = Gui::MeasureTextWidth(line3, hintScale);
+            float maxW = std::max({ w1, w2, w3 });
+
+            float textH = Gui::MeasureTextHeight("A", hintScale);
+            float lineSpacing = textH * 1.3f;
+            float totalH = textH * 3.0f + lineSpacing * 2.0f;
+
+            glm::vec2 blockPos = {
+                screenX - maxW * 0.5f,
+                screenY - totalH * 0.5f + floatOffset
+            };
+
+            float line1X = blockPos.x + (maxW - w1) * 0.5f;
+            float line2X = blockPos.x + (maxW - w2) * 0.5f;
+            float line3X = blockPos.x + (maxW - w3) * 0.5f;
+
+            glm::vec4 shadowColor = { 0.0f, 0.0f, 0.0f, 0.5f };
+            glm::vec4 textColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+            Gui::DrawGuiText(line1, { line1X + 1.5f, blockPos.y + 1.5f }, hintScale, shadowColor);
+            Gui::DrawGuiText(line1, { line1X, blockPos.y }, hintScale, textColor);
+
+            Gui::DrawGuiText(line2, { line2X + 1.5f, blockPos.y + lineSpacing + 1.5f }, hintScale, shadowColor);
+            Gui::DrawGuiText(line2, { line2X, blockPos.y + lineSpacing }, hintScale, textColor);
+
+            Gui::DrawGuiText(line3, { line3X + 1.5f, blockPos.y + lineSpacing * 2.0f + 1.5f }, hintScale, shadowColor);
+            Gui::DrawGuiText(line3, { line3X, blockPos.y + lineSpacing * 2.0f }, hintScale, textColor);
+        }
     }
 }

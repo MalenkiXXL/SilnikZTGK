@@ -14,7 +14,7 @@ public:
     void DrawButton(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt, bool isBlocked);
     void DrawPanel(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt);
 
-    // Zaktualizowane sygnatury - teraz w 100% zgadzaj� si� z .cpp!
+    // Zaktualizowane sygnatury - teraz w 100% zgadzają się z .cpp!
     void DrawOverlay(float gameX, float gameY, float gameW, float gameH, float baseScale);
     void DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos, const glm::vec3& hoverPos, int hoverState, float gameX, float gameY, float gameW, float gameH);
     void DrawActiveGrid(std::shared_ptr<Scene>& activeScene, float gameX, float gameY, float gameW, float gameH, float baseScale);
@@ -41,6 +41,12 @@ private:
     float m_ButtonScale = 1.0f;
     int m_HeldMachineIndex = -1;
     bool m_JustSelectedFromPanel = false;
+
+    // --- NOWE ZMIENNE DO PODPOWIEDZI ---
+    float m_GameTime = 0.0f;
+    float m_BuildHintTimer = 0.0f;
+    bool m_HasShownBuildHint = false;
+    // -----------------------------------
 
     std::shared_ptr<Texture> m_CoinIcon;
     std::shared_ptr<Scene> m_CurrentScene;

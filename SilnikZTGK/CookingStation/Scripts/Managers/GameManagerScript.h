@@ -99,7 +99,7 @@ private:
     //questy
     QuestEventState m_CurrentQuestState = QuestEventState::WaitingForTimer;
     float m_QuestTimer = 0.0f;
-    const float QUEST_INTERVAL = 1.0f;
+    const float QUEST_INTERVAL = 180.0f;
     std::vector<QuestData> m_AvailableQuests;
     int m_CurrentQuestIndex = 0;
     int m_SkipsLeft = 3;

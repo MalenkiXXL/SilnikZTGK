@@ -8,10 +8,17 @@
 #include <glm/glm.hpp>
 #include <limits>
 #include <cmath>
+#include "CookingStation/Core/GridSystem.h"
+#include "CookingStation/Core/AudioEngine.h"
 
 class HelperCustomerScript : public CustomerScript
 {
 public:
+    // PRZYWRÓCONE: Zmienne do hovera
+    bool m_IsHovered = false;
+    bool m_WasHovered = false;
+    std::size_t m_HoverSubId = 0;
+
     float m_YOffset = 0.2f;
     float m_ActionYOffset = 0.0f;
     Entity m_AssignedMachine = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -38,6 +45,12 @@ public:
     bool m_IsWorking = false;
     std::size_t m_ProcessingSubId = 0;
 
+    // PRZYWRÓCONE: Zapasowy OnHoverCursor
+    void OnHoverCursor() override
+    {
+        if (!m_IsWaitingForPickup || m_IsFalling) return;
+        m_IsHovered = true;
+    }
 
     void OnCreate() override
     {
@@ -75,6 +88,7 @@ public:
                     m_IsWaitingForPickup = false;
                     m_IsDragged = true;
                     m_DragDelayTimer = 0.0f;
+                    m_IsHovered = false; // PRZYWRÓCONE: Reset hovera przy kliknięciu
 
                     if (m_IsWorking) {
                         m_IsWorking = false;
@@ -101,6 +115,14 @@ public:
             }
         );
 
+        // PRZYWRÓCONE: Subskrypcja z EventBusa na hover
+        m_HoverSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityHoveredEvent>(
+            [this](const EntityHoveredEvent& e) {
+                if (e.TargetEntity.id == m_Entity.id && m_IsWaitingForPickup && !m_IsFalling) {
+                    m_IsHovered = true;
+                }
+            }
+        );
 
         m_ProcessingSubId = GetScene()->GetWorld().GetEventBus().Subscribe<MachineProcessingEvent>(
             [this](const MachineProcessingEvent& e) {
@@ -132,6 +154,7 @@ public:
     void OnDestroy() override
     {
         GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityClickedEvent>(m_ClickSubId);
+        GetScene()->GetWorld().GetEventBus().Unsubscribe<EntityHoveredEvent>(m_HoverSubId); // PRZYWRÓCONE
         GetScene()->GetWorld().GetEventBus().Unsubscribe<MachineProcessingEvent>(m_ProcessingSubId);
 
         if (m_AssignedMachine.id != std::numeric_limits<std::size_t>::max()) {
@@ -170,14 +193,12 @@ public:
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, highlightColor, 2.0f, false });
         m_WasCorrect = isCorrectOrder;
 
-        // Zmieniamy stan na odliczanie przed zniknięciem (usunięto stąd błędne spawnowanie puffa)
         State = CustomerState::LeavingReaction;
         m_ReactionTimer = 2.0f;
     }
 
     void OnUpdate(Timestep ts) override
     {
-        // Spawning przechodzi przez bazowy CustomerScript (gdzie puff jest wdrożony poprawnie)
         if (State == CustomerState::Spawning || State == CustomerState::WalkingToChair) {
             CustomerScript::OnUpdate(ts);
             return;
@@ -186,10 +207,9 @@ public:
         if (State == CustomerState::LeavingReaction) {
             m_ReactionTimer -= ts.GetSeconds();
             if (m_ReactionTimer <= 0.0f) {
-                // Gdy nadszedł moment zniknięcia
                 if (!m_ExitPoofStarted) {
                     m_ExitPoofStarted = true;
-                    m_ReactionTimer = 2.0f; // Resetujemy timer, dajemy chmurce czas na opadnięcie
+                    m_ReactionTimer = 2.0f;
 
                     auto* tf = GetComponent<TransformComponent>();
                     if (tf)
@@ -218,24 +238,22 @@ public:
                             static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
                         }
 
-                        // Ukrywamy helpera pod mapę, by wydawało się że znika pod dymem
                         glm::vec3 hidePos = tf->GetPosition();
                         hidePos.y -= 100.0f;
                         tf->SetPosition(hidePos);
                     }
                 }
                 else {
-                    // Puff opadł - usunięcie puffa i teleportacja / destrukcja na dobre
                     if (m_ExitPoofEntity.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ExitPoofEntity });
                         m_ExitPoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
                     }
 
                     if (m_WasCorrect) {
-                        State = CustomerState::Seated; // Reset stanu
+                        State = CustomerState::Seated;
                         auto* tagComp = GetComponent<TagComponent>();
                         if (tagComp) tagComp->Tag = "NajedzonyPomocnik";
-                        TeleportToWaitingArea(); // Skrypt przywróci właściwy Y helperowi
+                        TeleportToWaitingArea();
                     }
                     else {
                         if (!IsPendingDestroy) {
@@ -274,22 +292,36 @@ public:
         }
 
         if (m_IsWaitingForPickup) {
-            if (m_IsFirstHelperInstance) {
-                m_PulseTimer += ts.GetSeconds();
-                float wave = std::sin(m_PulseTimer * 4.0f);
+            m_PulseTimer += ts.GetSeconds();
+            float wave = std::sin(m_PulseTimer * 4.0f);
 
-                auto* myTransform = GetComponent<TransformComponent>();
-                if (myTransform) {
-                    myTransform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
+            auto* myTransform = GetComponent<TransformComponent>();
+            auto* mesh = GetComponent<MeshComponent>();
+
+            if (myTransform) {
+                myTransform->SetScale(m_BaseScale + glm::vec3(wave * 0.15f));
+            }
+
+            // PRZYWRÓCONE: Logika żółtego i różowego koloru
+            if (mesh) {
+                float currentOpacity = (wave + 1.0f) * 0.5f * 0.6f;
+                mesh->ShaderName = "HighlightShader";
+
+                if (m_IsHovered) {
+                    // Żółty podczas najechania myszką
+                    mesh->HighlightColor = glm::vec4(1.0f, 0.9f, 0.0f, currentOpacity);
                 }
-
-                auto* mesh = GetComponent<MeshComponent>();
-                if (mesh) {
-                    float currentOpacity = (wave + 1.0f) * 0.5f * 0.6f;
-                    mesh->ShaderName = "HighlightShader";
+                else if (m_IsFirstHelperInstance) {
+                    // Różowy puls dla pierwszego helpera
                     mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity);
                 }
+                else {
+                    // Subtelny fiolet dla pozostałych
+                    mesh->HighlightColor = glm::vec4(0.513f, 0.109f, 0.364f, currentOpacity * 0.4f);
+                }
             }
+
+            m_IsHovered = false; // Resetujemy co klatkę
             return;
         }
 
@@ -298,15 +330,37 @@ public:
 
             float snapX = std::round((mousePos.x - 1.0f) / 2.0f) * 2.0f + 1.0f;
             float snapZ = std::round((mousePos.z - 1.0f) / 2.0f) * 2.0f + 1.0f;
+            glm::vec3 snappedPos = { snapX, m_YOffset, snapZ };
 
             auto* myTransform = GetComponent<TransformComponent>();
             if (myTransform) {
-                myTransform->SetPosition({ snapX, m_YOffset, snapZ });
+                myTransform->SetPosition(snappedPos);
+            }
+
+            // Sprawdzamy czy miejsce jest wolne
+            bool isOccupied = IsTileOccupied(snappedPos);
+            auto* mesh = GetComponent<MeshComponent>();
+
+            // Kolorujemy Helpera podczas trzymania
+            if (mesh) {
+                mesh->ShaderName = "HighlightShader";
+                if (isOccupied) {
+                    mesh->HighlightColor = glm::vec4(0.9f, 0.2f, 0.2f, 0.6f); // Czerwony (zablokowane)
+                }
+                else {
+                    mesh->HighlightColor = glm::vec4(0.2f, 0.9f, 0.2f, 0.6f); // Zielony (wolne)
+                }
             }
 
             m_DragDelayTimer += ts.GetSeconds();
             if (m_DragDelayTimer > 0.15f && Input::IsMouseButtonJustPressed(0)) {
-                m_IsDragged = false;
+                if (!isOccupied) {
+                    m_IsDragged = false;
+                    if (mesh) mesh->ShaderName = "Default"; // Przywracamy normalny wygląd
+                }
+                else {
+                    AudioEngine::Play("assets://sounds/error.mp3"); // Dźwięk błędu!
+                }
             }
             return;
         }
@@ -455,9 +509,10 @@ private:
         tileTf.SetScale({ 0.07f, 0.3f, 0.07f });
         builder.With<TransformComponent>(tileTf);
 
-        MeshComponent tileMesh;
-        tileMesh.ModelPtr = AssetManager::GetModel("assets://models/wystroj/podloga.gltf");
-        builder.With<MeshComponent>(tileMesh);
+        // PRZYWRÓCONE: Usunięcie widocznego mesha kafelka, by nie blokował podnoszenia Helpera
+        // MeshComponent tileMesh;
+        // tileMesh.ModelPtr = AssetManager::GetModel("assets://models/wystroj/podloga.gltf");
+        // builder.With<MeshComponent>(tileMesh);
 
         m_FloorTile = builder.Build();
 
@@ -471,7 +526,6 @@ private:
                 m_BaseScale = myTransform->GetScale();
                 m_BaseScaleInitialized = true;
             }
-            // Zwracamy helpera w widoczne Y u góry
             myTransform->SetPosition(targetPos + glm::vec3(0.0f, m_CurrentFallY, 0.0f));
             myTransform->SetRotation({ 0.0f, m_WaitingRotation, 0.0f });
         }
@@ -556,5 +610,66 @@ private:
                 myTf->SetRotation({ 0.0f, angle + m_RotationOffset, 0.0f });
             }
         }
+    }
+    bool IsTileOccupied(glm::vec3 pos)
+    {
+        // Sprawdzamy granice kuchni (jak w BuildMode)
+        if (pos.x < -15.0f || pos.x > 14.0f || pos.z < -18.0f || pos.z > 18.0f) return true;
+
+        auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
+        auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
+        auto* colliders = GetScene()->GetWorld().GetComponentVector<BoxColliderComponent>();
+
+        if (!transforms) return false;
+
+        glm::ivec2 targetCell = GridSystem::WorldToCell(pos);
+
+        for (size_t i = 0; i < transforms->dense.size(); ++i) {
+            Entity e = transforms->reverse[i];
+            if (e.id == m_Entity.id) continue; // Ignorujemy samego siebie
+
+            glm::vec3 otherPos = transforms->dense[i].GetPosition();
+            if (otherPos.y < -0.2f) continue; // Podłoga nas nie interesuje
+
+            if (GridSystem::WorldToCell(otherPos) == targetCell) {
+                auto* tagComp = tags ? tags->Get(e) : nullptr;
+                if (tagComp) {
+                    std::string t = tagComp->Tag;
+                    // Ignorujemy wielką podłogę, podglądy i platformy Helperów
+                    if (t.find("Wielka_Pod") != std::string::npos || t.find("__BuildPreview__") != std::string::npos || t.find("HelperFloorTile") != std::string::npos) continue;
+                }
+
+                auto* col = colliders ? colliders->Get(e) : nullptr;
+                if (col) return true; // Cokolwiek z kolizją zajmuje miejsce!
+
+                if (tagComp) {
+                    std::string t = tagComp->Tag;
+                    if (t.find("Table") != std::string::npos ||
+                        t.find("Tasma") != std::string::npos ||
+                        t.find("tasma") != std::string::npos ||
+                        t.find("Conveyor") != std::string::npos ||
+                        t.find("Chair") != std::string::npos ||
+                        t.find("krzeslo") != std::string::npos ||
+                        t.find("Krzeslo") != std::string::npos ||
+                        t.find("wydawka") != std::string::npos ||
+                        t.find("Wydawka") != std::string::npos ||
+                        t.find("naroznik") != std::string::npos ||
+                        t.find("PlateSpawner") != std::string::npos ||
+                        t.find("Garnek") != std::string::npos ||
+                        t.find("Deska") != std::string::npos ||
+                        t.find("Mixer") != std::string::npos ||
+                        t.find("Piekarnik") != std::string::npos ||
+                        t.find("Crate") != std::string::npos ||
+                        t.find("Item") != std::string::npos ||
+                        t.find("Plate") != std::string::npos ||
+                        t.find("NajedzonyPomocnik") != std::string::npos ||
+                        t.find("HelperCustomer") != std::string::npos)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 };
