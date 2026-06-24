@@ -84,6 +84,9 @@ void GameGuiLayer::OnAttach()
             m_ActiveOrderTickets.clear();
             m_LastMoney = -1;
 
+            m_FirstOrderTaken = false;
+            m_IsLevelIntro = !GameManagerScript::s_IsTutorialMode;
+
             m_BuildModePanel.ForceReset();
 
             if (m_ActiveScene) {
@@ -120,6 +123,9 @@ void GameGuiLayer::OnAttach()
                 m_OrderTakenSubId = newBus.Subscribe<OrderTakenEvent>(
                     [this](const OrderTakenEvent& e) {
                         if (!m_IsActive) return;
+
+                        m_FirstOrderTaken = true;
+
                         auto it = std::find_if(m_ActiveOrderTickets.begin(), m_ActiveOrderTickets.end(),
                             [&e](const Entity& ticketEnt) {
                                 return ticketEnt.id == e.Customer.id;
@@ -409,6 +415,32 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
 
             // Renderowanie samej karteczki
             Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, ticketColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+            // --- NOWE: Identyczny, pulsujący blask jak w książce z przepisami ---
+            if (isFirst && m_OrderHintTimer > 0.0f && !isHelper) {
+                // Obliczamy płynne zanikanie (tak samo jak dla tekstu)
+                float alphaFade = 1.0f;
+                if (m_OrderHintTimer > 9.5f) { alphaFade = (10.0f - m_OrderHintTimer) / 0.5f; }
+                else if (m_OrderHintTimer < 0.5f) { alphaFade = m_OrderHintTimer / 0.5f; }
+                alphaFade = std::clamp(alphaFade, 0.0f, 1.0f);
+
+                // Matematyka fali przeniesiona kropka w kropkę z RecipeBookPanel
+                float timeNow = glfwGetTime();
+                float wave = (std::sin(timeNow * 6.0f) + 1.0f) * 0.5f;
+                float flashSpike = std::pow(wave, 4.0f);
+
+                float glowScale = 1.0f + (flashSpike * 0.08f);
+                glm::vec2 glowSize = ticketSize * glowScale;
+                glm::vec2 glowPos = {
+                    ticketPos.x - (glowSize.x - ticketSize.x) * 0.5f,
+                    ticketPos.y - (glowSize.y - ticketSize.y) * 0.5f
+                };
+
+                // Kolor z uwzględnieniem fali i ogólnego zanikania podpowiedzi
+                glm::vec4 flashColor = { 1.0f, 0.65f, 0.95f, flashSpike * 0.95f * alphaFade };
+                Renderer2D::DrawQuad(glowPos, glowSize, ticketTex, flashColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+            }
+            // ------
+
 
             if (custScript) {
                 // Magiczna interpolacja: zawarto�� w �rodku ro�nie dok�adnie w tym samym tempie co papierowa karteczka!
@@ -497,7 +529,47 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 }
             }
 
-            // Nast�pna karteczka b�dzie rysowana ni�ej, u�ywaj�c aktualnego (animowanego) rozmiaru
+            // --- NOWE: Rysowanie pływającego tekstu z podpowiedzią ---
+            if (isFirst && m_OrderHintTimer > 0.0f && !isHelper) {
+                float textAlpha = 1.0f;
+                // Płynne pojawianie (przez pierwsze 0.5s) i znikanie (przez ostatnie 0.5s)
+                if (m_OrderHintTimer > 9.5f) { textAlpha = (10.0f - m_OrderHintTimer) / 0.5f; }
+                else if (m_OrderHintTimer < 0.5f) { textAlpha = m_OrderHintTimer / 0.5f; }
+                textAlpha = std::clamp(textAlpha, 0.0f, 1.0f);
+
+                std::string line1 = "Remember to serve fully prepared dishes";
+                std::string line2 = "including both requested items!";
+                float hintScale = 1.0f * baseScale;
+
+                float timeNow = glfwGetTime();
+                float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale; // efekt pływania
+
+                float w1 = Gui::MeasureTextWidth(line1, hintScale);
+                float w2 = Gui::MeasureTextWidth(line2, hintScale);
+                float maxW = std::max(w1, w2);
+
+                float textH = Gui::MeasureTextHeight("A", hintScale);
+                float lineSpacing = textH * 1.3f;
+                float totalH = textH + lineSpacing;
+
+                // Ustawiamy tekst po lewej stronie od karteczki
+                glm::vec2 blockPos = {
+                    ticketPos.x - maxW - 25.0f * baseScale,
+                    ticketPos.y + (state.currentHeight - totalH) * 0.5f + floatOffset
+                };
+
+                float line1X = blockPos.x + (maxW - w1) * 0.5f;
+                float line2X = blockPos.x + (maxW - w2) * 0.5f;
+
+                glm::vec4 shadowColor = { 0.0f, 0.0f, 0.0f, 0.4f * textAlpha };
+                glm::vec4 textColor = { 1.0f, 1.0f, 1.0f, 1.0f * textAlpha };
+
+                Gui::DrawGuiText(line1, { line1X + 1.5f, blockPos.y + 1.5f }, hintScale, shadowColor);
+                Gui::DrawGuiText(line1, { line1X, blockPos.y }, hintScale, textColor);
+                Gui::DrawGuiText(line2, { line2X + 1.5f, blockPos.y + lineSpacing + 1.5f }, hintScale, shadowColor);
+                Gui::DrawGuiText(line2, { line2X, blockPos.y + lineSpacing }, hintScale, textColor);
+            }
+            // --------------------------------------------------------
             targetY += state.currentHeight + (10.0f * baseScale);
         }
     }
@@ -512,6 +584,10 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     Input::SetUICaptureMouse(false);
     if (m_RecipeBookPanel.IsOpen() || m_IsGamePaused) Input::SetUICaptureMouse(true);
 
+    if (m_IsLevelIntro && !m_FirstOrderTaken) {
+        Input::SetUICaptureMouse(true);
+    }
+
     Gui::BeginFrame();
     Gui::UpdateDeltaTime(ts.GetSeconds());
     float dt = ts.GetSeconds();
@@ -521,7 +597,79 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         if (m_CoinAnimTimer < 0.0f) m_CoinAnimTimer = 0.0f;
     }
 
+    if (m_OrderHintTimer > 0.0f) {
+        m_OrderHintTimer -= dt;
+        if (m_OrderHintTimer < 0.0f) m_OrderHintTimer = 0.0f;
+    }
+
     m_ActiveScene = SceneManager::GetActiveScene();
+
+    // ==============================================================
+    // KINEMATYCZNE WPROWADZENIE (Śledzenie Kelnera)
+    // ==============================================================
+    if (m_IsLevelIntro && m_ActiveScene && !GameManagerScript::s_IsTutorialMode) {
+        auto* camera = m_ActiveScene->GetCamera();
+        if (camera) {
+            // Szukamy encji kelnera na scenie
+            Entity waiterEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+            auto* nscArray = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
+            if (nscArray) {
+                for (size_t i = 0; i < nscArray->dense.size(); ++i) {
+                    for (auto& s : nscArray->dense[i].Scripts) {
+                        if (s.Name == "WaiterScript") {
+                            waiterEntity = nscArray->reverse[i];
+                            break;
+                        }
+                    }
+                    if (waiterEntity.id != std::numeric_limits<std::size_t>::max()) break;
+                }
+            }
+
+            // --- NOWE: Szukamy, czy na scenie jest już jakikolwiek klient ---
+            bool customerExists = false;
+            if (nscArray) {
+                for (size_t i = 0; i < nscArray->dense.size(); ++i) {
+                    for (auto& s : nscArray->dense[i].Scripts) {
+                        if (s.Name == "CustomerScript") {
+                            customerExists = true;
+                            break;
+                        }
+                    }
+                    if (customerExists) break;
+                }
+            }
+
+            glm::vec3 targetPos = glm::vec3(0.0f);
+            float targetZoom = 45.0f;
+
+            // Zbliżenie na kelnera TYLKO, gdy klient wszedł już do restauracji
+            if (!m_FirstOrderTaken && customerExists && waiterEntity.id != std::numeric_limits<std::size_t>::max()) {
+                auto* tf = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(waiterEntity);
+                if (tf) {
+                    targetPos = tf->GetPosition();
+                    targetZoom = 25.0f; // Miękkie zbliżenie
+                }
+            }
+
+            // Miękka, płynna interpolacja kamery ("Smooth Follow")
+            camera->TargetPosition += (targetPos - camera->TargetPosition) * (dt * 2.5f);
+            camera->Zoom += (targetZoom - camera->Zoom) * (dt * 2.5f);
+
+            // Wyłącz cutscenkę, gdy kelner przyjął zamówienie a kamera wróciła do normy
+            if (m_FirstOrderTaken && std::abs(camera->Zoom - 45.0f) < 0.5f && glm::length(camera->TargetPosition) < 0.5f) {
+                camera->Zoom = 45.0f;
+                camera->TargetPosition = glm::vec3(0.0f);
+                m_IsLevelIntro = false;
+
+                // --- NOWE: Uruchamiamy timer podpowiedzi ---
+                if (!m_HasShownOrderHint) {
+                    m_OrderHintTimer = 10.0f; // Będzie widoczne przez 10 sekund
+                    m_HasShownOrderHint = true;
+                }
+            }
+        }
+    }
+
 
 #ifdef CS_DISTRIBUTION
     float gameX = 0.0f, gameY = 0.0f, gameWidth = m_ViewportWidth, gameHeight = m_ViewportHeight;
