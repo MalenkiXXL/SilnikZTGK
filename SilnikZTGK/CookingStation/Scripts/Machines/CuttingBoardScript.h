@@ -329,15 +329,16 @@ public:
         if ((isMouseClick || isGamepadTransfer || isGamepadChop) && isHovering && !Input::IsUICapturingMouse()) {
             if (Input::IsKeyPressed(340))
             {
-                if (!m_IsHeld && !GlobalIsMachineHeld)
-                {
-                    m_IsHeld = true;
-                    m_IsNewlySpawned = false;
-                    GlobalIsMachineHeld = true;
-                    m_PickupDelay = 0.2f;
-                    m_OriginalPosition = tf->GetPosition();
-                    ClearHighlight();
-                }
+                    Entity closestPlate = GetClosestAvailablePlate();
+                    if (!m_IsHeld && !GlobalIsMachineHeld && closestPlate.id != std::numeric_limits<std::size_t>::max())
+                    {
+                        m_IsHeld = true;
+                        m_IsNewlySpawned = false;
+                        GlobalIsMachineHeld = true;
+                        m_PickupDelay = 0.2f;
+                        m_OriginalPosition = tf->GetPosition();
+                        ClearHighlight();
+                    }
             }
             else
             {
