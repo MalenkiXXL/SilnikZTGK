@@ -87,13 +87,18 @@ public:
         MachineScript::HandleClick();
     }
 
-    bool AddIngredient(IngredientType type) override
+    bool AddIngredient(IngredientType type, const std::vector<IngredientType>& pastIngredients = {}, const std::vector<std::string>& pastMachines = {}) override
     {
         if (m_IsReady || m_Ingredients.size() >= 2) return false;
 
         if (type == IngredientType::ChoppedTomato)
         {
             m_Ingredients.push_back(type);
+
+            m_DeepHistory.insert(m_DeepHistory.end(), pastIngredients.begin(), pastIngredients.end());
+            m_DeepHistory.push_back(type);
+            m_MachineHistory.insert(m_MachineHistory.end(), pastMachines.begin(), pastMachines.end());
+
             m_IsReady = false;
 
             SetSmoking(true);
@@ -139,13 +144,15 @@ protected:
 
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_SpawnedFood, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
-            });
+                });
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                     m_Entity, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
-            });
+                });
 
             DishHistory history;
-            history.BaseIngredients = m_Ingredients;
+            history.BaseIngredients = m_DeepHistory;
+            history.MachineHistory = m_MachineHistory; // <-- Nowość
+            history.MachineHistory.push_back("Pot");   // <-- Nowość
             history.OriginMachine = "Pot";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
 

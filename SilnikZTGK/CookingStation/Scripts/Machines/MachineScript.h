@@ -63,6 +63,7 @@ public:
     }
 
     std::vector<IngredientType> m_Ingredients;
+    std::vector<IngredientType> m_DeepHistory;
     bool m_IsReady = false;
     bool m_IsAutomated = false;
 
@@ -107,22 +108,22 @@ public:
 
                     Entity closestPlate = GetClosestAvailablePlate();
 
-                        if (closestPlate.id != m_LastHighlightedPlate.id)
-                        {
-                            ClearHighlight();
-                            m_LastHighlightedPlate = closestPlate;
-                        }
-
-                        if (m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max()) {
-                            SetPlateHighlight(m_LastHighlightedPlate, true);
-                        }
-                    }
-                    else if (!isHoveringFood && m_IsMouseHoveringFood)
+                    if (closestPlate.id != m_LastHighlightedPlate.id)
                     {
-                        m_IsMouseHoveringFood = false;
                         ClearHighlight();
+                        m_LastHighlightedPlate = closestPlate;
+                    }
+
+                    if (m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max()) {
+                        SetPlateHighlight(m_LastHighlightedPlate, true);
                     }
                 }
+                else if (!isHoveringFood && m_IsMouseHoveringFood)
+                {
+                    m_IsMouseHoveringFood = false;
+                    ClearHighlight();
+                }
+            }
         );
     }
 
@@ -207,13 +208,24 @@ public:
         }
     }
 
-    virtual bool AddIngredient(IngredientType type)
+    std::vector<std::string> m_MachineHistory;
+
+    virtual bool AddIngredient(IngredientType type, const std::vector<IngredientType>& pastIngredients = {}, const std::vector<std::string>& pastMachines = {})
     {
-        if (m_IsReady || m_Ingredients.size() >= 2){
+        if (m_IsReady || m_Ingredients.size() >= 2) {
             AudioEngine::Play("CookingStation/Assets/sounds/put_in_pot.mp3");
             return false;
-        } else {
+        }
+        else {
             m_Ingredients.push_back(type);
+
+            // Magia łączenia historii! Zgrywamy przeszłość i dokładamy obecny stan:
+            m_DeepHistory.insert(m_DeepHistory.end(), pastIngredients.begin(), pastIngredients.end());
+            m_DeepHistory.push_back(type); // np. surowe ciasto wchodzi na pokład
+
+            // Zgrywamy listę maszyn:
+            m_MachineHistory.insert(m_MachineHistory.end(), pastMachines.begin(), pastMachines.end());
+
             m_IsReady = false;
             m_CurrentTime = 0.0f;
             UpdateVisuals();
@@ -254,7 +266,8 @@ public:
             m_PickupDelay = 0.2f;
             auto* transform = GetComponent<TransformComponent>();
             if (transform) m_OriginalPosition = transform->GetPosition();
-        }else
+        }
+        else
         {
             if (m_IsReady && !m_IsAutomated)
             {
@@ -371,6 +384,7 @@ protected:
         m_IsReady = false;
         m_CurrentTime = 0.0f;
         m_Ingredients.clear();
+        m_DeepHistory.clear();
         UpdateVisuals();
     }
 
@@ -387,7 +401,7 @@ protected:
                     glm::vec3(1.0f, 0.9f, 0.0f),
                     0.0f,
                     true
-            });
+                });
 
             auto* tagSet = GetScene()->GetWorld().GetComponentVector<TagComponent>();
             if (tagSet) {
@@ -396,7 +410,7 @@ protected:
                     if (GetScene()->GetParent(childEntity).id == plateEntity.id) {
                         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                                 childEntity, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
-                        });
+                            });
                     }
                 }
             }
