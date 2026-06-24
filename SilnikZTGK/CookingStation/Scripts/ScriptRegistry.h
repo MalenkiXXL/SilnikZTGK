@@ -21,6 +21,7 @@
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Scripts/Quests/DeliveryBoothScript.h"
 #include "CookingStation/Scripts/Delivery/PackageScript.h"
+#include "CookingStation/Scripts/BinScript.h"
 #include "DragAndDropScript.h"
 #include "MushroomAI.h"
 #include "CustomerManagerScript.h"
@@ -89,6 +90,7 @@ public:
         Register<CrateScript>("CrateScript");
         Register<TutorialManagerScript>("TutorialManagerScript");
         Register<PanScript>("PanScript");
+        Register<BinScript>("BinScript");
     }
 
     static void AddScriptToComponent(NativeScriptComponent& nsc, const std::string& name)

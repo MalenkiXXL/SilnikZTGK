@@ -45,13 +45,13 @@ public:
     std::size_t m_OrderSubId = 0;
     float OrderPrice = 50.0f;
 
-    // Zmienne do efektów na wejœcie
+    // Zmienne do efektï¿½w na wejï¿½cie
     float m_SpawnTimer = 0.0f;
     bool m_PoofPlayed = false;
     bool m_PoofStarted = false;
     Entity m_PoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
-    // Zmienne do efektów na znikniêcie
+    // Zmienne do efektï¿½w na znikniï¿½cie
     bool m_ExitPoofStarted = false;
     Entity m_ExitPoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
@@ -60,6 +60,7 @@ public:
         auto* tagComp = GetComponent<TagComponent>();
         IsGrandma = (tagComp && tagComp->Tag == "GrandmaCustomer");
 
+        std::vector<IngredientType> menu = { IngredientType::Tomato };
         std::random_device rd;
         std::mt19937 gen(rd());
 
@@ -221,10 +222,10 @@ public:
             m_ReactionTimer -= ts.GetSeconds();
 
             if (m_ReactionTimer <= 0.0f && !IsPendingDestroy) {
-                // Gdy minie 2s na reakcjê (buŸkê), odpalamy puffa i znikamy klienta
+                // Gdy minie 2s na reakcjï¿½ (buï¿½kï¿½), odpalamy puffa i znikamy klienta
                 if (!m_ExitPoofStarted) {
                     m_ExitPoofStarted = true;
-                    m_ReactionTimer = 2.0f; // Czas potrzebny, aby poof opad³ przed usuniêciem klienta z pamiêci
+                    m_ReactionTimer = 2.0f; // Czas potrzebny, aby poof opadï¿½ przed usuniï¿½ciem klienta z pamiï¿½ci
 
                     auto* tf = GetComponent<TransformComponent>();
                     if (tf)
@@ -253,14 +254,14 @@ public:
                             static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
                         }
 
-                        // Z³udzenie znikniêcia: Ukrywamy klienta g³êboko pod map¹
+                        // Zï¿½udzenie znikniï¿½cia: Ukrywamy klienta gï¿½ï¿½boko pod mapï¿½
                         glm::vec3 hidePos = tf->GetPosition();
                         hidePos.y -= 100.0f;
                         tf->SetPosition(hidePos);
                     }
                 }
                 else {
-                    // Puff zakoñczy³ dzia³anie - ca³kowicie niszczymy encje
+                    // Puff zakoï¿½czyï¿½ dziaï¿½anie - caï¿½kowicie niszczymy encje
                     if (m_ExitPoofEntity.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ExitPoofEntity });
                         m_ExitPoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -362,7 +363,7 @@ public:
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, highlightColor, 2.0f, false });
         m_WasCorrect = isCorrectOrder;
 
-        // Uruchamiamy odliczanie do znikniêcia/puffa
+        // Uruchamiamy odliczanie do znikniï¿½cia/puffa
         State = CustomerState::LeavingReaction;
         m_ReactionTimer = 2.0f;
     }

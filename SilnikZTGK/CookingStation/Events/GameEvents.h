@@ -183,3 +183,21 @@ struct MachineProcessingEvent
     Entity Machine;
     bool IsProcessing;
 };
+
+struct MachineNeedsMoreIngredientsEvent
+{
+    Entity Machine;
+    std::string MessageLine1;
+    std::string MessageLine2;
+    float Duration;
+
+    MachineNeedsMoreIngredientsEvent(
+            Entity machine,
+            float duration = 2.0f,
+            const std::string& line1 = "Add something",
+            const std::string& line2 = "more!"
+    ) : Machine(machine),
+        Duration(duration),
+        MessageLine1(line1),
+        MessageLine2(line2) {}
+};

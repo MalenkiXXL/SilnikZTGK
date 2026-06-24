@@ -125,6 +125,14 @@ public:
             }
         }
 
+        bool hasEgg = HasIngredient(IngredientType::Egg);
+        if (!hasEgg && !m_Ingredients.empty())
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(MachineNeedsMoreIngredientsEvent{
+                    m_Entity, 0.5f
+            });
+        }
+
         UpdateVisuals();
 
         if (HasIngredient(IngredientType::Egg)) {
@@ -145,71 +153,74 @@ public:
 protected:
     void UpdateVisuals() override
     {
+        auto* myTransform = GetComponent<TransformComponent>();
+        if (!myTransform) return;
+
+        if (m_Ingredients.empty())
+        {
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+            }
+            return;
+        }
+
+        IngredientType visualType = m_Ingredients[0];
+
         if (m_IsReady)
         {
-            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-                return;
-
             bool hasHam = HasIngredient(IngredientType::ChoppedHam);
             bool hasTomato = HasIngredient(IngredientType::ChoppedTomato);
 
-            IngredientType type = IngredientType::FriedEgg;
-            if (hasHam) type = IngredientType::EggWithHam;
-            else if (hasTomato) type =  IngredientType::Shakshuka;
+            visualType = IngredientType::FriedEgg;
+            if (hasHam)      visualType = IngredientType::EggWithHam;
+            else if (hasTomato) visualType = IngredientType::Shakshuka;
+        }
 
-            if (type == IngredientType::FriedEgg && !GameProgress::IsRecipeUnlocked("FriedEggs")) {
-                GameProgress::UnlockRecipe("FriedEggs");
-                spdlog::info("Patelnia: Odblokowano przepis na Fried Eggs!");
-            }
-            else if (type == IngredientType::EggWithHam && !GameProgress::IsRecipeUnlocked("EggsAndBacon")) {
-                GameProgress::UnlockRecipe("EggsAndBacon");
-                spdlog::info("Patelnia: Odblokowano przepis na Eggs & Bacon!");
-            }
-            else if (type == IngredientType::Shakshuka && !GameProgress::IsRecipeUnlocked("Shakshuka")) {
-                GameProgress::UnlockRecipe("Shakshuka");
-                spdlog::info("Patelnia: Odblokowano przepis na Shakshuka!");
-            }
-
-            auto* myTransform = GetComponent<TransformComponent>();
-            if (!myTransform) return;
-
-            m_SpawnedFood = SpawnMachineFood(type, "Na_Patelni");
-
-            auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-            if (foodTf)
+        if (m_SpawnedFood.id == std::numeric_limits<std::size_t>::max())
+        {
+            m_SpawnedFood = SpawnMachineFood(visualType, m_IsReady ? "Na_Patelni" : "Surowy_Skladnik");
+        }
+        else
+        {
+            auto* mesh = GetScene()->GetWorld().GetComponent<MeshComponent>(m_SpawnedFood);
+            if (mesh)
             {
-                glm::vec3 baseScale = myTransform->GetScale();
-                foodTf->SetScale(baseScale * 0.5f);
-                foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 0.23f, 0.0f));
+                mesh->ModelPtr = AssetManager::GetModel(GetModelPath(visualType));
+            }
+        }
+
+        auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
+        if (foodTf)
+        {
+            IngredientMetadata meta = GetIngredientMetadata(visualType);
+            foodTf->SetScale(meta.scale);
+            foodTf->SetRotation(meta.rotation);
+            foodTf->SetPosition(myTransform->GetPosition() + glm::vec3(0.0f, 0.23f, 0.0f));
+        }
+
+        if (m_IsReady)
+        {
+            if (visualType == IngredientType::FriedEgg && !GameProgress::IsRecipeUnlocked("FriedEggs")) {
+                GameProgress::UnlockRecipe("FriedEggs");
+            }
+            else if (visualType == IngredientType::EggWithHam && !GameProgress::IsRecipeUnlocked("EggsAndBacon")) {
+                GameProgress::UnlockRecipe("EggsAndBacon");
+            }
+            else if (visualType == IngredientType::Shakshuka && !GameProgress::IsRecipeUnlocked("Shakshuka")) {
+                GameProgress::UnlockRecipe("Shakshuka");
             }
 
             auto* mesh = GetComponent<MeshComponent>();
             if (mesh) mesh->ModelPtr = nullptr;
 
-            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    m_SpawnedFood, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
-                });
-            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    m_Entity, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
-                });
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_SpawnedFood, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false });
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false });
 
             DishHistory history;
             history.BaseIngredients = m_Ingredients;
             history.OriginMachine = "Pan";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
-        }
-        else
-        {
-            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-            {
-                GetScene()->DestroyEntity(m_SpawnedFood);
-                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-            }
-
-            if (m_Ingredients.empty())
-            {
-                StopFryingSound();
-            }
         }
     }
 
@@ -256,6 +267,17 @@ protected:
         if (mesh)
         {
             mesh->ModelPtr = AssetManager::GetModel("assets://models/przybory_kuchenne/patelka/pan.gltf");
+        }
+    }
+
+    void OnHoverCursor() override
+    {
+        bool hasEgg = HasIngredient(IngredientType::Egg);
+        if (!hasEgg && !m_Ingredients.empty())
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(MachineNeedsMoreIngredientsEvent{
+                    m_Entity, 0.2f
+            });
         }
     }
 

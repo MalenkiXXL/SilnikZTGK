@@ -151,7 +151,7 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
         case IngredientType::Ham:
             return { glm::vec3(7.5f), glm::vec3(glm::radians(90.0f), 0.0f, 0.0f) };
         case IngredientType::ChoppedHam:
-            return { glm::vec3(7.5f), glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f) };
+            return { glm::vec3(4.0f), glm::vec3(glm::radians(-90.0f), 0.0f, 0.0f) };
         case IngredientType::Mozzarella:
         case IngredientType::ChoppedMozzarella:
         case IngredientType::Caprese:
