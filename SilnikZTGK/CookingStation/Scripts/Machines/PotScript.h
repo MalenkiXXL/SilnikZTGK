@@ -51,10 +51,8 @@ private:
         {
             bool hasRaspberry = (m_Ingredients[0] == IngredientType::ChoppedRaspberry || m_Ingredients[1] == IngredientType::ChoppedRaspberry);
             bool hasDust = (m_Ingredients[0] == IngredientType::SleepyDust || m_Ingredients[1] == IngredientType::SleepyDust);
-            if (hasRaspberry && hasDust) return IngredientType::Candy;
 
-            bool hasKopytka = (m_Ingredients[0] == IngredientType::RawKopytkaDough || m_Ingredients[1] == IngredientType::RawKopytkaDough);
-            if (hasKopytka && hasDust) return IngredientType::GoldenKopytka;
+            if (hasRaspberry && hasDust) return IngredientType::Candy;
         }
         return IngredientType::None;
     }
@@ -62,11 +60,6 @@ private:
 public:
     bool CanAcceptIngredient(IngredientType type) override
     {
-        if (m_IsReady) {
-            if (m_Ingredients.size() == 1 && m_Ingredients[0] == IngredientType::RawKopytkaDough && type == IngredientType::SleepyDust) return true;
-            return false;
-        }
-
         if (m_Ingredients.size() >= 2) return false;
 
         if (m_Ingredients.empty()) {
@@ -185,15 +178,12 @@ protected:
 
             if (resultDish == IngredientType::TomatoSoup && !GameProgress::IsRecipeUnlocked("TomatoSoup")) {
                 GameProgress::UnlockRecipe("TomatoSoup");
-                spdlog::info("Garnek: Przepis na zupe pomidorowa odblokowany!");
             }
             else if (resultDish == IngredientType::Kopytka && !GameProgress::IsRecipeUnlocked("Kopytka")) {
                 GameProgress::UnlockRecipe("Kopytka");
-                spdlog::info("Garnek: Przepis na kopytka odblokowany!");
             }
             else if (resultDish == IngredientType::Candy && !GameProgress::IsRecipeUnlocked("Candy")) {
                 GameProgress::UnlockRecipe("Candy");
-                spdlog::info("Garnek: Przepis na cukierki odblokowany!");
             }
 
             auto* myTransform = GetComponent<TransformComponent>();
