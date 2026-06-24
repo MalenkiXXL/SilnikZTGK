@@ -1,6 +1,5 @@
 #include "CookingStation/Scripts/Delivery/DeliveryManagerScript.h"
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
-#include "CookingStation/Scripts/Delivery/PackageScript.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
 #include "CookingStation/Scripts/Delivery/DeliveryLogic.h"
 #include <spdlog/spdlog.h>

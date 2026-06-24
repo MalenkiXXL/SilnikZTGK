@@ -66,8 +66,6 @@ static bool IsNextToConveyor(std::shared_ptr<Scene>& activeScene, const glm::ive
 
         if (tagComp->Tag.find("tasma") != std::string::npos || tagComp->Tag.find("Conveyor") != std::string::npos) {
             glm::ivec2 conveyorCell = GridSystem::WorldToCell(transforms->dense[i].GetPosition());
-            spdlog::info("Znaleziono tasme: tag={}, cell=({},{}), szukamy sasiada ({},{})",
-                         tagComp->Tag, conveyorCell.x, conveyorCell.y, cell.x, cell.y);
 
             for (auto& n : neighbors) {
                 if (conveyorCell == n) return true;

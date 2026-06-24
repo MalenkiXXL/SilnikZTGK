@@ -1,5 +1,7 @@
 #include "CookingStation/Scripts/Delivery/DeliveryCarScript.h"
 #include <spdlog/spdlog.h>
+#include "CookingStation/miniaudio.h"
+#include "CookingStation/Scene/PrefabSerializer.h"
 
 void DeliveryCarScript::OnCreate()
 {
@@ -56,12 +58,25 @@ void DeliveryCarScript::OnCreate()
 
         childId = childRel ? childRel->NextSibling : NULL_ENTITY;
     }
+
+    m_EngineSound = AudioEngine::PlayLoopingSound("assets://sounds/car_engine.mp3", 0.3f, true);
+    if (m_EngineSound) {
+        ma_sound_set_volume(m_EngineSound, 0.0f);
+        spdlog::info("[DeliveryCar] Załadowano dźwięk silnika");
+    } else {
+        spdlog::warn("[DeliveryCar] Nie udało się załadować dźwięku silnika");
+    }
 }
 
 void DeliveryCarScript::OnDestroy()
 {
     GetScene()->GetWorld().GetEventBus().Unsubscribe<DeliveryCollectedEvent>(m_CollectedSubId);
     GetScene()->GetWorld().GetEventBus().Unsubscribe<DeliveryMushroomAppearedEvent>(m_MushroomSubId);
+
+    if (m_EngineSound) {
+        AudioEngine::StopLoopingSound(m_EngineSound);
+        m_EngineSound = nullptr;
+    }
 }
 
 void DeliveryCarScript::OnUpdate(Timestep ts)
@@ -77,10 +92,16 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
     float zOffset = 0.0f;
     float xOffset = 2.5f;
 
+    float engineVolume = 0.0f;
+    bool shouldPlayEngine = false;
+
     switch (m_State)
     {
         case DeliveryState::DRIVING_IN:
         {
+            shouldPlayEngine = true;
+            engineVolume = 0.2f;
+
             glm::vec3 dir = m_DropPos - currentPos;
             float dist = glm::length(dir);
 
@@ -112,6 +133,11 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
         case DeliveryState::ANIMATING_OPEN:
         {
+            shouldPlayEngine = true;
+            float progress = 1.0f - (m_AnimationTimer / 1.5f);
+            progress = glm::clamp(progress, 0.0f, 1.0f);
+            engineVolume = glm::mix(0.2f, 0.1f, progress);
+
             m_AnimationTimer -= (float)ts;
 
             if (m_MushroomSpawned) {
@@ -151,6 +177,9 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
         case DeliveryState::DROPPING:
         {
+            shouldPlayEngine = true;
+            engineVolume = 0.05f;
+
             if (m_ArePackagesCollected)
             {
 
@@ -169,6 +198,11 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
         case DeliveryState::ANIMATING_CLOSE:
         {
+            shouldPlayEngine = true;
+            float progress = 1.0f - (m_AnimationTimer / 1.5f);
+            progress = glm::clamp(progress, 0.0f, 1.0f);
+            engineVolume = glm::mix(0.05f, 0.2f, progress);
+
             m_AnimationTimer -= (float)ts;
 
             if (m_MushroomSpawned) {
@@ -195,6 +229,14 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
         case DeliveryState::DRIVING_OUT:
         {
+            shouldPlayEngine = true;
+            engineVolume = 0.2f;
+
+            if (!m_TireTracksSpawned) {
+                SpawnTireTracks();
+                m_TireTracksSpawned = true;
+            }
+
             glm::vec3 dir = m_ExitPos - currentPos;
             float dist = glm::length(dir);
             float stepDistance = m_Speed * (float)ts.GetSeconds();
@@ -213,4 +255,46 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             break;
         }
     }
+
+    if (m_EngineSound) {
+        if (shouldPlayEngine && AudioEngine::AreSoundsEnabled()) {
+
+            ma_sound_set_volume(m_EngineSound, engineVolume);
+
+            if (!m_EngineSoundStarted) {
+                AudioEngine::ReplaySound(m_EngineSound);
+                m_EngineSoundStarted = true;
+            }
+        } else {
+            ma_sound_set_volume(m_EngineSound, 0.0f);
+
+            if (m_EngineSoundStarted) {
+                ma_sound_stop(m_EngineSound);
+                m_EngineSoundStarted = false;
+            }
+        }
+    }
+}
+
+void DeliveryCarScript::SpawnTireTracks()
+{
+    if (!GetScene()) return;
+
+    auto* transform = GetComponent<TransformComponent>();
+    if (!transform) return;
+
+    glm::vec3 carPos = {-19.0f, 0.0f, 4.0f};
+
+    float yOffset = 0.0f;
+
+    if (m_TireTrackPrefabPath.empty() || m_TireTrackPrefabPath.empty()) {
+        spdlog::warn("[DeliveryCar] Brak ścieżek do prefabów śladów opon!");
+        return;
+    }
+
+    glm::vec3 leftPos = carPos;
+    leftPos.y += yOffset;
+
+    PrefabSerializer::Deserialize(GetScene(), m_TireTrackPrefabPath, carPos);
+
 }

@@ -328,7 +328,7 @@ private:
 
                                 bool canAccept = false;
                                 if (machineName == "CuttingBoardScript" && hoveredMachineScript->m_Ingredients.empty()) {
-                                    canAccept = (type == IngredientType::Tomato || type == IngredientType::Baguette || type == IngredientType::Cheese || type == IngredientType::Ham || type == IngredientType::Mozzarella || type == IngredientType::Apple || type == IngredientType::Raspberry || type == IngredientType::Potato);
+                                    canAccept = hoveredMachineScript->CanAcceptIngredient(type);
                                 }
                                 else if (machineName == "PotScript") {
                                     canAccept = hoveredMachineScript->CanAcceptIngredient(type);
@@ -448,27 +448,19 @@ private:
             auto neighbor = FindClosestNeighbor(machineTf->GetPosition(), [&](const std::string& name, ScriptableEntity* instance) {
                 if (name != "PlateScript") return false;
                 PlateScript* pScript = static_cast<PlateScript*>(instance);
-                if (!pScript || pScript->m_CompletedDish != IngredientType::None || pScript->m_Ingredients.empty()) return false;
+                if (!pScript) return false;
 
-                IngredientType topIngredient = pScript->m_Ingredients.back();
-                if (machineName == "PotScript") {
-                    return hoveredMachineScript->CanAcceptIngredient(topIngredient);
+                IngredientType itemToTransfer = IngredientType::None;
+                if (pScript->m_CompletedDish != IngredientType::None) {
+                    itemToTransfer = pScript->m_CompletedDish;
+                } else if (!pScript->m_Ingredients.empty()) {
+                    itemToTransfer = pScript->m_Ingredients.back();
                 }
-                else if (machineName == "CuttingBoardScript" && hoveredMachineScript->m_Ingredients.empty()) {
-                    return topIngredient == IngredientType::Tomato || topIngredient == IngredientType::Baguette ||
-                        topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella || topIngredient == IngredientType::Apple || topIngredient == IngredientType::Raspberry || topIngredient == IngredientType::Potato;
-                }
-                else if (machineName == "MixerScript") {
-                    return hoveredMachineScript->CanAcceptIngredient(topIngredient);
-                }
-                else if (machineName == "OvenScript") {
-                    return hoveredMachineScript->CanAcceptIngredient(topIngredient);
-                }
-                else if (machineName == "CoffeeMakerScript") {
-                    return hoveredMachineScript->CanAcceptIngredient(topIngredient);
-                }
-                return false;
-                });
+
+                if (itemToTransfer == IngredientType::None) return false; // Talerz jest pusty
+
+                return hoveredMachineScript->CanAcceptIngredient(itemToTransfer);
+            });
 
             if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && neighbor.PlateInstance) {
                 TriggerInfiniteHighlight(neighbor.TargetEntity, neighbor.PlateInstance);
@@ -477,10 +469,25 @@ private:
             bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
             if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !Input::IsUICapturingMouse()) {
                 if (!Input::IsKeyPressed(340) && neighbor.PlateInstance) {
-                    IngredientType topIngredient = neighbor.PlateInstance->m_Ingredients.back();
-                    if (hoveredMachineScript->AddIngredient(topIngredient)) {
+
+                    IngredientType itemToTransfer = (neighbor.PlateInstance->m_CompletedDish != IngredientType::None)
+                                                    ? neighbor.PlateInstance->m_CompletedDish
+                                                    : neighbor.PlateInstance->m_Ingredients.back();
+
+                    if (hoveredMachineScript->AddIngredient(itemToTransfer, neighbor.PlateInstance->m_DeepHistory, neighbor.PlateInstance->m_MachineHistory)) {
                         spdlog::info("Maszyna zassała składnik ze stojącego obok talerza!");
-                        neighbor.PlateInstance->m_Ingredients.pop_back();
+
+                        if (neighbor.PlateInstance->m_CompletedDish != IngredientType::None) {
+                            neighbor.PlateInstance->m_CompletedDish = IngredientType::None;
+                        } else {
+                            neighbor.PlateInstance->m_Ingredients.pop_back();
+                        }
+
+                        if (neighbor.PlateInstance->m_Ingredients.empty() && neighbor.PlateInstance->m_CompletedDish == IngredientType::None) {
+                            neighbor.PlateInstance->m_DeepHistory.clear();
+                            neighbor.PlateInstance->m_MachineHistory.clear();
+                        }
+
                         if (!neighbor.PlateInstance->m_VisualModels.empty()) {
                             Entity visualToRemove = neighbor.PlateInstance->m_VisualModels.back();
                             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
@@ -491,7 +498,6 @@ private:
             }
         }
     }
-
     void CheckPlateToPotTransfer(glm::vec3 mousePos)
     {
         if (MachineScript::GlobalIsMachineHeld) return;
@@ -511,33 +517,20 @@ private:
             }
         }
 
-        if (hoveredPlateScript && hoveredPlateScript->m_CompletedDish == IngredientType::None && !hoveredPlateScript->m_Ingredients.empty()) {
+        if (hoveredPlateScript && (hoveredPlateScript->m_CompletedDish != IngredientType::None || !hoveredPlateScript->m_Ingredients.empty())) {
             auto* plateTf = GetScene()->GetWorld().GetComponent<TransformComponent>(currentHoveredPlate);
             if (!plateTf) return;
 
-            IngredientType topIngredient = hoveredPlateScript->m_Ingredients.back();
+            IngredientType topIngredient = (hoveredPlateScript->m_CompletedDish != IngredientType::None)
+                                           ? hoveredPlateScript->m_CompletedDish
+                                           : hoveredPlateScript->m_Ingredients.back();
 
             auto neighbor = FindClosestNeighbor(plateTf->GetPosition(), [topIngredient](const std::string& name, ScriptableEntity* instance) {
                 MachineScript* mScript = dynamic_cast<MachineScript*>(instance);
                 if (!mScript || (mScript->m_IsReady && name != "PanScript" && name != "MixerScript" && name != "CoffeeMakerScript")) return false;
 
-                if (name == "PotScript") {
-                    return mScript->CanAcceptIngredient(topIngredient);
-                }
-                else if (name == "CuttingBoardScript") {
-                    return mScript->m_Ingredients.empty() && (topIngredient == IngredientType::Tomato || topIngredient == IngredientType::Baguette || topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella || topIngredient == IngredientType::Apple || topIngredient == IngredientType::Raspberry || topIngredient == IngredientType::Potato);
-                }
-                else if (name == "MixerScript") {
-                    return mScript->CanAcceptIngredient(topIngredient);
-                }
-                else if (name == "OvenScript") {
-                    return mScript->CanAcceptIngredient(topIngredient);
-                }
-                else if (name == "CoffeeMakerScript") {
-                    return mScript->CanAcceptIngredient(topIngredient);
-                }
-                return false;
-                });
+                return mScript->CanAcceptIngredient(topIngredient);
+            });
 
             if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max()) {
                 TriggerInfiniteHighlight(neighbor.TargetEntity);
@@ -545,9 +538,20 @@ private:
                 bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
                 if (isActionPressed && !Input::IsUICapturingMouse()) {
                     if (!Input::IsKeyPressed(340)) {
+
                         if (neighbor.MachineInstance && neighbor.MachineInstance->AddIngredient(topIngredient, hoveredPlateScript->m_DeepHistory, hoveredPlateScript->m_MachineHistory)) {
                             spdlog::info("Składnik wrzucony z talerza do maszyny z historią!");
-                            hoveredPlateScript->m_Ingredients.pop_back();
+
+                            if (hoveredPlateScript->m_CompletedDish != IngredientType::None) {
+                                hoveredPlateScript->m_CompletedDish = IngredientType::None;
+                            } else {
+                                hoveredPlateScript->m_Ingredients.pop_back();
+                            }
+
+                            if (hoveredPlateScript->m_Ingredients.empty() && hoveredPlateScript->m_CompletedDish == IngredientType::None) {
+                                hoveredPlateScript->m_DeepHistory.clear();
+                                hoveredPlateScript->m_MachineHistory.clear();
+                            }
 
                             if (!hoveredPlateScript->m_VisualModels.empty()) {
                                 Entity visualToRemove = hoveredPlateScript->m_VisualModels.back();

@@ -360,37 +360,42 @@ public:
 
     bool AddIngredient(IngredientType type, const std::vector<IngredientType>& pastIngredients = {}, const std::vector<std::string>& pastMachines = {}) override
     {
-        if (m_IsReady || !m_Ingredients.empty()) return false;
-
-        if (type == IngredientType::Tomato ||
-            type == IngredientType::Baguette ||
-            type == IngredientType::Cheese ||
-            type == IngredientType::Ham ||
-            type == IngredientType::Mozzarella ||
-            type == IngredientType::Apple ||
-            type == IngredientType::Raspberry ||
-            type == IngredientType::Potato)
+        if (!CanAcceptIngredient(type))
         {
-            m_Ingredients.push_back(type);
-
-            m_DeepHistory.insert(m_DeepHistory.end(), pastIngredients.begin(), pastIngredients.end());
-            m_DeepHistory.push_back(type);
-            m_MachineHistory.insert(m_MachineHistory.end(), pastMachines.begin(), pastMachines.end());
-
-            m_ChopCount = 0;
-            m_IsReady = false;
-            m_ChopCooldown = 0.2f;
-            m_AutoChopTimer = 0.0f;
-            UpdateVisuals();
-            spdlog::info("Położono składnik na desce do krojenia.");
-            return true;
+            spdlog::warn("Deska: Tego składnika tu nie pokroisz!");
+            return false;
         }
 
-        spdlog::warn("Deska: Tego składnika tu nie pokroisz!");
-        return false;
+        m_Ingredients.push_back(type);
+
+        m_DeepHistory.insert(m_DeepHistory.end(), pastIngredients.begin(), pastIngredients.end());
+        m_DeepHistory.push_back(type);
+        m_MachineHistory.insert(m_MachineHistory.end(), pastMachines.begin(), pastMachines.end());
+
+        m_ChopCount = 0;
+        m_IsReady = false;
+        m_ChopCooldown = 0.2f;
+        m_AutoChopTimer = 0.0f;
+        UpdateVisuals();
+        spdlog::info("Położono składnik na desce do krojenia.");
+        return true;
     }
 
 protected:
+
+    bool CanAcceptIngredient(IngredientType type) override
+    {
+        if (m_IsReady || !m_Ingredients.empty()) return false;
+
+        return type == IngredientType::Tomato ||
+               type == IngredientType::Baguette ||
+               type == IngredientType::Cheese ||
+               type == IngredientType::Ham ||
+               type == IngredientType::Mozzarella ||
+               type == IngredientType::Apple ||
+               type == IngredientType::Raspberry ||
+               type == IngredientType::Potato;
+    }
 
     void UpdateVisuals() override
     {
