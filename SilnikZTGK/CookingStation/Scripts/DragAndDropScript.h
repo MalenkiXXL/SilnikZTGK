@@ -539,6 +539,14 @@ private:
                 if (isActionPressed && !Input::IsUICapturingMouse()) {
                     if (!Input::IsKeyPressed(340)) {
 
+                        if (neighbor.MachineInstance && dynamic_cast<PotScript*>(neighbor.MachineInstance)) {
+                            if (hoveredPlateScript->m_Ingredients.size() != 1) {
+                                AudioEngine::Play("assets://sounds/error.mp3");
+                                spdlog::warn("Garnek: Talerz musi miec dokladnie jeden skladnik!");
+                                return;
+                            }
+                        }
+
                         if (neighbor.MachineInstance && neighbor.MachineInstance->AddIngredient(topIngredient, hoveredPlateScript->m_DeepHistory, hoveredPlateScript->m_MachineHistory)) {
                             spdlog::info("Składnik wrzucony z talerza do maszyny z historią!");
 

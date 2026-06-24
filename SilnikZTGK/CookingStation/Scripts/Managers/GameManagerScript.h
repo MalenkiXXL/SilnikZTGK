@@ -23,9 +23,11 @@ enum class QuestEventState {
 class GameManagerScript : public ScriptableEntity
 {
 public:
+    float m_MapExpandProgress = 0.0f;
+    bool m_IsMapExpanding = false;
     static inline bool s_IsTutorialMode = false;
     static inline bool s_IsCutscenePlaying = false;
-
+    static inline bool s_MapExpanded = false;
     static inline bool s_ShowTutorialDialog = false;
     static inline std::string s_TutorialSpeaker = "";
     static inline glm::vec4 s_TutorialSpeakerColor = glm::vec4(1.0f);
@@ -118,8 +120,6 @@ private:
     std::vector<std::pair<Entity, glm::vec3>> m_NewMapEntities;
     Entity m_SmallFloor = { std::numeric_limits<std::size_t>::max(), 0 };
     Entity m_BigFloor = { std::numeric_limits<std::size_t>::max(), 0 };
-    bool m_IsMapExpanding = false;
-    float m_MapExpandProgress = 0.0f;
     // finaly
     // std::atomic<bool> m_NewQuestsReady{false};
     // bool m_IsGeneratingQuests = false;

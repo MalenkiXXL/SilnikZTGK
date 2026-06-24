@@ -9,6 +9,7 @@ class PanScript : public MachineScript
 {
     float m_BaseCookTime = 4.0f;
     float m_ExtraBaconTime = 2.0f;
+    bool m_IsHovered = false;
 
     ma_sound* m_FryingSound = nullptr;
 
@@ -85,6 +86,17 @@ public:
         {
             TryTransferToPlate();
         }
+
+
+        if (m_IsHovered && m_IsReady && !m_IsAutomated && !GlobalIsMachineHeld && !m_IsHeld)
+        {
+            Entity closestPlate = GetClosestAvailablePlate();
+            if (closestPlate.id != std::numeric_limits<std::size_t>::max())
+            {
+                SetPlateHighlight(closestPlate, true);
+            }
+        }
+        m_IsHovered = false;
     }
 
     virtual void HandleClick() override
@@ -127,6 +139,7 @@ public:
                 GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
+            return true;
         }
 
         bool hasEgg = HasIngredient(IngredientType::Egg);
@@ -160,36 +173,42 @@ protected:
         auto* myTransform = GetComponent<TransformComponent>();
         if (!myTransform) return;
 
+        // 1. Jeśli pusto, usuń model
         if (m_Ingredients.empty())
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
-                GetScene()->DestroyEntity(m_SpawnedFood);
+                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_SpawnedFood });
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
             return;
         }
 
-        IngredientType visualType = m_Ingredients[0];
+        // 2. Ustalanie typu wizualnego (priorytet: gotowe danie > pojedynczy składnik)
+        IngredientType visualType = m_Ingredients[0]; // Domyślnie pierwszy
 
         if (m_IsReady)
         {
             bool hasHam = HasIngredient(IngredientType::ChoppedHam);
             bool hasTomato = HasIngredient(IngredientType::ChoppedTomato);
 
+            // Logika gotowego dania
             visualType = IngredientType::FriedEgg;
-
-            if (hasHam)
-                visualType = IngredientType::EggWithHam;
-            else if (hasTomato)
-                visualType = IngredientType::Shakshuka;
+            if (hasHam) visualType = IngredientType::EggWithHam;
+            else if (hasTomato) visualType = IngredientType::Shakshuka;
+        }
+        else
+        {
+            visualType = m_Ingredients.back();
         }
 
+        // 3. Spawnowanie lub aktualizacja istniejącego modelu
         if (m_SpawnedFood.id == std::numeric_limits<std::size_t>::max())
         {
             m_SpawnedFood = SpawnMachineFood(visualType, m_IsReady ? "Na_Patelni" : "Surowy_Skladnik");
         }
         else
         {
+            // Aktualizacja mesha istniejącego obiektu (to jest kluczowe, żeby szynka się zmieniła)
             auto* mesh = GetScene()->GetWorld().GetComponent<MeshComponent>(m_SpawnedFood);
             if (mesh)
             {
@@ -197,6 +216,7 @@ protected:
             }
         }
 
+        // 4. Update transformacji (skala, rotacja, pozycja)
         auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
         if (foodTf)
         {
@@ -218,9 +238,6 @@ protected:
                 GameProgress::UnlockRecipe("Shakshuka");
             }
 
-            auto* mesh = GetComponent<MeshComponent>();
-            if (mesh) mesh->ModelPtr = nullptr;
-
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_SpawnedFood, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false });
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false });
 
@@ -237,53 +254,44 @@ protected:
     {
         if (m_SpawnedFood.id == std::numeric_limits<std::size_t>::max()) return;
 
-        auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
-        auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(plate);
-        auto* myTransform = GetComponent<TransformComponent>();
+        auto* scriptComp = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(plate);
+        PlateScript* targetPlateScript = nullptr;
+        if (scriptComp) {
+            for (auto& s : scriptComp->Scripts) {
+                targetPlateScript = dynamic_cast<PlateScript*>(s.Instance);
+                if (targetPlateScript) break;
+            }
+        }
 
-        if (foodTransform && plateTransform && myTransform)
+        if (targetPlateScript && targetPlateScript->ReceiveFinishedDish(m_SpawnedFood))
         {
-            foodTransform->SetPosition(glm::vec3(0.0f, 0.2f, 0.0f));
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_SpawnedFood, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false });
+            GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ plate, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false });
 
-            // NAPRAWA: wczesniej ta funkcja recznie robila SetParent + ustawiala Tag,
-            // co calkowicie omijalo PlateScript::ReceiveFinishedDish. Skutek: talerz
-            // nigdy nie wchlanial pelnej historii skladnikow z patelni (m_DeepHistory)
-            // i nigdy nie sprawdzal, czy juz ma inne gotowe danie z maszyny.
-            auto* scriptComp = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(plate);
-            PlateScript* targetPlateScript = nullptr;
-            if (scriptComp) {
-                for (auto& s : scriptComp->Scripts) {
-                    targetPlateScript = dynamic_cast<PlateScript*>(s.Instance);
-                    if (targetPlateScript) break;
-                }
-            }
+            m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
-            if (targetPlateScript && targetPlateScript->ReceiveFinishedDish(m_SpawnedFood))
-            {
-                GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    m_SpawnedFood, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
-                    });
-                GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
-                    plate, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false
-                    });
+            ResetMachineState();
+            UpdateVisuals();
+        }
+        else
+        {
+            spdlog::warn("Patelnia: Talerz odrzucił danie!");
+            AudioEngine::Play("assets://sounds/error.mp3"); // Dźwięk błędu - gracz wie, że się nie udało
 
-                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-            }
-            else
-            {
-                spdlog::info("Patelnia: talerz odrzucil danie (ma juz inne gotowe danie) - jedzenie zostaje na patelni.");
-            }
+            UpdateVisuals();
         }
     }
 
     void ResetMachineState() override
     {
+        bool hasFood = (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max());
+
         MachineScript::ResetMachineState();
         SetSmoking(false, true);
         StopFryingSound();
 
         auto* mesh = GetComponent<MeshComponent>();
-        if (mesh)
+        if (mesh && !hasFood)
         {
             mesh->ModelPtr = AssetManager::GetModel("assets://models/przybory_kuchenne/patelka/pan.gltf");
         }
@@ -291,6 +299,7 @@ protected:
 
     void OnHoverCursor() override
     {
+        m_IsHovered = true;
         bool hasEgg = HasIngredient(IngredientType::Egg);
         if (!hasEgg && !m_Ingredients.empty())
         {

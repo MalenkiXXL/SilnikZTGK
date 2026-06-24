@@ -286,16 +286,12 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
         });
 
     eventBus.Subscribe<PlateGrabbedEvent>([](const PlateGrabbedEvent& e) {
-        AudioEngine::Play("assets://sounds/new_order_2.mp3");
+        AudioEngine::Play("assets://sounds/pick_up.wav");
         });
 
     eventBus.Subscribe<IngredientUsedEvent>([](const IngredientUsedEvent& e) {
         AudioEngine::Play("assets://sounds/put_ingredient.mp3");
         });
-
-//    eventBus.Subscribe<CustomerSeatedEvent>([](const CustomerSeatedEvent& e) {
-//        AudioEngine::Play("assets://sounds/pushing-a-chair.mp3");
-//        });
 
     eventBus.Subscribe<CustomerServedEvent>([](const CustomerServedEvent& e) {
         });
@@ -307,11 +303,6 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
         else {
             AudioEngine::Play("assets://sounds/angry_customer.wav");
         }
-        });
-
-
-    eventBus.Subscribe<OrderFulfilledEvent>([](const OrderFulfilledEvent& e) {
-        AudioEngine::PlayLoopingSound("assets://sounds/happy_customer.mp3", 0.15f, false);
         });
 
     eventBus.Subscribe<CarArrivedEvent>([](const CarArrivedEvent& e) {
