@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <algorithm>
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 
 void RecipeBookPanel::Init() {
     m_BookCloudIcon = AssetManager::GetTexture("assets://UI/bookCloud.png");
@@ -142,7 +143,12 @@ void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float game
     if (!m_BookIcon) return;
 
     bool isBlocked = isGamePaused;
+    
     bool isGrandmaUnlocked = false;
+    if (GameManagerScript::s_Instance &&
+        (GameManagerScript::s_Instance->m_IsMapExpanding || GameManagerScript::s_Instance->m_MapExpandProgress > 0.0f)) {
+        isGrandmaUnlocked = true;
+    }
 
     int currentUnlocked = 0;
     for (const auto& pair : GameProgress::UnlockedRecipes) {
@@ -318,7 +324,7 @@ void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float game
                 { col4, row2 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked);
             DrawRecipeIcon("Cupcake", "Cupcake", m_CupcakeIcon, m_CupcakeRecipeTex,
                 { col3, row3 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked);
-            DrawRecipeIcon("Croissant", "Croissant", m_CroissantIcon, m_CroissantRecipeTex,
+            DrawRecipeIcon("SleepyBread", "Croissant", m_CroissantIcon, m_CroissantRecipeTex,
                 { col4, row3 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked);
         }
         else if (m_CurrentPage == 1) {
