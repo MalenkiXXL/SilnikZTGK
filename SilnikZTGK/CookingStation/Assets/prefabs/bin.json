@@ -1,0 +1,28 @@
+[
+  {
+    "local_id": 1,
+    "name": "kosz",
+    "model_path": "CookingStation/Assets/models/przybory_kuchenne/kosz/kosz.gltf",
+    "animator": {
+      "type": "transform",
+      "is_playing": false,
+      "clips": {
+        "Open": "assets://models/przybory_kuchenne/kosz/kosz_otwieranie.gltf",
+        "Close": "assets://models/przybory_kuchenne/kosz/kosz_zamykanie.gltf"
+      }
+    },
+    "scale": [ 1.0, 1.0, 1.0 ],
+    "collider": {
+      "offset": [ 0.0, 0.5, 0.0 ],
+      "size": [ 1.0, 0.5, 1.0 ]
+    },
+    "scripts": [ "ConveyorScript", "BinScript" ]
+  },
+  {
+    "local_id": 2,
+    "parent_id": 1,
+    "position" : [0.0, 1.0, 0.0],
+    "name": "BinLid",
+    "model_path": "CookingStation/Assets/models/przybory_kuchenne/kosz/kosz_klapa.gltf"
+  }
+]

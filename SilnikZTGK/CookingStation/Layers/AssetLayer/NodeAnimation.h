@@ -17,6 +17,8 @@ public:
             animationPath = "assets://" + animationPath.substr(prefix.length());
         }
 
+        m_Path = animationPath;
+
         Assimp::Importer importer;
 
         importer.SetIOHandler(new VfsIOSystem());
@@ -39,6 +41,8 @@ public:
             m_Tracks.emplace(nodeName, AnimationTrack(nodeName, channel));
         }
     }
+
+    const std::string& GetPath() const { return m_Path; }
     float GetDuration() const { return m_Duration; }
     float GetTicksPerSecond() const { return m_TicksPerSecond; }
     AnimationTrack* GetTrack(const std::string& name) {
@@ -48,6 +52,7 @@ public:
     const std::unordered_map<std::string, AnimationTrack>& GetTracks() const { return m_Tracks; }
 
 private:
+    std::string m_Path;
     float m_Duration = 0.0f;
     float m_TicksPerSecond = 0.0f;
     std::unordered_map<std::string, AnimationTrack> m_Tracks;

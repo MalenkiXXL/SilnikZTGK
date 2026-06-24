@@ -119,7 +119,31 @@ bool SceneSerializer::Deserialize(const std::string& path) {
             }
 
 
-            if (model) {
+            std::string animType = "legacy"; // Domyślnie dla starych obiektów
+            if (item.contains("animator") && item["animator"].contains("type")) {
+                animType = item["animator"]["type"].get<std::string>();
+            }
+
+            if (animType == "transform") {
+                TransformAnimatorComponent transAnimComp;
+                transAnimComp.IsPlaying = item.contains("animator") ? item["animator"].value("is_playing", false) : false;
+                transAnimComp.PlaybackSpeed = item.contains("animator") ? item["animator"].value("playback_speed", 1.0f) : 1.0f;
+
+                if (item.contains("animator") && item["animator"].contains("clips")) {
+                    for (auto& el : item["animator"]["clips"].items()) {
+                        std::string clipName = el.key();
+                        std::string clipPath = el.value();
+                        SanitizePath(clipPath);
+
+                        auto clipAnim = std::make_shared<NodeAnimation>(clipPath);
+                        transAnimComp.Animations[clipName] = clipAnim;
+                    }
+                }
+                builder.With<TransformAnimatorComponent>(transAnimComp);
+                spdlog::info("[SceneSerializer] Wczytano TransformAnimatorComponent dla: {}", name);
+            }
+            else if (model) {
+                // Zwykły Animator szkieletowy
                 AnimatorComponent animComp;
                 if (SceneSerializer::ParseAnimatorFromJson(item, model, animComp)) {
                     builder.With<AnimatorComponent>(animComp);
@@ -169,6 +193,7 @@ void SceneSerializer::Serialize(const std::string& filepath) {
     auto* scriptStorage = world.GetComponentVector<NativeScriptComponent>();
     auto* relStorage = world.GetComponentVector<RelationshipComponent>();
     auto* animatorStorage = world.GetComponentVector<AnimatorComponent>();
+    auto* transAnimStorage = world.GetComponentVector<TransformAnimatorComponent>();
 
     for (size_t i = 0; i < tagStorage->reverse.size(); ++i) {
         Entity entity = tagStorage->reverse[i];
@@ -243,6 +268,24 @@ void SceneSerializer::Serialize(const std::string& filepath) {
                     if (!clips.empty()) {
                         item["animator"]["clips"] = clips;
                     }
+                }
+            }
+        }
+
+        if (transAnimStorage) {
+            if (auto* transAnimComp = transAnimStorage->Get(entity)) {
+                item["animator"]["type"] = "transform";
+                item["animator"]["is_playing"] = transAnimComp->IsPlaying;
+                item["animator"]["playback_speed"] = transAnimComp->PlaybackSpeed;
+
+                json clips = json::object();
+                for (const auto& [clipName, clipAnim] : transAnimComp->Animations) {
+                    if (clipAnim) {
+                        clips[clipName] = clipAnim->GetPath();
+                    }
+                }
+                if (!clips.empty()) {
+                    item["animator"]["clips"] = clips;
                 }
             }
         }
