@@ -84,6 +84,9 @@ void GameGuiLayer::OnAttach()
             m_ActiveOrderTickets.clear();
             m_LastMoney = -1;
 
+            m_FirstOrderTaken = false;
+            m_IsLevelIntro = !GameManagerScript::s_IsTutorialMode;
+
             m_BuildModePanel.ForceReset();
 
             if (m_ActiveScene) {
@@ -120,6 +123,9 @@ void GameGuiLayer::OnAttach()
                 m_OrderTakenSubId = newBus.Subscribe<OrderTakenEvent>(
                     [this](const OrderTakenEvent& e) {
                         if (!m_IsActive) return;
+
+                        m_FirstOrderTaken = true;
+
                         auto it = std::find_if(m_ActiveOrderTickets.begin(), m_ActiveOrderTickets.end(),
                             [&e](const Entity& ticketEnt) {
                                 return ticketEnt.id == e.Customer.id;
@@ -512,6 +518,10 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     Input::SetUICaptureMouse(false);
     if (m_RecipeBookPanel.IsOpen() || m_IsGamePaused) Input::SetUICaptureMouse(true);
 
+    if (m_IsLevelIntro && !m_FirstOrderTaken) {
+        Input::SetUICaptureMouse(true);
+    }
+
     Gui::BeginFrame();
     Gui::UpdateDeltaTime(ts.GetSeconds());
     float dt = ts.GetSeconds();
@@ -522,6 +532,54 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     }
 
     m_ActiveScene = SceneManager::GetActiveScene();
+
+    // ==============================================================
+    // KINEMATYCZNE WPROWADZENIE (Śledzenie Kelnera)
+    // ==============================================================
+    if (m_IsLevelIntro && m_ActiveScene && !GameManagerScript::s_IsTutorialMode) {
+        auto* camera = m_ActiveScene->GetCamera();
+        if (camera) {
+            // Szukamy encji kelnera na scenie
+            Entity waiterEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+            auto* nscArray = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
+            if (nscArray) {
+                for (size_t i = 0; i < nscArray->dense.size(); ++i) {
+                    for (auto& s : nscArray->dense[i].Scripts) {
+                        if (s.Name == "WaiterScript") {
+                            waiterEntity = nscArray->reverse[i];
+                            break;
+                        }
+                    }
+                    if (waiterEntity.id != std::numeric_limits<std::size_t>::max()) break;
+                }
+            }
+
+            // Domyślne wartości dla odjeżdżania kamery
+            glm::vec3 targetPos = glm::vec3(0.0f);
+            float targetZoom = 45.0f;
+
+            // Dopóki nie ma zamówienia, trzymamy celownik i mocny zoom na kelnerze
+            if (!m_FirstOrderTaken && waiterEntity.id != std::numeric_limits<std::size_t>::max()) {
+                auto* tf = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(waiterEntity);
+                if (tf) {
+                    targetPos = tf->GetPosition();
+                    targetZoom = 25.0f; // Kinematyczne zbliżenie
+                }
+            }
+
+            // Miękka, płynna interpolacja kamery ("Smooth Follow")
+            camera->TargetPosition += (targetPos - camera->TargetPosition) * (dt * 2.5f);
+            camera->Zoom += (targetZoom - camera->Zoom) * (dt * 2.5f);
+
+            // Wyłącz cutscenkę, gdy zamówienie przyjęte, a kamera wróci do bezpiecznej normy
+            if (m_FirstOrderTaken && std::abs(camera->Zoom - 45.0f) < 0.5f && glm::length(camera->TargetPosition) < 0.5f) {
+                camera->Zoom = 45.0f;
+                camera->TargetPosition = glm::vec3(0.0f);
+                m_IsLevelIntro = false;
+            }
+        }
+    }
+
 
 #ifdef CS_DISTRIBUTION
     float gameX = 0.0f, gameY = 0.0f, gameWidth = m_ViewportWidth, gameHeight = m_ViewportHeight;
