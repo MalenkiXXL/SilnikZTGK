@@ -13,11 +13,11 @@
 // #include <atomic>
 
 enum class QuestEventState {
-    WaitingForTimer,    // odliczanie 3 minut
-    IslandArriving,     // wyspa i stoisko przylatują 
-    WaitingForAccept,   // stoisko stoi i zaakceptuje/pominie
-    QuestActive,        // zaakceptowano - dobudowujemy taśmy i budkę
-    IslandLeaving       // zrealizowano questa - wszystko odlatuje
+    WaitingForTimer,   
+    IslandArriving,    
+    WaitingForAccept,  
+    QuestActive,       
+    IslandLeaving     
 };
 
 class GameManagerScript : public ScriptableEntity
@@ -26,7 +26,6 @@ public:
     static inline bool s_IsTutorialMode = false;
     static inline bool s_IsCutscenePlaying = false;
 
-    // ZMIENNE DO TUTORIALA
     static inline bool s_ShowTutorialDialog = false;
     static inline std::string s_TutorialSpeaker = "";
     static inline glm::vec4 s_TutorialSpeakerColor = glm::vec4(1.0f);
@@ -37,6 +36,7 @@ public:
     static inline Entity s_TutorialTrackedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline glm::vec3 s_TutorialTrackedOffset = glm::vec3(0.0f, 0.0f, 0.0f);
 
+    static inline bool s_SpeedUpUIHeld = false;
 
     inline static GameManagerScript* s_Instance = nullptr;
 
