@@ -42,7 +42,7 @@ public:
         }
 
         m_Ingredients.push_back(type);
-        m_DeepHistory.push_back(type); // NAPRAWA: przywrocone, odkladamy jako swiezy skladnik prosto z reki
+        m_DeepHistory.push_back(type);
         AudioEngine::Play("assets://sounds/put_ingredient_on_plate.mp3");
 
         SpawnIngredientVisual(type);
@@ -84,9 +84,6 @@ public:
             }
         }
 
-
-        // NAPRAWA: bez tego talerz fizycznie przejmuje danie z maszyny, ale gubi jego historie
-        // skladnikow bazowych - kelner/klient walidowaliby zamowienie wzgledem PUSTEJ historii.
         if (GameManagerScript::s_Instance) {
             auto pastHistory = GameManagerScript::s_Instance->GetDishHistory(dishEntity.id);
             if (!pastHistory.empty()) m_DeepHistory.insert(m_DeepHistory.end(), pastHistory.begin(), pastHistory.end());
@@ -120,8 +117,8 @@ private:
         TransformComponent tc;
         int itemIndex = (int)m_Ingredients.size() - 1;
 
-        float basePlateHeight = 0.08f;  // Wysokość dna Twojego głębokiego talerza
-        float itemThickness = 0.04f;    // Grubość pojedynczego składnika
+        float basePlateHeight = 0.08f; 
+        float itemThickness = 0.04f;   
 
         float stackYOffset = basePlateHeight + (itemIndex * itemThickness);
         tc.SetPosition(glm::vec3(0.0f, stackYOffset, 0.0f));
@@ -129,8 +126,6 @@ private:
         // SKALA
         IngredientMetadata meta = GetIngredientMetadata(type);
         tc.SetScale(meta.scale);
-
-        // SZTYWNA ROTACJA Z METADANYCH (IngredientType.h)
         tc.SetRotation(meta.rotation);
 
         builder.With<TransformComponent>(tc);
@@ -147,40 +142,38 @@ private:
         m_VisualModels.push_back(visualEntity);
     }
 
-    bool MatchesRecipe(const std::vector<IngredientType>& recipe)
-    {
-        if (m_Ingredients.size() != recipe.size()) return false;
-
-        std::vector<IngredientType> myIng = m_Ingredients;
-        std::vector<IngredientType> recIng = recipe;
-        std::sort(myIng.begin(), myIng.end());
-        std::sort(recIng.begin(), recIng.end());
-
-        return myIng == recIng;
-    }
 
     void CheckRecipes()
     {
-        std::vector<IngredientType> sandwichRecipe = {
-            IngredientType::CutBaguette,
-            IngredientType::ChoppedHam,
-            IngredientType::ChoppedCheese,
-            IngredientType::ChoppedTomato
-        };
-
-        std::vector<IngredientType> capreseRecipe = {
-            IngredientType::ChoppedTomato,
-            IngredientType::ChoppedMozzarella
-        };
-
-        if (MatchesRecipe(capreseRecipe))
+        if (m_Ingredients.size() == 2)
         {
-            TransformIntoDish(IngredientType::Caprese);
+            bool hasTomato = false, hasMozzarella = false;
+
+            for (auto ing : m_Ingredients) {
+                if (ing == IngredientType::ChoppedTomato) hasTomato = true;
+                if (ing == IngredientType::ChoppedMozzarella) hasMozzarella = true;
+            }
+
+            if (hasTomato && hasMozzarella) {
+                TransformIntoDish(IngredientType::Caprese);
+                return;
+            }
         }
-
-        if (MatchesRecipe(sandwichRecipe))
+        if (m_Ingredients.size() == 4)
         {
-            TransformIntoDish(IngredientType::Sandwich);
+            bool hasBread = false, hasHam = false, hasCheese = false, hasTomato = false;
+
+            for (auto ing : m_Ingredients) {
+                if (ing == IngredientType::CutBaguette) hasBread = true;
+                if (ing == IngredientType::ChoppedHam) hasHam = true;
+                if (ing == IngredientType::ChoppedCheese) hasCheese = true;
+                if (ing == IngredientType::ChoppedTomato) hasTomato = true;
+            }
+
+            if (hasBread && hasHam && hasCheese && hasTomato) {
+                TransformIntoDish(IngredientType::Sandwich);
+                return;
+            }
         }
     }
 
@@ -188,7 +181,6 @@ private:
     {
         spdlog::info("Talerz: Złożono gotowe danie!");
 
-        // --- NOWY KOD ODBLOKOWUJĄCY PRZEPIS W KSIĄŻCE ---
         if (dishType == IngredientType::Sandwich && !GameProgress::IsRecipeUnlocked("Sandwich"))
         {
             GameProgress::UnlockRecipe("Sandwich");
@@ -196,12 +188,11 @@ private:
         }
         else if (dishType == IngredientType::Caprese && !GameProgress::IsRecipeUnlocked("Caprese"))
         {
-            GameProgress::UnlockRecipe("Caprese"); // W przyszłości możesz też dodać ikonkę dla Caprese!
+            GameProgress::UnlockRecipe("Caprese"); 
             spdlog::info("Książka Kucharska: Przepis na Caprese odblokowany!");
         }
-        // ------------------------------------------------
 
-        std::vector<IngredientType> historyIngredients = m_DeepHistory; // NAPRAWA: bylo m_Ingredients - gubilo historie skladnikow przejetych z maszyn
+        std::vector<IngredientType> historyIngredients = m_DeepHistory; 
         std::vector<std::string> historyMachines = m_MachineHistory;
         m_CompletedDish = dishType;
         m_Ingredients.clear();
@@ -244,8 +235,6 @@ private:
                 dishEntity, glm::vec3(1.0f, 0.8f, 0.0f), 2.0f, false
             });
 
-        // NAPRAWA: czyscimy historie talerza - zostala juz "zapieczetowana" w DishCreatedEvent powyzej,
-        // wiec talerz nie powinien dalej jej dzielic z nastepnym daniem, ktore na nim wyladuje.
         m_DeepHistory.clear();
         m_MachineHistory.clear();
     }
