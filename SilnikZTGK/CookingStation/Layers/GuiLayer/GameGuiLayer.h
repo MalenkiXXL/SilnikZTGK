@@ -36,6 +36,9 @@ public:
 private:
     bool m_IsLevelIntro = false;
     bool m_FirstOrderTaken = false;
+    float m_OrderHintTimer = 0.0f;
+    bool m_HasShownOrderHint = false;
+
     bool OnWindowResize(WindowResizeEvent& e);
     bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
