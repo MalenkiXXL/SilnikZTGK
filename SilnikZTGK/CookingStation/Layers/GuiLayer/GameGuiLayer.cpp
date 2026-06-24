@@ -804,6 +804,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
                     if (nsc) {
                         for (auto& s : nsc->Scripts) {
+                            if (m_RecipeBookPanel.IsOpen() || m_IsGamePaused) return;
                             if (s.Instance) {
                                 s.Instance->OnHoverCursor();
                             }
@@ -1715,6 +1716,7 @@ void GameGuiLayer::DrawHoverCloudUI(const glm::vec2& screenPos, const std::share
 void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt)
 {
     if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
+    if (m_RecipeBookPanel.IsOpen() || m_IsGamePaused) return;
 
     auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
     auto* transforms = m_ActiveScene->GetWorld().GetComponentVector<TransformComponent>();
@@ -1772,6 +1774,7 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
 void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt)
 {
     if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
+    if (m_RecipeBookPanel.IsOpen() || m_IsGamePaused) return;
 
     auto* transforms = m_ActiveScene->GetWorld().GetComponentVector<TransformComponent>();
     auto* scripts = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
@@ -1829,6 +1832,7 @@ void GameGuiLayer::DrawMushroomBubble(float gameX, float gameY, float gameWidth,
     if (!m_ShowMushroomBubble) return;
     if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
     if (!m_CoinCloudIcon) return;
+    if (m_RecipeBookPanel.IsOpen() || m_IsGamePaused) return;
 
     auto* camera = m_ActiveScene->GetCamera();
     glm::mat4 view = camera->GetViewMatrix();
@@ -1885,6 +1889,7 @@ void GameGuiLayer::DrawMachineWarningInfo(float gameX, float gameY, float gameWi
     if (m_MachineWarning.Timer <= 0.0f) return;
     if (m_MachineWarning.MachineEnt.id == std::numeric_limits<std::size_t>::max()) return;
     if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
+    if (m_RecipeBookPanel.IsOpen() || m_IsGamePaused) return;
 
     m_MachineWarning.Timer -= dt;
 
@@ -1971,6 +1976,7 @@ void GameGuiLayer::DrawMachineWarningInfo(float gameX, float gameY, float gameWi
 void GameGuiLayer::DrawHelperHint(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
 {
     if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
+    if (m_RecipeBookPanel.IsOpen() || m_IsGamePaused) return;
 
     auto* scripts = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
     auto* transforms = m_ActiveScene->GetWorld().GetComponentVector<TransformComponent>();

@@ -166,20 +166,9 @@ public:
                 }
             }
         }
-        else if (!m_IsAutomated)
+        else
         {
-            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
-            {
-                GetScene()->DestroyEntity(m_SpawnedFood);
-                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-
-                ResetMachineState();
-                ClearHighlight();
-            }
-            else
-            {
-                spdlog::warn("Brak talerza w promieniu kratki - nie można nałożyć!");
-            }
+            spdlog::warn("Brak talerza w promieniu kratki - nie można nałożyć!");
         }
     }
 

@@ -16,6 +16,8 @@ public:
 
         m_ClickSubId = GetScene()->GetWorld().GetEventBus().Subscribe<EntityClickedEvent>(
                 [this](const EntityClickedEvent& e) {
+                    if (Input::IsUICapturingMouse()) return;
+
                     if (e.TargetEntity.id == m_Entity.id) {
                         this->HandleClick();
                     }

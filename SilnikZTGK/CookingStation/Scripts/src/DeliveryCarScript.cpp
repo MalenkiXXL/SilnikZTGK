@@ -2,6 +2,8 @@
 #include <spdlog/spdlog.h>
 #include "CookingStation/miniaudio.h"
 #include "CookingStation/Scene/PrefabSerializer.h"
+#include "CookingStation/Core/Application.h"
+#include "CookingStation/Events/GameEvents.h"
 
 void DeliveryCarScript::OnCreate()
 {
@@ -66,12 +68,34 @@ void DeliveryCarScript::OnCreate()
     } else {
         spdlog::warn("[DeliveryCar] Nie udało się załadować dźwięku silnika");
     }
+
+    auto& appBus = Application::Get().GetEventBus();
+
+    m_PauseSubId = appBus.Subscribe<GamePausedEvent>(
+            [this](const GamePausedEvent&) {
+                if (m_EngineSound && m_EngineSoundStarted) {
+                    ma_sound_stop(m_EngineSound);
+                }
+            }
+    );
+
+    m_ResumeSubId = appBus.Subscribe<GameResumedEvent>(
+            [this](const GameResumedEvent&) {
+                if (m_EngineSound && m_EngineSoundStarted && AudioEngine::AreSoundsEnabled()) {
+                    AudioEngine::ReplaySound(m_EngineSound);
+                }
+            }
+    );
 }
 
 void DeliveryCarScript::OnDestroy()
 {
     GetScene()->GetWorld().GetEventBus().Unsubscribe<DeliveryCollectedEvent>(m_CollectedSubId);
     GetScene()->GetWorld().GetEventBus().Unsubscribe<DeliveryMushroomAppearedEvent>(m_MushroomSubId);
+
+    auto& appBus = Application::Get().GetEventBus();
+    if (m_PauseSubId != 0) appBus.Unsubscribe<GamePausedEvent>(m_PauseSubId);
+    if (m_ResumeSubId != 0) appBus.Unsubscribe<GameResumedEvent>(m_ResumeSubId);
 
     if (m_EngineSound) {
         AudioEngine::StopLoopingSound(m_EngineSound);
