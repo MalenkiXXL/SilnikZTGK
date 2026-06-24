@@ -9,6 +9,7 @@ class PanScript : public MachineScript
 {
     float m_BaseCookTime = 4.0f;
     float m_ExtraBaconTime = 2.0f;
+    bool m_IsHovered = false;
 
     ma_sound* m_FryingSound = nullptr;
 
@@ -85,6 +86,17 @@ public:
         {
             TryTransferToPlate();
         }
+
+
+        if (m_IsHovered && m_IsReady && !m_IsAutomated && !GlobalIsMachineHeld && !m_IsHeld)
+        {
+            Entity closestPlate = GetClosestAvailablePlate();
+            if (closestPlate.id != std::numeric_limits<std::size_t>::max())
+            {
+                SetPlateHighlight(closestPlate, true);
+            }
+        }
+        m_IsHovered = false;
     }
 
     virtual void HandleClick() override
@@ -287,6 +299,7 @@ protected:
 
     void OnHoverCursor() override
     {
+        m_IsHovered = true;
         bool hasEgg = HasIngredient(IngredientType::Egg);
         if (!hasEgg && !m_Ingredients.empty())
         {
