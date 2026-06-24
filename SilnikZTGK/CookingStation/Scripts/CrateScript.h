@@ -56,6 +56,8 @@ public:
                 m_CrateIngredient = IngredientType::SleepyDust;
             else if (name.find("Yawn") != std::string::npos || name.find("Ziewniecie") != std::string::npos)
                 m_CrateIngredient = IngredientType::Yawn;
+            else if (name.find("Potato") != std::string::npos || name.find("Ziemniak") != std::string::npos)
+                m_CrateIngredient = IngredientType::Potato;
         }
 
         if (m_CrateIngredient == IngredientType::None) {
@@ -221,6 +223,7 @@ private:
         case IngredientType::CoffeeBeans: return "assets://models/skladniki/napoje/ziarnokawy.gltf";
         case IngredientType::SleepyDust: return "assets://models/skladniki/pyl/pyl.gltf";
         case IngredientType::Yawn: return "assets://models/skladniki/ziewniecie/ziewniecie.gltf"; 
+        case IngredientType::Potato: return "assets://models/skladniki/ziemniak/potato2.gltf";
         default: return "";
         }
     }

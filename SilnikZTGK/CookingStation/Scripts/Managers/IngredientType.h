@@ -45,7 +45,9 @@ enum class IngredientType : uint32_t
 
     ChoppedRaspberry, RawCupcakeDough,
 
-    Yawn
+    Yawn,
+
+    ChoppedPotato, RawKopytkaDough
 };
 
 // Struktura trzymająca metadane składnika
@@ -134,6 +136,8 @@ inline std::string IngredientTypeToString(IngredientType type)
         case IngredientType::ChoppedRaspberry:          return "ChoppedRaspberry";
         case IngredientType::RawCupcakeDough:           return "RawCupcakeDough";
         case IngredientType::Yawn:                      return "Yawn";
+        case IngredientType::ChoppedPotato:             return "ChoppedPotato";
+        case IngredientType::RawKopytkaDough:           return "RawKopytkaDough";
         default:                                        return "Unknown";
     }
 }
@@ -206,6 +210,19 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
 
         case IngredientType::Yawn:
             return { glm::vec3(0.2f), glm::vec3(0.0f), glm::vec3(0.0f) };
+
+        case IngredientType::Candy:
+            return { glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::Potato:
+            return { glm::vec3(0.4f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(0.0f) };
+        case IngredientType::ChoppedPotato:
+            return { glm::vec3(0.5f), glm::vec3(0.0f, 90.0f, 0.0f), glm::vec3(0.0f) };
+        case IngredientType::RawKopytkaDough:
+            return { glm::vec3(3.5f), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::Kopytka:
+            return { glm::vec3(3.5f), glm::vec3(0.0f), glm::vec3(0.0f) };
+        case IngredientType::GoldenKopytka:
+            return { glm::vec3(3.5f), glm::vec3(0.0f), glm::vec3(0.0f) };
 
         default:
             return { glm::vec3(1.0f), glm::vec3(0.0f) };
@@ -308,6 +325,8 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::ChoppedRaspberry:          return "assets://models/skladniki/malina/malina-cut.gltf";
         case IngredientType::RawCupcakeDough:           return "assets://models/skladniki/ciasta-v2/ciasto-babeczka.gltf";
         case IngredientType::Yawn:                      return "assets://models/skladniki/ziewniecie/ziewniecie.gltf";
+        case IngredientType::ChoppedPotato:             return "assets://models/skladniki/ziemniak/potato-cut.gltf";
+        case IngredientType::RawKopytkaDough:           return "assets://models/skladniki/ciasta-v2/ciasto-kopytka.gltf";
 
         default: return "";
     }

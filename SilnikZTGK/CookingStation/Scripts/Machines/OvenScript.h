@@ -17,7 +17,7 @@ public:
             AudioEngine::StopLoopingSound(m_BakingSoundPtr);
             m_BakingSoundPtr = nullptr;
         }
-    } // <--- TEJ KLAMRY BRAKOWAŁO
+    }
 
     IngredientType GetBakedType() const
     {
@@ -107,10 +107,7 @@ public:
 
     void TryTransferToPlate() override
     {
-        Entity targetPlate = m_LastHighlightedPlate;
-
-        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
-            targetPlate = GetClosestAvailablePlate();
+        Entity targetPlate = GetClosestAvailablePlate();
 
         if (targetPlate.id != std::numeric_limits<std::size_t>::max())
         {
@@ -142,7 +139,7 @@ public:
         }
         else if (!m_IsAutomated)
         {
-            spdlog::warn("Piekarnik: Brak talerza! Nie można wyciągnąć bagietki bez talerza.");
+            spdlog::warn("Piekarnik: Brak talerza w zasiegu!");
             AudioEngine::Play("assets://sounds/error.mp3");
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
             {
@@ -183,7 +180,6 @@ protected:
                 spdlog::info("Piekarnik: Przepis na babeczke odblokowany!");
             }
 
-            // NAPRAWA KOMENTARZA: PRZYWRÓCONY KOD ŁADOWANIA MODELU
             auto* meshComp = GetComponent<MeshComponent>();
             if (meshComp)
             {
@@ -238,8 +234,5 @@ protected:
         }
     }
 
-    void OnTransferToPlate(Entity plate) override
-    {
-        PlaceSpawnedFoodOnPlate(plate);
-    }
+    void OnTransferToPlate(Entity plate) override {}
 };

@@ -22,14 +22,14 @@ public:
     bool CanAcceptIngredient(IngredientType type) override
     {
         if (m_IsReady) return false;
-        if (!m_Ingredients.empty()) return false; // ju¿ coœ jest w œrodku
+        if (!m_Ingredients.empty()) return false;
         return type == IngredientType::CoffeeBeans;
     }
 
     void OnCreate() override
     {
         MachineScript::OnCreate();
-        m_CookTime = 5.0f; // czas parzenia
+        m_CookTime = 5.0f;
     }
 
     void OnDestroy() override
@@ -69,58 +69,19 @@ public:
         m_CurrentTime = 0.0f;
         spdlog::info("CoffeeMaker: Przyjeto ziarno kawy, rozpoczynam parzenie!");
 
-        // zmiana modelu na "pracuj¹cy" ekspres – podmieñ œcie¿kê gdy bêdziesz mia³ model
         auto* meshComp = GetComponent<MeshComponent>();
         if (meshComp)
         {
-             meshComp->Path = "assets://models/przybory_kuchenne/ekspres/ekspres.gltf";
-             meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
+            meshComp->Path = "assets://models/przybory_kuchenne/ekspres/ekspres.gltf";
+            meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
         }
 
         if (!m_BrewingSound)
         {
             m_BrewingSound = AudioEngine::PlayLoopingSound("CookingStation/Assets/sounds/mixer.mp3", 0.1f);
-            // docelowo podmieñ na dŸwiêk ekspresu
         }
 
         return true;
-    }
-
-    void TryTransferToPlate() override
-    {
-        Entity targetPlate = m_LastHighlightedPlate;
-        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
-            targetPlate = GetClosestAvailablePlate();
-
-        if (targetPlate.id != std::numeric_limits<std::size_t>::max())
-        {
-            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(targetPlate);
-            PlateScript* pScript = nullptr;
-            if (nsc) {
-                for (auto& s : nsc->Scripts) {
-                    if (s.Name == "PlateScript" && s.Instance) {
-                        pScript = static_cast<PlateScript*>(s.Instance);
-                        break;
-                    }
-                }
-            }
-
-            if (pScript && pScript->AddIngredient(IngredientType::Coffee))
-            {
-                spdlog::info("CoffeeMaker: Kawa przeniesiona na talerz/kubek!");
-                ClearHighlight();
-                if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
-                    GetScene()->DestroyEntity(m_SpawnedFood);
-                    m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-                }
-                ResetMachineState();
-            }
-        }
-        else if (!m_IsAutomated)
-        {
-            spdlog::warn("CoffeeMaker: Brakuje talerza/kubka!");
-            AudioEngine::Play("assets://sounds/error.mp3");
-        }
     }
 
 protected:
@@ -130,12 +91,11 @@ protected:
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) return;
 
-            // powrót do modelu spoczynkowego
             auto* meshComp = GetComponent<MeshComponent>();
             if (meshComp)
             {
-                 meshComp->Path = "assets://models/przybory_kuchenne/ekspres/ekspres.gltf";
-                 meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
+                meshComp->Path = "assets://models/przybory_kuchenne/ekspres/ekspres.gltf";
+                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
             }
 
             auto* myTransform = GetComponent<TransformComponent>();
@@ -166,8 +126,8 @@ protected:
             auto* meshComp = GetComponent<MeshComponent>();
             if (meshComp)
             {
-                 meshComp->Path = "assets://models/przybory_kuchenne/ekspres/ekspres.gltf";
-                 meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
+                meshComp->Path = "assets://models/przybory_kuchenne/ekspres/ekspres.gltf";
+                meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
             }
 
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
@@ -182,6 +142,24 @@ protected:
 
     void OnTransferToPlate(Entity plate) override
     {
-        PlaceSpawnedFoodOnPlate(plate);
+        auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(plate);
+        PlateScript* pScript = nullptr;
+        if (nsc) {
+            for (auto& s : nsc->Scripts) {
+                if (s.Name == "PlateScript" && s.Instance) {
+                    pScript = static_cast<PlateScript*>(s.Instance);
+                    break;
+                }
+            }
+        }
+
+        if (pScript && pScript->AddIngredient(IngredientType::Coffee))
+        {
+            spdlog::info("CoffeeMaker: Kawa przeniesiona na talerz/kubek!");
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+            }
+        }
     }
 };

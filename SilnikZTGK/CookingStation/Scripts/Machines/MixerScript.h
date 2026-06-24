@@ -15,6 +15,7 @@ private:
         bool hasChoppedApple = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedApple) != m_Ingredients.end();
         bool hasYawn = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Yawn) != m_Ingredients.end();
         bool hasChoppedRaspberry = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedRaspberry) != m_Ingredients.end();
+        bool hasChoppedPotato = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedPotato) != m_Ingredients.end();
 
         if (m_Ingredients.size() == 3) {
             if (hasMilk && hasFlour && hasChoppedApple) return IngredientType::RawApplePie;
@@ -24,6 +25,8 @@ private:
         }
 
         if (m_Ingredients.size() == 2) {
+            if (hasFlour && hasChoppedPotato) return IngredientType::RawKopytkaDough;
+
             if (!hasMilk) return IngredientType::None;
             if (hasFlour) return IngredientType::RawDough;
 
@@ -67,12 +70,14 @@ public:
         bool hasApple = std::find(testList.begin(), testList.end(), IngredientType::ChoppedApple) != testList.end();
         bool hasYawn = std::find(testList.begin(), testList.end(), IngredientType::Yawn) != testList.end();
         bool hasRaspberry = std::find(testList.begin(), testList.end(), IngredientType::ChoppedRaspberry) != testList.end();
+        bool hasPotato = std::find(testList.begin(), testList.end(), IngredientType::ChoppedPotato) != testList.end();
 
         if (testList.size() == 3) {
             return (hasMilk && hasFlour && (hasApple || hasYawn || hasRaspberry));
         }
 
         if (testList.size() == 2) {
+            if (hasFlour && hasPotato) return true;
             if (hasMilk) return true;
             if (hasFlour && (hasApple || hasYawn || hasRaspberry)) return true;
             return false;
@@ -83,7 +88,7 @@ public:
                 type == IngredientType::ChoppedApple || type == IngredientType::Apple ||
                 type == IngredientType::Raspberry || type == IngredientType::Strawberry ||
                 type == IngredientType::CoffeeBeans || type == IngredientType::Yawn ||
-                type == IngredientType::ChoppedRaspberry;
+                type == IngredientType::ChoppedRaspberry || type == IngredientType::ChoppedPotato;
         }
 
         return false;
@@ -166,46 +171,6 @@ public:
         return true;
     }
 
-    void TryTransferToPlate() override
-    {
-        Entity targetPlate = m_LastHighlightedPlate;
-
-        if (targetPlate.id == std::numeric_limits<std::size_t>::max())
-            targetPlate = GetClosestAvailablePlate();
-
-        if (targetPlate.id != std::numeric_limits<std::size_t>::max())
-        {
-            auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(targetPlate);
-            PlateScript* pScript = nullptr;
-            if (nsc) {
-                for (auto& s : nsc->Scripts) {
-                    if (s.Name == "PlateScript" && s.Instance) {
-                        pScript = static_cast<PlateScript*>(s.Instance);
-                        break;
-                    }
-                }
-            }
-
-            if (pScript)
-            {
-                if (pScript->AddIngredient(GetMixerResult()))
-                {
-                    spdlog::info("Mikser: Produkt logicznie przeniesiony na talerz!");
-                    ClearHighlight();
-                    if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
-                        GetScene()->DestroyEntity(m_SpawnedFood);
-                        m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
-                    }
-                    ResetMachineState();
-                }
-            }
-        }
-        else if (!m_IsAutomated)
-        {
-            spdlog::warn("Mikser: Brakuje talerza! Podstaw talerz, zeby wyciagnac wynik miksowania.");
-        }
-    }
-
 protected:
     void UpdateVisuals() override
     {
@@ -266,6 +231,24 @@ protected:
 
     void OnTransferToPlate(Entity plate) override
     {
-        PlaceSpawnedFoodOnPlate(plate);
+        auto* nsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(plate);
+        PlateScript* pScript = nullptr;
+        if (nsc) {
+            for (auto& s : nsc->Scripts) {
+                if (s.Name == "PlateScript" && s.Instance) {
+                    pScript = static_cast<PlateScript*>(s.Instance);
+                    break;
+                }
+            }
+        }
+
+        if (pScript && pScript->AddIngredient(GetMixerResult()))
+        {
+            spdlog::info("Mikser: Danie przelozone na talerz!");
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+            }
+        }
     }
 };

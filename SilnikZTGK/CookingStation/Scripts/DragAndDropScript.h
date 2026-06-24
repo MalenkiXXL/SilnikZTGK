@@ -243,10 +243,10 @@ private:
                         (hoveredType == IngredientType::Tomato || hoveredType == IngredientType::Baguette ||
                             hoveredType == IngredientType::Cheese || hoveredType == IngredientType::Ham ||
                             hoveredType == IngredientType::Mozzarella || hoveredType == IngredientType::Apple ||
-                            hoveredType == IngredientType::Raspberry);
+                            hoveredType == IngredientType::Raspberry || hoveredType == IngredientType::Potato);
                 }
                 else if (name == "PotScript") {
-                    return mScript->CanAcceptIngredient(hoveredType); 
+                    return mScript->CanAcceptIngredient(hoveredType);
                 }
                 else if (name == "MixerScript") {
                     return mScript->CanAcceptIngredient(hoveredType);
@@ -323,7 +323,7 @@ private:
 
                                 bool canAccept = false;
                                 if (machineName == "CuttingBoardScript" && hoveredMachineScript->m_Ingredients.empty()) {
-                                    canAccept = (type == IngredientType::Tomato || type == IngredientType::Baguette || type == IngredientType::Cheese || type == IngredientType::Ham || type == IngredientType::Mozzarella || type == IngredientType::Apple || type == IngredientType::Raspberry);
+                                    canAccept = (type == IngredientType::Tomato || type == IngredientType::Baguette || type == IngredientType::Cheese || type == IngredientType::Ham || type == IngredientType::Mozzarella || type == IngredientType::Apple || type == IngredientType::Raspberry || type == IngredientType::Potato);
                                 }
                                 else if (machineName == "PotScript") {
                                     canAccept = hoveredMachineScript->CanAcceptIngredient(type);
@@ -450,7 +450,7 @@ private:
                 }
                 else if (machineName == "CuttingBoardScript" && hoveredMachineScript->m_Ingredients.empty()) {
                     return topIngredient == IngredientType::Tomato || topIngredient == IngredientType::Baguette ||
-                        topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella || topIngredient == IngredientType::Apple || topIngredient == IngredientType::Raspberry;
+                        topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella || topIngredient == IngredientType::Apple || topIngredient == IngredientType::Raspberry || topIngredient == IngredientType::Potato;
                 }
                 else if (machineName == "MixerScript") {
                     return hoveredMachineScript->CanAcceptIngredient(topIngredient);
@@ -519,7 +519,7 @@ private:
                     return mScript->CanAcceptIngredient(topIngredient);
                 }
                 else if (name == "CuttingBoardScript") {
-                    return mScript->m_Ingredients.empty() && (topIngredient == IngredientType::Tomato || topIngredient == IngredientType::Baguette || topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella || topIngredient == IngredientType::Apple || topIngredient == IngredientType::Raspberry);
+                    return mScript->m_Ingredients.empty() && (topIngredient == IngredientType::Tomato || topIngredient == IngredientType::Baguette || topIngredient == IngredientType::Cheese || topIngredient == IngredientType::Ham || topIngredient == IngredientType::Mozzarella || topIngredient == IngredientType::Apple || topIngredient == IngredientType::Raspberry || topIngredient == IngredientType::Potato);
                 }
                 else if (name == "MixerScript") {
                     return mScript->CanAcceptIngredient(topIngredient);
