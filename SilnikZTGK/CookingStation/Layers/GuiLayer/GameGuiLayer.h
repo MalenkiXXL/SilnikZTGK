@@ -137,4 +137,5 @@ private:
     std::size_t m_MachineWarningSubId = 0;
 
     void DrawMachineWarningInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
+    void DrawHelperHint(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale);
 };

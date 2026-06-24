@@ -19,6 +19,7 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <cmath> 
+#include "CookingStation/Scripts/HelperCustomerScript.h"
 
 bool g_TriggerCloudTransition = false;
 
@@ -751,6 +752,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
         DrawCrateHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
         DrawMachineWarningInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+        DrawHelperHint(gameX, gameY, gameWidth, gameHeight, baseScale);
 
         if (!GameManagerScript::s_IsTutorialMode)
         {
@@ -1880,5 +1882,89 @@ void GameGuiLayer::DrawMachineWarningInfo(float gameX, float gameY, float gameWi
 
     if (hasLine2) {
         Gui::DrawGuiText(m_MachineWarning.Line2, line2Pos, textScale, currentTextColor);
+    }
+
+}
+
+void GameGuiLayer::DrawHelperHint(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
+{
+    if (!m_ActiveScene || !m_ActiveScene->GetCamera()) return;
+
+    auto* scripts = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
+    auto* transforms = m_ActiveScene->GetWorld().GetComponentVector<TransformComponent>();
+    if (!scripts || !transforms) return;
+
+    for (size_t i = 0; i < scripts->dense.size(); ++i) {
+        auto& nsc = scripts->dense[i];
+        HelperCustomerScript* helperScript = nullptr;
+
+        for (auto& s : nsc.Scripts) {
+            if (s.Name == "HelperCustomerScript") {
+                helperScript = (HelperCustomerScript*)s.Instance;
+                break;
+            }
+        }
+
+        // Jeśli to pierwszy helper i nadal czeka na podniesienie z podłogi
+        if (helperScript && helperScript->m_IsFirstHelperInstance && helperScript->m_IsWaitingForPickup) {
+            Entity helperEnt = scripts->reverse[i];
+            auto* tf = transforms->Get(helperEnt);
+            if (!tf) continue;
+
+            // Rzutowanie pozycji 3D nad głową Helpera na ekran 2D
+            auto* camera = m_ActiveScene->GetCamera();
+            glm::mat4 view = camera->GetViewMatrix();
+            float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
+            float orthoSize = 10.0f * (camera->Zoom / 45.0f);
+            glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
+            glm::mat4 viewProj = proj3D * view;
+
+            glm::vec3 worldPos = tf->GetPosition() + glm::vec3(0.0f, 2.8f, 0.0f); // Wysokość nad głową
+            glm::vec4 clipSpace = viewProj * glm::vec4(worldPos, 1.0f);
+            if (clipSpace.w <= 0.0f) continue;
+            glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
+
+            float screenX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
+            float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
+
+            // --- ANIMACJA I TEKST ---
+            std::string line1 = "This customer wants to help";
+            std::string line2 = "in your kitchen, pick him";
+            std::string line3 = "up and place near a machine!";
+
+            float hintScale = 0.9f * baseScale;
+            float timeNow = glfwGetTime();
+            float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale; // Efekt pływania
+
+            float w1 = Gui::MeasureTextWidth(line1, hintScale);
+            float w2 = Gui::MeasureTextWidth(line2, hintScale);
+            float w3 = Gui::MeasureTextWidth(line3, hintScale);
+            float maxW = std::max({ w1, w2, w3 });
+
+            float textH = Gui::MeasureTextHeight("A", hintScale);
+            float lineSpacing = textH * 1.3f;
+            float totalH = textH * 3.0f + lineSpacing * 2.0f;
+
+            glm::vec2 blockPos = {
+                screenX - maxW * 0.5f,
+                screenY - totalH * 0.5f + floatOffset
+            };
+
+            float line1X = blockPos.x + (maxW - w1) * 0.5f;
+            float line2X = blockPos.x + (maxW - w2) * 0.5f;
+            float line3X = blockPos.x + (maxW - w3) * 0.5f;
+
+            glm::vec4 shadowColor = { 0.0f, 0.0f, 0.0f, 0.5f };
+            glm::vec4 textColor = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+            Gui::DrawGuiText(line1, { line1X + 1.5f, blockPos.y + 1.5f }, hintScale, shadowColor);
+            Gui::DrawGuiText(line1, { line1X, blockPos.y }, hintScale, textColor);
+
+            Gui::DrawGuiText(line2, { line2X + 1.5f, blockPos.y + lineSpacing + 1.5f }, hintScale, shadowColor);
+            Gui::DrawGuiText(line2, { line2X, blockPos.y + lineSpacing }, hintScale, textColor);
+
+            Gui::DrawGuiText(line3, { line3X + 1.5f, blockPos.y + lineSpacing * 2.0f + 1.5f }, hintScale, shadowColor);
+            Gui::DrawGuiText(line3, { line3X, blockPos.y + lineSpacing * 2.0f }, hintScale, textColor);
+        }
     }
 }
