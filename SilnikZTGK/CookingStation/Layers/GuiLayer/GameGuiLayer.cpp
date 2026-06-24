@@ -80,6 +80,9 @@ void GameGuiLayer::OnAttach()
                 if (m_DeliveryCollectedSubId != 0) { oldBus.Unsubscribe<DeliveryCollectedEvent>(m_DeliveryCollectedSubId); m_DeliveryCollectedSubId = 0; }
             }
 
+            m_HasShownOrderHint = false;
+            m_RecipeBookPanel.Reset();
+
             m_ActiveScene = SceneManager::GetActiveScene();
             m_ActiveOrderTickets.clear();
             m_LastMoney = -1;
