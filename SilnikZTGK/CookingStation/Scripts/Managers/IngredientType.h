@@ -213,7 +213,7 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
             return { glm::vec3(6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f) };
 
         case IngredientType::Yawn:
-            return { glm::vec3(0.2f), glm::vec3(0.0f), glm::vec3(0.0f) };
+            return { glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
 
         case IngredientType::Candy:
             return { glm::vec3(1.0f), glm::vec3(0.0f), glm::vec3(0.0f) };
@@ -322,7 +322,7 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::StrawberryShake:           return "assets://models/skladniki/shake/shake-truskawka.gltf";
 
         case IngredientType::ChoppedApple:              return "assets://models/skladniki/jablko/apple-cut.gltf";
-        case IngredientType::RawApplePie:               return "assets://models/skladniki/ciasta_nieupieczone/ciasto.gltf";
+        case IngredientType::RawApplePie:               return "assets://models/skladniki/ciasta-v2/ciasto-szarlotka.gltf";
         case IngredientType::SleepyDust:                return "assets://models/skladniki/pyl/pyl.gltf";
         case IngredientType::RawSleepyDough:            return "assets://models/skladniki/ciasta-v2/ciasto-croissant.gltf";
         case IngredientType::SleepyBread:               return "assets://models/skladniki/chleb/chleb2.gltf";

@@ -13,6 +13,7 @@
 #include "CookingStation/Layers/GuiLayer/Panels/SettingsMenuPanel.h" 
 #include "CookingStation/Layers/GuiLayer/Panels/CreditsPanel.h"
 #include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include <algorithm>
 #include <string>
 
@@ -42,6 +43,7 @@ void MainMenuLayer::OnAttach()
             m_IsActive = true;
             m_SettingsPanel->SetVisible(false);
             m_CreditsPanel->SetVisible(false);
+            GameManagerScript::s_IsTutorialMode = false;
         }
     );
 }
@@ -233,6 +235,9 @@ void MainMenuLayer::PlayGame()
     if (serializer.Deserialize("assets://levels/tutorial.json")) {
         activeScene->SetViewportSize(m_ViewportWidth, m_ViewportHeight);
         Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
+
+        GameManagerScript::s_IsTutorialMode = true;
+
         activeScene->SetState(SceneState::Play);
         activeScene->OnRuntimeStart();
 

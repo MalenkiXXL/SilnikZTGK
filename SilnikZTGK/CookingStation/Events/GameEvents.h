@@ -38,6 +38,8 @@ struct MachinePickedUpEvent {
     Entity TargetMachine;
 };
 
+struct GrandmaSatisfiedEvent {};
+
 struct OrderFulfilledEvent {
     float RewardAmount;
     OrderFulfilledEvent(float reward) : RewardAmount(reward) {}

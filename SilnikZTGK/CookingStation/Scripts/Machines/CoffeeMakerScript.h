@@ -2,6 +2,7 @@
 #include "CookingStation/Scripts/Machines/MachineScript.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Events/GameEvents.h"
+#include "CookingStation/Core/GameProgress.h"
 #include "CookingStation/Core/AudioEngine.h"
 
 class CoffeeMakerScript : public MachineScript
@@ -80,6 +81,8 @@ public:
             pastMachines.begin(),
             pastMachines.end()
         );
+
+        m_Ingredients.push_back(type);
         m_IsReady = false;
         m_CurrentTime = 0.0f;
         spdlog::info("CoffeeMaker: Przyjeto ziarno kawy, rozpoczynam parzenie!");
@@ -117,6 +120,12 @@ protected:
             if (!myTransform) return;
 
             m_SpawnedFood = SpawnMachineFood(IngredientType::Coffee, "GotowaCzKawy");
+
+            if (!GameProgress::IsRecipeUnlocked("Coffee"))
+            {
+                GameProgress::UnlockRecipe("Coffee");
+                spdlog::info("CoffeeMaker: Przepis na kawe odblokowany!");
+            }
 
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)

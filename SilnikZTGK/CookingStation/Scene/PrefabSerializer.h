@@ -113,7 +113,19 @@ public:
         }
 
         nlohmann::json parsedData = nlohmann::json::parse(fileData.begin(), fileData.end());
+
         if (parsedData.is_object()) {
+            if (parsedData.contains("entities")) {
+                parsedData = parsedData["entities"];
+            }
+            else if (parsedData.contains("Entities")) {
+                parsedData = parsedData["Entities"];
+            }
+            else {
+                parsedData = nlohmann::json::array({ parsedData });
+            }
+        }
+        else if (parsedData.is_object()) {
             parsedData = nlohmann::json::array({ parsedData });
         }
 
@@ -156,10 +168,16 @@ public:
 
             std::shared_ptr<Model> model = nullptr;
             if (item.contains("model_path")) {
-                std::string path = item["model_path"];
+                std::string path = item["model_path"].get<std::string>();
+
+                size_t assetPos = path.find("Assets/");
+                if (assetPos != std::string::npos) {
+                    path = "assets://" + path.substr(assetPos + 7);
+                }
+
                 MeshComponent meshComp;
                 model = AssetManager::GetModel(path);
-                meshComp.ModelPtr = AssetManager::GetModel(path);
+                meshComp.ModelPtr = model;
                 meshComp.ShaderPtr = nullptr;
                 meshComp.Path = path;
                 builder.With<MeshComponent>(meshComp);
@@ -207,8 +225,12 @@ public:
 
             Entity newEntity = builder.Build();
 
-            if (item.contains("local_id")) {
-                localIdToRealEntity[item["local_id"].get<int>()] = newEntity;
+            int entityLocalId = -1;
+            if (item.contains("local_id")) entityLocalId = item["local_id"].get<int>();
+            else if (item.contains("id")) entityLocalId = item["id"].get<int>();
+
+            if (entityLocalId != -1) {
+                localIdToRealEntity[entityLocalId] = newEntity;
             }
             rawIdToEntity[newEntity.id] = newEntity;
 
@@ -216,8 +238,11 @@ public:
         }
 
         for (const auto& item : parsedData) {
-            if (item.contains("parent_id") && item.contains("local_id")) {
-                int localId = item["local_id"].get<int>();
+            int localId = -1;
+            if (item.contains("local_id")) localId = item["local_id"].get<int>();
+            else if (item.contains("id")) localId = item["id"].get<int>();
+
+            if (item.contains("parent_id") && localId != -1) {
                 int parentId = item["parent_id"].get<int>();
 
                 Entity child = localIdToRealEntity[localId];

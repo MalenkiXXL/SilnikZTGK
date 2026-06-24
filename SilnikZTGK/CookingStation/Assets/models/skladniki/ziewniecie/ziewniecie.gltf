@@ -1,6 +1,6 @@
 {
 	"asset":{
-		"generator":"Khronos glTF Blender I/O v4.4.56",
+		"generator":"Khronos glTF Blender I/O v5.1.19",
 		"version":"2.0"
 	},
 	"extensionsUsed":[
@@ -18,17 +18,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Cube",
-			"scale":[
-				0.2939279079437256,
-				0.15562954545021057,
-				0.5028272867202759
-			],
-			"translation":[
-				0,
-				-0.7284815907478333,
-				0
-			]
+			"name":"Cube.001"
 		}
 	],
 	"materials":[
@@ -92,8 +82,8 @@
 			"uri":"Material.png"
 		},
 		{
-			"mimeType": "image/png",
-			"name": "palette",
+			"mimeType":"image/png",
+			"name":"palette",
 			"uri": "../../../textures/palette.png"
 		}
 	],
@@ -103,14 +93,14 @@
 			"componentType":5126,
 			"count":1172,
 			"max":[
-				1.9982680082321167,
-				10.311171531677246,
-				1.1322882175445557
+				0.5873467326164246,
+				1.7766265869140625,
+				0.5693454146385193
 			],
 			"min":[
-				-2.0548503398895264,
-				-0.9388747215270996,
-				-1.1322884559631348
+				-0.6039778590202332,
+				0.025786906480789185,
+				-0.5693455338478088
 			],
 			"type":"VEC3"
 		},

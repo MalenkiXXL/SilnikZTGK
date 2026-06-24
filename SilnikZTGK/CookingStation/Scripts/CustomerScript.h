@@ -26,6 +26,8 @@ public:
     glm::vec3 TargetPos = { 0.0f, 0.0f, 0.0f };
     glm::vec3 FinalRotation = { 0.0f, 0.0f, 0.0f };
     bool IsGrandma = false;
+    bool m_GrandmaSuccessCutscene = false;
+    bool m_MapUnlocked = false;
 
     float m_ReactionTimer = 0.0f;
     bool m_WasCorrect = false;
@@ -69,10 +71,9 @@ public:
         std::mt19937 gen(rd());
 
         if (IsGrandma) {
-            WantedIngredient = IngredientType::Sandwich;
-            SecondaryReq.RequirementType = OrderSecondaryRequirement::Type::None;
+            WantedIngredient = IngredientType::Tomato;
+            SecondaryReq = { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Garnek", "assets://UI/pot.png" };
             State = CustomerState::Spawning;
-
             TargetChair = s_GrandmaTargetChair;
             TargetPos = s_GrandmaTargetPos;
             FinalRotation = s_GrandmaFinalRotation;
@@ -267,6 +268,37 @@ public:
         if (State == CustomerState::LeavingReaction) {
             m_ReactionTimer -= ts.GetSeconds();
 
+            if (m_GrandmaSuccessCutscene && m_CameraCaptured) {
+                auto* camera = GetScene()->GetCamera();
+                auto* tf = GetComponent<TransformComponent>();
+                if (camera && tf) {
+                    camera->TargetPosition = glm::mix(camera->TargetPosition, tf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f), 5.0f * (float)ts.GetSeconds());
+                    camera->Zoom += (15.0f - camera->Zoom) * 5.0f * (float)ts.GetSeconds();
+                }
+
+                if (m_ReactionTimer <= 5.5f && !m_MapUnlocked) {
+                    GetScene()->GetWorld().GetEventBus().Publish(GrandmaSatisfiedEvent{});
+                    m_MapUnlocked = true;
+
+                    if (tf) {
+                        TransformComponent poofTf;
+                        poofTf.SetPosition(tf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
+                        poofTf.SetScale(glm::vec3(2.5f));
+                        NativeScriptComponent poofNsc;
+                        poofNsc.AddScript<PoofEmitterScript>("PoofEmitterScript");
+                        Entity bigPoof = GetScene()->GetWorld().BuildEntity()
+                            .With<TagComponent>({ "PoofEmitter" })
+                            .With<TransformComponent>(poofTf)
+                            .With<NativeScriptComponent>(poofNsc)
+                            .Build();
+                        auto* addedNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(bigPoof);
+                        if (addedNsc && !addedNsc->Scripts.empty() && addedNsc->Scripts[0].Instance) {
+                            static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
+                        }
+                    }
+                }
+            }
+
             if (m_ReactionTimer <= 0.0f && !IsPendingDestroy) {
                 // Gdy minie 2s na reakcj� (bu�k�), odpalamy puffa i znikamy klienta
                 if (!m_ExitPoofStarted) {
@@ -300,7 +332,16 @@ public:
                             static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
                         }
 
-                        // Z�udzenie znikni�cia: Ukrywamy klienta g��boko pod map�
+                        if (m_CameraCaptured) {
+                            auto* camera = GetScene()->GetCamera();
+                            if (camera) {
+                                camera->TargetPosition = m_OriginalCameraPos;
+                                camera->Zoom = m_OriginalCameraZoom;
+                            }
+                            GameManagerScript::s_IsCutscenePlaying = false;
+                            m_CameraCaptured = false;
+                        }
+
                         glm::vec3 hidePos = tf->GetPosition();
                         hidePos.y -= 100.0f;
                         tf->SetPosition(hidePos);
@@ -434,6 +475,17 @@ public:
         glm::vec3 highlightColor = { 1.0f, 1.0f, 1.0f };
 
         if (isCorrectOrder) {
+            if (IsGrandma) {
+                m_GrandmaSuccessCutscene = true;
+                m_MapUnlocked = false;
+                auto* camera = GetScene()->GetCamera();
+                if (camera && !m_CameraCaptured) {
+                    m_OriginalCameraPos = camera->TargetPosition;
+                    m_OriginalCameraZoom = camera->Zoom;
+                    m_CameraCaptured = true;
+                    GameManagerScript::s_IsCutscenePlaying = true;
+                }
+            }
             if (tagComp) tagComp->Tag = "ZadowolonyKlient";
             highlightColor = { 0.1f, 1.0f, 0.2f };
             if (GameManagerScript::s_Instance) GetScene()->GetWorld().GetEventBus().Publish(OrderFulfilledEvent(OrderPrice));
@@ -449,11 +501,20 @@ public:
 
         // Uruchamiamy odliczanie do znikni�cia/puffa
         State = CustomerState::LeavingReaction;
-        m_ReactionTimer = 2.0f;
+        m_ReactionTimer = IsGrandma ? 6.5f : 2.0f;
     }
 
     void OnDestroy() override
     {
+        if (m_CameraCaptured) {
+            auto* camera = GetScene()->GetCamera();
+            if (camera) {
+                camera->TargetPosition = m_OriginalCameraPos;
+                camera->Zoom = m_OriginalCameraZoom;
+            }
+            GameManagerScript::s_IsCutscenePlaying = false;
+        }
+
         auto* scene = GetScene();
         if (scene) {
             auto& bus = scene->GetWorld().GetEventBus();
