@@ -154,6 +154,7 @@ bool LevelCompletedPanel::OnEvent(Event& e) {
             {
                 m_IsOpen = false;
 
+
                 Application::Get().GetEventBus().Publish(ShowMainMenuEvent{});
                 return true;
             }
