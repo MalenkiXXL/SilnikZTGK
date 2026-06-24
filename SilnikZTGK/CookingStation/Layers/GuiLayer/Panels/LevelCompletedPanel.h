@@ -22,7 +22,7 @@ private:
 
     float m_DisplayMoney = 0.0f;
     float m_AnimationTimer = 0.0f;
-    const float ANIMATION_DURATION = 1.5f; 
+    const float ANIMATION_DURATION = 1.5f;
 
     glm::vec2 m_BtnPos = { 0.0f, 0.0f };
     glm::vec2 m_BtnSize = { 0.0f, 0.0f };

@@ -478,42 +478,31 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 }
 
                 if (primaryIcon) {
-                    // WARIANT 1: Tylko jeden cel zam�wienia (np. Kanapka dla Babci)
-                    if (!secondaryIcon) {
-                        float iconH = glm::mix(40.0f * baseScale, 70.0f * baseScale, t);
-                        glm::vec2 iconSize = GuiUtils::CalculateAspectSize(primaryIcon, iconH);
-                        glm::vec2 iconPos = {
-                            ticketPos.x + (ticketSize.x - iconSize.x) * 0.5f,
-                            ticketPos.y + (ticketSize.y - iconSize.y) * 0.40f
+                    float pIconH = glm::mix(35.0f * baseScale, 65.0f * baseScale, t);
+                    glm::vec2 pSize = GuiUtils::CalculateAspectSize(primaryIcon, pIconH);
+
+                    glm::vec2 pPos = {
+                        ticketPos.x + (ticketSize.x - pSize.x) * 0.5f,
+                        ticketPos.y + (ticketSize.y - pSize.y) * 0.35f
+                    };
+
+                    Renderer2D::DrawQuad(pPos, pSize, primaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+                    if (secondaryIcon) {
+                        float sIconH = pIconH * 0.75f;
+                        glm::vec2 sSize = GuiUtils::CalculateAspectSize(secondaryIcon, sIconH);
+
+                        float offsetXMultiplier = 0.25f; 
+
+                        if (primaryIcon == m_HamIcon) {
+                            offsetXMultiplier = 0.65f; 
+                        }
+
+                        glm::vec2 sPos = {
+                            pPos.x + pSize.x - (sSize.x * offsetXMultiplier),
+                            pPos.y + pSize.y - (sSize.y * 0.65f)
                         };
 
-                        Renderer2D::DrawQuad(iconPos, iconSize, primaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-                    }
-                    // WARIANT 2: Z�o�one zam�wienie (Sk�adnik + Sk�adnik lub Sk�adnik + Maszyna)
-                    else {
-                        float iconH = glm::mix(30.0f * baseScale, 50.0f * baseScale, t);
-                        glm::vec2 pSize = GuiUtils::CalculateAspectSize(primaryIcon, iconH);
-                        glm::vec2 sSize = GuiUtils::CalculateAspectSize(secondaryIcon, iconH);
-
-                        float plusScale = glm::mix(0.4f * baseScale, 0.6f * baseScale, t);
-                        std::string plusStr = "+";
-                        float plusW = Gui::MeasureTextWidth(plusStr, plusScale);
-                        float gap = 5.0f * baseScale;
-
-                        float totalW = pSize.x + gap + plusW + gap + sSize.x;
-                        float startX = ticketPos.x + (ticketSize.x - totalW) * 0.5f;
-                        float centerY = ticketPos.y + ticketSize.y * 0.40f;
-
-                        // G��wny Sk�adnik
-                        glm::vec2 pPos = { startX, centerY - pSize.y * 0.5f };
-                        Renderer2D::DrawQuad(pPos, pSize, primaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-
-                        // Znak plusa
-                        glm::vec2 plusPos = { startX + pSize.x + gap, centerY - plusScale * 6.0f };
-                        Gui::DrawGuiText(plusStr, plusPos, plusScale, { 0.1f, 0.1f, 0.1f, 1.0f });
-
-                        // Cel poboczny (Sk�adnik/Maszyna)
-                        glm::vec2 sPos = { startX + pSize.x + gap + plusW + gap, centerY - sSize.y * 0.5f };
                         Renderer2D::DrawQuad(sPos, sSize, secondaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
                     }
 
@@ -1755,15 +1744,9 @@ void GameGuiLayer::DrawPackageHoverInfo(float gameX, float gameY, float gameWidt
             }
             if (!packScript) continue;
 
-            std::shared_ptr<Texture> iconToDraw = nullptr;
-            switch (packScript->getType()) {
-            case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
-            case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
-            case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
-            case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
-            case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
-            default: iconToDraw = m_QuestionMarkIcon; break;
-            }
+            std::string iconPath = GetUIIconPathForIngredient(packScript->getType());
+            std::shared_ptr<Texture> iconToDraw = iconPath.empty() ? m_QuestionMarkIcon : AssetManager::GetTexture(iconPath);
+
             DrawHoverCloudUI({ screenX, screenY }, iconToDraw, packScript->getIngredientAmount(), baseScale);
         }
     }
@@ -1811,15 +1794,10 @@ void GameGuiLayer::DrawCrateHoverInfo(float gameX, float gameY, float gameWidth,
         float dy = mousePos.y - (screenY + 40.0f * baseScale);
         if ((dx * dx + dy * dy) > hoverRadiusSq) continue;
 
-        std::shared_ptr<Texture> iconToDraw = nullptr;
-        switch (crateScript->m_CrateIngredient) {
-        case IngredientType::Tomato: iconToDraw = m_TomatoIcon; break;
-        case IngredientType::Cheese: iconToDraw = m_CheeseIcon; break;
-        case IngredientType::Ham:    iconToDraw = m_HamIcon;    break;
-        case IngredientType::Milk:   iconToDraw = m_MilkIcon;   break;
-        case IngredientType::Flour:  iconToDraw = m_FlourIcon;  break;
-        default: iconToDraw = m_QuestionMarkIcon; break;
-        }
+        std::string iconPath = GetUIIconPathForIngredient(crateScript->m_CrateIngredient);
+        std::shared_ptr<Texture> iconToDraw = iconPath.empty() ? m_QuestionMarkIcon : AssetManager::GetTexture(iconPath);
+
+
         int amount = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetIngredientCount(crateScript->m_CrateIngredient) : 0;
         DrawHoverCloudUI({ screenX, screenY }, iconToDraw, amount, baseScale);
     }

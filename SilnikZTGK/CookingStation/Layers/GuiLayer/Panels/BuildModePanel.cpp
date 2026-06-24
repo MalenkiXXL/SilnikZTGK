@@ -612,10 +612,25 @@ bool BuildModePanel::IsPlacementValid(std::shared_ptr<Scene>& activeScene, const
         }
     }
 
-    glm::ivec2 machineCell = GridSystem::WorldToCell(snappedPos);
-    if (!IsNextToConveyor(activeScene, machineCell)) {
-        spdlog::warn("BuildMode: Maszynę można postawić tylko obok taśmy!");
-        return false;
+    bool isHelper = false;
+    if (m_MovingMachineEntity.id != std::numeric_limits<std::size_t>::max()) {
+        auto* nsc = activeScene->GetWorld().GetComponent<NativeScriptComponent>(m_MovingMachineEntity);
+        if (nsc) {
+            for (auto& s : nsc->Scripts) {
+                if (s.Name == "HelperCustomerScript") {
+                    isHelper = true;
+                    break;
+                }
+            }
+        }
+    }
+
+    if (!isHelper) {
+        glm::ivec2 machineCell = GridSystem::WorldToCell(snappedPos);
+        if (!IsNextToConveyor(activeScene, machineCell)) {
+            spdlog::warn("BuildMode: Maszynę można postawić tylko obok taśmy!");
+            return false;
+        }
     }
 
     return true;

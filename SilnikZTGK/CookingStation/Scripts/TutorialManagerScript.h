@@ -75,4 +75,7 @@ private:
     void PlayPoofAt(glm::vec3 pos);
     Entity FindClosestPlate(glm::vec3 targetPos, PlateScript** outScript = nullptr, bool mustBeEmpty = false);
     bool IsHovering(Entity e, glm::vec3 mousePos, float radius = 1.5f);
+
+    void ResetTutorial();
+  
 };
