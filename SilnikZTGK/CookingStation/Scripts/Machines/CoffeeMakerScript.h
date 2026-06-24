@@ -60,11 +60,26 @@ public:
         }
     }
 
-    bool AddIngredient(IngredientType type) override
-    {
+    bool AddIngredient(
+        IngredientType type,
+        const std::vector<IngredientType>& pastIngredients = {},
+        const std::vector<std::string>& pastMachines = {}
+    ) override {
         if (!CanAcceptIngredient(type)) return false;
 
-        m_Ingredients.push_back(type);
+        m_DeepHistory.insert(
+            m_DeepHistory.end(),
+            pastIngredients.begin(),
+            pastIngredients.end()
+        );
+
+        m_DeepHistory.push_back(type);
+
+        m_MachineHistory.insert(
+            m_MachineHistory.end(),
+            pastMachines.begin(),
+            pastMachines.end()
+        );
         m_IsReady = false;
         m_CurrentTime = 0.0f;
         spdlog::info("CoffeeMaker: Przyjeto ziarno kawy, rozpoczynam parzenie!");
@@ -115,7 +130,9 @@ protected:
                 });
 
             DishHistory history;
-            history.BaseIngredients = m_Ingredients;
+            history.BaseIngredients = m_DeepHistory;
+            history.MachineHistory = m_MachineHistory;
+            history.MachineHistory.push_back("CoffeeMaker");
             history.OriginMachine = "CoffeeMaker";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
 

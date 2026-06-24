@@ -105,10 +105,10 @@ struct PlateGrabbedEvent {
 
 
 struct DishHistory {
-    std::vector<IngredientType> BaseIngredients;
-    std::string OriginMachine;
+    std::vector<IngredientType> BaseIngredients; 
+    std::vector<std::string> MachineHistory;   
+    std::string OriginMachine;                   
 };
-
 struct DishCreatedEvent {
     Entity FoodEntity;
     DishHistory History;

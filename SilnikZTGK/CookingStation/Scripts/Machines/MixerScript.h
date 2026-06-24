@@ -16,7 +16,6 @@ private:
         bool hasSleepyDust = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::SleepyDust) != m_Ingredients.end();
         bool hasChoppedRaspberry = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedRaspberry) != m_Ingredients.end();
 
-        // Sprawdzenie dla 3 sk�adnik�w (Szarlotka, �pi�cy Chleb, Babeczka)
         if (m_Ingredients.size() == 3) {
             if (hasMilk && hasFlour && hasChoppedApple) return IngredientType::RawApplePie;
             if (hasMilk && hasFlour && hasSleepyDust) return IngredientType::RawSleepyDough;
@@ -24,7 +23,6 @@ private:
             return IngredientType::None;
         }
 
-        // Sprawdzenie dla 2 sk�adnik�w (Ciasto lub Szejki)
         if (m_Ingredients.size() == 2) {
             if (!hasMilk) return IngredientType::None;
             if (hasFlour) return IngredientType::RawDough;
@@ -56,17 +54,14 @@ private:
 public:
     bool CanAcceptIngredient(IngredientType type) override
     {
-        // Je�li jest ju� gotowe zwyk�e ciasto, pozwalamy TYLKO dorzuci� dodatek
         if (m_IsReady) {
             if (GetMixerResult() == IngredientType::RawDough &&
                 (type == IngredientType::ChoppedApple || type == IngredientType::SleepyDust || type == IngredientType::ChoppedRaspberry)) return true;
             return false;
         }
 
-        // Limit do 3 sk�adnik�w
         if (m_Ingredients.size() >= 3) return false;
 
-        // Blokada duplikat�w (nie wrzucamy dw�ch mlek itp.)
         if (std::find(m_Ingredients.begin(), m_Ingredients.end(), type) != m_Ingredients.end())
             return false;
 
@@ -79,19 +74,16 @@ public:
         bool hasDust = std::find(testList.begin(), testList.end(), IngredientType::SleepyDust) != testList.end();
         bool hasRaspberry = std::find(testList.begin(), testList.end(), IngredientType::ChoppedRaspberry) != testList.end();
 
-        // Zezw�l na dobicie do 3 sk�adnik�w TYLKO je�li tworz� co� sensownego
         if (testList.size() == 3) {
             return (hasMilk && hasFlour && (hasApple || hasDust || hasRaspberry));
         }
 
-        // Zezw�l na parowanie okre�lonych rzeczy
         if (testList.size() == 2) {
-            if (hasMilk) return true; // Mleko z czymkolwiek dozwolonym jest ok
-            if (hasFlour && (hasApple || hasDust || hasRaspberry)) return true; // Dodatek i m�ka mog� czeka� na mleko
+            if (hasMilk) return true;
+            if (hasFlour && (hasApple || hasDust || hasRaspberry)) return true;
             return false;
         }
 
-        // Pusty mikser przyjmie ka�dy z dozwolonych startowych sk�adnik�w
         if (testList.size() == 1) {
             return type == IngredientType::Flour || type == IngredientType::Milk ||
                 type == IngredientType::ChoppedApple || type == IngredientType::Apple ||
@@ -150,11 +142,17 @@ public:
         }
     }
 
-    bool AddIngredient(IngredientType type) override
+    bool AddIngredient(IngredientType type, const std::vector<IngredientType>& pastIngredients = {}, const std::vector<std::string>& pastMachines = {}) override
     {
         if (!CanAcceptIngredient(type)) return false;
 
         m_Ingredients.push_back(type);
+
+        // Łączenie historii w całość
+        m_DeepHistory.insert(m_DeepHistory.end(), pastIngredients.begin(), pastIngredients.end());
+        m_DeepHistory.push_back(type);
+        m_MachineHistory.insert(m_MachineHistory.end(), pastMachines.begin(), pastMachines.end());
+
         m_IsReady = false;
         m_CurrentTime = 0.0f;
         spdlog::info("Mikser: Przyjeto skladnik!");
@@ -223,7 +221,14 @@ public:
             {
                 if (pScript->AddIngredient(GetMixerResult()))
                 {
-                    spdlog::info("Mikser: Produkt logicznie przeniesiony na talerz!");
+                    if (!m_DeepHistory.empty()) {
+                        pScript->m_DeepHistory.insert(pScript->m_DeepHistory.end(), m_DeepHistory.begin(), m_DeepHistory.end());
+                    }
+                    // NOWE: Przekazanie starych maszyn + dopisanie Miksera przed położeniem na talerz!
+                    pScript->m_MachineHistory.insert(pScript->m_MachineHistory.end(), m_MachineHistory.begin(), m_MachineHistory.end());
+                    pScript->m_MachineHistory.push_back("Mixer");
+
+                    spdlog::info("Mikser: Produkt logicznie przeniesiony na talerz (z pełną historią)!");
                     ClearHighlight();
                     if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->DestroyEntity(m_SpawnedFood);
@@ -235,8 +240,20 @@ public:
         }
         else if (!m_IsAutomated)
         {
-            spdlog::warn("Mikser: Brakuje talerza! Podstaw talerz, zeby wyciagnac ciasto.");
+            spdlog::warn("Mikser: Brak talerza! Odpalam Drag&Drop.");
             AudioEngine::Play("assets://sounds/error.mp3");
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
+                GetScene()->DestroyEntity(m_SpawnedFood);
+                m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
+
+                // NOWE: Budujemy wektor pod rączki (pod Drag&Drop) i dodajemy do niego Mikser!
+                std::vector<std::string> dragMachines = m_MachineHistory;
+                dragMachines.push_back("Mixer");
+
+                DragAndDropScript::StartDrag(GetMixerResult(), m_DeepHistory, dragMachines);
+                ResetMachineState();
+                ClearHighlight();
+            }
         }
     }
 
@@ -273,7 +290,9 @@ protected:
                 });
 
             DishHistory history;
-            history.BaseIngredients = m_Ingredients;
+            history.BaseIngredients = m_DeepHistory;
+            history.MachineHistory = m_MachineHistory; // <-- Nowość
+            history.MachineHistory.push_back("Mixer"); // <-- Nowość
             history.OriginMachine = "Mixer";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
 

@@ -21,6 +21,8 @@ class DragAndDropScript : public ScriptableEntity
 public:
     static inline bool IsDragging = false;
     static inline IngredientType CurrentIngredient = IngredientType::None;
+    static inline std::vector<IngredientType> CurrentHistory; // PAMIĘĆ HISTORII W RĘKACH
+    static inline std::vector<std::string> CurrentMachineHistory; // NOWE: PAMIĘĆ MASZYN W RĘKACH
     static inline Entity DraggedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline Scene* ActiveScene = nullptr;
 
@@ -33,6 +35,7 @@ public:
         ActiveScene = GetScene();
         m_DragSubId = GetScene()->GetWorld().GetEventBus().Subscribe<StartDragRequestEvent>(
             [this](const StartDragRequestEvent& e) {
+                // Nowe składniki z lodówki nie mają głębokiej historii
                 this->StartDrag(e.Type);
             }
         );
@@ -102,7 +105,8 @@ public:
         }
     }
 
-    static void StartDrag(IngredientType type)
+    // Dodano możliwość przekazywania historii
+    static void StartDrag(IngredientType type, std::vector<IngredientType> history = {}, std::vector<std::string> machineHistory = {})
     {
         if (!ActiveScene) return;
         if (MachineScript::GlobalIsMachineHeld || MachineScript::PendingPickup.id != std::numeric_limits<std::size_t>::max()) {
@@ -112,6 +116,8 @@ public:
 
         IsDragging = true;
         CurrentIngredient = type;
+        CurrentHistory = history;
+        CurrentMachineHistory = machineHistory; // Zapisujemy maszyny!
 
         auto builder = ActiveScene->GetWorld().BuildEntity();
         builder.With<TagComponent>({ "DraggedIngredient" });
@@ -150,6 +156,8 @@ public:
     static void CancelDrag()
     {
         IsDragging = false;
+        CurrentHistory.clear();
+        CurrentMachineHistory.clear(); // Czyścimy przy anulowaniu
         if (DraggedEntity.id != std::numeric_limits<std::size_t>::max()) {
             ActiveScene->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ DraggedEntity });
             DraggedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -157,8 +165,6 @@ public:
     }
 
 private:
-
-    // SEKCJA HELPERÓW
     struct NeighborResult {
         Entity TargetEntity = { std::numeric_limits<std::size_t>::max(), 0 };
         MachineScript* MachineInstance = nullptr;
@@ -203,18 +209,17 @@ private:
 
         ActiveScene->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                 entity, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
-        });
+            });
 
         if (plateScript) {
             for (Entity e : plateScript->m_VisualModels) {
                 ActiveScene->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{
                         e, glm::vec3(1.0f, 0.9f, 0.0f), 0.0f, true
-                });
+                    });
             }
         }
     }
 
-    // SEKCJA INTERAKCJI 
     void CheckBeltToMachineTransfer(glm::vec3 mousePos)
     {
         if (MachineScript::GlobalIsMachineHeld) return;
@@ -301,8 +306,8 @@ private:
 
         if (hoveredMachineScript && (!hoveredMachineScript->m_IsReady || machineName == "PanScript" || machineName == "MixerScript" || machineName == "CoffeeMakerScript")) {
             Entity closestBeltItem = { std::numeric_limits<std::size_t>::max(), 0 };
-            float closestDist = 999.0f;
             IngredientType foundType = IngredientType::None;
+            float closestDist = std::numeric_limits<float>::max();
 
             auto* machineTf = GetScene()->GetWorld().GetComponent<TransformComponent>(hoveredMachineEntity);
             auto* tagSet = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -357,14 +362,15 @@ private:
 
             if (closestBeltItem.id != std::numeric_limits<std::size_t>::max()) {
                 TriggerInfiniteHighlight(closestBeltItem);
-            }
 
-            bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
-            if (isActionPressed && closestBeltItem.id != std::numeric_limits<std::size_t>::max() && !Input::IsUICapturingMouse()) {
-                if (!Input::IsKeyPressed(340)) {
-                    if (hoveredMachineScript->AddIngredient(foundType)) {
-                        spdlog::info("Maszyna zassała składnik z taśmy obok!");
-                        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ closestBeltItem });
+                bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
+                if (isActionPressed && !Input::IsUICapturingMouse()) {
+                    if (!Input::IsKeyPressed(340)) {
+                        // Tutaj przekazujemy puste historie, bo przedmiot z taśmy nie ma historii
+                        if (hoveredMachineScript->AddIngredient(foundType, {}, {})) {
+                            spdlog::info("Maszyna zassała składnik z taśmy!");
+                            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ closestBeltItem });
+                        }
                     }
                 }
             }
@@ -531,28 +537,24 @@ private:
                     return mScript->CanAcceptIngredient(topIngredient);
                 }
                 return false;
-            });
+                });
 
             if (neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max()) {
                 TriggerInfiniteHighlight(neighbor.TargetEntity);
-            }
 
-            bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
-            if (isActionPressed && neighbor.TargetEntity.id != std::numeric_limits<std::size_t>::max() && !Input::IsUICapturingMouse()) {
-                if (!Input::IsKeyPressed(340)) {
-                    IngredientType topIngredient = hoveredPlateScript->m_Ingredients.back();
-                    if (neighbor.MachineInstance && neighbor.MachineInstance->AddIngredient(topIngredient)) {
-                        spdlog::info("Składnik wrzucony z talerza z powrotem do maszyny!");
-                        hoveredPlateScript->m_Ingredients.pop_back();
+                bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
+                if (isActionPressed && !Input::IsUICapturingMouse()) {
+                    if (!Input::IsKeyPressed(340)) {
+                        if (neighbor.MachineInstance && neighbor.MachineInstance->AddIngredient(topIngredient, hoveredPlateScript->m_DeepHistory, hoveredPlateScript->m_MachineHistory)) {
+                            spdlog::info("Składnik wrzucony z talerza do maszyny z historią!");
+                            hoveredPlateScript->m_Ingredients.pop_back();
 
-                        if (!hoveredPlateScript->m_VisualModels.empty()) {
-                            Entity visualToRemove = hoveredPlateScript->m_VisualModels.back();
-                            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
-                            hoveredPlateScript->m_VisualModels.pop_back();
+                            if (!hoveredPlateScript->m_VisualModels.empty()) {
+                                Entity visualToRemove = hoveredPlateScript->m_VisualModels.back();
+                                GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ visualToRemove });
+                                hoveredPlateScript->m_VisualModels.pop_back();
+                            }
                         }
-                    }
-                    else {
-                        spdlog::warn("Maszyna nie potrafi przetworzyć składnika, który chcesz w niej umieścić!");
                     }
                 }
             }
@@ -620,11 +622,25 @@ private:
             if (Input::IsMouseButtonJustPressed(0)) {
                 if (targetPlateScript && targetPlateScript->AddIngredient(CurrentIngredient)) {
                     spdlog::info("Złożono składnik na talerzu!");
+
+                    if (!CurrentHistory.empty() && !targetPlateScript->m_DeepHistory.empty()) {
+                        targetPlateScript->m_DeepHistory.pop_back();
+                        targetPlateScript->m_DeepHistory.insert(targetPlateScript->m_DeepHistory.end(), CurrentHistory.begin(), CurrentHistory.end());
+                    }
+
+                    if (!CurrentMachineHistory.empty()) {
+                        targetPlateScript->m_MachineHistory.insert(targetPlateScript->m_MachineHistory.end(), CurrentMachineHistory.begin(), CurrentMachineHistory.end());
+                    }
+
                     GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
                     CancelDrag();
                 }
-                else if (targetMachineScript && targetMachineScript->AddIngredient(CurrentIngredient)) {
-                    spdlog::info("Wrzucono składnik do maszyny!");
+                // TUTAJ ZMIANA: Wysyłamy do maszyny całą nową sygnaturę z historiami!
+                else if (targetMachineScript && targetMachineScript->AddIngredient(CurrentIngredient, CurrentHistory, CurrentMachineHistory)) {
+                    spdlog::info("Wrzucono składnik do maszyny (wraz z zapisaną historią)!");
+
+                    // Usunąłem stąd ręczne nadpisywanie "m_DeepHistory", bo nowe AddIngredient maszyny robi to samo automatycznie!
+
                     GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
                     CancelDrag();
                 }
