@@ -121,4 +121,15 @@ private:
     LevelCompletedPanel m_LevelCompletedPanel;
     std::size_t m_LevelCompletedSubId = 0;
 
+    struct MachineWarningState {
+        Entity MachineEnt = { std::numeric_limits<std::size_t>::max(), 0 };
+        std::string Line1;
+        std::string Line2;
+        float Timer = 0.0f;
+    };
+
+    MachineWarningState m_MachineWarning;
+    std::size_t m_MachineWarningSubId = 0;
+
+    void DrawMachineWarningInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
 };

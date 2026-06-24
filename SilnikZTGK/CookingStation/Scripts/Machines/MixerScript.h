@@ -170,8 +170,24 @@ public:
 
             spdlog::info("Mikser: Rozpoczynam mieszanie (zmiana modelu i dzwiek)!");
         }
+        else
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(MachineNeedsMoreIngredientsEvent{
+                    m_Entity, 0.5f
+            });
+        }
 
         return true;
+    }
+
+    void OnHoverCursor() override
+    {
+        if (!m_IsReady && !m_Ingredients.empty() && GetMixerResult() == IngredientType::None)
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(MachineNeedsMoreIngredientsEvent{
+                    m_Entity, 0.2f
+            });
+        }
     }
 
     void TryTransferToPlate() override
@@ -277,4 +293,4 @@ protected:
     {
         PlaceSpawnedFoodOnPlate(plate);
     }
-};  
+};
