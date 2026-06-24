@@ -17,6 +17,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <vector>
+#include "Panels/LevelCompletedPanel.h"
 
 class GameGuiLayer : public Layer {
 public:
