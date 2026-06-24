@@ -60,12 +60,10 @@ void GameGuiLayer::OnAttach()
     m_QuestCloudTex = AssetManager::GetTexture("assets://UI/Events/ChooseEventCloud.png");
     m_AcceptButtonTex = AssetManager::GetTexture("assets://UI/Events/AcceptButton.png");
     m_SkipButtonTex = AssetManager::GetTexture("assets://UI/Events/SkipButton.png");
-
+    m_SpeedUpIcon = AssetManager::GetTexture("assets://UI/speedUp.png");
     m_EventCloudTex = AssetManager::GetTexture("assets://UI/Events/EventCloud.png");
     m_EventRewardTex = AssetManager::GetTexture("assets://UI/Events/EventReward.png");
-
     m_BuildModePanel.Init(m_CoinIcon);
-
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
     m_LevelCompletedPanel.Init();
@@ -828,6 +826,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
             DrawPackageHoverInfo(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
             m_BuildModePanel.DrawButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
             m_BuildModePanel.DrawPanel(gameX, gameY, gameWidth, gameHeight, baseScale, dt);
+            DrawSpeedUpButton(gameX, gameY, gameWidth, gameHeight, baseScale, dt, isPausedBlocked || isBookOpen);
 
             if (m_CoinIcon) {
                 if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->m_MoneyWarningTimer > 0.0f) {
@@ -2009,14 +2008,13 @@ void GameGuiLayer::DrawHelperHint(float gameX, float gameY, float gameWidth, flo
             float screenX = gameX + (ndc.x + 1.0f) * 0.5f * gameWidth;
             float screenY = gameY + (1.0f - ndc.y) * 0.5f * gameHeight;
 
-            // --- ANIMACJA I TEKST ---
             std::string line1 = "This customer wants to help";
             std::string line2 = "in your kitchen, pick him";
             std::string line3 = "up and place near a machine!";
 
             float hintScale = 0.9f * baseScale;
             float timeNow = glfwGetTime();
-            float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale; // Efekt pływania
+            float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale;
 
             float w1 = Gui::MeasureTextWidth(line1, hintScale);
             float w2 = Gui::MeasureTextWidth(line2, hintScale);
@@ -2048,5 +2046,76 @@ void GameGuiLayer::DrawHelperHint(float gameX, float gameY, float gameWidth, flo
             Gui::DrawGuiText(line3, { line3X + 1.5f, blockPos.y + lineSpacing * 2.0f + 1.5f }, hintScale, shadowColor);
             Gui::DrawGuiText(line3, { line3X, blockPos.y + lineSpacing * 2.0f }, hintScale, textColor);
         }
+    }
+}
+void GameGuiLayer::DrawSpeedUpButton(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt, bool isBlocked) {
+    if (!m_SpeedUpIcon || m_SpeedUpIcon->GetRendererID() == 0) return;
+
+    auto buildBtnTex = AssetManager::GetTexture("assets://UI/buildModeButton.png");
+    float buildBtnHeight = 153.0f * baseScale;
+    float buildAspect = buildBtnTex ? ((float)buildBtnTex->GetWidth() / (float)buildBtnTex->GetHeight()) : 2.5f;
+    float buildBtnWidth = buildBtnHeight * buildAspect;
+
+    float bookCloudH = 210.0f * baseScale * 1.3f;
+    float buildBtnY = gameY + bookCloudH + 8.0f * baseScale;
+    float buildBtnX = gameX + 35.0f * baseScale;
+    float centerBtnX = buildBtnX + buildBtnWidth * 0.5f; 
+
+    float iconHeight = 65.0f * baseScale;
+    float iconAspect = (float)m_SpeedUpIcon->GetWidth() / (float)m_SpeedUpIcon->GetHeight();
+    glm::vec2 baseSize = { iconHeight * iconAspect, iconHeight };
+
+    glm::vec2 basePos = {
+        centerBtnX - baseSize.x * 0.5f,
+        buildBtnY + buildBtnHeight + 55.0f * baseScale
+    };
+
+    glm::vec2 mouse = Gui::GetMappedMousePos();
+    bool inBounds = mouse.x >= basePos.x && mouse.x <= basePos.x + baseSize.x &&
+        mouse.y >= basePos.y && mouse.y <= basePos.y + baseSize.y;
+
+    static float s_scale = 1.0f;
+    float targetScale = (inBounds && !isBlocked) ? 1.15f : 1.0f;
+    s_scale += (targetScale - s_scale) * dt * 15.0f;
+
+    bool isUIClicked = inBounds && !isBlocked && Input::IsMouseButtonPressed(0);
+    bool isKeyboardPressed = Input::IsKeyPressed(GLFW_KEY_X);
+    bool isHeld = isUIClicked || isKeyboardPressed;
+
+    if (isUIClicked) {
+        GameManagerScript::s_SpeedUpUIHeld = true;
+    }
+
+    glm::vec4 tint = (inBounds && !isBlocked) ? glm::vec4(0.85f, 0.85f, 0.85f, 1.0f) : glm::vec4(1.0f);
+
+    if (isHeld) {
+        tint *= glm::vec4(0.75f, 1.0f, 0.75f, 1.0f); 
+    }
+
+    glm::vec2 scaledSize = baseSize * s_scale;
+    glm::vec2 scaledPos = {
+        basePos.x + (baseSize.x - scaledSize.x) * 0.5f,
+        basePos.y + (baseSize.y - scaledSize.y) * 0.5f
+    };
+
+    Renderer2D::DrawQuad(scaledPos, scaledSize, m_SpeedUpIcon, tint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+    std::string label = "[X]"; 
+    float textScale = 0.85f * baseScale * s_scale;
+    float tw = Gui::MeasureTextWidth(label, textScale);
+
+    glm::vec2 textPos = {
+        basePos.x + (baseSize.x - tw) * 0.5f,
+        basePos.y + baseSize.y + 8.0f * baseScale
+    };
+
+    glm::vec4 textShadowColor = { 0.0f, 0.0f, 0.0f, 0.6f };
+    glm::vec4 textColor = isHeld ? glm::vec4(0.5f, 0.35f, 0.6f, 1.0f) : glm::vec4(157.0f / 255.0f, 113.0f / 255.0f, 180.0f / 255.0f, 1.0f);
+
+    Gui::DrawGuiText(label, { textPos.x + 1.5f, textPos.y + 1.5f }, textScale, textShadowColor);
+    Gui::DrawGuiText(label, textPos, textScale, textColor);
+
+    if (inBounds && !isBlocked) {
+        Input::SetUICaptureMouse(true);
     }
 }

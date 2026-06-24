@@ -92,10 +92,9 @@ private:
     std::shared_ptr<Texture> m_QuestCloudTex;
     std::shared_ptr<Texture> m_AcceptButtonTex;
     std::shared_ptr<Texture> m_SkipButtonTex;
-
+    std::shared_ptr<Texture> m_SpeedUpIcon;
     std::shared_ptr<Texture> m_EventCloudTex;
     std::shared_ptr<Texture> m_EventRewardTex;
-
     std::size_t m_GameStartedSubId = 0;
     std::size_t m_InventorySubId = 0;
     std::size_t m_MoneySubId = 0;
@@ -141,4 +140,5 @@ private:
 
     void DrawMachineWarningInfo(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt);
     void DrawHelperHint(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale);
+    void DrawSpeedUpButton(float gameX, float gameY, float gameW, float gameH, float baseScale, float dt, bool isBlocked);
 };
