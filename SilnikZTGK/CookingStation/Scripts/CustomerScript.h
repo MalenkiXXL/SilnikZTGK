@@ -50,6 +50,11 @@ public:
     bool m_PoofStarted = false;
     Entity m_PoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
+    bool m_CameraCaptured = false;
+    glm::vec3 m_OriginalCameraPos = { 0.0f, 0.0f, 0.0f };
+    float m_OriginalCameraZoom = 45.0f;
+    float m_SeatedTimer = 0.0f;
+
     void OnCreate() override
     {
         auto* tagComp = GetComponent<TagComponent>();
@@ -145,6 +150,30 @@ public:
             float dt = (float)ts.GetSeconds();
             if (dt > 0.5f) dt = 0.016f;
 
+            if (IsGrandma && !m_CameraCaptured)
+            {
+                auto* camera = GetScene()->GetCamera();
+                if (camera)
+                {
+                    m_OriginalCameraPos = camera->TargetPosition;
+                    m_OriginalCameraZoom = camera->Zoom; // <-- ZMIANA
+                    m_CameraCaptured = true;
+                    GameManagerScript::s_IsCutscenePlaying = true;
+                }
+            }
+
+            if (IsGrandma && m_CameraCaptured)
+            {
+                auto* camera = GetScene()->GetCamera();
+                auto* tf = GetComponent<TransformComponent>();
+                if (camera && tf)
+                {
+                    camera->TargetPosition = tf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
+                    // P³ynny wjazd kamery (wartoœæ 10.0f to bardzo mocne zbli¿enie)
+                    camera->Zoom += (20.0f - camera->Zoom) * 5.0f * dt;
+                }
+            }
+
             if (!m_PoofPlayed)
             {
                 m_PoofPlayed = true;
@@ -153,7 +182,7 @@ public:
                 if (tf)
                 {
                     TransformComponent poofTf;
-                    glm::vec3 targetPos = tf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
+                    glm::vec3 targetPos = tf->GetPosition() + glm::vec3(-0.5f, 1.0f, 2.5f);
                     poofTf.SetPosition(targetPos);
                     poofTf.SetScale(glm::vec3(1.0f));
 
@@ -162,7 +191,7 @@ public:
                     poofTf.WorldMatrix[3][2] = targetPos.z;
 
                     NativeScriptComponent poofNsc;
-                    poofNsc.AddScript<PoofEmitterScript>("PoofEmitterScript");
+                    poofNsc.AddScript<ParticleEmitterScript>("ParticleEmitterScript");
 
                     m_PoofEntity = GetScene()->GetWorld().BuildEntity()
                         .With<TagComponent>({ "PoofEmitter" })
@@ -177,9 +206,27 @@ public:
                 auto* addedNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_PoofEntity);
                 if (addedNsc && !addedNsc->Scripts.empty() && addedNsc->Scripts[0].Instance)
                 {
-                    static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
-                    m_PoofStarted = true;
-                    spdlog::info("PoofEmitter uruchomiony poprawnie");
+                    auto* emitter = static_cast<ParticleEmitterScript*>(addedNsc->Scripts[0].Instance);
+
+                    if (emitter->GetParticles().size() > 0)
+                    {
+                        emitter->ParticleTemplate.Textures.clear();
+                        emitter->ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle.png"));
+                        emitter->ParticleTemplate.PositionOffset = { 0.0f, 0.0f, 0.0f };
+                        emitter->ParticleTemplate.PositionVariation = { 0.5f, 0.4f, 0.5f };
+                        emitter->ParticleTemplate.Velocity = { 0.0f, 0.1f, 0.0f };
+                        emitter->ParticleTemplate.VelocityVariation = { 0.15f, 0.0f, 0.15f };
+                        emitter->ParticleTemplate.ColorBegin = { 1.0f, 1.0f, 1.0f, 0.8f };
+                        emitter->ParticleTemplate.ColorEnd = { 1.0f, 1.0f, 1.0f, 0.0f };
+                        emitter->ParticleTemplate.SizeBegin = 2.5f;
+                        emitter->ParticleTemplate.SizeVariation = 0.3f;
+                        emitter->ParticleTemplate.SizeEnd = 3.5f;
+                        emitter->ParticleTemplate.LifeTime = 1.4f;
+                        emitter->EmitRate = 0.005f;
+
+                        emitter->Play();
+                        m_PoofStarted = true;
+                    }
                 }
             }
 
@@ -209,6 +256,34 @@ public:
             if (m_ReactionTimer <= 0.0f && !IsPendingDestroy) {
                 IsPendingDestroy = true;
                 GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_Entity });
+            }
+            return;
+        }
+
+        if (State == CustomerState::Seated)
+        {
+            if (IsGrandma && m_CameraCaptured)
+            {
+                m_SeatedTimer += (float)ts.GetSeconds();
+
+                auto* camera = GetScene()->GetCamera();
+                if (camera)
+                {
+                    // P³ynny odjazd kamery do oryginalnych wartoœci
+                    camera->TargetPosition = glm::mix(camera->TargetPosition, m_OriginalCameraPos, 4.0f * (float)ts.GetSeconds());
+                    camera->Zoom += (m_OriginalCameraZoom - camera->Zoom) * 4.0f * (float)ts.GetSeconds();
+                }
+
+                if (m_SeatedTimer >= 1.0f)
+                {
+                    if (camera)
+                    {
+                        camera->TargetPosition = m_OriginalCameraPos;
+                        camera->Zoom = m_OriginalCameraZoom;
+                    }
+                    GameManagerScript::s_IsCutscenePlaying = false;
+                    m_CameraCaptured = false;
+                }
             }
             return;
         }
@@ -261,6 +336,16 @@ public:
 
                 float angle = glm::degrees(std::atan2(dir.x, dir.z));
                 tf->SetRotation({ 0.0f, angle, 0.0f });
+            }
+
+            if (IsGrandma && m_CameraCaptured)
+            {
+                auto* camera = GetScene()->GetCamera();
+                if (camera)
+                {
+                    camera->TargetPosition = tf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
+                    camera->Zoom += (20.0f - camera->Zoom) * 5.0f * (float)ts.GetSeconds();
+                }
             }
         }
     }

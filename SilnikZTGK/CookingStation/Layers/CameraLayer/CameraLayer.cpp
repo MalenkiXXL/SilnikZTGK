@@ -3,6 +3,7 @@
 #include <iostream>
 #include <GLFW/glfw3.h>
 #include "CookingStation/Layers/GuiLayer/Utils/Gui.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Core/Timestep.h"
 #include "CookingStation/Scene/SceneSerializer.h"
 #include "CookingStation/Scene/SceneManager.h"
@@ -51,7 +52,9 @@ void CameraLayer::OnUpdate(Timestep ts) {
         activeScene->SetCamera(&m_Camera);
     }
 
-    m_Camera.UpdateLerp((float) ts, LERP_SPEED);
+    m_Camera.UpdateLerp((float)ts, LERP_SPEED);
+
+    if (GameManagerScript::s_IsCutscenePlaying) return;
 
     if (m_IsGamePaused || m_IsLevelCompleted) return;
 
@@ -130,7 +133,9 @@ void CameraLayer::OnEvent(Event &event) {
     );
 }
 
-bool CameraLayer::OnMouseScrolled(MouseScrolledEvent &e) {
+bool CameraLayer::OnMouseScrolled(MouseScrolledEvent& e) {
+    if (GameManagerScript::s_IsCutscenePlaying) return false;
+
     if (m_IsGamePaused || m_IsLevelCompleted) return false;
     if (Gui::AnyItemActive()) return false;
 

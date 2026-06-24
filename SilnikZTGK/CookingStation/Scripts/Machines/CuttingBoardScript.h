@@ -37,9 +37,9 @@ private:
         case IngredientType::Mozzarella:
             return { "assets://models/skladniki/pomidor/mozzarella.gltf", "assets://models/skladniki/pomidor/mozzarella-pokrojona.gltf" };
         case IngredientType::Apple:
-            return { "assets://models/skladniki/jablko/apple1.gltf", "assets://models/skladniki/pomidor/pomidor-pokrojony.gltf" };
+            return { "assets://models/skladniki/jablko/apple1.gltf", "assets://models/skladniki/jablko/apple-cut.gltf" };
         case IngredientType::Raspberry:
-            return { "assets://models/skladniki/malina/malina.gltf", "assets://models/skladniki/szynka/szynka-pokrojona.gltf" };
+            return { "assets://models/skladniki/malina/malina.gltf", "assets://models/skladniki/malina/malina-cut.gltf" };
         default:
             return { "", "" };
         }

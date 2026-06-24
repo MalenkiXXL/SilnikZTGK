@@ -1,6 +1,6 @@
 {
 	"asset":{
-		"generator":"Khronos glTF Blender I/O v4.5.48",
+		"generator":"Khronos glTF Blender I/O v5.1.19",
 		"version":"2.0"
 	},
 	"scene":0,
@@ -15,7 +15,7 @@
 	"nodes":[
 		{
 			"mesh":0,
-			"name":"Icosphere.008"
+			"name":"Sphere.009"
 		}
 	],
 	"materials":[
@@ -27,13 +27,13 @@
 					"index":0
 				},
 				"metallicFactor":0,
-				"roughnessFactor":0.800000011920929
+				"roughnessFactor":0.5
 			}
 		}
 	],
 	"meshes":[
 		{
-			"name":"Icosphere",
+			"name":"Sphere",
 			"primitives":[
 				{
 					"attributes":{
@@ -64,74 +64,74 @@
 		{
 			"bufferView":0,
 			"componentType":5126,
-			"count":3192,
+			"count":596,
 			"max":[
-				0.46133673191070557,
-				0.9031679630279541,
-				0.4850774109363556
+				0.07272185385227203,
+				0.07610484957695007,
+				0.16464805603027344
 			],
 			"min":[
-				-0.46133676171302795,
-				0.00915515422821045,
-				-0.4850773513317108
+				-0.05197055637836456,
+				-0.02127966098487377,
+				-0.1646481603384018
 			],
 			"type":"VEC3"
 		},
 		{
 			"bufferView":1,
 			"componentType":5126,
-			"count":3192,
+			"count":596,
 			"type":"VEC3"
 		},
 		{
 			"bufferView":2,
 			"componentType":5126,
-			"count":3192,
+			"count":596,
 			"type":"VEC2"
 		},
 		{
 			"bufferView":3,
 			"componentType":5123,
-			"count":10080,
+			"count":2880,
 			"type":"SCALAR"
 		}
 	],
 	"bufferViews":[
 		{
 			"buffer":0,
-			"byteLength":38304,
+			"byteLength":7152,
 			"byteOffset":0,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":38304,
-			"byteOffset":38304,
+			"byteLength":7152,
+			"byteOffset":7152,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":25536,
-			"byteOffset":76608,
+			"byteLength":4768,
+			"byteOffset":14304,
 			"target":34962
 		},
 		{
 			"buffer":0,
-			"byteLength":20160,
-			"byteOffset":102144,
+			"byteLength":5760,
+			"byteOffset":19072,
 			"target":34963
 		}
 	],
 	"samplers":[
 		{
-			"magFilter":9728,
-			"minFilter":9984
+			"magFilter":9729,
+			"minFilter":9987
 		}
 	],
 	"buffers":[
 		{
-			"byteLength":122304,
-			"uri":"malina.bin"
+			"byteLength":24832,
+			"uri":"ciasto-bagietka.bin"
 		}
 	]
 }

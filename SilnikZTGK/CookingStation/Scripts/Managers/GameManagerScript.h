@@ -24,6 +24,7 @@ class GameManagerScript : public ScriptableEntity
 {
 public:
     static inline bool s_IsTutorialMode = false;
+    static inline bool s_IsCutscenePlaying = false;
 
     // ZMIENNE DO TUTORIALA
     static inline bool s_ShowTutorialDialog = false;

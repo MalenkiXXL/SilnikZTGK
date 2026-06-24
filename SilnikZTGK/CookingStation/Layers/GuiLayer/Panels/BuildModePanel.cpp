@@ -57,6 +57,7 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   0 });
     m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  0 });
     m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/pan.png"), 0 });
+    m_MachineEntries.push_back({ "Ekspres", "assets://prefabs/coffee_maker.json", AssetManager::GetTexture("assets://UI/coffee_maker.png"), 0 });
 
     m_LeftMouseIcon = AssetManager::GetTexture("assets://UI/leftMouse.png");
     m_RightMouseIcon = AssetManager::GetTexture("assets://UI/rightMouse.png");
@@ -529,7 +530,10 @@ int BuildModePanel::GetCellState(std::shared_ptr<Scene>& activeScene, const glm:
 
             if (nsc) {
                 for (auto& s : nsc->Scripts) {
-                    if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" || s.Name == "OvenScript" || s.Name == "CrateScript" || s.Name == "HelperCustomerScript") {
+                    if (s.Name == "PotScript" || s.Name == "CuttingBoardScript" || s.Name == "MixerScript" ||
+                        s.Name == "OvenScript" || s.Name == "CrateScript" || s.Name == "HelperCustomerScript" ||
+                        s.Name == "CoffeeMakerScript") {
+
                         isMachine = true;
                         break;
                     }

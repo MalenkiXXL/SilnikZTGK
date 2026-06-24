@@ -4,6 +4,7 @@
 #include "CookingStation/Events/GameEvents.h"
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Renderer/Model.h"
 #include "CookingStation/Core/AudioEngine.h"
 #include <spdlog/spdlog.h>
@@ -159,7 +160,7 @@ public:
     {
 
         if (GameManagerScript::s_IsTutorialMode) return;
-
+        if (GameManagerScript::s_IsCutscenePlaying) return;
         switch (m_CurrentState)
         {
         case State::IDLE:

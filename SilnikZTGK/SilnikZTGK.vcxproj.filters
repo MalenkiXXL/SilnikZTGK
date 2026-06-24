@@ -147,6 +147,7 @@
     <ClInclude Include="CookingStation\Scripts\Machines\PanScript.h" />
     <ClInclude Include="CookingStation\Scripts\TutorialManagerScript.h" />
     <ClInclude Include="CookingStation\Layers\GuiLayer\Panels\CreditsPanel.h" />
+    <ClInclude Include="CookingStation\Scripts\Machines\CoffeeMakerScript.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="CookingStation\packages.config" />
@@ -164,5 +165,6 @@
     <None Include="CookingStation\Assets\prefabs\pot_station.json" />
     <None Include="CookingStation\Assets\prefabs\pan_station.json" />
     <None Include="CookingStation\Assets\prefabs\SkrzynkaJajko.json" />
+    <None Include="CookingStation\Assets\prefabs\coffee_maker.json" />
   </ItemGroup>
 </Project>

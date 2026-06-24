@@ -13,30 +13,24 @@ private:
         bool hasMilk = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Milk) != m_Ingredients.end();
         bool hasFlour = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Flour) != m_Ingredients.end();
         bool hasChoppedApple = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedApple) != m_Ingredients.end();
-        bool hasSleepyDust = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::SleepyDust) != m_Ingredients.end();
+        bool hasYawn = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Yawn) != m_Ingredients.end();
         bool hasChoppedRaspberry = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedRaspberry) != m_Ingredients.end();
 
-        // Sprawdzenie dla 3 sk�adnik�w (Szarlotka, �pi�cy Chleb, Babeczka)
         if (m_Ingredients.size() == 3) {
             if (hasMilk && hasFlour && hasChoppedApple) return IngredientType::RawApplePie;
-            if (hasMilk && hasFlour && hasSleepyDust) return IngredientType::RawSleepyDough;
+            if (hasMilk && hasFlour && hasYawn) return IngredientType::RawSleepyDough;
             if (hasMilk && hasFlour && hasChoppedRaspberry) return IngredientType::RawCupcakeDough;
             return IngredientType::None;
         }
 
-        // Sprawdzenie dla 2 sk�adnik�w (Ciasto lub Szejki)
         if (m_Ingredients.size() == 2) {
             if (!hasMilk) return IngredientType::None;
             if (hasFlour) return IngredientType::RawDough;
 
-            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Apple) != m_Ingredients.end())
-                return IngredientType::AppleShake;
-            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Raspberry) != m_Ingredients.end())
-                return IngredientType::RaspberryShake;
-            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Strawberry) != m_Ingredients.end())
-                return IngredientType::StrawberryShake;
-            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::CoffeeBeans) != m_Ingredients.end())
-                return IngredientType::CoffeeShake;
+            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Apple) != m_Ingredients.end()) return IngredientType::AppleShake;
+            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Raspberry) != m_Ingredients.end()) return IngredientType::RaspberryShake;
+            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Strawberry) != m_Ingredients.end()) return IngredientType::StrawberryShake;
+            if (std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::CoffeeBeans) != m_Ingredients.end()) return IngredientType::CoffeeShake;
         }
 
         return IngredientType::None;
@@ -56,19 +50,14 @@ private:
 public:
     bool CanAcceptIngredient(IngredientType type) override
     {
-        // Je�li jest ju� gotowe zwyk�e ciasto, pozwalamy TYLKO dorzuci� dodatek
         if (m_IsReady) {
             if (GetMixerResult() == IngredientType::RawDough &&
-                (type == IngredientType::ChoppedApple || type == IngredientType::SleepyDust || type == IngredientType::ChoppedRaspberry)) return true;
+                (type == IngredientType::ChoppedApple || type == IngredientType::Yawn || type == IngredientType::ChoppedRaspberry)) return true;
             return false;
         }
 
-        // Limit do 3 sk�adnik�w
         if (m_Ingredients.size() >= 3) return false;
-
-        // Blokada duplikat�w (nie wrzucamy dw�ch mlek itp.)
-        if (std::find(m_Ingredients.begin(), m_Ingredients.end(), type) != m_Ingredients.end())
-            return false;
+        if (std::find(m_Ingredients.begin(), m_Ingredients.end(), type) != m_Ingredients.end()) return false;
 
         std::vector<IngredientType> testList = m_Ingredients;
         testList.push_back(type);
@@ -76,27 +65,24 @@ public:
         bool hasMilk = std::find(testList.begin(), testList.end(), IngredientType::Milk) != testList.end();
         bool hasFlour = std::find(testList.begin(), testList.end(), IngredientType::Flour) != testList.end();
         bool hasApple = std::find(testList.begin(), testList.end(), IngredientType::ChoppedApple) != testList.end();
-        bool hasDust = std::find(testList.begin(), testList.end(), IngredientType::SleepyDust) != testList.end();
+        bool hasYawn = std::find(testList.begin(), testList.end(), IngredientType::Yawn) != testList.end();
         bool hasRaspberry = std::find(testList.begin(), testList.end(), IngredientType::ChoppedRaspberry) != testList.end();
 
-        // Zezw�l na dobicie do 3 sk�adnik�w TYLKO je�li tworz� co� sensownego
         if (testList.size() == 3) {
-            return (hasMilk && hasFlour && (hasApple || hasDust || hasRaspberry));
+            return (hasMilk && hasFlour && (hasApple || hasYawn || hasRaspberry));
         }
 
-        // Zezw�l na parowanie okre�lonych rzeczy
         if (testList.size() == 2) {
-            if (hasMilk) return true; // Mleko z czymkolwiek dozwolonym jest ok
-            if (hasFlour && (hasApple || hasDust || hasRaspberry)) return true; // Dodatek i m�ka mog� czeka� na mleko
+            if (hasMilk) return true;
+            if (hasFlour && (hasApple || hasYawn || hasRaspberry)) return true;
             return false;
         }
 
-        // Pusty mikser przyjmie ka�dy z dozwolonych startowych sk�adnik�w
         if (testList.size() == 1) {
             return type == IngredientType::Flour || type == IngredientType::Milk ||
                 type == IngredientType::ChoppedApple || type == IngredientType::Apple ||
                 type == IngredientType::Raspberry || type == IngredientType::Strawberry ||
-                type == IngredientType::CoffeeBeans || type == IngredientType::SleepyDust ||
+                type == IngredientType::CoffeeBeans || type == IngredientType::Yawn ||
                 type == IngredientType::ChoppedRaspberry;
         }
 
@@ -112,6 +98,13 @@ public:
     void OnDestroy() override
     {
         StopMixingSound();
+        MachineScript::OnDestroy();
+    }
+
+    void ResetMachineState() override
+    {
+        StopMixingSound();
+        MachineScript::ResetMachineState();
     }
 
     void OnUpdate(Timestep ts) override
@@ -119,7 +112,6 @@ public:
         MachineScript::OnUpdate(ts);
         if (m_IsHeld) return;
 
-        // Logika mieszania
         if (!m_IsReady)
         {
             if (GetMixerResult() != IngredientType::None)
@@ -210,8 +202,7 @@ public:
         }
         else if (!m_IsAutomated)
         {
-            spdlog::warn("Mikser: Brakuje talerza! Podstaw talerz, zeby wyciagnac ciasto.");
-            AudioEngine::Play("assets://sounds/error.mp3");
+            spdlog::warn("Mikser: Brakuje talerza! Podstaw talerz, zeby wyciagnac wynik miksowania.");
         }
     }
 
@@ -277,4 +268,4 @@ protected:
     {
         PlaceSpawnedFoodOnPlate(plate);
     }
-};  
+};

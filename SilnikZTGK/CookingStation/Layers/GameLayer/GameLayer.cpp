@@ -5,6 +5,7 @@
 #include "CookingStation/Core/Physics.h"
 #include "CookingStation/Core/GridSystem.h"
 #include "CookingStation/Layers/CameraLayer/Camera.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Events/GameEvents.h"
@@ -88,6 +89,8 @@ void GameLayer::OnUpdate(Timestep ts)
     auto& world = m_ActiveScene->GetWorld();
 
     UpdateTransformAnimations(world, scaledTs);
+
+    if (GameManagerScript::s_IsCutscenePlaying) return;
 
     auto mousePos = Input::GetMousePosition();
     float mouseX = mousePos.first;
