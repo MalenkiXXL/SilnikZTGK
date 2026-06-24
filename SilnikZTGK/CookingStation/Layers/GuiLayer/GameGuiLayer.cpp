@@ -478,42 +478,29 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 }
 
                 if (primaryIcon) {
-                    // WARIANT 1: Tylko jeden cel zam�wienia (np. Kanapka dla Babci)
-                    if (!secondaryIcon) {
-                        float iconH = glm::mix(40.0f * baseScale, 70.0f * baseScale, t);
-                        glm::vec2 iconSize = GuiUtils::CalculateAspectSize(primaryIcon, iconH);
-                        glm::vec2 iconPos = {
-                            ticketPos.x + (ticketSize.x - iconSize.x) * 0.5f,
-                            ticketPos.y + (ticketSize.y - iconSize.y) * 0.40f
+                    // --- ZMIANA: Zbalansowane rozmiary ikon ---
+                    float pIconH = glm::mix(35.0f * baseScale, 65.0f * baseScale, t); // Główna ikona ciut mniejsza (było do 75)
+                    glm::vec2 pSize = GuiUtils::CalculateAspectSize(primaryIcon, pIconH);
+
+                    // Środek karteczki
+                    glm::vec2 pPos = {
+                        ticketPos.x + (ticketSize.x - pSize.x) * 0.5f,
+                        ticketPos.y + (ticketSize.y - pSize.y) * 0.35f
+                    };
+
+                    Renderer2D::DrawQuad(pPos, pSize, primaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+
+                    if (secondaryIcon) {
+                        float sIconH = pIconH * 0.85f; // Poboczna ikona wyraźnie większa (aż 85% głównej, było 65%)
+                        glm::vec2 sSize = GuiUtils::CalculateAspectSize(secondaryIcon, sIconH);
+
+                        // Dostosowanie nakładania się do nowych rozmiarów
+                        glm::vec2 sPos = {
+                            pPos.x + pSize.x - (sSize.x * 0.25f), // Lekko w prawo
+                            pPos.y + pSize.y - (sSize.y * 0.65f)  // Lekko w dół
                         };
 
-                        Renderer2D::DrawQuad(iconPos, iconSize, primaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-                    }
-                    // WARIANT 2: Z�o�one zam�wienie (Sk�adnik + Sk�adnik lub Sk�adnik + Maszyna)
-                    else {
-                        float iconH = glm::mix(30.0f * baseScale, 50.0f * baseScale, t);
-                        glm::vec2 pSize = GuiUtils::CalculateAspectSize(primaryIcon, iconH);
-                        glm::vec2 sSize = GuiUtils::CalculateAspectSize(secondaryIcon, iconH);
-
-                        float plusScale = glm::mix(0.4f * baseScale, 0.6f * baseScale, t);
-                        std::string plusStr = "+";
-                        float plusW = Gui::MeasureTextWidth(plusStr, plusScale);
-                        float gap = 5.0f * baseScale;
-
-                        float totalW = pSize.x + gap + plusW + gap + sSize.x;
-                        float startX = ticketPos.x + (ticketSize.x - totalW) * 0.5f;
-                        float centerY = ticketPos.y + ticketSize.y * 0.40f;
-
-                        // G��wny Sk�adnik
-                        glm::vec2 pPos = { startX, centerY - pSize.y * 0.5f };
-                        Renderer2D::DrawQuad(pPos, pSize, primaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-
-                        // Znak plusa
-                        glm::vec2 plusPos = { startX + pSize.x + gap, centerY - plusScale * 6.0f };
-                        Gui::DrawGuiText(plusStr, plusPos, plusScale, { 0.1f, 0.1f, 0.1f, 1.0f });
-
-                        // Cel poboczny (Sk�adnik/Maszyna)
-                        glm::vec2 sPos = { startX + pSize.x + gap + plusW + gap, centerY - sSize.y * 0.5f };
+                        // Rysujemy TYLKO drugą ikonkę
                         Renderer2D::DrawQuad(sPos, sSize, secondaryIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
                     }
 
