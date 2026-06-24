@@ -286,9 +286,9 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
         AudioEngine::Play("assets://sounds/put_ingredient.mp3");
         });
 
-    eventBus.Subscribe<CustomerSeatedEvent>([](const CustomerSeatedEvent& e) {
-        AudioEngine::Play("assets://sounds/pushing-a-chair.mp3");
-        });
+//    eventBus.Subscribe<CustomerSeatedEvent>([](const CustomerSeatedEvent& e) {
+//        AudioEngine::Play("assets://sounds/pushing-a-chair.mp3");
+//        });
 
     eventBus.Subscribe<CustomerServedEvent>([](const CustomerServedEvent& e) {
         });
@@ -321,6 +321,11 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
     eventBus.Subscribe<LevelCompletedEvent>([this](const LevelCompletedEvent&) {
         m_IsLevelCompleted = true;
         });
+
+    eventBus.Subscribe<OrderTakenEvent>([](const OrderTakenEvent& e) {
+        AudioEngine::Play("assets://sounds/new_order_2.mp3");
+    });
+
 }
 
 void GameLayer::UpdateTransformAnimations(World& world, float dt)

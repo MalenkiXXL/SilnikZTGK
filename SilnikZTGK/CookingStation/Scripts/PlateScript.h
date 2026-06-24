@@ -84,16 +84,21 @@ public:
             }
         }
 
-
-        // NAPRAWA: bez tego talerz fizycznie przejmuje danie z maszyny, ale gubi jego historie
-        // skladnikow bazowych - kelner/klient walidowaliby zamowienie wzgledem PUSTEJ historii.
         if (GameManagerScript::s_Instance) {
             auto pastHistory = GameManagerScript::s_Instance->GetDishHistory(dishEntity.id);
             if (!pastHistory.empty()) m_DeepHistory.insert(m_DeepHistory.end(), pastHistory.begin(), pastHistory.end());
         }
 
         auto* tagComp = GetScene()->GetWorld().GetComponent<TagComponent>(dishEntity);
-        if (tagComp) tagComp->Tag = "UgotowaneDanie";
+        if (tagComp)
+        {
+            if (tagComp->Tag == "BagietkaWPiekarniku") m_CompletedDish = IngredientType::Baguette;
+            else if (tagComp->Tag == "SzarlotkaWPiekarniku") m_CompletedDish = IngredientType::ApplePie;
+            else if (tagComp->Tag == "SpiacyChlebWPiekarniku") m_CompletedDish = IngredientType::SleepyBread;
+            else if (tagComp->Tag == "BabeczkaWPiekarniku") m_CompletedDish = IngredientType::Cupcake;
+
+            tagComp->Tag = "UgotowaneDanie";
+        }
 
         auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(dishEntity);
         if (foodTransform) {
