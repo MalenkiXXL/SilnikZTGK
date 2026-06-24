@@ -87,6 +87,9 @@ void GameGuiLayer::OnAttach()
 
             m_FirstOrderTaken = false;
             m_IsLevelIntro = !GameManagerScript::s_IsTutorialMode;
+            m_IsEventIntro = false;
+            m_HasShownEventIntro = false;
+            m_EventIntroTimer = 0.0f;
 
             m_BuildModePanel.ForceReset();
 
@@ -589,6 +592,10 @@ void GameGuiLayer::OnUpdate(Timestep ts)
         Input::SetUICaptureMouse(true);
     }
 
+    if (m_IsEventIntro && m_EventIntroTimer > 0.0f) {
+        Input::SetUICaptureMouse(true);
+    }
+
     Gui::BeginFrame();
     Gui::UpdateDeltaTime(ts.GetSeconds());
     float dt = ts.GetSeconds();
@@ -670,6 +677,62 @@ void GameGuiLayer::OnUpdate(Timestep ts)
             }
         }
     }
+
+    // ==============================================================
+    // KINEMATYCZNE WPROWADZENIE EVENTU (Wyspa)
+    // ==============================================================
+    if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->GetQuestState() == QuestEventState::WaitingForAccept) {
+        if (!m_HasShownEventIntro && !GameManagerScript::s_IsTutorialMode) {
+            m_IsEventIntro = true;
+            m_HasShownEventIntro = true;
+            m_EventIntroTimer = 3.0f; // Kamera będzie podziwiać wyspę przez 3 sekundy
+        }
+    }
+
+    if (m_IsEventIntro && m_ActiveScene) {
+        auto* camera = m_ActiveScene->GetCamera();
+        if (camera) {
+            // Szukamy wysepki na mapie (ma tag "event_78")
+            Entity islandEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+            auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
+            if (tags) {
+                for (size_t i = 0; i < tags->dense.size(); ++i) {
+                    if (tags->dense[i].Tag == "event_78") {
+                        islandEntity = tags->reverse[i];
+                        break;
+                    }
+                }
+            }
+
+            glm::vec3 targetPos = glm::vec3(0.0f);
+            float targetZoom = 35.0f; // Delikatne przybliżenie (domyślne to 45.0f)
+
+            if (islandEntity.id != std::numeric_limits<std::size_t>::max()) {
+                auto* tf = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(islandEntity);
+                if (tf) targetPos = tf->GetPosition();
+            }
+
+            if (m_EventIntroTimer > 0.0f) {
+                m_EventIntroTimer -= dt;
+                // Kamera podąża za (potencjalnie lecącą) wysepką
+                camera->TargetPosition += (targetPos - camera->TargetPosition) * (dt * 3.5f);
+                camera->Zoom += (targetZoom - camera->Zoom) * (dt * 3.0f);
+            }
+            else {
+                // Koniec pokazu - kamera wraca do centrum mapy i standardowego oddalenia
+                camera->TargetPosition += (glm::vec3(0.0f) - camera->TargetPosition) * (dt * 3.5f);
+                camera->Zoom += (45.0f - camera->Zoom) * (dt * 3.0f);
+
+                // Gdy kamera wróci na miejsce, całkowicie zdejmujemy blokady
+                if (std::abs(camera->Zoom - 45.0f) < 0.5f && glm::length(camera->TargetPosition) < 0.5f) {
+                    camera->Zoom = 45.0f;
+                    camera->TargetPosition = glm::vec3(0.0f);
+                    m_IsEventIntro = false;
+                }
+            }
+        }
+    }
+    // ==============================================================
 
 
 #ifdef CS_DISTRIBUTION
@@ -1513,7 +1576,7 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     std::string coinsStr = std::to_string(activeQuest->RewardCoins);
     float coinsScale = 0.75f * baseScale;
     float coinsW = Gui::MeasureTextWidth(coinsStr, coinsScale);
-    float bakedCoinCenterX = newCloudPos.x + cloudW * 0.40f;
+    float bakedCoinCenterX = newCloudPos.x + cloudW * 0.41f;
     float bakedCoinCenterY = newCloudPos.y + cloudH * 0.78f;
 
     Gui::DrawGuiText(coinsStr, { bakedCoinCenterX - coinsW * 0.5f + 1.5f, bakedCoinCenterY + 1.5f }, coinsScale, { 0.0f, 0.0f, 0.0f, 0.6f });
@@ -1536,6 +1599,24 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         AudioEngine::Play("assets://sounds/button_click_in_game.mp3");
         GameManagerScript::s_Instance->SkipQuest();
     }
+    std::string collectStr = "Collect all flags!";
+    float collectScale = 1.0f * baseScale;
+    float collectW = Gui::MeasureTextWidth(collectStr, collectScale);
+
+    float timeNow = glfwGetTime();
+    float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale; // Ten sam efekt pływania co w podpowiedziach
+
+    // Środek pod chmurką
+    glm::vec2 collectPos = {
+        newCloudPos.x + (cloudW - collectW) * 0.5f,
+        newCloudPos.y + cloudH + 15.0f * baseScale + floatOffset
+    };
+
+    glm::vec4 shadowColor = { 0.0f, 0.0f, 0.0f, 0.6f };
+    glm::vec4 textColor = { 1.0f, 0.85f, 0.2f, 1.0f }; // Dałem przyjemny, złocisty odcień dla klimatu kolekcji!
+
+    Gui::DrawGuiText(collectStr, { collectPos.x + 1.5f, collectPos.y + 1.5f }, collectScale, shadowColor);
+    Gui::DrawGuiText(collectStr, collectPos, collectScale, textColor);
 }
 
 void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale)
@@ -1601,6 +1682,7 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
             }
         }
     }
+
 }
 
 void GameGuiLayer::DrawHoverCloudUI(const glm::vec2& screenPos, const std::shared_ptr<Texture>& icon, int amount, float baseScale)

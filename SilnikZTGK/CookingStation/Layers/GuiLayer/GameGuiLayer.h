@@ -38,6 +38,9 @@ private:
     bool m_FirstOrderTaken = false;
     float m_OrderHintTimer = 0.0f;
     bool m_HasShownOrderHint = false;
+    bool m_IsEventIntro = false;
+    bool m_HasShownEventIntro = false;
+    float m_EventIntroTimer = 0.0f;
 
     bool OnWindowResize(WindowResizeEvent& e);
     bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
