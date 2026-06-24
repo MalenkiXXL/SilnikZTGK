@@ -183,6 +183,19 @@ protected:
 
             IngredientType resultDish = GetPotResult();
 
+            if (resultDish == IngredientType::TomatoSoup && !GameProgress::IsRecipeUnlocked("TomatoSoup")) {
+                GameProgress::UnlockRecipe("TomatoSoup");
+                spdlog::info("Garnek: Przepis na zupe pomidorowa odblokowany!");
+            }
+            else if (resultDish == IngredientType::Kopytka && !GameProgress::IsRecipeUnlocked("Kopytka")) {
+                GameProgress::UnlockRecipe("Kopytka");
+                spdlog::info("Garnek: Przepis na kopytka odblokowany!");
+            }
+            else if (resultDish == IngredientType::Candy && !GameProgress::IsRecipeUnlocked("Candy")) {
+                GameProgress::UnlockRecipe("Candy");
+                spdlog::info("Garnek: Przepis na cukierki odblokowany!");
+            }
+
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 

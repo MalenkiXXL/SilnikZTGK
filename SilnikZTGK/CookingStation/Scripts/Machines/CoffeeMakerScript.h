@@ -80,6 +80,8 @@ public:
             pastMachines.begin(),
             pastMachines.end()
         );
+
+        m_Ingredients.push_back(type);
         m_IsReady = false;
         m_CurrentTime = 0.0f;
         spdlog::info("CoffeeMaker: Przyjeto ziarno kawy, rozpoczynam parzenie!");

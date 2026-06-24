@@ -15,15 +15,24 @@ private:
         bool hasChoppedApple = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedApple) != m_Ingredients.end();
         bool hasSleepyDust = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::SleepyDust) != m_Ingredients.end();
         bool hasChoppedRaspberry = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedRaspberry) != m_Ingredients.end();
+        // Sprawdzanie ziemniaka, które przed chwilą naprawialiśmy
+        bool hasChoppedPotato = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::ChoppedPotato) != m_Ingredients.end();
+        // --- BRAKUJĄCA LINIA: Sprawdzanie Yawn (dla croissanta z oryginalnego kodu) ---
+        bool hasYawn = std::find(m_Ingredients.begin(), m_Ingredients.end(), IngredientType::Yawn) != m_Ingredients.end();
 
         if (m_Ingredients.size() == 3) {
             if (hasMilk && hasFlour && hasChoppedApple) return IngredientType::RawApplePie;
             if (hasMilk && hasFlour && hasSleepyDust) return IngredientType::RawSleepyDough;
             if (hasMilk && hasFlour && hasChoppedRaspberry) return IngredientType::RawCupcakeDough;
+            // --- BRAKUJĄCA LINIA: Alternatywny przepis na RawSleepyDough używający Yawn (z oryginalnego kodu) ---
+            if (hasMilk && hasFlour && hasYawn) return IngredientType::RawSleepyDough;
+
             return IngredientType::None;
         }
 
         if (m_Ingredients.size() == 2) {
+            if (hasFlour && hasChoppedPotato) return IngredientType::RawKopytkaDough;
+
             if (!hasMilk) return IngredientType::None;
             if (hasFlour) return IngredientType::RawDough;
 
@@ -56,7 +65,8 @@ public:
     {
         if (m_IsReady) {
             if (GetMixerResult() == IngredientType::RawDough &&
-                (type == IngredientType::ChoppedApple || type == IngredientType::SleepyDust || type == IngredientType::ChoppedRaspberry)) return true;
+                // Dodane type == IngredientType::Yawn
+                (type == IngredientType::ChoppedApple || type == IngredientType::SleepyDust || type == IngredientType::ChoppedRaspberry || type == IngredientType::Yawn)) return true;
             return false;
         }
 
@@ -73,14 +83,21 @@ public:
         bool hasApple = std::find(testList.begin(), testList.end(), IngredientType::ChoppedApple) != testList.end();
         bool hasDust = std::find(testList.begin(), testList.end(), IngredientType::SleepyDust) != testList.end();
         bool hasRaspberry = std::find(testList.begin(), testList.end(), IngredientType::ChoppedRaspberry) != testList.end();
+        bool hasPotato = std::find(testList.begin(), testList.end(), IngredientType::ChoppedPotato) != testList.end();
+        // --- BRAKUJĄCA LINIA: testowanie Yawn ---
+        bool hasYawn = std::find(testList.begin(), testList.end(), IngredientType::Yawn) != testList.end();
 
         if (testList.size() == 3) {
-            return (hasMilk && hasFlour && (hasApple || hasDust || hasRaspberry));
+            // Dodane hasYawn
+            return (hasMilk && hasFlour && (hasApple || hasDust || hasRaspberry || hasYawn));
         }
 
         if (testList.size() == 2) {
+            if (hasFlour && hasPotato) return true;
+
             if (hasMilk) return true;
-            if (hasFlour && (hasApple || hasDust || hasRaspberry)) return true;
+            // Dodane hasYawn
+            if (hasFlour && (hasApple || hasDust || hasRaspberry || hasYawn)) return true;
             return false;
         }
 
@@ -89,7 +106,8 @@ public:
                 type == IngredientType::ChoppedApple || type == IngredientType::Apple ||
                 type == IngredientType::Raspberry || type == IngredientType::Strawberry ||
                 type == IngredientType::CoffeeBeans || type == IngredientType::SleepyDust ||
-                type == IngredientType::ChoppedRaspberry;
+                type == IngredientType::ChoppedRaspberry || type == IngredientType::ChoppedPotato ||
+                type == IngredientType::Yawn; // <-- DOPISANE: Yawn
         }
 
         return false;
