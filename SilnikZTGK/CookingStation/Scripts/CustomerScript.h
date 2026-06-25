@@ -57,6 +57,7 @@ public:
     // Zmienne do efekt�w na znikni�cie
     bool m_ExitPoofStarted = false;
     Entity m_ExitPoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+    Entity m_CutsceneSmokeEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     bool m_CameraCaptured = false;
     glm::vec3 m_OriginalCameraPos = { 0.0f, 0.0f, 0.0f };
     float m_OriginalCameraZoom = 45.0f;
@@ -161,18 +162,83 @@ public:
 
     void OnUpdate(Timestep ts) override
     {
+        float dt = (float)ts.GetSeconds();
+        if (dt > 0.5f) dt = 0.016f;
+
+        if (!m_PoofPlayed)
+        {
+            m_PoofPlayed = true;
+
+            auto* tf = GetComponent<TransformComponent>();
+            if (tf)
+            {
+                TransformComponent poofTf;
+                glm::vec3 targetPos = tf->GetPosition() + glm::vec3(-0.5f, 1.0f, 2.5f);
+
+                if (State != CustomerState::Spawning) {
+                    targetPos = tf->GetPosition() + glm::vec3(0.0f, 1.0f, 3.5f);
+                }
+
+                poofTf.SetPosition(targetPos);
+                poofTf.SetScale(glm::vec3(1.0f));
+
+                poofTf.WorldMatrix[3][0] = targetPos.x;
+                poofTf.WorldMatrix[3][1] = targetPos.y;
+                poofTf.WorldMatrix[3][2] = targetPos.z;
+
+                NativeScriptComponent poofNsc;
+                poofNsc.AddScript<ParticleEmitterScript>("ParticleEmitterScript");
+
+                m_PoofEntity = GetScene()->GetWorld().BuildEntity()
+                    .With<TagComponent>({ "PoofEmitter" })
+                    .With<TransformComponent>(poofTf)
+                    .With<NativeScriptComponent>(poofNsc)
+                    .Build();
+            }
+        }
+
+        if (!m_PoofStarted && m_PoofEntity.id != std::numeric_limits<std::size_t>::max())
+        {
+            auto* addedNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_PoofEntity);
+            if (addedNsc && !addedNsc->Scripts.empty() && addedNsc->Scripts[0].Instance)
+            {
+                static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
+                m_PoofStarted = true;
+                auto* emitter = static_cast<ParticleEmitterScript*>(addedNsc->Scripts[0].Instance);
+
+                if (emitter->GetParticles().size() > 0)
+                {
+                    float sizeMultiplier = (State == CustomerState::Spawning) ? 1.0f : 1.0f;
+                    float spreadMultiplier = (State == CustomerState::Spawning) ? 1.0f : 4.0f;
+
+                    emitter->ParticleTemplate.Textures.clear();
+                    emitter->ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle.png"));
+                    emitter->ParticleTemplate.PositionOffset = { 0.0f, 0.0f, 0.0f };
+                    emitter->ParticleTemplate.PositionVariation = { 0.5f * spreadMultiplier, 0.4f * spreadMultiplier, 0.5f * spreadMultiplier };
+                    emitter->ParticleTemplate.Velocity = { 0.0f, 0.1f * sizeMultiplier, 0.0f };
+                    emitter->ParticleTemplate.VelocityVariation = { 0.15f * sizeMultiplier, 0.0f, 0.15f * sizeMultiplier };
+                    emitter->ParticleTemplate.ColorBegin = { 1.0f, 1.0f, 1.0f, 0.8f };
+                    emitter->ParticleTemplate.ColorEnd = { 1.0f, 1.0f, 1.0f, 0.0f };
+                    emitter->ParticleTemplate.SizeBegin = 2.5f * sizeMultiplier;
+                    emitter->ParticleTemplate.SizeVariation = 0.3f * sizeMultiplier;
+                    emitter->ParticleTemplate.SizeEnd = 3.5f * sizeMultiplier;
+                    emitter->ParticleTemplate.LifeTime = (State == CustomerState::Spawning) ? 1.4f : 3.0f;
+                    emitter->EmitRate = (State == CustomerState::Spawning) ? 0.005f : 0.015f;
+
+                    emitter->Play();
+                }
+            }
+        }
+
         if (State == CustomerState::Spawning)
         {
-            float dt = (float)ts.GetSeconds();
-            if (dt > 0.5f) dt = 0.016f;
-
             if (IsGrandma && !m_CameraCaptured)
             {
                 auto* camera = GetScene()->GetCamera();
                 if (camera)
                 {
                     m_OriginalCameraPos = camera->TargetPosition;
-                    m_OriginalCameraZoom = camera->Zoom; // <-- ZMIANA
+                    m_OriginalCameraZoom = camera->Zoom;
                     m_CameraCaptured = true;
                     GameManagerScript::s_IsCutscenePlaying = true;
                 }
@@ -185,67 +251,7 @@ public:
                 if (camera && tf)
                 {
                     camera->TargetPosition = tf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f);
-                    // P�ynny wjazd kamery (warto�� 10.0f to bardzo mocne zbli�enie)
                     camera->Zoom += (20.0f - camera->Zoom) * 5.0f * dt;
-                }
-            }
-
-            if (!m_PoofPlayed)
-            {
-                m_PoofPlayed = true;
-
-                auto* tf = GetComponent<TransformComponent>();
-                if (tf)
-                {
-                    TransformComponent poofTf;
-                    glm::vec3 targetPos = tf->GetPosition() + glm::vec3(-0.5f, 1.0f, 2.5f);
-                    poofTf.SetPosition(targetPos);
-                    poofTf.SetScale(glm::vec3(1.0f));
-
-                    poofTf.WorldMatrix[3][0] = targetPos.x;
-                    poofTf.WorldMatrix[3][1] = targetPos.y;
-                    poofTf.WorldMatrix[3][2] = targetPos.z;
-
-                    NativeScriptComponent poofNsc;
-                    poofNsc.AddScript<ParticleEmitterScript>("ParticleEmitterScript");
-
-                    m_PoofEntity = GetScene()->GetWorld().BuildEntity()
-                        .With<TagComponent>({ "PoofEmitter" })
-                        .With<TransformComponent>(poofTf)
-                        .With<NativeScriptComponent>(poofNsc)
-                        .Build();
-                }
-            }
-
-            if (!m_PoofStarted && m_PoofEntity.id != std::numeric_limits<std::size_t>::max())
-            {
-                auto* addedNsc = GetScene()->GetWorld().GetComponent<NativeScriptComponent>(m_PoofEntity);
-                if (addedNsc && !addedNsc->Scripts.empty() && addedNsc->Scripts[0].Instance)
-                {
-                    static_cast<PoofEmitterScript*>(addedNsc->Scripts[0].Instance)->Play();
-                    m_PoofStarted = true;
-                    spdlog::info("PoofEmitter uruchomiony poprawnie (Spawn)");
-                    auto* emitter = static_cast<ParticleEmitterScript*>(addedNsc->Scripts[0].Instance);
-
-                    if (emitter->GetParticles().size() > 0)
-                    {
-                        emitter->ParticleTemplate.Textures.clear();
-                        emitter->ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle.png"));
-                        emitter->ParticleTemplate.PositionOffset = { 0.0f, 0.0f, 0.0f };
-                        emitter->ParticleTemplate.PositionVariation = { 0.5f, 0.4f, 0.5f };
-                        emitter->ParticleTemplate.Velocity = { 0.0f, 0.1f, 0.0f };
-                        emitter->ParticleTemplate.VelocityVariation = { 0.15f, 0.0f, 0.15f };
-                        emitter->ParticleTemplate.ColorBegin = { 1.0f, 1.0f, 1.0f, 0.8f };
-                        emitter->ParticleTemplate.ColorEnd = { 1.0f, 1.0f, 1.0f, 0.0f };
-                        emitter->ParticleTemplate.SizeBegin = 2.5f;
-                        emitter->ParticleTemplate.SizeVariation = 0.3f;
-                        emitter->ParticleTemplate.SizeEnd = 3.5f;
-                        emitter->ParticleTemplate.LifeTime = 1.4f;
-                        emitter->EmitRate = 0.005f;
-
-                        emitter->Play();
-                        m_PoofStarted = true;
-                    }
                 }
             }
 
@@ -277,7 +283,6 @@ public:
             return;
         }
 
-        // 1. Sprawdzanie czy klient jest w trakcie odchodzenia (po zjedzeniu)
         if (State == CustomerState::LeavingReaction) {
             m_ReactionTimer -= ts.GetSeconds();
 
@@ -313,10 +318,9 @@ public:
             }
 
             if (m_ReactionTimer <= 0.0f && !IsPendingDestroy) {
-                // Gdy minie 2s na reakcj� (bu�k�), odpalamy puffa i znikamy klienta
                 if (!m_ExitPoofStarted) {
                     m_ExitPoofStarted = true;
-                    m_ReactionTimer = 2.0f; // Czas potrzebny, aby poof opad� przed usuni�ciem klienta z pami�ci
+                    m_ReactionTimer = 2.0f;
 
                     auto* tf = GetComponent<TransformComponent>();
                     if (tf)
@@ -361,7 +365,6 @@ public:
                     }
                 }
                 else {
-                    // Puff zako�czy� dzia�anie - ca�kowicie niszczymy encje
                     if (m_ExitPoofEntity.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ExitPoofEntity });
                         m_ExitPoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -382,7 +385,6 @@ public:
                 auto* camera = GetScene()->GetCamera();
                 if (camera)
                 {
-                    // P�ynny odjazd kamery do oryginalnych warto�ci
                     camera->TargetPosition = glm::mix(camera->TargetPosition, m_OriginalCameraPos, 4.0f * (float)ts.GetSeconds());
                     camera->Zoom += (m_OriginalCameraZoom - camera->Zoom) * 4.0f * (float)ts.GetSeconds();
                 }
@@ -436,7 +438,6 @@ public:
                         animator->AnimatorInstance->PlayAnimation("SitIdle");
                     }
 
-                    auto& bus = GetScene()->GetWorld().GetEventBus();
                     GetScene()->GetWorld().GetEventBus().Publish(CustomerSeatedEvent{ m_Entity });
                     GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, { 1.0f, 0.8f, 0.2f }, 0.0f, true });
                 }
@@ -474,7 +475,8 @@ public:
         return false;
     }
 
-    virtual void ReceiveFood(bool isCorrectOrder = true, bool hasExtraIngredients = false) {
+    virtual void ReceiveFood(bool isCorrectOrder = true, bool hasExtraIngredients = false)
+    {
         if (State == CustomerState::LeavingReaction || IsPendingDestroy) return;
         IsServed = true;
 
@@ -497,25 +499,24 @@ public:
                     m_CameraCaptured = true;
                     GameManagerScript::s_IsCutscenePlaying = true;
                 }
+
+                m_PoofPlayed = false;
+                m_PoofStarted = false;
+                if (m_PoofEntity.id != std::numeric_limits<std::size_t>::max()) {
+                    GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_PoofEntity });
+                    m_PoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
+                }
             }
+
             if (tagComp) tagComp->Tag = "ZadowolonyKlient";
             highlightColor = { 0.1f, 1.0f, 0.2f };
-            float finalReward = OrderPrice;
-     
 
-            if (hasExtraIngredients) {
-                std::vector<float> tips = { 15.0f, 25.0f, 50.0f };
-                std::random_device rd;
-                std::mt19937 gen(rd());
-                std::uniform_int_distribution<> tipDist(0, (int)tips.size() - 1);
-
-                float tipAmount = tips[tipDist(gen)];
-                finalReward += tipAmount;
-                AwardedTip = tipAmount;
-
-                spdlog::info("Klient zadowolony z EKSTRA skladnikow! Przyznano napiwek: {}", tipAmount);
-            }
             if (GameManagerScript::s_Instance) {
+                float finalReward = OrderPrice;
+                if (hasExtraIngredients) {
+                    AwardedTip = OrderPrice * 0.5f;
+                    finalReward += AwardedTip;
+                }
                 GetScene()->GetWorld().GetEventBus().Publish(OrderFulfilledEvent(finalReward));
             }
         }
@@ -528,7 +529,6 @@ public:
         GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_Entity, highlightColor, 2.0f, false });
         m_WasCorrect = isCorrectOrder;
 
-        // Uruchamiamy odliczanie do znikni�cia/puffa
         State = CustomerState::LeavingReaction;
         m_ReactionTimer = IsGrandma ? 6.5f : 2.0f;
     }
@@ -562,6 +562,10 @@ public:
         if (m_ExitPoofEntity.id != std::numeric_limits<std::size_t>::max())
         {
             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_ExitPoofEntity });
+        }
+        if (m_CutsceneSmokeEntity.id != std::numeric_limits<std::size_t>::max())
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ m_CutsceneSmokeEntity });
         }
     }
 };
