@@ -5,6 +5,8 @@
 #include "CookingStation/Scripts/CrateScript.h"
 #include <spdlog/spdlog.h>
 #include <string>
+#include <random>
+#include <algorithm>
 #include <unordered_map>
 
 namespace {
@@ -110,9 +112,11 @@ void GameManagerScript::OnCreate()
         }
     );
 
-    m_AvailableQuests = QuestManager::LoadQuests("assets://wygenerowane_quests.json");
-    if (m_AvailableQuests.empty()) {
-        spdlog::warn("GameManager: Brak questow, timer nie zostanie uruchomiony.");
+    m_AvailableQuests = QuestManager::LoadQuests("assets://offline_quests.json");
+    if (!m_AvailableQuests.empty()) {
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(m_AvailableQuests.begin(), m_AvailableQuests.end(), g);
     }
 
     m_QuestTimer = QUEST_INTERVAL;
@@ -565,18 +569,6 @@ void GameManagerScript::OnUpdate(Timestep ts)
 
     if (m_MoneyWarningTimer > 0.0f) {
         m_MoneyWarningTimer -= ts;
-    }
-
-    static float s_PythonCooldown = 0.0f;
-    if (s_PythonCooldown > 0.0f) s_PythonCooldown -= ts;
-
-    if (Input::IsKeyPressed(80) && s_PythonCooldown <= 0.0f) {
-        spdlog::warn("KLAWISZ P: Wymuszono generacje nowych questow AI! (Gra moze na chwile zaciac...)");
-        system("python CookingStation\\Tools\\QuestGenerator\\main.py");
-        m_AvailableQuests = QuestManager::LoadQuests("assets://wygenerowane_quests.json");
-        m_CurrentQuestIndex = 0;
-        s_PythonCooldown = 10.0f;
-        spdlog::info("Gotowe! Nowe questy wczytane do gry.");
     }
 
     if (m_AvailableQuests.empty()) return;
