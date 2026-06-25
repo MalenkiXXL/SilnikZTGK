@@ -1204,6 +1204,17 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
 void GameGuiLayer::OnEvent(Event& e)
 {
+    if (e.GetEventType() == EventType::KeyPressed) {
+        KeyPressedEvent& keyEvent = (KeyPressedEvent&)e;
+        if (keyEvent.GetKeyCode() == GLFW_KEY_ESCAPE) {
+            if (m_RecipeBookPanel.IsOpen()) {
+                m_RecipeBookPanel.Close();
+                e.Handled = true;
+                return;
+            }
+        }
+    }
+
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<WindowResizeEvent>([this](WindowResizeEvent& ev) {
         m_ViewportWidth = (float)ev.GetWidth();
@@ -1222,6 +1233,13 @@ void GameGuiLayer::OnEvent(Event& e)
             e.GetEventType() == EventType::MouseMoved ||
             e.GetEventType() == EventType::MouseScrolled)
         {
+            e.Handled = true;
+        }
+    }
+
+    if (m_RecipeBookPanel.IsOpen() && e.GetEventType() == EventType::KeyPressed) {
+        KeyPressedEvent& keyEvent = (KeyPressedEvent&)e;
+        if (keyEvent.GetKeyCode() == 256) {
             e.Handled = true;
         }
     }
