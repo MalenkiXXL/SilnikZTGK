@@ -46,17 +46,6 @@ private:
         return IngredientType::None;
     }
 
-    ma_sound* m_MixingSound = nullptr;
-
-    void StopMixingSound()
-    {
-        if (m_MixingSound)
-        {
-            AudioEngine::StopLoopingSound(m_MixingSound);
-            m_MixingSound = nullptr;
-        }
-    }
-
 public:
     bool CanAcceptIngredient(IngredientType type) override
     {
@@ -128,7 +117,6 @@ public:
 
     void OnDestroy() override
     {
-        StopMixingSound();
     }
 
     void OnUpdate(Timestep ts) override
@@ -154,7 +142,6 @@ public:
                 if (m_CurrentTime >= m_CookTime)
                 {
                     m_IsReady = true;
-                    StopMixingSound();
                     AudioEngine::Play("assets://sounds/dish_ready.mp3");
                     UpdateVisuals();
                 }
@@ -189,10 +176,6 @@ public:
             {
                 meshComp->Path = "assets://models/przybory_kuchenne/mikser/blender_on.gltf";
                 meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
-            }
-
-            if (!m_MixingSound) {
-                m_MixingSound = AudioEngine::PlayLoopingSound("CookingStation/Assets/sounds/mixer.mp3", 0.15f);
             }
 
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
@@ -337,7 +320,6 @@ protected:
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
 
-            StopMixingSound();
         }
     }
 

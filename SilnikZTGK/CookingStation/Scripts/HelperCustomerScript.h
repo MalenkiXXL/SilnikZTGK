@@ -2,6 +2,7 @@
 #include "CustomerScript.h"
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Scripts/Machines/MachineScript.h"
+#include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Core/Application.h"
 #include "CookingStation/Events/GameEvents.h"
@@ -597,7 +598,9 @@ private:
     }
     bool IsTileOccupied(glm::vec3 pos)
     {
-        if (pos.x < -15.0f || pos.x > 14.0f || pos.z < -18.0f || pos.z > 18.0f) return true;
+        float maxMapX = GameManagerScript::s_MapExpanded ? 21.0f : 14.0f;
+
+        if (pos.x < -15.0f || pos.x > maxMapX || pos.z < -18.0f || pos.z > 18.0f) return true;
 
         auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
         auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
