@@ -14,6 +14,7 @@
 #include "CookingStation/Layers/GuiLayer/Panels/CreditsPanel.h"
 #include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
+#include "CookingStation/Core/GameProgress.h"
 #include <algorithm>
 #include <string>
 
@@ -128,7 +129,6 @@ void MainMenuLayer::OnUpdate(Timestep ts) {
             { 0.08f, 0.08f, 0.12f, 1.0f }, 0.0f);
     }
 
-    // Odwołujemy się do wskaźnika za pomocą ->
     if (m_SettingsPanel->IsVisible()) {
         m_SettingsPanel->OnUpdate(dt);
         m_SettingsPanel->Draw(baseScale);
@@ -237,6 +237,8 @@ void MainMenuLayer::PlayGame()
         Gui::SetScreenSize(m_ViewportWidth, m_ViewportHeight);
 
         GameManagerScript::s_IsTutorialMode = true;
+
+        GameProgress::Reset();
 
         activeScene->SetState(SceneState::Play);
         activeScene->OnRuntimeStart();
