@@ -147,7 +147,7 @@ public:
             {
                 IngredientType choppedType = GetChoppedType(m_Ingredients[0]);
 
-                if (pScript->AddIngredient(choppedType))
+                if (pScript->AddIngredient(choppedType, m_IsAutomated))
                 {
                     if (!m_DeepHistory.empty()) {
                         pScript->m_DeepHistory.insert(pScript->m_DeepHistory.end(), m_DeepHistory.begin(), m_DeepHistory.end());

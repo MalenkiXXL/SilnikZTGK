@@ -350,7 +350,6 @@ private:
             IngredientMetadata meta = GetIngredientMetadata(m_CrateIngredient);
             tc.SetScale(meta.scale);
             tc.SetRotation(meta.rotation);
-            // Dodajemy offset początkowy, żeby obiekt zespawnował się niżej
             tc.SetPosition(spawnPos + meta.offset);
             builder.With<TransformComponent>(tc);
 
@@ -360,8 +359,6 @@ private:
 
             BoxColliderComponent collider;
             collider.Size = glm::vec3(0.5f) / meta.scale;
-            // Magia fizyki: odwracamy offset dla kolajdera.
-            // Dzięki temu fizyka kładzie niewidzialny blok na taśmie, wciskając model graficzny idealnie w dół.
             collider.Offset = -meta.offset / meta.scale;
             builder.With<BoxColliderComponent>(collider);
 

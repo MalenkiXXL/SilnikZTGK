@@ -1,10 +1,10 @@
-Wersja programu MSBuild 17.14.23+b0019275e dla .NET Framework
-Kompilacja rozpoczęła się 17.06.2026 00:18:51.
+Wersja programu MSBuild 17.14.40+3e7442088 dla .NET Framework
+Kompilacja rozpoczęła się 25.06.2026 01:25:21.
 
-Projekt „C:\Users\ola87\source\repos\SilnikZTGK\SilnikZTGK.sln” w węźle 1 (elementy docelowe: Rebuild).
+Projekt „F:\SilnikZTGK\SilnikZTGK.sln” w węźle 1 (elementy docelowe: Rebuild).
 ValidateSolutionConfiguration:
   Tworzenie konfiguracji rozwiązania „Distribution|x64”.
-Projekt „C:\Users\ola87\source\repos\SilnikZTGK\SilnikZTGK.sln” (1) kompiluje „C:\Users\ola87\source\repos\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj” (2) w węźle 1 (elementy docelowe: Rebuild).
+Projekt „F:\SilnikZTGK\SilnikZTGK.sln” (1) kompiluje „F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj” (2) w węźle 1 (elementy docelowe: Rebuild).
 _PrepareForClean:
   Usuwanie pliku „x64\Distribution\SilnikZTGK.tlog\SilnikZTGK.lastbuildstate”.
 PrepareForBuild:
@@ -12,13 +12,205 @@ PrepareForBuild:
 InitializeBuildStatus:
   Modyfikowanie „x64\Distribution\SilnikZTGK.tlog\unsuccessfulbuild”.
 VcpkgTripletSelection:
-  Using triplet "x64-windows" from "C:\Users\ola87\source\repos\SilnikZTGK\vcpkg_installed\x64-windows\x64-windows\"
+  Using triplet "x64-windows" from "F:\SilnikZTGK\vcpkg_installed\x64-windows\x64-windows\"
   Using normalized configuration "Release"
 VcpkgInstallManifestDependencies:
 Pomijanie elementu docelowego „VcpkgInstallManifestDependencies”, ponieważ wszystkie pliki wyjściowe są aktualne w porównaniu z plikami wejściowymi.
 ClCompile:
-  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX64\x64\CL.exe /c /IC:\Users\ola87\source\repos\SilnikZTGK\packages\nlohmann.json.3.12.0\build\native\include /IC:\Users\ola87\source\repos\SilnikZTGK\SilnikZTGK\ /I"C:\Users\ola87\source\repos\SilnikZTGK\vcpkg_installed\x64-windows\x64-windows\include" /Zi /nologo /W3 /WX- /diagnostics:column /sdl /O2 /Oi /GL /D CS_DISTRIBUTION /D NDEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++17 /permissive- /Fo"x64\Distribution\\" /Fd"x64\Distribution\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:queue /utf-8 CookingStation\Core\AudioEngine.cpp CookingStation\Core\Texture.cpp CookingStation\Core\VFS\PhysicalFileSystem.h CookingStation\Layers\GuiLayer\Utils\Font.cpp CookingStation\Layers\GuiLayer\GameGuiLayer.cpp CookingStation\Layers\GuiLayer\Utils\GuiUtils.cpp CookingStation\Layers\GuiLayer\Utils\IUIPanel.h CookingStation\Layers\GuiLayer\Panels\PauseMenuPanel.cpp CookingStation\Layers\GuiLayer\Panels\SettingsMenuPanel.cpp CookingStation\Layers\MainMenuLayer\MainMenuLayer.cpp CookingStation\Math\Geometry.cpp CookingStation\miniaudio_impl.cpp CookingStation\Renderer\Buffer.cpp CookingStation\Layers\AssetLayer\AssetManager.cpp CookingStation\Layers\AssetLayer\AssetLayer.cpp CookingStation\Core\Application.cpp CookingStation\Renderer\Framebuffer.cpp CookingStation\Scene\PrefabSerializer.h CookingStation\Scene\SceneSerializer.cpp CookingStation\Layers\CameraLayer\CameraLayer.cpp CookingStation\Scripts\src\DeliveryCarScript.cpp CookingStation\Scripts\src\DeliveryManagerScript.cpp CookingStation\Scripts\src\GameManagerScript.cpp CookingStation\Scripts\src\PackageScript.cpp CookingStation\Scripts\src\PlateSpawnerScript.cpp CookingStation\stb_image_impl.cpp CookingStation\Scene\ecs.cpp CookingStation\Layers\EditorLayer\EditorLayer.cpp CookingStation\Layers\GameLayer\GameLayer.cpp CookingStation\Tools\QuestGenerator\QuestManager.cpp gettingStarted.cpp CookingStation\Core\Input.cpp CookingStation\Core\Layer.cpp CookingStation\main.cpp CookingStation\Core\Window.cpp CookingStation\Scene\Scene.cpp CookingStation\Renderer\VertexArray.cpp CookingStation\Renderer\RenderCommand.cpp CookingStation\Renderer\Renderer.cpp CookingStation\Layers\GuiLayer\Utils\Gui.cpp CookingStation\Layers\GuiLayer\Utils\Renderer2D.cpp CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp CookingStation\Renderer\Texture2D.cpp CookingStation\Renderer\ShaderLibrary.cpp CookingStation\Layers\RenderLayer\RendererLayer.cpp CookingStation\Scene\SceneManager.cpp CookingStation\Layers\HudLayer\HUDLayer.cpp
+  C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\bin\HostX64\x64\CL.exe /c /IF:\SilnikZTGK\packages\nlohmann.json.3.12.0\build\native\include /IF:\SilnikZTGK\SilnikZTGK\ /I"F:\SilnikZTGK\vcpkg_installed\x64-windows\x64-windows\include" /Zi /nologo /W3 /WX- /diagnostics:column /sdl /O2 /Oi /GL /D CS_DISTRIBUTION /D NDEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /std:c++17 /permissive- /Fo"x64\Distribution\\" /Fd"x64\Distribution\vc143.pdb" /external:W3 /Gd /TP /FC /errorReport:queue /utf-8 CookingStation\Core\AudioEngine.cpp CookingStation\Core\Texture.cpp CookingStation\Core\VFS\PhysicalFileSystem.h CookingStation\Layers\GuiLayer\Panels\BuildModePanel.cpp CookingStation\Layers\GuiLayer\Panels\CreditsPanel.cpp CookingStation\Layers\GuiLayer\Panels\LevelCompletedPanel.cpp CookingStation\Layers\GuiLayer\Panels\LevelCompletedPanel.h CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.cpp CookingStation\Layers\GuiLayer\Utils\Font.cpp CookingStation\Layers\GuiLayer\GameGuiLayer.cpp CookingStation\Layers\GuiLayer\Utils\GuiUtils.cpp CookingStation\Layers\GuiLayer\Utils\IUIPanel.h CookingStation\Layers\GuiLayer\Panels\PauseMenuPanel.cpp CookingStation\Layers\GuiLayer\Panels\SettingsMenuPanel.cpp CookingStation\Layers\MainMenuLayer\MainMenuLayer.cpp CookingStation\Math\Geometry.cpp CookingStation\miniaudio_impl.cpp CookingStation\Renderer\Buffer.cpp CookingStation\Layers\AssetLayer\AssetManager.cpp CookingStation\Layers\AssetLayer\AssetLayer.cpp CookingStation\Core\Application.cpp CookingStation\Renderer\Framebuffer.cpp CookingStation\Scene\PrefabSerializer.h CookingStation\Scene\SceneSerializer.cpp CookingStation\Layers\CameraLayer\CameraLayer.cpp CookingStation\Scripts\src\DeliveryCarScript.cpp CookingStation\Scripts\src\DeliveryManagerScript.cpp CookingStation\Scripts\src\GameManagerScript.cpp CookingStation\Scripts\src\PackageScript.cpp CookingStation\Scripts\src\PlateSpawnerScript.cpp CookingStation\Scripts\TutorialManagerScript.cpp CookingStation\stb_image_impl.cpp CookingStation\Scene\ecs.cpp CookingStation\Layers\EditorLayer\EditorLayer.cpp CookingStation\Layers\GameLayer\GameLayer.cpp CookingStation\Tools\QuestGenerator\QuestManager.h gettingStarted.cpp CookingStation\Core\Input.cpp CookingStation\Core\Layer.cpp CookingStation\main.cpp CookingStation\Core\Window.cpp CookingStation\Scene\Scene.cpp CookingStation\Renderer\VertexArray.cpp CookingStation\Renderer\RenderCommand.cpp CookingStation\Renderer\Renderer.cpp CookingStation\Layers\GuiLayer\Utils\Gui.cpp CookingStation\Layers\GuiLayer\Utils\Renderer2D.cpp CookingStation\Layers\GuiLayer\EditorGuiLayer.cpp CookingStation\Renderer\Texture2D.cpp CookingStation\Renderer\ShaderLibrary.cpp CookingStation\Layers\RenderLayer\RendererLayer.cpp CookingStation\Scene\SceneManager.cpp CookingStation\Layers\HudLayer\HUDLayer.cpp
   AudioEngine.cpp
-C:\Users\ola87\source\repos\SilnikZTGK\SilnikZTGK\CookingStation\Core\AudioEngine.cpp(83,19): warning C4018: '>': signed/unsigned mismatch [C:\Users\ola87\source\repos\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Core\AudioEngine.cpp(83,19): warning C4018: ">": niezgodność typu ze znakiem/bez znaku [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
   Texture.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: "APIENTRY": ponowna definicja makra [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Core/Texture.cpp”)
+      F:\SilnikZTGK\SilnikZTGK\glad\glad.h(32,9):
+      zobacz poprzednią definicję „APIENTRY”
+  
+  PhysicalFileSystem.h
+  BuildModePanel.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: "APIENTRY": ponowna definicja makra [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+      F:\SilnikZTGK\SilnikZTGK\glad\glad.h(32,9):
+      zobacz poprzednią definicję „APIENTRY”
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(270,43): warning C4018: "<": niezgodność typu ze znakiem/bez znaku [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\Bone.h(22,29): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\Bone.h(29,29): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\Bone.h(36,29): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\Animation.h(109,27): warning C4018: "<": niezgodność typu ze znakiem/bez znaku [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AnimationTrack.h(18,29): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AnimationTrack.h(25,29): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\AnimationTrack.h(32,29): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Scene\Scene.h(11,7): warning C4099: "Entity": nazwa typu najpierw widoczna przy użyciu "struct" teraz widoczna przy użyciu "class" [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+      F:\SilnikZTGK\SilnikZTGK\CookingStation\Scene\ecs.h(14,8):
+      zobacz deklarację „Entity”
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x28f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x605, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x606, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x724, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x86e, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x9ad, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xa33, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xba3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\RecipeBookPanel.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xd08, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Events\EditorEvents.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x9a3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Events\EditorEvents.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x9ab, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Events\EditorEvents.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xc3b, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Events\EditorEvents.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xc44, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x2ff, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3c3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x3d8, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x4cd, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x4d1, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x4d3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x4ea, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5a7, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5b3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5bc, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x5c3, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Assets\Flags\FlagScript.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x9c6, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Core\GameProgress.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x6f, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Core\GameProgress.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0xed, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Core\GameProgress.h(1,1): warning C4828: Plik zawiera znak rozpoczynający się od przesunięcia 0x19d, który jest niedozwolony w bieżącym zestawie znaków źródła (strona kodowa 65001). [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Scripts\ParticleEmitterScript.h(142,67): warning C4267: "=": konwersja z "size_t" do "uint32_t", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Scripts\Waiter\WaiterScript.h(695,36): warning C4244: "return": konwersja z "int" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\BuildModePanel.cpp(228,27): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\GuiLayer\Panels\BuildModePanel.cpp(282,23): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(476,82): warning C4267: "argument": konwersja z "size_t" do "uint32_t", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/BuildModePanel.cpp”)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(476,82):
+      kontekst tworzenia wystąpienia szablonu (najpierw najstarszy) to
+          F:\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(171,29):
+          zobacz odwołanie do kompilowanego tworzenia wystąpienia „std::shared_ptr<VertexBuffer> std::make_shared<VertexBuffer,float*,unsigned __int64>(float *&&,unsigned __int64 &&)” funkcji szablon
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(2913,46):
+          zobacz odwołanie do kompilowanego tworzenia wystąpienia „std::_Ref_count_obj2<VertexBuffer>::_Ref_count_obj2<_Ty,unsigned __int64>(_Ty &&,unsigned __int64 &&)” funkcji szablon
+          with
+          [
+              _Ty=float *
+          ]
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(2100,18):
+          zobacz odwołanie do kompilowanego tworzenia wystąpienia „void std::_Construct_in_place<_Ty,float*,unsigned __int64>(_Ty &,float *&&,unsigned __int64 &&) noexcept(false)” funkcji szablon
+          with
+          [
+              _Ty=VertexBuffer
+          ]
+  
+  CreditsPanel.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: "APIENTRY": ponowna definicja makra [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/CreditsPanel.cpp”)
+      F:\SilnikZTGK\SilnikZTGK\glad\glad.h(32,9):
+      zobacz poprzednią definicję „APIENTRY”
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Model.h(270,43): warning C4018: "<": niezgodność typu ze znakiem/bez znaku [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/CreditsPanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\Bone.h(22,29): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/CreditsPanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\Bone.h(29,29): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/CreditsPanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\Bone.h(36,29): warning C4244: "inicjowanie": konwersja z "double" do "float", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/CreditsPanel.cpp”)
+  
+F:\SilnikZTGK\SilnikZTGK\CookingStation\Layers\AssetLayer\Animation.h(109,27): warning C4018: "<": niezgodność typu ze znakiem/bez znaku [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/CreditsPanel.cpp”)
+  
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(476,82): warning C4267: "argument": konwersja z "size_t" do "uint32_t", możliwa utrata danych [F:\SilnikZTGK\SilnikZTGK\SilnikZTGK.vcxproj]
+  (kompilowanie pliku źródłowego „CookingStation/Layers/GuiLayer/Panels/CreditsPanel.cpp”)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\xutility(476,82):
+      kontekst tworzenia wystąpienia szablonu (najpierw najstarszy) to
+          F:\SilnikZTGK\SilnikZTGK\CookingStation\Renderer\Mesh.h(171,29):
+          zobacz odwołanie do kompilowanego tworzenia wystąpienia „std::shared_ptr<VertexBuffer> std::make_shared<VertexBuffer,float*,unsigned __int64>(float *&&,unsigned __int64 &&)” funkcji szablon
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(2913,46):
+          zobacz odwołanie do kompilowanego tworzenia wystąpienia „std::_Ref_count_obj2<VertexBuffer>::_Ref_count_obj2<_Ty,unsigned __int64>(_Ty &&,unsigned __int64 &&)” funkcji szablon
+          with
+          [
+              _Ty=float *
+          ]
+          C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.44.35207\include\memory(2100,18):
+          zobacz odwołanie do kompilowanego tworzenia wystąpienia „void std::_Construct_in_place<_Ty,float*,unsigned __int64>(_Ty &,float *&&,unsigned __int64 &&) noexcept(false)” funkcji szablon
+          with
+          [
+              _Ty=VertexBuffer
+          ]
+  
 ^C

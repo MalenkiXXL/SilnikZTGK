@@ -19,7 +19,6 @@ namespace {
             { IngredientType::Raspberry,  IngredientType::ChoppedRaspberry },
             { IngredientType::Baguette,   IngredientType::CutBaguette },
 
-            // --- DODANE ŁATKI DLA PIEKARNIKA I MIKSERA ---
             { IngredientType::Flour,      IngredientType::RawDough },
             { IngredientType::Flour,      IngredientType::Baguette },
             { IngredientType::Milk,       IngredientType::RawDough },
@@ -43,6 +42,7 @@ namespace {
             { "Patelnia", "Pan" },
             { "Mikser", "Mixer" },
             { "Piekarnik", "Oven" },
+            { "Ekspres",  "CoffeeMaker" },
         };
 
         std::string expected = wantedDisplayName;
@@ -100,6 +100,7 @@ namespace {
 void GameManagerScript::OnCreate()
 {
     s_Instance = this;
+    s_GrandmaServed = false;
     spdlog::info("GameManager uruchomiony!");
 
     auto& bus = GetScene()->GetWorld().GetEventBus();
@@ -498,6 +499,7 @@ bool GameManagerScript::SpendMoney(int amount) {
 
 void GameManagerScript::UnlockNewMapArea()
 {
+    s_GrandmaServed = true;
     m_IsMapExpanding = true;
     m_MapExpandProgress = 0.0f;
 }

@@ -443,7 +443,7 @@ protected:
             return;
         }
 
-        bool success = targetPlateScript->ReceiveFinishedDish(m_SpawnedFood);
+        bool success = targetPlateScript->ReceiveFinishedDish(m_SpawnedFood, m_IsAutomated);
 
         if (success)
         {

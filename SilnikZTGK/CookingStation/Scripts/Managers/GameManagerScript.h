@@ -37,6 +37,7 @@ public:
     static inline float s_TutorialIconAlpha = 0.0f;
     static inline Entity s_TutorialTrackedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline glm::vec3 s_TutorialTrackedOffset = glm::vec3(0.0f, 0.0f, 0.0f);
+    static inline bool s_GrandmaServed = false;
 
     static inline bool s_SpeedUpUIHeld = false;
 

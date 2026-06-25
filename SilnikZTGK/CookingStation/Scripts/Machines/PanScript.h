@@ -263,7 +263,7 @@ protected:
             }
         }
 
-        if (targetPlateScript && targetPlateScript->ReceiveFinishedDish(m_SpawnedFood))
+        if (targetPlateScript && targetPlateScript->ReceiveFinishedDish(m_SpawnedFood, m_IsAutomated))
         {
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ m_SpawnedFood, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false });
             GetScene()->GetWorld().GetEventBus().Publish(TriggerHighlightEvent{ plate, glm::vec3(0.2f, 1.0f, 0.2f), 1.5f, false });
@@ -275,9 +275,10 @@ protected:
         }
         else
         {
-            spdlog::warn("Patelnia: Talerz odrzucił danie!");
-            AudioEngine::Play("assets://sounds/error.mp3"); // Dźwięk błędu - gracz wie, że się nie udało
-
+            if (!m_IsAutomated) {
+                spdlog::warn("Patelnia: Talerz odrzucił danie!");
+                AudioEngine::Play("assets://sounds/error.mp3");
+            }
             UpdateVisuals();
         }
     }

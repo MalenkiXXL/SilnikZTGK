@@ -175,7 +175,8 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
         case IngredientType::RawDough:
             return { glm::vec3(6.0), glm::vec3(0.0f), glm::vec3(0.0f) };
         case IngredientType::Coffee:
-            return { glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(0.0f, 0.2f, 0.0f) };
+        case IngredientType::MilkCoffee:
+            return { glm::vec3(0.5f), glm::vec3(0.0f), glm::vec3(0.0f, 0.5f, 0.0f) };
 
         case IngredientType::Apple:
             return { glm::vec3(0.3f), glm::vec3(0.0f), glm::vec3(0.0f) };
@@ -207,7 +208,7 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
         case IngredientType::FriedEgg:
         case IngredientType::EggWithHam:
         case IngredientType::Shakshuka:
-            return { glm::vec3(0.35f), glm::vec3(0.0f), glm::vec3(0.0f, 0.2f, 0.0f) };
+            return { glm::vec3(0.35f), glm::vec3(0.0f), glm::vec3(0.0f, 0.3f, 0.0f) };
 
         case IngredientType::Cupcake:
             return { glm::vec3(6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f) };
