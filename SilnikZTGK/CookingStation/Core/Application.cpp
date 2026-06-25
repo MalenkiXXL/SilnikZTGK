@@ -50,7 +50,7 @@ Application::Application()
 	FramebufferSpecification msaaSpec;
 	msaaSpec.Width = m_Window->GetWidth();
 	msaaSpec.Height = m_Window->GetHeight();
-	msaaSpec.Samples = gs.MsaaSamples; // Aktualizacja MSAA na start
+	msaaSpec.Samples = gs.MsaaSamples; 
 	msaaSpec.HDR = true;
 	m_MsaaFBO = std::make_shared<Framebuffer>(msaaSpec);
 
@@ -78,7 +78,6 @@ Application::Application()
 		spdlog::info("Zaktualizowano audio (Muzyka: {}, Dzwieki: {})", e.MusicEnabled, e.SoundsEnabled);
 		});
 
-	// Subskrypcja na zmianę grafiki (np. po wciśnięciu fullscreen / ustawień w menu)
 	GetEventBus().Subscribe<GraphicsSettingsChangedEvent>([this](const GraphicsSettingsChangedEvent&) {
 		ApplyGraphicsSettings();
 		});
@@ -125,7 +124,6 @@ Application::Application()
 	PushLayer(mainMenuLayer);
 #endif
 
-	// Aplikujemy domyślne ustawienia (np. Fullscreen) od razu przy starcie
 	ApplyGraphicsSettings();
 }
 
@@ -149,11 +147,6 @@ Application::~Application()
 	AssetManager::Clean();
 
 	glFinish();
-
-	// UWAGA: Celowo zakomentowane! Pozwala to systemowi operacyjnemu bezpiecznie
-	// zniszczyć pamięć okna, eliminując problem z crashem sterownika NVIDIA.
-	// delete m_Window;
-	// glfwTerminate();
 
 	spdlog::shutdown();
 }

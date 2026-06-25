@@ -89,12 +89,12 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_CoinIcon = coinIcon;
 
 
-    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   50 });
-    m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/cuttingBoardMachine.png"), 25 });
-    m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   75 });
-    m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  75 });
-    m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/pan.png"), 100 });
-    m_MachineEntries.push_back({ "Ekspres", "assets://prefabs/coffee_maker.json", AssetManager::GetTexture("assets://UI/coffeeMachine.png"), 150 });
+    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   75 });
+    m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/cuttingBoardMachine.png"), 50 });
+    m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   90 });
+    m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  100 });
+    m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/pan.png"), 120 });
+    m_MachineEntries.push_back({ "Ekspres", "assets://prefabs/coffee_maker.json", AssetManager::GetTexture("assets://UI/coffeeMachine.png"), 150, true });
 
     m_LeftMouseIcon = AssetManager::GetTexture("assets://UI/leftMouse.png");
     m_RightMouseIcon = AssetManager::GetTexture("assets://UI/rightMouse.png");
@@ -266,7 +266,7 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
     };
 
     glm::vec4 tabShadowColor = { 0.0f, 0.0f, 0.0f, 0.6f };
-    glm::vec4 tabTextColor = { 157.0f / 255.0f, 113.0f / 255.0f, 180.0f / 255.0f, 1.0f }; // Fioletowy
+    glm::vec4 tabTextColor = { 157.0f / 255.0f, 113.0f / 255.0f, 180.0f / 255.0f, 1.0f }; 
 
     Gui::DrawGuiText(tabLabel, { tabTextPos.x + 1.5f, tabTextPos.y + 1.5f }, tabTextScale, tabShadowColor);
     Gui::DrawGuiText(tabLabel, tabTextPos, tabTextScale, tabTextColor);

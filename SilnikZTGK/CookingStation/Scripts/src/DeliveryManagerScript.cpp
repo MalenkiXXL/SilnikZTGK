@@ -7,7 +7,6 @@
 
 void DeliveryManagerScript::OnCreate()
 {
-    // Konfiguracja progów minimalnych
     m_MinThreshold[IngredientType::Tomato]    = 3;
     m_MinThreshold[IngredientType::Cheese]    = 3;
     m_MinThreshold[IngredientType::Ham]       = 3;
@@ -32,13 +31,11 @@ void DeliveryManagerScript::OnCreate()
     m_CarArrivedSubId = GetScene()->GetWorld().GetEventBus().Subscribe<CarArrivedEvent>(
             [this](const CarArrivedEvent& e) {
 
-                // Definiujemy pozycje paczek obok auta
                 glm::vec3 spawnPositions[2] = {
                         e.DropPosition + m_PackageOffsets[0],
                         e.DropPosition + m_PackageOffsets[1]
                 };
 
-                // Tworzymy paczki
                 for (const auto& pos : spawnPositions)
                 {
                     PrefabSerializer::Deserialize(GetScene(), m_PackagePrefabPath, pos);
@@ -50,14 +47,12 @@ void DeliveryManagerScript::OnCreate()
             [this](const PackageSpawnedEvent& e) {
                 IngredientType typeForThisPackage = IngredientType::None;
 
-                // Dobieramy typ dla obecnej paczki
                 if (m_SpawnedPackagesCount < m_CurrentOrderTypes.size()) {
                     typeForThisPackage = m_CurrentOrderTypes[m_SpawnedPackagesCount];
                 } else if (!m_CurrentOrderTypes.empty()) {
                     typeForThisPackage = m_CurrentOrderTypes[0];
                 }
 
-                // Numer paczki do logów
                 int packageNumberForLog = m_SpawnedPackagesCount + 1;
 
                 spdlog::info("[DeliveryManager] Konfiguruję paczkę nr {} - Zawartość: {}",
@@ -71,7 +66,6 @@ void DeliveryManagerScript::OnCreate()
                 std::uniform_int_distribution<> distrib(2, 5);
                 int randomAmount = distrib(gen);
 
-                // Odpowiadamy konkretnej paczce jej własnym, unikalnym typem
                 GetScene()->GetWorld().GetEventBus().Publish(ConfigurePackageEvent{ e.TargetEntity,
                                                                                     typeForThisPackage,
                                                                                     randomAmount });
@@ -87,7 +81,6 @@ void DeliveryManagerScript::OnCreate()
         }
     });
 
-   //Usuwamy zrealizowane zamówienie z kolejki
     m_ValidationResponseSubId = bus.Subscribe<ValidateOrderResponseEvent>([this](const ValidateOrderResponseEvent& e) {
 
         auto it = std::find_if(m_ActiveOrdersQueue.begin(), m_ActiveOrdersQueue.end(),

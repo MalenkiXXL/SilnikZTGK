@@ -99,8 +99,6 @@ private:
     int m_TotalMoneyEarned = 0;
     const int MAX_CUSTOMERS = 22;
 
-
-    //questy
     QuestEventState m_CurrentQuestState = QuestEventState::WaitingForTimer;
     float m_QuestTimer = 0.0f;
     const float QUEST_INTERVAL = 180.0f;
