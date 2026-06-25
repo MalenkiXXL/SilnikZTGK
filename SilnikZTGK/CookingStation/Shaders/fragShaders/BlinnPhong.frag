@@ -24,14 +24,11 @@ void main()
     vec3 V = normalize(u_ViewPos - FragPos);
     vec3 H = normalize(L + V);
 
-    // Ambient
     vec3 ambient = 0.15 * u_LightColor;
 
-    // Diffuse
     float diff = max(dot(N, L), 0.0);
     vec3 diffuse = diff * u_LightColor;
 
-    // Specular (Blinn-Phong)
     float shininess = 32.0;
     float spec = pow(max(dot(N, H), 0.0), shininess);
     vec3 specular = 0.5 * spec * u_LightColor;

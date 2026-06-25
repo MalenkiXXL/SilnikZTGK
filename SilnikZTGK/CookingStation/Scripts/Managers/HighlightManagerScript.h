@@ -4,7 +4,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <spdlog/spdlog.h>
-#include <cmath> // potrzebne do std::sin
+#include <cmath>
 
 struct HighlightData {
     Entity Target;
@@ -68,7 +68,6 @@ public:
                 float targetOpacity = (wave + 1.0f) * 0.5f * 0.7f;
 
                 if (!data.PingedThisFrame) {
-                    // P³ynne zanikanie - wygasi œwiat³o w 0.3 sekundy zamiast uci¹æ je na brutalnie!
                     data.CurrentAlpha -= ts.GetSeconds() * 3.0f;
                     if (data.CurrentAlpha <= 0.0f) {
                         mesh->ShaderName = data.OriginalShader;

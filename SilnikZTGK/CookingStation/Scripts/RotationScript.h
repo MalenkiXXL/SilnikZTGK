@@ -34,13 +34,10 @@ public:
             auto* transform = GetComponent<TransformComponent>();
             if (transform)
             {
-                // 1. Pobieramy obecny wektor rotacji
                 glm::vec3 currentRot = transform->GetRotation();
 
-                // 2. Modyfikujemy odpowiednio
                 currentRot.y += 90.0f * ts;
 
-                // 3. Wgrywamy z powrotem przez Setter
                 transform->SetRotation(currentRot);
             }
         }

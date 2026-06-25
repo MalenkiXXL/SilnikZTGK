@@ -300,7 +300,6 @@ private:
         float stackYOffset = basePlateHeight + (itemIndex * itemThickness);
         tc.SetPosition(glm::vec3(0.0f, stackYOffset, 0.0f));
 
-        // SKALA
         IngredientMetadata meta = GetIngredientMetadata(type);
         tc.SetScale(meta.scale);
         tc.SetRotation(meta.rotation);

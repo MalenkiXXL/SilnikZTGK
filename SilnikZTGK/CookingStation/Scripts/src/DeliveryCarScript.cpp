@@ -53,7 +53,7 @@ void DeliveryCarScript::OnCreate()
 
             if (childTag->Tag.find("DeliveryMushroom") == 0)
             {
-                m_MushroomEntity = childId; // <--- ZMIANA
+                m_MushroomEntity = childId; 
                 m_MushroomSpawned = true;
                 spdlog::info("[DeliveryCar] Znaleziono grzyba: '{}'", childTag->Tag);
             }        }
@@ -147,7 +147,7 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
                 if (animator) {
                     animator->IsPlaying = true;
-                    animator->PlaybackSpeed = 0.417f; //bo 15 klatek w blenderze
+                    animator->PlaybackSpeed = 0.417f;
                     animator->PlayAnimation("Open", true, false);
                 }
 
@@ -219,7 +219,7 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
 
                 if (animator) {
                     animator->IsPlaying = true;
-                    animator->PlaybackSpeed = 0.417f; // bo 15 klatek w blenderze
+                    animator->PlaybackSpeed = 0.417f;
                     animator->PlayAnimation("Close", true, false);
                 }
 

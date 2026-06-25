@@ -45,7 +45,6 @@ private:
     float m_TypewriterTimer = 0.0f;
     std::vector<TutorialDialogLine> m_Dialogues;
 
-    // Encje
     Entity m_Floor;        
     Entity m_Pot;
     Entity m_Burner;

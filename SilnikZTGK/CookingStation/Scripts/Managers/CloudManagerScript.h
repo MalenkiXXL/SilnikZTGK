@@ -76,7 +76,6 @@ public:
         auto &world = m_CachedScene->GetWorld();
 
 
-        // 1. ZNALEZIENIE ŚRODKA EKRANU NA PŁASZCZYŹNIE CHMUR
         glm::vec3 camPos = m_CachedCamera->Position;
         glm::vec3 camFront = m_CachedCamera->Front;
 
@@ -86,14 +85,12 @@ public:
             planeCenter = camPos + camFront * t;
         }
 
-        // 2. WYLICZENIE GRANIC (BOUNDING BOX) NA BAZIE ZOOMU KAMERY (OrthoSize)
         float viewportW = (float) m_CachedScene->GetViewportWidth();
         float viewportH = (float) m_CachedScene->GetViewportHeight();
         float aspect = (viewportH > 0.0f) ? (viewportW / viewportH) : 1.777f;
 
         float orthoSize = m_CachedCamera->OrthoSize;
 
-        // Marginesy ukrywające doczytywanie
         float radiusX = orthoSize * aspect * 2.5f;
         float radiusZ = orthoSize * 3.0f;
 

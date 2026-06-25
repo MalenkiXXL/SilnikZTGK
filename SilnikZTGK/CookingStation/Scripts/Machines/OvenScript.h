@@ -82,7 +82,6 @@ public:
         {
             m_Ingredients.push_back(type);
 
-            // Łączenie historii w całość
             m_DeepHistory.insert(m_DeepHistory.end(), pastIngredients.begin(), pastIngredients.end());
             m_DeepHistory.push_back(type);
             m_MachineHistory.insert(m_MachineHistory.end(), pastMachines.begin(), pastMachines.end());
@@ -192,8 +191,8 @@ protected:
 
             DishHistory history;
             history.BaseIngredients = m_DeepHistory;
-            history.MachineHistory = m_MachineHistory; // <-- Nowość
-            history.MachineHistory.push_back("Oven");  // <-- Nowość
+            history.MachineHistory = m_MachineHistory; 
+            history.MachineHistory.push_back("Oven");  
             history.OriginMachine = "Oven";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
         }

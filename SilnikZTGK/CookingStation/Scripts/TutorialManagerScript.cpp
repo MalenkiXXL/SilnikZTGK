@@ -859,7 +859,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
         bool isHoveringSwitch = IsHovering(switchEntity, preciseMousePos, 1.5f);
 
         switchHoverLerp = UpdateLerp(isHoveringSwitch, switchHoverLerp, ts.GetSeconds());
-        transitionLerp = UpdateLerp(true, transitionLerp, ts.GetSeconds(), 3.0f); // Pulsowanie w��cza si� od razu
+        transitionLerp = UpdateLerp(true, transitionLerp, ts.GetSeconds(), 3.0f); 
 
         glm::vec3 baseGray = glm::vec3(0.4f, 0.4f, 0.4f);
         glm::vec3 basePink = glm::vec3(1.0f, 0.2f, 0.6f);
@@ -901,7 +901,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             upgradedWaiter = FindEntityByName("Pan Grzybek_Kelner");
         }
 
-        // --- FAZA 0: Czekamy aż zupa przyjedzie na wydawkę ---
         if (endPhase == 0) {
             Entity stationEntity = { std::numeric_limits<std::size_t>::max(), 0 };
             auto* nscVector = GetScene()->GetWorld().GetComponentVector<NativeScriptComponent>();
@@ -931,7 +930,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 }
             }
         }
-        // --- FAZA 1: Kelner idzie w stronę wydawki (zatrzymuje się DUŻO wcześniej) ---
         else if (endPhase == 1) {
             if (!m_WalkAnimPlayed) {
                 auto* animComp = GetScene()->GetWorld().GetComponent<AnimatorComponent>(m_Waiter);
@@ -941,14 +939,12 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
             glm::vec3 currentPos = waiterTf->GetPosition();
 
-            // Cel: Wydawka, ale przesunięta troszkę w LEWO kelnera (prawo gracza)
             glm::vec3 targetWalkPos = stationPos;
             targetWalkPos.y = currentPos.y;
-            targetWalkPos.x -= 1.5f; // Minus w osi X to dokładnie lewo kelnera!
+            targetWalkPos.x -= 1.5f; 
 
             float dist = glm::distance(currentPos, targetWalkPos);
 
-            // BARDZO DUŻY ZASIĘG: Zatrzymuje się aż 3 metry przed celem (czyli na najbliższym mu końcu blatu!)
             if (dist > 2.0f) {
                 glm::vec3 dir = glm::normalize(targetWalkPos - currentPos);
                 waiterTf->SetPosition(currentPos + dir * 3.0f * (float)ts.GetSeconds());
@@ -957,7 +953,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 waiterTf->SetRotation(glm::vec3(0.0f, targetAngle, 0.0f));
             }
             else {
-                // Po zatrzymaniu obraca się kulturalnie przodem do zupy
                 glm::vec3 lookDir = glm::normalize(stationPos - currentPos);
                 float targetAngle = glm::degrees(glm::atan(lookDir.x, lookDir.z));
                 waiterTf->SetRotation(glm::vec3(0.0f, targetAngle, 0.0f));
@@ -978,7 +973,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 endPhase = 2;
             }
         }
-        // --- FAZA 2: Kelner wraca na swoje miejsce ---
         else if (endPhase == 2) {
             if (!m_WalkAnimPlayed) {
                 auto* animComp = GetScene()->GetWorld().GetComponent<AnimatorComponent>(m_Waiter);
@@ -1006,7 +1000,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 endPhase = 3;
             }
         }
-        // --- FAZA 3: Zbliżenie kamery i dialog ---
         else if (endPhase == 3) {
             auto* camera = GetScene()->GetCamera();
             if (camera) {
@@ -1078,7 +1071,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 }
             }
         }
-        // --- FAZA 4: Zamiana w kelnera ---
         else if (endPhase == 4) {
             static bool swapped = false;
 
@@ -1121,11 +1113,10 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 endPhase = 5;
             }
         }
-        // --- FAZA 5: Monolog Walter the Waiter ---
         else if (endPhase == 5) {
             GameManagerScript::s_ShowTutorialDialog = true;
             GameManagerScript::s_TutorialSpeaker = "Walter the Waiter:";
-            GameManagerScript::s_TutorialSpeakerColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f); // Ten sam fioletowy!
+            GameManagerScript::s_TutorialSpeakerColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f); 
 
             std::string text = "Now you are ready! Just remember to serve customers in order. Maybe some will even join your kitchen as employees!";
             GameManagerScript::s_TutorialText = text;
@@ -1155,7 +1146,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                     GameManagerScript::s_ShowTutorialDialog = false;
                     m_StateTimer = 0.0f;
 
-                    // Odpalamy pożegnalny wybuch gwiazdek/dymu na cześć końca tutoriala!
                     if (upgradedWaiter.id != std::numeric_limits<std::size_t>::max()) {
                         auto* newTf = GetScene()->GetWorld().GetComponent<TransformComponent>(upgradedWaiter);
                         if (newTf) PlayPoofAt(newTf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
@@ -1164,7 +1154,6 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 }
             }
         }
-        // --- FAZA 6: Przejście do gry właściwej ---
         else if (endPhase == 6) {
             auto* camera = GetScene()->GetCamera();
             if (camera) {
