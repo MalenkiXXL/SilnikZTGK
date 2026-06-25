@@ -25,8 +25,11 @@ public:
     void Deactivate();
     void ForceReset();
 
-    void Toggle() { if (m_IsActive) { Deactivate(); } else Activate();
-        AudioEngine::Play(AudioConfig::BuildModeSound); }
+    void Toggle() {
+        if (m_IsActive) { Deactivate(); }
+        else Activate();
+        AudioEngine::Play(AudioConfig::BuildModeSound);
+    }
     bool IsActive() const { return m_IsActive; }
 
 private:
@@ -35,6 +38,7 @@ private:
         std::string PrefabPath;
         std::shared_ptr<Texture> Icon;
         int Price;
+        bool IsGrandmaLocked = false;
     };
 
     bool m_IsActive = false;
@@ -51,6 +55,7 @@ private:
 
     std::shared_ptr<Texture> m_LeftMouseIcon;
     std::shared_ptr<Texture> m_RightMouseIcon;
+    std::shared_ptr<Texture> m_LockClosedIcon;
 
     std::vector<MachineEntry> m_MachineEntries;
     std::vector<std::pair<Entity, glm::vec3>> m_PreviewGroup;
