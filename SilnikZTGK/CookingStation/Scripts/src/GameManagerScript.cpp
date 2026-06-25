@@ -522,13 +522,13 @@ void GameManagerScript::OnOrderFulfilled(const OrderFulfilledEvent& e)
     {
         int stars = 0;
 
-        if (m_TotalMoneyEarned >= 501) {
+        if (m_TotalMoneyEarned >= 850) {
             stars = 3;
         }
-        else if (m_TotalMoneyEarned >= 201) {
+        else if (m_TotalMoneyEarned >= 500) {
             stars = 2;
         }
-        else if (m_TotalMoneyEarned >= 51) {
+        else if (m_TotalMoneyEarned >= 150) {
             stars = 1;
         }
 

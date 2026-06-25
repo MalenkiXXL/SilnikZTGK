@@ -48,13 +48,11 @@ public:
     float OrderPrice = 50.0f;
     float AwardedTip = 0.0f;
 
-    // Zmienne do efekt�w na wej�cie
     float m_SpawnTimer = 0.0f;
     bool m_PoofPlayed = false;
     bool m_PoofStarted = false;
     Entity m_PoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
 
-    // Zmienne do efekt�w na znikni�cie
     bool m_ExitPoofStarted = false;
     Entity m_ExitPoofEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     Entity m_CutsceneSmokeEntity = { std::numeric_limits<std::size_t>::max(), 0 };

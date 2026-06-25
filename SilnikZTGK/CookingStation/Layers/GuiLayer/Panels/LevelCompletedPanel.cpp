@@ -65,7 +65,6 @@ void LevelCompletedPanel::Draw(float screenW, float screenH, float baseScale) {
     float totalStarsW = baseStarW + spacing + baseMidStarW + spacing + baseStarW;
     float startX = bgPos.x + (bgW - totalStarsW) * 0.5f;
 
-    // Gwiazdki wy ej nad panelem
     float sideStarY = bgPos.y - 75.0f * baseScale;
     float midStarY = sideStarY - 35.0f * baseScale;
 
@@ -73,31 +72,27 @@ void LevelCompletedPanel::Draw(float screenW, float screenH, float baseScale) {
     float midX = leftX + baseStarW + spacing;
     float rightX = midX + baseMidStarW + spacing;
 
-    float trigger1 = 0.3f; // Kiedy zapala si  1 gwiazdka (Lewa)
-    float trigger2 = 0.7f; // Kiedy zapala si  2 gwiazdka (Prawa)
-    float trigger3 = 1.1f; // Kiedy zapala si  3 gwiazdka ( rodkowa)
-    float popDuration = 0.4f; // Jak d ugo trwa powi kszenie
+    float trigger1 = 0.3f; 
+    float trigger2 = 0.7f; 
+    float trigger3 = 1.1f; 
+    float popDuration = 0.4f; 
 
-    // Funkcja wyliczaj ca p ynn  skal  (powi ksza o 40% w szczycie sinusa)
     auto getScale = [&](float trigger) {
         if (m_AnimationTimer >= trigger && m_AnimationTimer < trigger + popDuration) {
-            float t = (m_AnimationTimer - trigger) / popDuration; // Zmienna od 0.0 do 1.0
-            return 1.0f + 0.4f * std::sin(t * 3.14159265f); // 3.14 to po owa cyklu sinusa
+            float t = (m_AnimationTimer - trigger) / popDuration; 
+            return 1.0f + 0.4f * std::sin(t * 3.14159265f); 
         }
-        return 1.0f; // Domy lna skala przed i po animacji
+        return 1.0f; 
         };
 
-    // ZMIANA: Przypisanie czas w i wymaganej liczby gwiazdek do nowej kolejno ci
     float scaleLeft = (m_Stars >= 1) ? getScale(trigger1) : 1.0f;
-    float scaleRight = (m_Stars >= 2) ? getScale(trigger2) : 1.0f; // Prawa zapala si  jako druga
-    float scaleMid = (m_Stars == 3) ? getScale(trigger3) : 1.0f; //  rodkowa zapala si  jako trzecia
+    float scaleRight = (m_Stars >= 2) ? getScale(trigger2) : 1.0f; 
+    float scaleMid = (m_Stars == 3) ? getScale(trigger3) : 1.0f; 
 
-    // ZMIANA: Wybieramy z ot  tekstur  zgodnie z now  kolejno ci 
     auto texLeft = (m_Stars >= 1 && m_AnimationTimer >= trigger1) ? m_LeftStarYellow : m_LeftStarGrey;
     auto texRight = (m_Stars >= 2 && m_AnimationTimer >= trigger2) ? m_RightStarYellow : m_RightStarGrey;
     auto texMiddle = (m_Stars == 3 && m_AnimationTimer >= trigger3) ? m_MiddleStarYellow : m_MiddleStarGrey;
 
-    // Funkcja renderuj ca z zachowaniem wy rodkowania
     auto drawStar = [&](std::shared_ptr<Texture> tex, float x, float y, float w, float h, float scale) {
         if (!tex) return;
         float finalW = w * scale;
@@ -107,12 +102,10 @@ void LevelCompletedPanel::Draw(float screenW, float screenH, float baseScale) {
         Renderer2D::DrawQuad({ finalX, finalY }, { finalW, finalH }, tex, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         };
 
-    // Rysowanie poszczeg lnych gwiazdek (tutaj kolejno   wywo a  nie ma znaczenia, licz  si  parametry wy ej)
     drawStar(texLeft, leftX, sideStarY, baseStarW, baseStarH, scaleLeft);
     drawStar(texMiddle, midX, midStarY, baseMidStarW, baseMidStarH, scaleMid);
     drawStar(texRight, rightX, sideStarY, baseStarW, baseStarH, scaleRight);
 
-    // --- ANIMOWANY TEKST PIENI DZY ---
     std::string moneyText = "$" + std::to_string((int)m_DisplayMoney);
     float textScale = 3.0f * baseScale;
     float textWidth = Gui::MeasureTextWidth(moneyText, textScale);
@@ -122,7 +115,6 @@ void LevelCompletedPanel::Draw(float screenW, float screenH, float baseScale) {
     Gui::DrawGuiText(moneyText, { textPos.x + 4.0f, textPos.y + 4.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.5f });
     Gui::DrawGuiText(moneyText, textPos, textScale, { 1.0f, 0.85f, 0.1f, 1.0f });
 
-    // --- PRZYCISK ---
     if (m_ButtonTexture) {
         float btnW = 320.0f * baseScale;
         float btnH = btnW * ((float)m_ButtonTexture->GetHeight() / (float)m_ButtonTexture->GetWidth());
