@@ -34,6 +34,7 @@ PauseMenuPanel::PauseMenuPanel() {
 }
 
 void PauseMenuPanel::TogglePause() {
+
     if (m_SettingsPanel->IsVisible()) {
         m_SettingsPanel->SetVisible(false);
     }

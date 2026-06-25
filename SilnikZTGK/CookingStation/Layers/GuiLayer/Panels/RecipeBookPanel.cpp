@@ -5,6 +5,7 @@
 #include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Layers/GuiLayer/Utils/AudioConfig.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Gui.h" 
+#include "CookingStation/Core/Input.h"
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <algorithm>
@@ -139,6 +140,7 @@ void RecipeBookPanel::DrawRecipeIcon(const std::string& recipeId, const std::str
     }
 }
 
+
 void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float gameHeight, float baseScale, float dt, bool isGamePaused) {
     if (!m_BookIcon) return;
 
@@ -255,11 +257,14 @@ void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float game
         glm::vec2 xSize = { 50.0f * baseScale, 50.0f * baseScale };
         glm::vec2 xPos = { insidePos.x + insideSize.x - xSize.x * 2.5f, insidePos.y + xSize.y * 2.9f };
 
+        bool closeClicked = false;
         if (m_BookXIcon) {
-            if (BubblyUI::DrawBubblyImage(m_BubblyStates, "BookX", m_BookXIcon, xPos, xSize, dt, false, 1.2f, true, 0.4f)) {
-                m_IsOpen = false;
-                AudioEngine::Play(AudioConfig::BookCloseSound);
-            }
+            closeClicked = BubblyUI::DrawBubblyImage(m_BubblyStates, "BookX", m_BookXIcon, xPos, xSize, dt, false, 1.2f, true, 0.4f);
+        }
+
+        if (closeClicked || Input::IsKeyPressed(GLFW_KEY_ESCAPE)) {
+            m_IsOpen = false;
+            AudioEngine::Play(AudioConfig::BookCloseSound);
         }
 
         if (m_NextPageLeftIcon && m_NextPageRightIcon) {
