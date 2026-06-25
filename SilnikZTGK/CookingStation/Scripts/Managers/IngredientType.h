@@ -367,6 +367,7 @@ inline std::string GetUIIconPathForIngredient(IngredientType type)
         case IngredientType::CoffeeBeans:   return "assets://UI/coffeBean.png";
         case IngredientType::Candy:         return "assets://UI/Candy.png";
         case IngredientType::SleepyDust:    return "assets://UI/StarPowder.png";
+        case IngredientType::Yawn:          return "assets://UI/yawn.png";
 
         default:                            return "";
     }

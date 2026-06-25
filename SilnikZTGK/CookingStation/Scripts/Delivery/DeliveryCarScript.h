@@ -41,10 +41,6 @@ private:
     ma_sound* m_EngineSound = nullptr;
     bool m_EngineSoundStarted = false;
 
-    std::string m_TireTrackPrefabPath = "CookingStation/Assets/prefabs/tire_track.json";
-    void SpawnTireTracks();
-    bool m_TireTracksSpawned = false;
-
     std::size_t m_PauseSubId = 0;
     std::size_t m_ResumeSubId = 0;
     std::size_t m_MainMenuSubId = 0;

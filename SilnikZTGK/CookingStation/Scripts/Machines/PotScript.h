@@ -131,6 +131,18 @@ public:
         MachineScript::HandleClick();
     }
 
+    void OnHoverCursor() override
+    {
+        MachineScript::OnHoverCursor();
+
+        if (!m_Ingredients.empty() && GetPotResult() == IngredientType::None)
+        {
+            GetScene()->GetWorld().GetEventBus().Publish(MachineNeedsMoreIngredientsEvent{
+                    m_Entity, 0.2f
+            });
+        }
+    }
+
     bool AddIngredient(IngredientType type, const std::vector<IngredientType>& pastIngredients = {}, const std::vector<std::string>& pastMachines = {}) override
     {
         if (!CanAcceptIngredient(type))
@@ -160,6 +172,9 @@ public:
         else
         {
             spdlog::info("Garnek: Przyjeto skladnik, czekam na reszte...");
+            GetScene()->GetWorld().GetEventBus().Publish(MachineNeedsMoreIngredientsEvent{
+                    m_Entity, 0.5f
+            });
         }
 
         UpdateVisuals();
@@ -212,8 +227,8 @@ protected:
 
             DishHistory history;
             history.BaseIngredients = m_DeepHistory;
-            history.MachineHistory = m_MachineHistory; // <-- Nowość
-            history.MachineHistory.push_back("Pot");   // <-- Nowość
+            history.MachineHistory = m_MachineHistory;
+            history.MachineHistory.push_back("Pot");
             history.OriginMachine = "Pot";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
         }
@@ -250,29 +265,25 @@ protected:
         {
             if (pScript->AddIngredient(GetPotResult(), m_IsAutomated))
             {
-                // 1. Kopiowanie historii
                 if (!m_DeepHistory.empty()) {
                     pScript->m_DeepHistory.insert(pScript->m_DeepHistory.end(), m_DeepHistory.begin(), m_DeepHistory.end());
                 }
                 pScript->m_MachineHistory.insert(pScript->m_MachineHistory.end(), m_MachineHistory.begin(), m_MachineHistory.end());
                 pScript->m_MachineHistory.push_back("Pot");
 
-                // --- 2. NOWOŚĆ: Rejestracja nowej encji wizualnej w GameManagerze ---
                 if (!pScript->m_VisualModels.empty()) {
-                    Entity newVisualOnPlate = pScript->m_VisualModels.back(); // To jest nasze nowe ID (np. 212)
+                    Entity newVisualOnPlate = pScript->m_VisualModels.back();
 
                     DishHistory history;
                     history.BaseIngredients = pScript->m_DeepHistory;
                     history.MachineHistory = pScript->m_MachineHistory;
                     history.OriginMachine = "Pot";
 
-                    // Mówimy GameManagerowi: "Hej, pod tym ID kryje się zupa z Garnka!"
                     GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ newVisualOnPlate, history });
                 }
 
                 spdlog::info("Garnek: Danie przelozone na talerz i zarejestrowane w pamici pod nowym ID!");
 
-                // 3. Czyszczenie garnka
                 if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
                     GetScene()->DestroyEntity(m_SpawnedFood);
                     m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };

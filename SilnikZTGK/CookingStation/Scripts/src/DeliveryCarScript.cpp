@@ -266,11 +266,6 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             shouldPlayEngine = true;
             engineVolume = 0.2f;
 
-            if (!m_TireTracksSpawned) {
-                SpawnTireTracks();
-                m_TireTracksSpawned = true;
-            }
-
             glm::vec3 dir = m_ExitPos - currentPos;
             float dist = glm::length(dir);
             float stepDistance = m_Speed * (float)ts.GetSeconds();
@@ -308,27 +303,4 @@ void DeliveryCarScript::OnUpdate(Timestep ts)
             }
         }
     }
-}
-
-void DeliveryCarScript::SpawnTireTracks()
-{
-    if (!GetScene()) return;
-
-    auto* transform = GetComponent<TransformComponent>();
-    if (!transform) return;
-
-    glm::vec3 carPos = {-19.0f, 0.0f, 4.0f};
-
-    float yOffset = 0.0f;
-
-    if (m_TireTrackPrefabPath.empty() || m_TireTrackPrefabPath.empty()) {
-        spdlog::warn("[DeliveryCar] Brak ścieżek do prefabów śladów opon!");
-        return;
-    }
-
-    glm::vec3 leftPos = carPos;
-    leftPos.y += yOffset;
-
-    PrefabSerializer::Deserialize(GetScene(), m_TireTrackPrefabPath, carPos);
-
 }

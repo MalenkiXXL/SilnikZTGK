@@ -90,6 +90,7 @@ void GameGuiLayer::OnAttach()
             }
 
             m_HasShownOrderHint = false;
+            m_ShowMushroomBubble = false;
             m_RecipeBookPanel.Reset();
 
             m_ActiveScene = SceneManager::GetActiveScene();
@@ -201,6 +202,7 @@ void GameGuiLayer::OnAttach()
         if (m_BuildModePanel.IsActive()) {
             m_BuildModePanel.Deactivate();
         }
+        m_ShowMushroomBubble = false;
         });
 }
 
