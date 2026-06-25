@@ -173,7 +173,6 @@ protected:
         auto* myTransform = GetComponent<TransformComponent>();
         if (!myTransform) return;
 
-        // 1. Jeśli pusto, usuń model
         if (m_Ingredients.empty())
         {
             if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
@@ -183,15 +182,13 @@ protected:
             return;
         }
 
-        // 2. Ustalanie typu wizualnego (priorytet: gotowe danie > pojedynczy składnik)
-        IngredientType visualType = m_Ingredients[0]; // Domyślnie pierwszy
+        IngredientType visualType = m_Ingredients[0]; 
 
         if (m_IsReady)
         {
             bool hasHam = HasIngredient(IngredientType::ChoppedHam);
             bool hasTomato = HasIngredient(IngredientType::ChoppedTomato);
 
-            // Logika gotowego dania
             visualType = IngredientType::FriedEgg;
             if (hasHam) visualType = IngredientType::EggWithHam;
             else if (hasTomato) visualType = IngredientType::Shakshuka;
@@ -201,14 +198,12 @@ protected:
             visualType = m_Ingredients.back();
         }
 
-        // 3. Spawnowanie lub aktualizacja istniejącego modelu
         if (m_SpawnedFood.id == std::numeric_limits<std::size_t>::max())
         {
             m_SpawnedFood = SpawnMachineFood(visualType, m_IsReady ? "Na_Patelni" : "Surowy_Skladnik");
         }
         else
         {
-            // Aktualizacja mesha istniejącego obiektu (to jest kluczowe, żeby szynka się zmieniła)
             auto* mesh = GetScene()->GetWorld().GetComponent<MeshComponent>(m_SpawnedFood);
             if (mesh)
             {
@@ -216,7 +211,6 @@ protected:
             }
         }
 
-        // 4. Update transformacji (skala, rotacja, pozycja)
         auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
         if (foodTf)
         {
@@ -243,8 +237,8 @@ protected:
 
             DishHistory history;
             history.BaseIngredients = m_DeepHistory;
-            history.MachineHistory = m_MachineHistory; // <-- Nowość
-            history.MachineHistory.push_back("Pan");   // <-- Nowość
+            history.MachineHistory = m_MachineHistory; 
+            history.MachineHistory.push_back("Pan");  
             history.OriginMachine = "Pan";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
         }

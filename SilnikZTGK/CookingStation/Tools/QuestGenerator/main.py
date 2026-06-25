@@ -7,7 +7,6 @@ from google import genai
 from google.genai import types
 from dotenv import load_dotenv
 
-# KONFIGURACJA I BEZPIECZNE KLUCZE
 load_dotenv()
 
 api_my_key = os.getenv("SERPAPI_KEY")
@@ -19,14 +18,12 @@ if not api_my_key or not gemini_key:
 cashe_file = "CookingStation/Assets/news_cache.json"
 cache_expiry_seconds = 3600
 
-# Twardy słownik dozwolonych dań w grze
 ALLOWED_DISHES = [
     "TomatoSoup", "Caprese", "Baguette", "FriedEgg", "EggWithHam", "Shakshuka",
 ]
 
 client = genai.Client(api_key=gemini_key)
 
-# 1. FUNKCJE POMOCNICZE
 def remove_polish_chars(text):
     """Fallback chroniący silnik C++ przed błędami kodowania w stringach."""
     replacements = {'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n', 'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z',
@@ -61,7 +58,6 @@ def get_news():
         print(f"[Błąd API] Nie udało się pobrać newsów: {e}")
         return None
 
-# 2. GENERATOR (LLM)
 def generate_quests(news_context, feedback=""):
     print("[Generator] Tworzenie wstepnego zadania...")
     feedback_instruction = f"\nLAST ATTEMPT REJECTED. FIX THESE ERRORS: {feedback}\n" if feedback else ""
@@ -117,7 +113,6 @@ def generate_quests(news_context, feedback=""):
         print(f"[Błąd Generatora] {e}")
         return None
 
-# 3. SĘDZIA (LLM-As-A-Judge)
 def evaluate_quests_with_judge(quests_json, news_context):
     print("[Sedzia] Trwa ewaluacja semantyczna zadania...")
     
@@ -163,7 +158,6 @@ def evaluate_quests_with_judge(quests_json, news_context):
         print(f"[Blad Sedziego] {e}")
         return {"passed": False, "feedback": "Judge API is not responding."}
 
-# 4. GŁÓWNA PĘTLA (Self-Correction Loop)
 if __name__ == "__main__":
     print("\n--- INICJALIZACJA SYSTEMU PCG ---")
     
@@ -224,7 +218,6 @@ if __name__ == "__main__":
             current_feedback = evaluation["feedback"]
             attempts += 1
 
-    # 5. ZAPIS ATOMOWY
     output_dir = "CookingStation/Assets"
     os.makedirs(output_dir, exist_ok=True)
     final_path = os.path.join(output_dir, "wygenerowane_quests.json")

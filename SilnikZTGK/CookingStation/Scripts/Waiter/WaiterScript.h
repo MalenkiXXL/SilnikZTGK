@@ -100,7 +100,6 @@ public:
 
         auto& bus = GetScene()->GetWorld().GetEventBus();
 
-        // Dodawanie Zdarzeń zgodnie ze ścisłą osią czasu (1 do 1 jak wystąpiły w grze)
         m_CustomerSubId = bus.Subscribe<CustomerSeatedEvent>([this](const CustomerSeatedEvent& e) {
             m_TaskQueue.push_back({ 0, e.Customer });
             });
@@ -827,7 +826,6 @@ protected:
         ExportGridToFile();
     }
 
-    // funkcja pokazująca mapę dla kelnera
     void ExportGridToFile()
     {
 #ifndef CS_DISTRIBUTION

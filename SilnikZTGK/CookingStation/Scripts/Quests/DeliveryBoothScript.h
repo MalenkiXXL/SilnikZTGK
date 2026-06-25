@@ -57,7 +57,6 @@ public:
         auto* transform = GetComponent<TransformComponent>();
         if (transform)
         {
-            // 1. Zabezpieczenie na radiany, które uciekło przy merge'u
             float rotationY = glm::degrees(transform->GetRotation().y);
 
             if (std::abs(rotationY - 90.0f) < 5.0f || std::abs(rotationY - (-270.0f)) < 5.0f)

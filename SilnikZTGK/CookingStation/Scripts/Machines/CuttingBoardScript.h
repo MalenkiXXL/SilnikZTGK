@@ -430,8 +430,8 @@ protected:
         {
             DishHistory history;
             history.BaseIngredients = m_DeepHistory;
-            history.MachineHistory = m_MachineHistory; // <-- Nowość
-            history.MachineHistory.push_back("CuttingBoard"); // <-- Nowość
+            history.MachineHistory = m_MachineHistory;
+            history.MachineHistory.push_back("CuttingBoard"); 
             history.OriginMachine = "CuttingBoard";
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
             spdlog::info("Składnik pokrojony i wpisany do rejestru historii.");

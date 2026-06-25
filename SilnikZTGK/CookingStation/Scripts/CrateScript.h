@@ -261,7 +261,6 @@ private:
 
     bool SpawnIngredientOnConveyor()
     {
-        // ... (reszta Twojej oryginalnej metody SpawnIngredientOnConveyor - jest bezbłędna)
         Entity closestConveyor = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 3.5f;
         glm::vec3 spawnPos = GetComponent<TransformComponent>()->GetPosition();

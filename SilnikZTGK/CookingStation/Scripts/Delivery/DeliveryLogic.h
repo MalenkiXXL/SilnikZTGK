@@ -22,7 +22,6 @@ public:
 
         spdlog::info("--- AI DOSTAW: Rozpoczynam analize potrzeb ---");
 
-        // --- WĘZEŁ 1: Priorytet - Zamówienia klientów ---
         for (const auto& order : activeOrders) {
             IngredientType neededType = order.WantedDish;
             if (currentInventory[neededType] > 0) {
@@ -42,7 +41,6 @@ public:
             }
         }
 
-        // --- WĘZEŁ 2: Uzupełnianie zapasów wg progów minimalnych ---
         for (const auto& [type, threshold] : minThresholds) {
             if (currentInventory[type] < threshold) {
                 if (std::find(selectedIngredients.begin(), selectedIngredients.end(), type) == selectedIngredients.end()) {
@@ -57,13 +55,11 @@ public:
             }
         }
 
-        // Jeśli nikt nic nie zamawia i niczego nie brakuje
         if (selectedIngredients.empty()) {
             spdlog::info("[WEZEL 3] Brak brakow. Nie zamawiam nic (None).");
             return { IngredientType::None };
         }
 
-        // --- WĘZEŁ 3: Wypełniacz (zawsze dajemy graczowi 2 opcje) ---
         for (const auto& [type, threshold] : minThresholds) {
             if (std::find(selectedIngredients.begin(), selectedIngredients.end(), type) == selectedIngredients.end()) {
                 selectedIngredients.push_back(type);

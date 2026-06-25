@@ -131,7 +131,6 @@ public:
             }
         }
 
-        // Logika mieszania
         if (!m_IsReady)
         {
             if (GetMixerResult() != IngredientType::None)
@@ -158,7 +157,6 @@ public:
 
         m_Ingredients.push_back(type);
 
-        // Łączenie historii w całość
         m_DeepHistory.insert(m_DeepHistory.end(), pastIngredients.begin(), pastIngredients.end());
         m_DeepHistory.push_back(type);
         m_MachineHistory.insert(m_MachineHistory.end(), pastMachines.begin(), pastMachines.end());
@@ -320,7 +318,6 @@ protected:
                 history.BaseIngredients = { IngredientType::Apple, IngredientType::Milk };
             }
             else {
-                // Domyślne zachowanie dla reszty 
                 history.BaseIngredients = m_DeepHistory;
                 for (auto ing : m_Ingredients) {
                     history.BaseIngredients.push_back(ing);

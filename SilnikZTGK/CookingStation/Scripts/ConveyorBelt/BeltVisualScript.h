@@ -1,7 +1,7 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
-#include "CookingStation/Events/GameEvents.h" // Dodaj to!
+#include "CookingStation/Events/GameEvents.h" 
 
 class BeltVisualScript : public ScriptableEntity
 {

@@ -19,7 +19,6 @@
     <ClCompile Include="CookingStation\Layers\EditorLayer\EditorLayer.cpp" />
     <ClCompile Include="CookingStation\Layers\GameLayer\GameLayer.cpp" />
     <ClCompile Include="CookingStation\Tools\QuestGenerator\QuestManager.h" />
-    <ClCompile Include="gettingStarted.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="CookingStation\Core\Input.cpp" />
     <ClCompile Include="CookingStation\Core\Layer.cpp" />

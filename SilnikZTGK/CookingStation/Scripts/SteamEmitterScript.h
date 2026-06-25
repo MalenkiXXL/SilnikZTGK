@@ -9,12 +9,10 @@ public:
 	{
 		ParticleEmitterScript::OnCreate();
 
-		//ładujemy tekstury
 		ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle.png"));
 		ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle2.png"));
 		ParticleTemplate.Textures.push_back(AssetManager::GetTexture2D("assets://particles/PotParticle3.png"));
 
-		//parametry pary wodnej
 		ParticleTemplate.PositionOffset = { 0.0f, 0.4f, 0.5f };
 
 		ParticleTemplate.ColorBegin = { 1.0f, 1.0f, 1.0f, 1.0f };

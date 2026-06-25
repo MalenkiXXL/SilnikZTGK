@@ -23,7 +23,6 @@ int PlateSpawnerScript::CalculateMaxPlates()
         return 1;
     }
 
-    // --- Oryginalna logika dla normalnych map ---
     int maxPlates = 6;
 
     if (GameManagerScript::s_Instance) {

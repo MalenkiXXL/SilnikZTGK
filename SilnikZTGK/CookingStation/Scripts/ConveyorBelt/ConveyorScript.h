@@ -1,6 +1,6 @@
 #pragma once
 #include "CookingStation/Scene/ScriptableEntity.h"
-#include "CookingStation/Events/GameEvents.h" // To naprawia błąd "niezadeklarowany identyfikator"
+#include "CookingStation/Events/GameEvents.h" 
 #include <glm/glm.hpp>
 #include "CookingStation/Core/Input.h"
 #include "CookingStation/Core/AudioEngine.h"

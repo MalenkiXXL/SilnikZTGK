@@ -43,12 +43,10 @@ public:
         {
             ClearHighlight();
 
-            // Zachowujemy stare ID przed próbą przekazania
             Entity foodBeforeTransfer = m_SpawnedFood;
 
             OnTransferToPlate(targetPlate);
 
-            // Jeśli m_SpawnedFood się zmieniło (zostało zresetowane w PlaceSpawnedFoodOnPlate), to znaczy, że transfer się udał!
             if (m_SpawnedFood.id != foodBeforeTransfer.id)
             {
                 ResetMachineState();
@@ -219,11 +217,9 @@ public:
         else {
             m_Ingredients.push_back(type);
 
-            // Magia łączenia historii! Zgrywamy przeszłość i dokładamy obecny stan:
             m_DeepHistory.insert(m_DeepHistory.end(), pastIngredients.begin(), pastIngredients.end());
-            m_DeepHistory.push_back(type); // np. surowe ciasto wchodzi na pokład
+            m_DeepHistory.push_back(type);
 
-            // Zgrywamy listę maszyn:
             m_MachineHistory.insert(m_MachineHistory.end(), pastMachines.begin(), pastMachines.end());
 
             m_IsReady = false;

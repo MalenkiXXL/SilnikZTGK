@@ -30,7 +30,6 @@ public:
         m_ClickSubId = bus.Subscribe<EntityClickedEvent>([this](const EntityClickedEvent& e) {
             if (e.TargetEntity.id == m_Entity.id) {
                 if (!Input::IsUICapturingMouse()) {
-                    // Opcjonalna obsługa kliknięcia w przedmiot na taśmie
                 }
             }
             });
@@ -76,7 +75,6 @@ public:
             }
             else
             {
-                // Przedmiot fizycznie stoi i czeka
                 if (m_CurrentConveyor) m_CurrentConveyor->IsJammed = true;
             }
         }
@@ -126,7 +124,6 @@ public:
 private:
     bool FindNextTarget(glm::vec3 currentPos)
     {
-        // 1. Zabezpieczenie: jeśli pojawiliśmy się na taśmie (np. zrzucono nas)
         if (!m_CurrentConveyor) {
             m_CurrentConveyor = GetScene()->GetConveyorAt(currentPos.x, currentPos.z);
             if (m_CurrentConveyor) m_CurrentConveyor->IsOccupied = true;
@@ -138,10 +135,8 @@ private:
 
         if (nextConveyor)
         {
-            // 2. Jeśli taśma melduje się jako wolna...
             if (!nextConveyor->IsOccupied)
             {
-                // 3. FIZYCZNY RADAR - Ostatecznie sprawdzamy, czy nic tam fizycznie nie stoi!
                 bool isPhysicallyClear = true;
                 auto* transforms = GetScene()->GetWorld().GetComponentVector<TransformComponent>();
                 auto* tags = GetScene()->GetWorld().GetComponentVector<TagComponent>();
@@ -153,7 +148,6 @@ private:
 
                         glm::vec3 otherPos = transforms->dense[i].GetPosition();
 
-                        // Skanujemy obszar przyszłego taśmociągu (i odrobinę przed nami)
                         if (glm::distance(glm::vec2(otherPos.x, otherPos.z), glm::vec2(nextPos.x, nextPos.z)) < 1.4f)
                         {
                             auto* tag = tags->Get(e);
@@ -165,7 +159,6 @@ private:
                     }
                 }
 
-                // Wjeżdżamy tylko jeśli nowa taśma jest CAŁKOWICIE w 100% PUSTA
                 if (isPhysicallyClear)
                 {
                     nextConveyor->IsOccupied = true;

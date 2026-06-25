@@ -8,9 +8,6 @@
 #include <utility>
 #include "CookingStation/Tools/QuestGenerator/QuestManager.h"
 
-// finaly
-// #include <thread>
-// #include <atomic>
 
 enum class QuestEventState {
     WaitingForTimer,   
@@ -119,7 +116,4 @@ private:
     std::vector<std::pair<Entity, glm::vec3>> m_NewMapEntities;
     Entity m_SmallFloor = { std::numeric_limits<std::size_t>::max(), 0 };
     Entity m_BigFloor = { std::numeric_limits<std::size_t>::max(), 0 };
-    // finaly
-    // std::atomic<bool> m_NewQuestsReady{false};
-    // bool m_IsGeneratingQuests = false;
 };

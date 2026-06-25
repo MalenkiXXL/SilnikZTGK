@@ -3,9 +3,8 @@
 #include "CookingStation/Renderer/Texture2D.h"
 #include <vector>
 #include <glm/glm.hpp>
-#include <cstdlib> // dla funkcji rand()
+#include <cstdlib> 
 
-// Definiuje parametry startowe
 struct ParticleProps
 {
     glm::vec3 PositionOffset = { 0.0f, 0.0f, 0.0f };
@@ -120,7 +119,6 @@ private:
         auto* transform = GetComponent<TransformComponent>();
         glm::vec3 globalPos = glm::vec3(0.0f);
         if (transform) {
-            // Wyci�gamy wektor translacji prosto z wymno�onej macierzy �wiata
             globalPos = glm::vec3(transform->WorldMatrix[3][0], transform->WorldMatrix[3][1], transform->WorldMatrix[3][2]);
         }
 

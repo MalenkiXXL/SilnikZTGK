@@ -8,37 +8,28 @@ enum class IngredientType : uint32_t
 {
     None = 0,
 
-    // Podstawowe składniki
     Tomato, ChoppedTomato, TomatoSoup, Caprese, Basil, Water,
     Cheese, ChoppedCheese, Mozzarella, ChoppedMozzarella,
     Ham, ChoppedHam,
     Milk, Flour, Potato,
 
-    // Pieczywo i ciasta
     RawDough, Baguette, CutBaguette, Sandwich,
     Bread, Cupcake, Cookies,
 
-    // Jajka
     Egg, EggWithoutShell, ChoppedEgg,
     FriedEgg, EggWithHam, Shakshuka,
 
-    // Kanapki warianty
     TomatoCheeseSandwich, HamTomatoSandwich, HamCheeseSandwich, EggSandwich,
 
-    // Makarony / Kopytka / Inne
     Kopytka, GoldenKopytka, Noodle, Spaghetti, Ramen, Fries,
 
-    // Pizza
     RawPizzaDough, Pizza, MushroomPizza, BakedPizza, CheesePizza,
     SaucePizza, HamPizza, HamMushroomPizza, HamMushroomTomatoPizza,
 
-    // Grzyby i warzywa
     Mushroom, ChoppedMushroom, Carrot,
 
-    // Słodkie / Owoce
     Apple, Raspberry, Strawberry, ApplePie, Pancakes, Honey, MilkWithHoney, Candy, ChoppedApple, RawApplePie,
 
-    // Napoje
     Coffee, MilkCoffee, CoffeeBeans, ShakeCup, AppleShake, CoffeeShake, RaspberryShake, StrawberryShake,
 
     SleepyDust, RawSleepyDough, SleepyBread,
@@ -50,7 +41,6 @@ enum class IngredientType : uint32_t
     ChoppedPotato, RawKopytkaDough
 };
 
-// Struktura trzymająca metadane składnika
 struct IngredientMetadata {
     glm::vec3 scale;
     glm::vec3 rotation;
@@ -142,7 +132,6 @@ inline std::string IngredientTypeToString(IngredientType type)
     }
 }
 
-// Metadane składnika, rotacja, skala
 inline IngredientMetadata GetIngredientMetadata(IngredientType type)
 {
     switch (type)
@@ -237,7 +226,6 @@ inline IngredientMetadata GetIngredientMetadata(IngredientType type)
 inline std::string GetModelPath(IngredientType type)
 {
     switch (type) {
-        // Pomidory i pochodne
         case IngredientType::Tomato:                    return "assets://models/skladniki/pomidor/pomidor.gltf";
         case IngredientType::ChoppedTomato:             return "assets://models/skladniki/pomidor/pomidor-pokrojony.gltf";
         case IngredientType::TomatoSoup:                return "assets://models/skladniki/pomidor/pomidorowa.gltf";
@@ -247,13 +235,11 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::Mozzarella:                return "assets://models/skladniki/pomidor/mozzarella.gltf";
         case IngredientType::ChoppedMozzarella:         return "assets://models/skladniki/pomidor/mozzarella-pokrojona.gltf";
 
-            // Sery i Szynki
         case IngredientType::Cheese:                    return "assets://models/skladniki/ser/ser.gltf";
         case IngredientType::ChoppedCheese:             return "assets://models/skladniki/ser/ser-pokrojony.gltf";
         case IngredientType::Ham:                       return "assets://models/skladniki/szynka/szynka.gltf";
         case IngredientType::ChoppedHam:                return "assets://models/skladniki/szynka/szynka-pokrojona.gltf";
 
-            // Pieczywo i ciasta
         case IngredientType::RawDough:                  return "assets://models/skladniki/ciasta-v2/ciasto-bagietka.gltf";
         case IngredientType::Baguette:                  return "assets://models/skladniki/bagietka/bagietka.gltf";
         case IngredientType::CutBaguette:               return "assets://models/skladniki/bagietka/bagietka-przekrojona.gltf";
@@ -263,7 +249,6 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::Cookies:                   return "assets://models/skladniki/ciastka/ciastka.gltf";
         case IngredientType::Flour:                     return "assets://models/skladniki/maka/maka.gltf";
 
-            // Jajka
         case IngredientType::Egg:                       return "assets://models/skladniki/jajko_w_skorupce/egg_withshell.gltf";
         case IngredientType::EggWithoutShell:           return "assets://models/skladniki/jajko_bez/egg_withoutshell.gltf";
         case IngredientType::ChoppedEgg:                return "assets://models/skladniki/jajko_pokrojone/egg_cut.gltf";
@@ -271,13 +256,11 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::EggWithHam:                return "assets://models/skladniki/jajko-dania/jajo-bekon.gltf";
         case IngredientType::Shakshuka:                 return "assets://models/skladniki/jajko-dania/szakszuka.gltf";
 
-            // Różne Kanapki
         case IngredientType::TomatoCheeseSandwich:      return "assets://models/skladniki/kanapki/kanapka_pomidor_ser.gltf";
         case IngredientType::HamTomatoSandwich:         return "assets://models/skladniki/kanapki/kanapka_szynka_pomidor.gltf";
         case IngredientType::HamCheeseSandwich:         return "assets://models/skladniki/kanapki/kanapka_szynka_ser.gltf";
         case IngredientType::EggSandwich:               return "assets://models/skladniki/kanapki/kanapka_z_jajkiem.gltf";
 
-            // Obiadowe (Makarony, Ziemniaki, Frytki)
         case IngredientType::Potato:                    return "assets://models/skladniki/ziemniak/potato2.gltf";
         case IngredientType::Fries:                     return "assets://models/skladniki/frytki/frytki.gltf";
         case IngredientType::Kopytka:                   return "assets://models/skladniki/kopytka/kopytka.gltf";
@@ -286,7 +269,6 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::Spaghetti:                 return "assets://models/skladniki/spagetti/spagetti.gltf";
         case IngredientType::Ramen:                     return "assets://models/skladniki/ramen/ramen.gltf";
 
-            // Pizza
         case IngredientType::RawPizzaDough:             return "assets://models/skladniki/ciasta_nieupieczone/ciasto-pizza.gltf";
         case IngredientType::Pizza:                     return "assets://models/skladniki/pizza/pizza.gltf";
         case IngredientType::MushroomPizza:             return "assets://models/skladniki/pizza/pizza_pieczarki.gltf";
@@ -297,12 +279,10 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::HamMushroomPizza:          return "assets://models/skladniki/pizza/pizza_z_szynka_pieczarki.gltf";
         case IngredientType::HamMushroomTomatoPizza:    return "assets://models/skladniki/pizza/pizza_z_szynka_pieczarki_pomidor.gltf";
 
-            // Warzywa i grzyby
         case IngredientType::Mushroom:                  return "assets://models/skladniki/pieczarka/pieczarka.gltf";
         case IngredientType::ChoppedMushroom:           return "assets://models/skladniki/pieczarka/pokrojona_pieczarka.gltf";
         case IngredientType::Carrot:                    return "assets://models/skladniki/marchewka/carrot1.gltf";
 
-            // Owoce i desery
         case IngredientType::Apple:                     return "assets://models/skladniki/jablko/apple1.gltf";
         case IngredientType::ApplePie:                  return "assets://models/skladniki/szarlotka/apple_pie.gltf";
         case IngredientType::Raspberry:                 return "assets://models/skladniki/malina/malina.gltf";
@@ -311,7 +291,6 @@ inline std::string GetModelPath(IngredientType type)
         case IngredientType::Honey:                     return "assets://models/skladniki/miod/jar1.gltf";
         case IngredientType::Candy:                     return "assets://models/skladniki/cukierek/cukierek.gltf";
 
-            // Napoje / Mleczne
         case IngredientType::Milk:                      return "assets://models/skladniki/mleko/milk.gltf";
         case IngredientType::MilkWithHoney:             return "assets://models/skladniki/mleko_z_miodem/milk_with_honey.gltf";
         case IngredientType::Coffee:                    return "assets://models/skladniki/napoje/kawa-mleko.gltf";
@@ -346,7 +325,6 @@ inline std::string GetUIIconPathForIngredient(IngredientType type)
 {
     switch (type)
     {
-        // Podstawowe składniki
         case IngredientType::Tomato:        return "assets://UI/Tomato.png";
         case IngredientType::Cheese:        return "assets://UI/Cheese.png";
         case IngredientType::Ham:           return "assets://UI/ham.png";
@@ -355,13 +333,11 @@ inline std::string GetUIIconPathForIngredient(IngredientType type)
         case IngredientType::Egg:           return "assets://UI/egg.png";
         case IngredientType::Potato:        return "assets://UI/potato.png";
 
-            // Warzywa i Owoce
         case IngredientType::Carrot:        return "assets://UI/carrot.png";
         case IngredientType::Apple:         return "assets://UI/Apple.png";
         case IngredientType::Raspberry:     return "assets://UI/raspberry.png";
         case IngredientType::Strawberry:    return "assets://UI/strawberry.png";
 
-            // Inne bazowe produkty
         case IngredientType::Baguette:      return "assets://UI/Baguette.png";
         case IngredientType::Mozzarella:    return "assets://UI/mozarella.png";
         case IngredientType::CoffeeBeans:   return "assets://UI/coffeBean.png";
@@ -442,7 +418,6 @@ inline bool IsFinishedDish(IngredientType type)
 
 inline bool IsSweet(IngredientType type)
 {
-    // Owoce, słodkie wypieki, słodycze
     return type == IngredientType::Apple ||
            type == IngredientType::Raspberry ||
            type == IngredientType::Strawberry ||
@@ -462,7 +437,6 @@ inline bool IsSweet(IngredientType type)
 
 inline bool IsSavory(IngredientType type)
 {
-    // Warzywa, mięsa, sery, dania główne
     return type == IngredientType::Tomato ||
            type == IngredientType::ChoppedTomato ||
            type == IngredientType::Cheese ||

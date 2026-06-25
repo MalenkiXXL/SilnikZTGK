@@ -17,8 +17,8 @@ private:
     Entity m_TargetCustomer = { std::numeric_limits<std::size_t>::max(), 0 };
     Entity m_TargetFood = { std::numeric_limits<std::size_t>::max(), 0 };
 
-    float m_Speed = 5.0f;         // Pr�dko�� chodzenia
-    float m_InteractRange = 0.1f; // Zasi�g r�k kelnera
+    float m_Speed = 5.0f;       
+    float m_InteractRange = 0.1f;
 
     void SetDusting(bool state)
     {
@@ -45,10 +45,8 @@ public:
         auto* transform = GetComponent<TransformComponent>();
         if (!transform) return;
 
-        // Maszyna stan�w grzybola
         if (m_State == WaiterState::Idle)
         {
-            // Zatrzymujemy animacj�, gdy stoi
             if (animComp && animComp->AnimatorInstance) animComp->IsPlaying = false;
 
             SetDusting(false);
@@ -57,7 +55,6 @@ public:
         }
         else if (m_State == WaiterState::FetchingFood)
         {
-            // Odpalamy animacj� chodzenia
             if (animComp && animComp->AnimatorInstance) {
                 animComp->AnimatorInstance->PlayAnimation("Walk");
                 animComp->IsPlaying = true;
@@ -65,7 +62,7 @@ public:
 
             auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_TargetFood);
             if (!foodTransform) {
-                m_State = WaiterState::Idle; // Jedzenie znikn�o, wracamy do szukania
+                m_State = WaiterState::Idle;
                 return;
             }
 
@@ -112,12 +109,10 @@ private:
 
         if (glm::length(direction) > 0.01f)
         {
-            // Normalizujemy kierunek �eby mia� sta�� pr�dko��  
             direction = glm::normalize(direction);
             myPos += direction * m_Speed * dt;
             myTransform->SetPosition(myPos);
 
-            // Grzybek patrzy w kierunku ruchu
             float angle = glm::degrees(atan2(direction.x, direction.z));
             myTransform->SetRotation(glm::vec3(0.0f, angle, 0.0f));
 
@@ -140,7 +135,6 @@ private:
 
         if (!tags || !scripts) return;
 
-        // Szukamy gotowego dania
         for (size_t i = 0; i < tags->dense.size(); ++i)
         {
             if (tags->dense[i].Tag == "UgotowaneDanie") {
@@ -182,7 +176,6 @@ private:
                     {
                         CustomerScript* custScript = nullptr;
 
-                        // Przeszukujemy list� podpi�tych skrypt�w w tym kliencie
                         for (auto& s : nsc->Scripts)
                         {
                             if (s.Name == "CustomerScript" || s.Name == "HelperCustomerScript")
