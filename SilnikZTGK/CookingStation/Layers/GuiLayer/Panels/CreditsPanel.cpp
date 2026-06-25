@@ -17,8 +17,6 @@ void CreditsPanel::Draw(float baseScale) {
     auto windowSize = Input::GetWindowSize();
     float screenW = (float)windowSize.first;
     float screenH = (float)windowSize.second;
-
-    // To samo tlo co w SettingsMenuPanel - zachowujemy spojny styl UI.
     auto boardTex = AssetManager::GetTexture("assets://UI/cuttingBoard.png");
     auto backBtnTex = AssetManager::GetTexture("assets://UI/backButton.png");
 
@@ -46,28 +44,23 @@ void CreditsPanel::Draw(float baseScale) {
         Gui::Panel(panelPos, boardSize, { 0.12f, 0.12f, 0.15f, 0.95f }, 20.0f * baseScale);
     }
 
-    // Wspolny kolor dla tekstu pomocniczego - troche ciemniejszy/cieplejszy
-    // niz poprzedni jasny szary, zeby nie zlewal sie z jasnym tlem deski.
-    glm::vec4 mutedTextColor = { 0.32f, 0.30f, 0.27f, 1.0f };
+    glm::vec4 mutedTextColor = { 0.31f, 0.19f, 0.11f, 1.0f };
 
-    // --- TYTUL ---
     float titleScale = 1.6f * baseScale;
     float titleW = Gui::MeasureTextWidth("CREDITS", titleScale);
     Gui::DrawGuiText("CREDITS", { panelPos.x + (boardSize.x - titleW) * 0.5f, panelPos.y + 80.0f * baseScale }, titleScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-    // Podtytul: nazwa gry + wersja (placeholder - podmienic na docelowe dane)
     std::string subtitleText = m_GameTitlePlaceholder + " - " + m_VersionPlaceholder;
-    float subtitleScale = 0.6f * baseScale;
+    float subtitleScale = 0.8f * baseScale;
     float subtitleW = Gui::MeasureTextWidth(subtitleText, subtitleScale);
     Gui::DrawGuiText(subtitleText, { panelPos.x + (boardSize.x - subtitleW) * 0.5f, panelPos.y + 120.0f * baseScale }, subtitleScale, mutedTextColor);
 
-    // --- LISTA TWORCOW ---
     float startY = panelPos.y + 200.0f * baseScale;
     float rowGap = 68.0f * baseScale;
 
     float nameScale = 0.85f * baseScale;
-    float roleScale = 0.6f * baseScale;
-    float roleOffsetY = 32.0f * baseScale;
+    float roleScale = 0.75f * baseScale;
+    float roleOffsetY = 40.0f * baseScale;
 
     for (size_t i = 0; i < m_Credits.size(); i++) {
         float rowY = startY + rowGap * (float)i;
@@ -80,9 +73,6 @@ void CreditsPanel::Draw(float baseScale) {
         Gui::DrawGuiText(entry.Role, { panelPos.x + (boardSize.x - roleW) * 0.5f, rowY + roleOffsetY }, roleScale, mutedTextColor);
     }
 
-    // --- STOPKA + DODATKOWE INFORMACJE (placeholder) ---
-    // Prosty word-wrap, zeby dluzsze zdania ladnie mieScily sie na desce
-    // niezaleznie od jej faktycznej szerokosci (zalezy od aspectu tekstury).
     float maxTextWidth = boardSize.x * 0.80f;
     auto wrapText = [&](const std::string& text, float scale) -> std::vector<std::string> {
         std::vector<std::string> lines;
@@ -118,29 +108,23 @@ void CreditsPanel::Draw(float baseScale) {
         }
         };
 
-    float footerScale = 0.5f * baseScale;
-    float lineGap = 27.0f * baseScale;
+    float footerScale = 0.65f * baseScale;
+    float lineGap = 35.0f * baseScale;
 
     drawWrappedCentered(m_FooterPlaceholder, footerScale, mutedTextColor, lineGap);
 
-    bottomCursorY += 14.0f * baseScale; // odstep miedzy stopka a sekcja konkursowa
+    bottomCursorY += 20.0f * baseScale;
 
     drawWrappedCentered(m_CompetitionInfoPlaceholder, footerScale, mutedTextColor, lineGap);
 
-    bottomCursorY += 14.0f * baseScale;
+    bottomCursorY += 20.0f * baseScale;
 
-    drawWrappedCentered(m_FeedbackCallPlaceholder, footerScale, mutedTextColor, lineGap);
 
-    bottomCursorY += 18.0f * baseScale;
-
-    // "Contact info:" jako mini-naglowek tej sekcji - nieco wiekszy, ale wciaz
-    // w tej samej, ciemniejszej tonacji co reszta tekstu pomocniczego.
-    float contactLabelScale = 0.58f * baseScale;
+    float contactLabelScale = 0.7f * baseScale;
     drawWrappedCentered(m_ContactLabelPlaceholder, contactLabelScale, mutedTextColor, lineGap);
 
     drawWrappedCentered(m_ContactDetailsPlaceholder, footerScale, mutedTextColor, lineGap);
 
-    // --- INTERAKCJA / PRZYCISK BACK ---
     glm::vec2 mouse = Gui::GetMappedMousePos();
     auto isHov = [&](glm::vec2 p, glm::vec2 s) {
         return mouse.x >= p.x && mouse.x <= p.x + s.x && mouse.y >= p.y && mouse.y <= p.y + s.y;
