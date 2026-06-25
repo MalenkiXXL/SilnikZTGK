@@ -119,7 +119,7 @@ bool SceneSerializer::Deserialize(const std::string& path) {
             }
 
 
-            std::string animType = "legacy"; // Domyślnie dla starych obiektów
+            std::string animType = "legacy"; 
             if (item.contains("animator") && item["animator"].contains("type")) {
                 animType = item["animator"]["type"].get<std::string>();
             }
@@ -143,7 +143,6 @@ bool SceneSerializer::Deserialize(const std::string& path) {
                 spdlog::info("[SceneSerializer] Wczytano TransformAnimatorComponent dla: {}", name);
             }
             else if (model) {
-                // Zwykły Animator szkieletowy
                 AnimatorComponent animComp;
                 if (SceneSerializer::ParseAnimatorFromJson(item, model, animComp)) {
                     builder.With<AnimatorComponent>(animComp);

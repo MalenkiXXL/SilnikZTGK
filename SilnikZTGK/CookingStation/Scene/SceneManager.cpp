@@ -19,6 +19,5 @@ void SceneManager::SetActiveScene(std::shared_ptr<Scene> scene)
 }
 
 void SceneManager::Shutdown() {
-	// To usunie wszystkie modele i obiekty 3D przypisane do sceny
 	s_ActiveScene.reset();
 }

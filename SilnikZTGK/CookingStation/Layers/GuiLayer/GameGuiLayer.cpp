@@ -347,7 +347,6 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         }
 
         if (isPlaying) {
-            // Usuwamy karteczk� tylko, gdy klient odchodzi, albo jako� uciek� z kolejki
             if (!custScript || custScript->IsPendingDestroy ||
                 (custScript->IsServed && custScript->State != CustomerState::LeavingReaction)) {
                 it = m_ActiveOrderTickets.erase(it);
@@ -357,7 +356,6 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         ++it;
     }
 
-    // --- STRUKTURA DO ZARZ�DZANIA PI�KNYMI ANIMACJAMI KARTECZEK ---
     struct TicketAnimState {
         float introTimer = 0.0f;
         float currentY = -1.0f;
@@ -365,7 +363,6 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
     };
     static std::unordered_map<std::size_t, TicketAnimState> s_TicketStates;
 
-    // Czyszczenie usuni�tych karteczek z pami�ci
     for (auto it = s_TicketStates.begin(); it != s_TicketStates.end(); ) {
         bool found = false;
         for (auto& cust : m_ActiveOrderTickets) {
@@ -402,24 +399,19 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         if (!ticketTex) ticketTex = m_BookCloudIcon;
 
         if (ticketTex) {
-            // --- LOGIKA ANIMACJI P�YNNEGO PRZESUWANIA I WJE�D�ANIA ---
             auto& state = s_TicketStates[custEntity.id];
 
-            // Wjazd z boku
             state.introTimer += dt * 3.5f;
             if (state.introTimer > 1.0f) state.introTimer = 1.0f;
 
-            // Animacja przesuwania w pionie (gdy jedna karteczka znika, reszta p�ynnie jedzie do g�ry)
-            if (state.currentY < 0.0f) state.currentY = targetY; // Pojawia si� od razu na swoim miejscu
-            else state.currentY += (targetY - state.currentY) * dt * 12.0f; // Mi�kki ruch na now� pozycj�
+            if (state.currentY < 0.0f) state.currentY = targetY;
+            else state.currentY += (targetY - state.currentY) * dt * 12.0f; 
 
-            // Animacja ro�ni�cia (gdy karteczka staje si� t� "pierwsz�" i najwa�niejsz�)
             if (state.currentHeight < 0.0f) state.currentHeight = targetHeight;
             else state.currentHeight += (targetHeight - state.currentHeight) * dt * 10.0f;
 
-            // Wyliczanie pi�knego wyhamowania
             float easeIn = 1.0f - std::pow(1.0f - state.introTimer, 3.0f);
-            float offsetX = (1.0f - easeIn) * (300.0f * baseScale); // Startuje 300px z prawej kraw�dzi
+            float offsetX = (1.0f - easeIn) * (300.0f * baseScale);
 
             glm::vec2 ticketSize = GuiUtils::CalculateAspectSize(ticketTex, state.currentHeight);
             glm::vec2 ticketPos = { gameX + gameWidth - ticketSize.x - rightMargin + offsetX, state.currentY };
@@ -427,22 +419,18 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
             glm::vec4 ticketColor = { 1.0f, 1.0f, 1.0f, 1.0f };
             if (custScript && custScript->State == CustomerState::LeavingReaction) {
                 if (custScript->m_WasCorrect)
-                    ticketColor = { 0.75f, 1.0f, 0.75f, 1.0f }; // Jasna pastelowa ziele�
+                    ticketColor = { 0.75f, 1.0f, 0.75f, 1.0f }; 
                 else
-                    ticketColor = { 1.0f, 0.75f, 0.75f, 1.0f }; // Malinowy r�
+                    ticketColor = { 1.0f, 0.75f, 0.75f, 1.0f }; 
             }
 
-            // Renderowanie samej karteczki
             Renderer2D::DrawQuad(ticketPos, ticketSize, ticketTex, ticketColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-            // --- NOWE: Identyczny, pulsujący blask jak w książce z przepisami ---
             if (isFirst && m_OrderHintTimer > 0.0f && !isHelper) {
-                // Obliczamy płynne zanikanie (tak samo jak dla tekstu)
                 float alphaFade = 1.0f;
                 if (m_OrderHintTimer > 9.5f) { alphaFade = (10.0f - m_OrderHintTimer) / 0.5f; }
                 else if (m_OrderHintTimer < 0.5f) { alphaFade = m_OrderHintTimer / 0.5f; }
                 alphaFade = std::clamp(alphaFade, 0.0f, 1.0f);
 
-                // Matematyka fali przeniesiona kropka w kropkę z RecipeBookPanel
                 float timeNow = glfwGetTime();
                 float wave = (std::sin(timeNow * 6.0f) + 1.0f) * 0.5f;
                 float flashSpike = std::pow(wave, 4.0f);
@@ -454,15 +442,12 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                     ticketPos.y - (glowSize.y - ticketSize.y) * 0.5f
                 };
 
-                // Kolor z uwzględnieniem fali i ogólnego zanikania podpowiedzi
                 glm::vec4 flashColor = { 1.0f, 0.65f, 0.95f, flashSpike * 0.95f * alphaFade };
                 Renderer2D::DrawQuad(glowPos, glowSize, ticketTex, flashColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
             }
-            // ------
 
 
             if (custScript) {
-                // Magiczna interpolacja: zawarto�� w �rodku ro�nie dok�adnie w tym samym tempie co papierowa karteczka!
                 float t = (state.currentHeight - 140.0f * baseScale) / (80.0f * baseScale);
                 t = std::clamp(t, 0.0f, 1.0f);
 
@@ -492,7 +477,6 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                     }
                     };
 
-                // --- POBIERANIE IKON NA PODSTAWIE WYMAGA� ---
                 std::shared_ptr<Texture> primaryIcon = getIngredientIcon(custScript->WantedIngredient);
                 std::shared_ptr<Texture> secondaryIcon = nullptr;
 
@@ -501,7 +485,7 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 }
                 else if (custScript->SecondaryReq.RequirementType == OrderSecondaryRequirement::Type::Machine) {
                     secondaryIcon = AssetManager::GetTexture(custScript->SecondaryReq.MachineIconPath);
-                    if (!secondaryIcon) secondaryIcon = m_QuestionMarkIcon; // Zabezpieczenie przed brakiem pliku
+                    if (!secondaryIcon) secondaryIcon = m_QuestionMarkIcon; 
                 }
 
                 if (primaryIcon) {
@@ -550,10 +534,8 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 }
             }
 
-            // --- NOWE: Rysowanie pływającego tekstu z podpowiedzią ---
             if (isFirst && m_OrderHintTimer > 0.0f && !isHelper) {
                 float textAlpha = 1.0f;
-                // Płynne pojawianie (przez pierwsze 0.5s) i znikanie (przez ostatnie 0.5s)
                 if (m_OrderHintTimer > 9.5f) { textAlpha = (10.0f - m_OrderHintTimer) / 0.5f; }
                 else if (m_OrderHintTimer < 0.5f) { textAlpha = m_OrderHintTimer / 0.5f; }
                 textAlpha = std::clamp(textAlpha, 0.0f, 1.0f);
@@ -563,7 +545,7 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 float hintScale = 1.0f * baseScale;
 
                 float timeNow = glfwGetTime();
-                float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale; // efekt pływania
+                float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale; 
 
                 float w1 = Gui::MeasureTextWidth(line1, hintScale);
                 float w2 = Gui::MeasureTextWidth(line2, hintScale);
@@ -573,7 +555,6 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 float lineSpacing = textH * 1.3f;
                 float totalH = textH + lineSpacing;
 
-                // Ustawiamy tekst po lewej stronie od karteczki
                 glm::vec2 blockPos = {
                     ticketPos.x - maxW - 25.0f * baseScale,
                     ticketPos.y + (state.currentHeight - totalH) * 0.5f + floatOffset
@@ -649,13 +630,9 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
     m_ActiveScene = SceneManager::GetActiveScene();
 
-    // ==============================================================
-    // KINEMATYCZNE WPROWADZENIE (Śledzenie Kelnera)
-    // ==============================================================
     if (m_IsLevelIntro && m_ActiveScene && !GameManagerScript::s_IsTutorialMode) {
         auto* camera = m_ActiveScene->GetCamera();
         if (camera) {
-            // Szukamy encji kelnera na scenie
             Entity waiterEntity = { std::numeric_limits<std::size_t>::max(), 0 };
             auto* nscArray = m_ActiveScene->GetWorld().GetComponentVector<NativeScriptComponent>();
             if (nscArray) {
@@ -670,7 +647,6 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                 }
             }
 
-            // --- NOWE: Szukamy, czy na scenie jest już jakikolwiek klient ---
             bool customerExists = false;
             if (nscArray) {
                 for (size_t i = 0; i < nscArray->dense.size(); ++i) {
@@ -687,49 +663,42 @@ void GameGuiLayer::OnUpdate(Timestep ts)
             glm::vec3 targetPos = glm::vec3(0.0f);
             float targetZoom = 45.0f;
 
-            // Zbliżenie na kelnera TYLKO, gdy klient wszedł już do restauracji
             if (!m_FirstOrderTaken && customerExists && waiterEntity.id != std::numeric_limits<std::size_t>::max()) {
                 auto* tf = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(waiterEntity);
                 if (tf) {
                     targetPos = tf->GetPosition();
-                    targetZoom = 25.0f; // Miękkie zbliżenie
+                    targetZoom = 25.0f;
                 }
             }
 
-            // Miękka, płynna interpolacja kamery ("Smooth Follow")
             camera->TargetPosition += (targetPos - camera->TargetPosition) * (dt * 2.5f);
             camera->Zoom += (targetZoom - camera->Zoom) * (dt * 2.5f);
 
-            // Wyłącz cutscenkę, gdy kelner przyjął zamówienie a kamera wróciła do normy
             if (m_FirstOrderTaken && std::abs(camera->Zoom - 45.0f) < 0.5f && glm::length(camera->TargetPosition) < 0.5f) {
                 camera->Zoom = 45.0f;
                 camera->TargetPosition = glm::vec3(0.0f);
                 m_IsLevelIntro = false;
 
-                // --- NOWE: Uruchamiamy timer podpowiedzi ---
                 if (!m_HasShownOrderHint) {
-                    m_OrderHintTimer = 10.0f; // Będzie widoczne przez 10 sekund
+                    m_OrderHintTimer = 10.0f; 
                     m_HasShownOrderHint = true;
                 }
             }
         }
     }
 
-    // ==============================================================
-    // KINEMATYCZNE WPROWADZENIE EVENTU (Wyspa)
-    // ==============================================================
+
     if (GameManagerScript::s_Instance && GameManagerScript::s_Instance->GetQuestState() == QuestEventState::WaitingForAccept) {
         if (!m_HasShownEventIntro && !GameManagerScript::s_IsTutorialMode) {
             m_IsEventIntro = true;
             m_HasShownEventIntro = true;
-            m_EventIntroTimer = 3.0f; // Kamera będzie podziwiać wyspę przez 3 sekundy
+            m_EventIntroTimer = 3.0f; 
         }
     }
 
     if (m_IsEventIntro && m_ActiveScene) {
         auto* camera = m_ActiveScene->GetCamera();
         if (camera) {
-            // Szukamy wysepki na mapie (ma tag "event_78")
             Entity islandEntity = { std::numeric_limits<std::size_t>::max(), 0 };
             auto* tags = m_ActiveScene->GetWorld().GetComponentVector<TagComponent>();
             if (tags) {
@@ -742,7 +711,7 @@ void GameGuiLayer::OnUpdate(Timestep ts)
             }
 
             glm::vec3 targetPos = glm::vec3(0.0f);
-            float targetZoom = 35.0f; // Delikatne przybliżenie (domyślne to 45.0f)
+            float targetZoom = 35.0f; 
 
             if (islandEntity.id != std::numeric_limits<std::size_t>::max()) {
                 auto* tf = m_ActiveScene->GetWorld().GetComponent<TransformComponent>(islandEntity);
@@ -751,16 +720,13 @@ void GameGuiLayer::OnUpdate(Timestep ts)
 
             if (m_EventIntroTimer > 0.0f) {
                 m_EventIntroTimer -= dt;
-                // Kamera podąża za (potencjalnie lecącą) wysepką
                 camera->TargetPosition += (targetPos - camera->TargetPosition) * (dt * 3.5f);
                 camera->Zoom += (targetZoom - camera->Zoom) * (dt * 3.0f);
             }
             else {
-                // Koniec pokazu - kamera wraca do centrum mapy i standardowego oddalenia
                 camera->TargetPosition += (glm::vec3(0.0f) - camera->TargetPosition) * (dt * 3.5f);
                 camera->Zoom += (45.0f - camera->Zoom) * (dt * 3.0f);
 
-                // Gdy kamera wróci na miejsce, całkowicie zdejmujemy blokady
                 if (std::abs(camera->Zoom - 45.0f) < 0.5f && glm::length(camera->TargetPosition) < 0.5f) {
                     camera->Zoom = 45.0f;
                     camera->TargetPosition = glm::vec3(0.0f);
@@ -769,7 +735,6 @@ void GameGuiLayer::OnUpdate(Timestep ts)
             }
         }
     }
-    // ==============================================================
 
 
 #ifdef CS_DISTRIBUTION
@@ -1652,16 +1617,15 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
     float collectW = Gui::MeasureTextWidth(collectStr, collectScale);
 
     float timeNow = glfwGetTime();
-    float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale; // Ten sam efekt pływania co w podpowiedziach
+    float floatOffset = std::sin(timeNow * 2.2f) * 5.0f * baseScale; 
 
-    // Środek pod chmurką
     glm::vec2 collectPos = {
         newCloudPos.x + (cloudW - collectW) * 0.5f,
         newCloudPos.y + cloudH + 15.0f * baseScale + floatOffset
     };
 
     glm::vec4 shadowColor = { 0.0f, 0.0f, 0.0f, 0.6f };
-    glm::vec4 textColor = { 1.0f, 0.85f, 0.2f, 1.0f }; // Dałem przyjemny, złocisty odcień dla klimatu kolekcji!
+    glm::vec4 textColor = { 1.0f, 0.85f, 0.2f, 1.0f }; 
 
     Gui::DrawGuiText(collectStr, { collectPos.x + 1.5f, collectPos.y + 1.5f }, collectScale, shadowColor);
     Gui::DrawGuiText(collectStr, collectPos, collectScale, textColor);
@@ -1686,7 +1650,6 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
     for (size_t i = 0; i < tags->dense.size(); ++i) {
         std::string tag = tags->dense[i].Tag;
 
-        // ZMIANA: Szukamy r�wnie� tag�w "ZadowolonyKlient" oraz "ZlyKlient", bo klient zmienia sw�j tag w trakcie reakcji!
         if (tag == "NormalCustomer" || tag.find("HelperCustomer") != std::string::npos ||
             tag == "ZadowolonyKlient" || tag == "ZlyKlient")
         {
@@ -1715,7 +1678,6 @@ void GameGuiLayer::DrawCustomerOrders(float gameX, float gameY, float gameWidth,
 
             std::shared_ptr<Texture> iconToDraw = nullptr;
 
-            // Ustawianie odpowiedniej ikonki reakcji
             if (custScript->State == CustomerState::LeavingReaction) {
                 iconToDraw = custScript->m_WasCorrect ? m_SmileFaceIcon : m_AngryFaceIcon;
             }
@@ -1959,7 +1921,7 @@ void GameGuiLayer::DrawMachineWarningInfo(float gameX, float gameY, float gameWi
 
     float alpha = std::clamp(m_MachineWarning.Timer / 0.2f, 0.0f, 1.0f);
 
-    float cloudW = 160.0f * baseScale; // Zmniejszone z 200.0f
+    float cloudW = 160.0f * baseScale; 
     float cloudAspect = m_CoinCloudIcon ? ((float)m_CoinCloudIcon->GetHeight() / (float)m_CoinCloudIcon->GetWidth()) : 0.6f;
     float cloudH = cloudW * cloudAspect;
 
@@ -2026,13 +1988,11 @@ void GameGuiLayer::DrawHelperHint(float gameX, float gameY, float gameWidth, flo
             }
         }
 
-        // Jeśli to pierwszy helper i nadal czeka na podniesienie z podłogi
         if (helperScript && helperScript->m_IsFirstHelperInstance && helperScript->m_IsWaitingForPickup) {
             Entity helperEnt = scripts->reverse[i];
             auto* tf = transforms->Get(helperEnt);
             if (!tf) continue;
 
-            // Rzutowanie pozycji 3D nad głową Helpera na ekran 2D
             auto* camera = m_ActiveScene->GetCamera();
             glm::mat4 view = camera->GetViewMatrix();
             float currentAspect = gameWidth / (gameHeight > 0.0f ? gameHeight : 1.0f);
@@ -2040,7 +2000,7 @@ void GameGuiLayer::DrawHelperHint(float gameX, float gameY, float gameWidth, flo
             glm::mat4 proj3D = glm::ortho(-currentAspect * orthoSize, currentAspect * orthoSize, -orthoSize, orthoSize, -100.0f, 100.0f);
             glm::mat4 viewProj = proj3D * view;
 
-            glm::vec3 worldPos = tf->GetPosition() + glm::vec3(0.0f, 2.8f, 0.0f); // Wysokość nad głową
+            glm::vec3 worldPos = tf->GetPosition() + glm::vec3(0.0f, 2.8f, 0.0f); 
             glm::vec4 clipSpace = viewProj * glm::vec4(worldPos, 1.0f);
             if (clipSpace.w <= 0.0f) continue;
             glm::vec3 ndc = glm::vec3(clipSpace) / clipSpace.w;
