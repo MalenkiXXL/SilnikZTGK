@@ -452,15 +452,20 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 float t = (state.currentHeight - 140.0f * baseScale) / (80.0f * baseScale);
                 t = std::clamp(t, 0.0f, 1.0f);
 
-                // --- LAMBDA POMOCNICZA DO IKON SK�ADNIK�W ---
                 auto getIngredientIcon = [&](IngredientType type) -> std::shared_ptr<Texture> {
                     switch (type) {
-                    case IngredientType::Tomato: return m_TomatoIcon;
-                    case IngredientType::Cheese: return m_CheeseIcon;
-                    case IngredientType::Ham:    return m_HamIcon;
-                    case IngredientType::Milk:   return m_MilkIcon;
-                    case IngredientType::Flour:  return m_FlourIcon;
+                    case IngredientType::Tomato:     return m_TomatoIcon;
+                    case IngredientType::Cheese:     return m_CheeseIcon;
+                    case IngredientType::Ham:        return m_HamIcon;
+                    case IngredientType::Milk:       return m_MilkIcon;
+                    case IngredientType::Flour:      return m_FlourIcon;
                     case IngredientType::Sandwich:   return AssetManager::GetTexture("assets://UI/sandwich.png");
+                    case IngredientType::TomatoSoup: return AssetManager::GetTexture("assets://UI/TomatoSoup.png");
+                    case IngredientType::FriedEgg:   return AssetManager::GetTexture("assets://UI/FriedEgg.png");
+                    case IngredientType::EggWithHam: return AssetManager::GetTexture("assets://UI/EggWithHam.png");
+                    case IngredientType::Shakshuka:  return AssetManager::GetTexture("assets://UI/Shakshuka.png");
+                    case IngredientType::Baguette:   return AssetManager::GetTexture("assets://UI/Baguette.png");
+                    case IngredientType::Caprese:    return AssetManager::GetTexture("assets://UI/Caprese.png");
                     default: return m_QuestionMarkIcon;
                     }
                     };
@@ -1096,6 +1101,9 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                 s_CloudTransProgress = 1.0f;
                 s_CloudTransState = 2;
 
+        /*        spdlog::info("Generowanie questów AI w tle podczas ładowania poziomu...");
+                system("python CookingStation\\Tools\\QuestGenerator\\main.py");*/
+
                 if (m_ActiveScene) {
                     auto* oldCam = m_ActiveScene->GetCamera();
                     if (oldCam) {
@@ -1370,10 +1378,17 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         glm::vec2 slotPos = { mainCenterX - slotSize * 1.2f, newCloudPos.y + cloudH * 0.58f };
 
         std::shared_ptr<Texture> dishIcon = m_QuestionMarkIcon;
-        if (activeQuest->DishID == "pomidorowa")      dishIcon = AssetManager::GetTexture("assets://UI/TomatoSoup.png");
+        if (activeQuest->DishID == "pomidorowa") dishIcon = AssetManager::GetTexture("assets://UI/TomatoSoup.png");
         else if (activeQuest->DishID == "kanapka")    dishIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
         else if (activeQuest->DishID == "kopytka")    dishIcon = AssetManager::GetTexture("assets://UI/Gnocchi.png");
         else if (activeQuest->DishID == "babeczka")   dishIcon = AssetManager::GetTexture("assets://UI/Cupcake.png");
+        else if (activeQuest->DishID == "TomatoSoup") dishIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
+        else if (activeQuest->DishID == "Caprese")    dishIcon = AssetManager::GetTexture("assets://UI/caprese.png");
+        else if (activeQuest->DishID == "Baguette")   dishIcon = AssetManager::GetTexture("assets://UI/Baguette.png");
+        else if (activeQuest->DishID == "FriedEgg")   dishIcon = AssetManager::GetTexture("assets://UI/friedEgg.png");
+        else if (activeQuest->DishID == "EggWithHam") dishIcon = AssetManager::GetTexture("assets://UI/EggsAndBacon.png");
+        else if (activeQuest->DishID == "Shakshuka")  dishIcon = AssetManager::GetTexture("assets://UI/shakshuka.png");
+        else if (activeQuest->DishID == "Sandwich")   dishIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
 
         if (dishIcon) {
             float iconPadding = slotSize * 0.15f;

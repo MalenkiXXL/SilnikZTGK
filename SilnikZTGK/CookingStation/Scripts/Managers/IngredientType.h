@@ -370,3 +370,21 @@ inline std::string GetUIIconPathForIngredient(IngredientType type)
         default:                            return "";
     }
 }
+
+static IngredientType GetIngredientTypeFromString(const std::string& dishId) {
+    static const std::unordered_map<std::string, IngredientType> s_Map = {
+        { "TomatoSoup", IngredientType::TomatoSoup },
+        { "Caprese",    IngredientType::Caprese },
+        { "Baguette",   IngredientType::Baguette },
+        { "FriedEgg",   IngredientType::FriedEgg },
+        { "EggWithHam", IngredientType::EggWithHam },
+        { "Shakshuka",  IngredientType::Shakshuka },
+        { "Cupcake",    IngredientType::Cupcake },
+        { "Sandwich",   IngredientType::Sandwich },
+        { "Gnocchi",    IngredientType::Kopytka } 
+    };
+
+    auto it = s_Map.find(dishId);
+    if (it != s_Map.end()) return it->second;
+    return IngredientType::None;
+}
