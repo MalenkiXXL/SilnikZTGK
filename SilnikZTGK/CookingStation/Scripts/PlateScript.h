@@ -18,12 +18,12 @@ public:
     IngredientType m_CompletedDish = IngredientType::None;
     std::vector<Entity> m_VisualModels;
 
-    bool AddIngredient(IngredientType type)
+    bool AddIngredient(IngredientType type, bool fromHelper = false)
     {
         if (m_CompletedDish != IngredientType::None)
         {
-            spdlog::warn("Talerz: Nie można dodawać składników do gotowego dania!");
-            AudioEngine::Play("assets://sounds/error.mp3");
+            if (!fromHelper) spdlog::warn("Talerz: Nie można dodawać składników do gotowego dania!");
+            if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
             return false;
         }
 
@@ -31,38 +31,90 @@ public:
         {
             if (IsFinishedDish(existing))
             {
-                spdlog::warn("Talerz: Nie można dodawać składników do gotowego dania!");
-                AudioEngine::Play("assets://sounds/error.mp3");
+                if (!fromHelper) spdlog::warn("Talerz: Nie można dodawać składników do gotowego dania!");
+                if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
                 return false;
             }
         }
 
         if (!m_Ingredients.empty() && IsFinishedDish(type))
         {
-            spdlog::warn("Talerz: Nie można położyć gotowego dania na talerz z innymi składnikami!");
-            AudioEngine::Play("assets://sounds/error.mp3");
+            if (!fromHelper) spdlog::warn("Talerz: Nie można położyć gotowego dania na talerz z innymi składnikami!");
+            if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
             return false;
         }
 
         if (!m_Ingredients.empty() && !m_VisualModels.empty() && IsFinishedDish(type))
         {
-            spdlog::warn("Talerz: Nie można położyć gotowego dania na talerz z innymi składnikami!");
-            AudioEngine::Play("assets://sounds/error.mp3");
+            if (!fromHelper) spdlog::warn("Talerz: Nie można położyć gotowego dania na talerz z innymi składnikami!");
+            if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
             return false;
         }
 
         if (m_Ingredients.size() >= 5)
         {
-            spdlog::warn("Talerz: Osiągnięto limit składników (5)!");
-            AudioEngine::Play("assets://sounds/error.mp3");
+            if (!fromHelper) spdlog::warn("Talerz: Osiągnięto limit składników (5)!");
+            if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
             return false;
         }
 
         if (std::find(m_Ingredients.begin(), m_Ingredients.end(), type) != m_Ingredients.end())
         {
-            spdlog::warn("Talerz: Taki składnik ({}) już leży na talerzu!", IngredientTypeToString(type));
-            AudioEngine::Play("assets://sounds/error.mp3");
+            if (!fromHelper) spdlog::warn("Talerz: Taki składnik ({}) już leży na talerzu!", IngredientTypeToString(type));
+            if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
             return false;
+        }
+
+        if (IsRaw(type) && !m_Ingredients.empty())
+        {
+            if (!fromHelper) spdlog::warn("Talerz: Nie można klasc surowego ciasta na inne skladniki!");
+            if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
+            return false;
+        }
+
+        for (auto existing : m_Ingredients)
+        {
+            if (IsRaw(existing))
+            {
+                if (!fromHelper) spdlog::warn("Talerz: Nie można klasc niczego na surowe ciasto!");
+                if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
+                return false;
+            }
+        }
+
+        bool hasBaguette = false;
+        for (auto existing : m_Ingredients) {
+            if (existing == IngredientType::CutBaguette) {
+                hasBaguette = true;
+                break;
+            }
+        }
+
+        if (hasBaguette)
+        {
+            if (type != IngredientType::ChoppedCheese &&
+                type != IngredientType::ChoppedHam &&
+                type != IngredientType::ChoppedTomato)
+            {
+                if (!fromHelper) spdlog::warn("Talerz: Do kanapki mozesz dolozyc tylko pokrojony Ser, Szynke i Pomidora!");
+                if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
+                return false;
+            }
+        }
+
+        if (type == IngredientType::CutBaguette && !m_Ingredients.empty())
+        {
+            for (auto existing : m_Ingredients)
+            {
+                if (existing != IngredientType::ChoppedCheese &&
+                    existing != IngredientType::ChoppedHam &&
+                    existing != IngredientType::ChoppedTomato)
+                {
+                    if (!fromHelper) spdlog::warn("Talerz: Nie mozna klasc pokrojonej bagietki na te skladniki!");
+                    if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
+                    return false;
+                }
+            }
         }
 
         bool incomingIsRaw = IsRaw(type);
@@ -72,14 +124,14 @@ public:
         {
             if (incomingIsRaw && IsChopped(existing))
             {
-                spdlog::warn("Talerz: Zakaz kładzenia surowego na pokrojone!");
-                AudioEngine::Play("assets://sounds/error.mp3");
+                if (!fromHelper) spdlog::warn("Talerz: Zakaz kładzenia surowego na pokrojone!");
+                if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
                 return false;
             }
             if (incomingIsChopped && IsRaw(existing))
             {
-                spdlog::warn("Talerz: Zakaz kładzenia pokrojonego na surowe!");
-                AudioEngine::Play("assets://sounds/error.mp3");
+                if (!fromHelper) spdlog::warn("Talerz: Zakaz kładzenia pokrojonego na surowe!");
+                if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
                 return false;
             }
         }
@@ -93,14 +145,14 @@ public:
             {
                 if (incomingIsSweet && IsSavory(existing))
                 {
-                    spdlog::warn("Talerz: Nie można kłaść słodkiego na słone!");
-                    AudioEngine::Play("assets://sounds/error.mp3");
+                    if (!fromHelper) spdlog::warn("Talerz: Nie można kłaść słodkiego na słone!");
+                    if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
                     return false;
                 }
                 if (incomingIsSavory && IsSweet(existing))
                 {
-                    spdlog::warn("Talerz: Nie można kłaść słonego na słodkie!");
-                    AudioEngine::Play("assets://sounds/error.mp3");
+                    if (!fromHelper) spdlog::warn("Talerz: Nie można kłaść słonego na słodkie!");
+                    if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
                     return false;
                 }
             }
@@ -116,8 +168,8 @@ public:
                     Entity childEntity = tagSet->reverse[i];
                     if (GetScene()->GetParent(childEntity).id == m_Entity.id)
                     {
-                        spdlog::warn("Talerz ma już gotowe danie z maszyny!");
-                        AudioEngine::Play("assets://sounds/error.mp3");
+                        if (!fromHelper) spdlog::warn("Talerz ma już gotowe danie z maszyny!");
+                        if (!fromHelper) AudioEngine::Play("assets://sounds/error.mp3");
                         return false;
                     }
                 }
@@ -145,11 +197,11 @@ public:
         return true;
     }
 
-    bool ReceiveFinishedDish(Entity dishEntity)
+    bool ReceiveFinishedDish(Entity dishEntity, bool fromHelper = false)
     {
         if (m_CompletedDish != IngredientType::None || !m_Ingredients.empty())
         {
-            spdlog::warn("Talerz: Odmawiam przyjecia dania. Mam juz kanapke lub skladniki!");
+            if (!fromHelper) spdlog::warn("Talerz: Odmawiam przyjecia dania. Mam juz kanapke lub skladniki!");
             return false;
         }
 
@@ -159,7 +211,7 @@ public:
             while (currentChildId != std::numeric_limits<std::size_t>::max()) {
                 auto* tag = GetScene()->GetWorld().GetComponentByID<TagComponent>(currentChildId);
                 if (tag && tag->Tag == "UgotowaneDanie") {
-                    spdlog::warn("Talerz: Odmawiam. Mam juz ugotowane danie z maszyny!");
+                    if (!fromHelper) spdlog::warn("Talerz: Odmawiam. Mam juz ugotowane danie z maszyny!");
                     return false;
                 }
                 auto* childRel = GetScene()->GetWorld().GetComponentByID<RelationshipComponent>(currentChildId);
@@ -179,20 +231,54 @@ public:
             else if (tagComp->Tag == "SzarlotkaWPiekarniku") m_CompletedDish = IngredientType::ApplePie;
             else if (tagComp->Tag == "SpiacyChlebWPiekarniku") m_CompletedDish = IngredientType::SleepyBread;
             else if (tagComp->Tag == "BabeczkaWPiekarniku") m_CompletedDish = IngredientType::Cupcake;
+        }
 
+        if (m_CompletedDish == IngredientType::None)
+        {
+            auto* meshComp = GetScene()->GetWorld().GetComponent<MeshComponent>(dishEntity);
+            if (meshComp && meshComp->ModelPtr)
+            {
+                for (uint32_t i = 1; i <= (uint32_t)IngredientType::RawKopytkaDough; ++i)
+                {
+                    IngredientType typeToCheck = (IngredientType)i;
+                    std::string expectedPath = GetModelPath(typeToCheck);
+
+                    if (!expectedPath.empty() && meshComp->ModelPtr == AssetManager::GetModel(expectedPath))
+                    {
+                        m_CompletedDish = typeToCheck;
+                        spdlog::info("Talerz: Rozpoznano danie po modelu! To jest: {}", IngredientTypeToString(m_CompletedDish));
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (tagComp) {
             tagComp->Tag = "UgotowaneDanie";
         }
 
-        auto* foodTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(dishEntity);
-        if (foodTransform) {
-            foodTransform->SetPosition(glm::vec3(0.0f, 0.15f, 0.0f));
+        GetScene()->SetParent(dishEntity, m_Entity);
+
+        auto* tc = GetScene()->GetWorld().GetComponent<TransformComponent>(dishEntity);
+        if (tc)
+        {
+            if (m_CompletedDish != IngredientType::None)
+            {
+                IngredientMetadata meta = GetIngredientMetadata(m_CompletedDish);
+                tc->SetScale(meta.scale);
+                tc->SetRotation(meta.rotation);
+                tc->SetPosition(glm::vec3(0.0f, 0.15f, 0.0f) + meta.offset);
+            }
+            else
+            {
+                tc->SetPosition(glm::vec3(0.0f, 0.15f, 0.0f));
+                spdlog::warn("Talerz: Nie rozpoznano modelu ze slownika! Wymuszono centrowanie na X:0 Z:0.");
+            }
         }
 
-        GetScene()->SetParent(dishEntity, m_Entity);
         m_VisualModels.push_back(dishEntity);
         AudioEngine::Play("assets://sounds/plate_down.wav");
 
-        spdlog::info("Talerz: Przyjeto gotowe danie z maszyny (rozpoznawane po Tagu)!");
         return true;
     }
 

@@ -248,7 +248,7 @@ protected:
 
         if (pScript)
         {
-            if (pScript->AddIngredient(GetPotResult()))
+            if (pScript->AddIngredient(GetPotResult(), m_IsAutomated))
             {
                 // 1. Kopiowanie historii
                 if (!m_DeepHistory.empty()) {
