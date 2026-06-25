@@ -2,6 +2,7 @@
 #include "CookingStation/Scene/ScriptableEntity.h"
 #include "CookingStation/Core/GridSystem.h"
 #include "CookingStation/Scripts/ConveyorBelt/ConveyorScript.h"
+#include "CookingStation/Scripts/PlateScript.h"
 #include "CookingStation/Scripts/Managers/GameManagerScript.h"
 #include "CookingStation/Events/GameEvents.h"
 #include <spdlog/spdlog.h>
@@ -117,12 +118,15 @@ public:
 
             auto* rel = world.GetComponent<RelationshipComponent>(entity);
             if (rel && rel->Parent != std::numeric_limits<std::size_t>::max()) {
-                globalPos = glm::vec3(transform.WorldMatrix[3][0], transform.WorldMatrix[3][1], transform.WorldMatrix[3][2]);
+                continue;
             }
 
             if (glm::distance(glm::vec2(globalPos.x, globalPos.z), glm::vec2(m_InputWorldPos.x, m_InputWorldPos.z)) < 1.2f)
             {
-                if (globalPos.y < -10.0f) continue; 
+                if (std::abs(globalPos.y - myCurrentPos.y) > 3.0f) continue;
+                if (!isQuestActive) continue;
+
+                if (globalPos.y < -10.0f) continue;
 
                 bool deliveredValidQuestItem = false;
 
@@ -133,18 +137,39 @@ public:
                 }
 
                 if (tag.find("Plate") != std::string::npos || tag.find("Talerz") != std::string::npos || tag.find("bowl") != std::string::npos) {
-                    if (rel && rel->FirstChild != std::numeric_limits<std::size_t>::max()) {
+                    NativeScriptComponent* plateNsc = world.GetComponent<NativeScriptComponent>(entity);
+                    if (plateNsc) {
+                        for (auto& script : plateNsc->Scripts) {
+                            if (script.Name == "PlateScript" && script.Instance) {
+                                PlateScript* plate = static_cast<PlateScript*>(script.Instance);
+
+                                auto hasIng = [&](IngredientType t) {
+                                    return std::find(plate->m_DeepHistory.begin(), plate->m_DeepHistory.end(), t) != plate->m_DeepHistory.end() ||
+                                        std::find(plate->m_Ingredients.begin(), plate->m_Ingredients.end(), t) != plate->m_Ingredients.end();
+                                    };
+
+                                if (questDishId == "TomatoSoup" && (hasIng(IngredientType::Tomato) || hasIng(IngredientType::ChoppedTomato))) deliveredValidQuestItem = true;
+                                else if (questDishId == "FriedEgg" && (hasIng(IngredientType::Egg) || hasIng(IngredientType::ChoppedEgg))) deliveredValidQuestItem = true;
+                                else if (questDishId == "EggWithHam" && (hasIng(IngredientType::Egg) || hasIng(IngredientType::ChoppedEgg)) && (hasIng(IngredientType::Ham) || hasIng(IngredientType::ChoppedHam))) deliveredValidQuestItem = true;
+                                else if (questDishId == "Shakshuka" && (hasIng(IngredientType::Egg) || hasIng(IngredientType::ChoppedEgg)) && (hasIng(IngredientType::Tomato) || hasIng(IngredientType::ChoppedTomato))) deliveredValidQuestItem = true;
+                                else if (questDishId == "Baguette" && (plate->m_CompletedDish == IngredientType::Baguette || hasIng(IngredientType::Flour) || hasIng(IngredientType::RawDough))) deliveredValidQuestItem = true;
+                                else if (questDishId == "Caprese" && (plate->m_CompletedDish == IngredientType::Caprese || ((hasIng(IngredientType::Tomato) || hasIng(IngredientType::ChoppedTomato)) && (hasIng(IngredientType::Mozzarella) || hasIng(IngredientType::ChoppedMozzarella))))) deliveredValidQuestItem = true;
+                                else if (questDishId == "Sandwich" && plate->m_CompletedDish == IngredientType::Sandwich) deliveredValidQuestItem = true;
+                            }
+                        }
+                    }
+
+                    if (!deliveredValidQuestItem && rel && rel->FirstChild != std::numeric_limits<std::size_t>::max()) {
                         std::size_t childId = rel->FirstChild;
                         while (childId != std::numeric_limits<std::size_t>::max()) {
-                            Entity child = { childId, 0 };
-                            auto* childTagComp = world.GetComponent<TagComponent>(child);
+                            auto* childTagComp = world.GetComponentByID<TagComponent>(childId);
 
                             if (childTagComp && IsQuestItem(childTagComp->Tag, questDishId)) {
                                 deliveredValidQuestItem = true;
                                 break;
                             }
 
-                            auto* childRel = world.GetComponent<RelationshipComponent>(child);
+                            auto* childRel = world.GetComponentByID<RelationshipComponent>(childId);
                             childId = childRel ? childRel->NextSibling : std::numeric_limits<std::size_t>::max();
                         }
                     }

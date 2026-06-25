@@ -703,10 +703,11 @@ void GameManagerScript::OnUpdate(Timestep ts)
                 for (auto& pair : m_ReplacedByQuestGroup) {
                     Entity e = pair.first;
                     if (e.id != std::numeric_limits<std::size_t>::max()) {
-                        GetScene()->DestroyEntity(e);
+                        GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ e });
                         pair.first.id = std::numeric_limits<std::size_t>::max();
                     }
                 }
+                GetScene()->RebuildConveyorCache();
             }
         }
         break;
