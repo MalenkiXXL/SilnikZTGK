@@ -166,5 +166,6 @@
     <None Include="CookingStation\Assets\prefabs\pan_station.json" />
     <None Include="CookingStation\Assets\prefabs\SkrzynkaJajko.json" />
     <None Include="CookingStation\Assets\prefabs\coffee_maker.json" />
+    <None Include="CookingStation\Assets\fallback_quests.json" />
   </ItemGroup>
 </Project>

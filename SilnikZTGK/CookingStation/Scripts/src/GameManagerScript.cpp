@@ -19,7 +19,6 @@ namespace {
             { IngredientType::Raspberry,  IngredientType::ChoppedRaspberry },
             { IngredientType::Baguette,   IngredientType::CutBaguette },
 
-            // --- DODANE ŁATKI DLA PIEKARNIKA I MIKSERA ---
             { IngredientType::Flour,      IngredientType::RawDough },
             { IngredientType::Flour,      IngredientType::Baguette },
             { IngredientType::Milk,       IngredientType::RawDough },
@@ -43,6 +42,7 @@ namespace {
             { "Patelnia", "Pan" },
             { "Mikser", "Mixer" },
             { "Piekarnik", "Oven" },
+            { "Ekspres",  "CoffeeMaker" },
         };
 
         std::string expected = wantedDisplayName;
@@ -100,6 +100,7 @@ namespace {
 void GameManagerScript::OnCreate()
 {
     s_Instance = this;
+    s_GrandmaServed = false;
     spdlog::info("GameManager uruchomiony!");
 
     auto& bus = GetScene()->GetWorld().GetEventBus();
@@ -145,6 +146,7 @@ void GameManagerScript::OnCreate()
     m_ValidateOrderSubId = bus.Subscribe<ValidateOrderRequestEvent>(
         [this](const ValidateOrderRequestEvent& e) {
             bool isCorrect = false;
+            bool hasExtra = false;
             IngredientType wantedType = e.WantedIngredient;
 
             auto memIt = m_DishMemory.find(e.ServedFood.id);
@@ -193,6 +195,7 @@ void GameManagerScript::OnCreate()
                         secondaryOk = OriginMachineMatches(history.OriginMachine, e.Secondary.MachineName);
                     }
 
+
                     secondaryDebug = "maszyna '" + e.Secondary.MachineName + "'";
                     break;
                 }
@@ -200,12 +203,41 @@ void GameManagerScript::OnCreate()
 
                 isCorrect = primaryOk && secondaryOk;
 
+                size_t requiredCount = 1;
+
+                if (e.Secondary.RequirementType == OrderSecondaryRequirement::Type::Ingredient) {
+                    requiredCount = 1;
+                }
+
+                std::vector<IngredientType> uniqueIngredients = history.BaseIngredients;
+
+                uniqueIngredients.erase(std::remove_if(uniqueIngredients.begin(), uniqueIngredients.end(), [](IngredientType type) {
+                    std::string name = IngredientTypeName(type);
+                    return name.find("Chopped") != std::string::npos ||
+                        name == "CutBaguette" ||
+                        name == "TomatoSoup"; 
+                    }), uniqueIngredients.end());
+
+                std::sort(uniqueIngredients.begin(), uniqueIngredients.end());
+                uniqueIngredients.erase(std::unique(uniqueIngredients.begin(), uniqueIngredients.end()), uniqueIngredients.end());
+
+                size_t extraIngredients = 0;
+                if (uniqueIngredients.size() > requiredCount) {
+                    extraIngredients = uniqueIngredients.size() - requiredCount;
+                }
+
+                if (isCorrect && extraIngredients >= 1) {
+                    hasExtra = true;
+                }
+
+                std::string foundList;
+                for (auto ingredient : uniqueIngredients) {
+                    if (!foundList.empty()) foundList += ", ";
+                    foundList += IngredientTypeName(ingredient);
+                }
+                if (foundList.empty()) foundList = "PUSTY TALERZ";
+
                 if (!isCorrect) {
-                    std::string foundList;
-                    for (auto ingredient : history.BaseIngredients) {
-                        if (!foundList.empty()) foundList += ", ";
-                        foundList += IngredientTypeName(ingredient);
-                    }
                     spdlog::warn(
                         "WALIDACJA ZAMOWIENIA: NIEPOPRAWNE (ServedFood ID: {}). "
                         "Glowny wymog '{}': {}. Wymog dodatkowy {}: {}. "
@@ -213,7 +245,7 @@ void GameManagerScript::OnCreate()
                         e.ServedFood.id,
                         IngredientTypeName(wantedType), primaryOk ? "OK" : "NIE ZNALEZIONO",
                         secondaryDebug, secondaryOk ? "OK" : "NIE ZNALEZIONO",
-                        foundList.empty() ? "PUSTA" : foundList,
+                        foundList,
                         history.OriginMachine.empty() ? "brak" : history.OriginMachine
                     );
                 }
@@ -222,18 +254,30 @@ void GameManagerScript::OnCreate()
                         "WALIDACJA ZAMOWIENIA: OK (ServedFood ID: {}). Glowny: '{}'. Dodatkowy: {}.",
                         e.ServedFood.id, IngredientTypeName(wantedType), secondaryDebug
                     );
+
+                    spdlog::info("-> Skladniki fizycznie na talerzu (unikalne): [{}]", foundList);
+
+                    if (hasExtra) {
+                        spdlog::info("-> NAPIWEK (TIP): PRZYZNANY! Powod: Na talerzu sa co najmniej 1 DODATKOWE unikalne skladniki (Razem unikalnych: {}, Wymagano: {}).",
+                            uniqueIngredients.size(), requiredCount);
+                    }
+                    else {
+                        spdlog::info("-> NAPIWEK (TIP): ODRZUCONY. Powod: Zbyt malo dodatkowych skladnikow. Potrzeba minimum 1 ekstra (Podano unikalnych: {}, Wymagano: {}).",
+                            uniqueIngredients.size(), requiredCount);
+                    }
                 }
-            }
+            } 
             else {
                 spdlog::warn(
-                    "WALIDACJA ZAMOWIENIA: brak WPISU w m_DishMemory dla ServedFood ID: {} - ta encja nigdy nie opublikowala DishCreatedEvent pod tym ID (albo jej historia zostala nadpisana/utracona przy przekazywaniu miedzy maszyna a talerzem). Wymagany skladnik: '{}'.",
-                    e.ServedFood.id, IngredientTypeName(wantedType)
+                    "WALIDACJA ZAMOWIENIA: brak WPISU w m_DishMemory dla ServedFood ID: {} ...",
+                    e.ServedFood.id
                 );
             }
 
             GetScene()->GetWorld().GetEventBus().Publish(ValidateOrderResponseEvent{
                     e.Customer,
-                    isCorrect
+                    isCorrect,
+                    hasExtra
                 });
         }
     );
@@ -455,6 +499,7 @@ bool GameManagerScript::SpendMoney(int amount) {
 
 void GameManagerScript::UnlockNewMapArea()
 {
+    s_GrandmaServed = true;
     m_IsMapExpanding = true;
     m_MapExpandProgress = 0.0f;
 }

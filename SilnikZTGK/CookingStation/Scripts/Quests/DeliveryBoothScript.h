@@ -19,11 +19,13 @@ private:
         if (tag.empty() || questDishId.empty()) return false;
 
         static const std::unordered_map<std::string, std::vector<std::string>> s_DishTagMap = {
-            { "pomidorowa", { "UgotowaneDanie", "GotoweDanie", "TomatoSoup" } },
-            { "kanapka",    { "Sandwich" } },
-            { "babeczka",   { "Cupcake" } },
-            { "caprese",    { "Caprese" } },
-            { "kopytka",    { "Gnocchi" } },
+             { "TomatoSoup", { "TomatoSoup" } },
+             { "Caprese",    { "Caprese" } },
+             { "Baguette",   { "Baguette" } },
+             { "FriedEgg",   { "FriedEgg" } },
+             { "EggWithHam", { "EggWithHam" } },
+             { "Shakshuka",  { "Shakshuka" } },
+             { "Sandwich",   { "Sandwich", "TomatoCheeseSandwich", "HamTomatoSandwich", "HamCheeseSandwich", "EggSandwich" } },
         };
 
         auto it = s_DishTagMap.find(questDishId);
@@ -123,6 +125,8 @@ public:
                 if (globalPos.y < -10.0f) continue; 
 
                 bool deliveredValidQuestItem = false;
+
+                spdlog::info("[DeliveryBooth] Tag encji przy budce: '{}', questDishId: '{}'", tag, questDishId);
 
                 if (IsQuestItem(tag, questDishId)) {
                     deliveredValidQuestItem = true;

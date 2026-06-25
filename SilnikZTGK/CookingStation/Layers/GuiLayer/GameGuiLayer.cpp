@@ -63,6 +63,16 @@ void GameGuiLayer::OnAttach()
     m_SpeedUpIcon = AssetManager::GetTexture("assets://UI/speedUp.png");
     m_EventCloudTex = AssetManager::GetTexture("assets://UI/Events/EventCloud.png");
     m_EventRewardTex = AssetManager::GetTexture("assets://UI/Events/EventReward.png");
+    m_AppleIcon = AssetManager::GetTexture("assets://UI/Apple.png");
+    m_CoffeeBeanIcon = AssetManager::GetTexture("assets://UI/coffeBean.png");
+    m_CoffeeMachineIcon = AssetManager::GetTexture("assets://UI/coffeeMachine.png");
+    m_RaspberryIcon = AssetManager::GetTexture("assets://UI/raspberry.png");
+    m_StrawberryIcon = AssetManager::GetTexture("assets://UI/strawberry.png");
+    m_StarPowderIcon = AssetManager::GetTexture("assets://UI/StarPowder.png");
+    m_MozzarellaIcon = AssetManager::GetTexture("assets://UI/mozarella.png");
+    m_YawnIcon = AssetManager::GetTexture("assets://UI/yawn.png");
+    m_PotatoIcon = AssetManager::GetTexture("assets://UI/potato.png");
+    m_EggIcon = AssetManager::GetTexture("assets://UI/egg.png");
     m_BuildModePanel.Init(m_CoinIcon);
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
@@ -164,12 +174,12 @@ void GameGuiLayer::OnAttach()
                 );
 
                 m_MachineWarningSubId = m_ActiveScene->GetWorld().GetEventBus().Subscribe<MachineNeedsMoreIngredientsEvent>(
-                        [this](const MachineNeedsMoreIngredientsEvent& e) {
-                            m_MachineWarning.MachineEnt = e.Machine;
-                            m_MachineWarning.Line1 = e.MessageLine1;
-                            m_MachineWarning.Line2 = e.MessageLine2;
-                            m_MachineWarning.Timer = e.Duration;
-                        }
+                    [this](const MachineNeedsMoreIngredientsEvent& e) {
+                        m_MachineWarning.MachineEnt = e.Machine;
+                        m_MachineWarning.Line1 = e.MessageLine1;
+                        m_MachineWarning.Line2 = e.MessageLine2;
+                        m_MachineWarning.Timer = e.Duration;
+                    }
                 );
             }
 
@@ -452,15 +462,28 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 float t = (state.currentHeight - 140.0f * baseScale) / (80.0f * baseScale);
                 t = std::clamp(t, 0.0f, 1.0f);
 
-                // --- LAMBDA POMOCNICZA DO IKON SK�ADNIK�W ---
                 auto getIngredientIcon = [&](IngredientType type) -> std::shared_ptr<Texture> {
                     switch (type) {
-                    case IngredientType::Tomato: return m_TomatoIcon;
-                    case IngredientType::Cheese: return m_CheeseIcon;
-                    case IngredientType::Ham:    return m_HamIcon;
-                    case IngredientType::Milk:   return m_MilkIcon;
-                    case IngredientType::Flour:  return m_FlourIcon;
-                    case IngredientType::Sandwich:   return AssetManager::GetTexture("assets://UI/sandwich.png");
+                    case IngredientType::Tomato:      return m_TomatoIcon;
+                    case IngredientType::Cheese:      return m_CheeseIcon;
+                    case IngredientType::Ham:         return m_HamIcon;
+                    case IngredientType::Milk:        return m_MilkIcon;
+                    case IngredientType::Flour:       return m_FlourIcon;
+                    case IngredientType::Mozzarella:  return m_MozzarellaIcon;
+                    case IngredientType::Egg:         return m_EggIcon;
+                    case IngredientType::Apple:       return m_AppleIcon;
+                    case IngredientType::Strawberry:  return m_StrawberryIcon;
+                    case IngredientType::CoffeeBeans: return m_CoffeeBeanIcon;
+                    case IngredientType::Raspberry:   return m_RaspberryIcon;
+                    case IngredientType::SleepyDust:  return m_StarPowderIcon;
+                    case IngredientType::Potato:      return m_PotatoIcon;
+                    case IngredientType::Sandwich:    return AssetManager::GetTexture("assets://UI/sandwich.png");
+                    case IngredientType::TomatoSoup:  return AssetManager::GetTexture("assets://UI/TomatoSoup.png");
+                    case IngredientType::FriedEgg:    return AssetManager::GetTexture("assets://UI/FriedEgg.png");
+                    case IngredientType::EggWithHam:  return AssetManager::GetTexture("assets://UI/EggWithHam.png");
+                    case IngredientType::Shakshuka:   return AssetManager::GetTexture("assets://UI/Shakshuka.png");
+                    case IngredientType::Baguette:    return AssetManager::GetTexture("assets://UI/Baguette.png");
+                    case IngredientType::Caprese:     return AssetManager::GetTexture("assets://UI/Caprese.png");
                     default: return m_QuestionMarkIcon;
                     }
                     };
@@ -492,10 +515,10 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                         float sIconH = pIconH * 0.75f;
                         glm::vec2 sSize = GuiUtils::CalculateAspectSize(secondaryIcon, sIconH);
 
-                        float offsetXMultiplier = 0.25f; 
+                        float offsetXMultiplier = 0.25f;
 
                         if (primaryIcon == m_HamIcon) {
-                            offsetXMultiplier = 0.65f; 
+                            offsetXMultiplier = 0.65f;
                         }
 
                         glm::vec2 sPos = {
@@ -563,7 +586,27 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 Gui::DrawGuiText(line2, { line2X + 1.5f, blockPos.y + lineSpacing + 1.5f }, hintScale, shadowColor);
                 Gui::DrawGuiText(line2, { line2X, blockPos.y + lineSpacing }, hintScale, textColor);
             }
-            // --------------------------------------------------------
+
+            if (custScript && custScript->State == CustomerState::LeavingReaction && custScript->m_WasCorrect && custScript->AwardedTip > 0.0f) {
+                std::string tipText = std::to_string((int)custScript->AwardedTip) + "$ Tip!";
+                float tipScale = 0.8f * baseScale;
+                float tipW = Gui::MeasureTextWidth(tipText, tipScale);
+
+                float timeNow = glfwGetTime();
+                float floatY = std::sin(timeNow * 6.0f) * 6.0f * baseScale;
+
+                glm::vec2 tipPos = {
+                    ticketPos.x + (ticketSize.x - tipW) * 0.8f + 30.0f ,
+                    ticketPos.y + floatY + 170.0f
+                };
+
+                glm::vec4 tipColor = { 1.0f, 0.85f, 0.2f, 1.0f };
+                glm::vec4 shadowColor = { 0.0f, 0.0f, 0.0f, 0.7f };
+
+                Gui::DrawGuiText(tipText, { tipPos.x + 2.5f, tipPos.y + 2.5f }, tipScale, shadowColor);
+                Gui::DrawGuiText(tipText, tipPos, tipScale, tipColor);
+            }
+
             targetY += state.currentHeight + (10.0f * baseScale);
         }
     }
@@ -1096,6 +1139,9 @@ void GameGuiLayer::OnUpdate(Timestep ts)
                 s_CloudTransProgress = 1.0f;
                 s_CloudTransState = 2;
 
+                /*        spdlog::info("Generowanie questów AI w tle podczas ładowania poziomu...");
+                        system("python CookingStation\\Tools\\QuestGenerator\\main.py");*/
+
                 if (m_ActiveScene) {
                     auto* oldCam = m_ActiveScene->GetCamera();
                     if (oldCam) {
@@ -1370,10 +1416,17 @@ void GameGuiLayer::DrawQuestPanel(float gameX, float gameY, float gameWidth, flo
         glm::vec2 slotPos = { mainCenterX - slotSize * 1.2f, newCloudPos.y + cloudH * 0.58f };
 
         std::shared_ptr<Texture> dishIcon = m_QuestionMarkIcon;
-        if (activeQuest->DishID == "pomidorowa")      dishIcon = AssetManager::GetTexture("assets://UI/TomatoSoup.png");
+        if (activeQuest->DishID == "pomidorowa") dishIcon = AssetManager::GetTexture("assets://UI/TomatoSoup.png");
         else if (activeQuest->DishID == "kanapka")    dishIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
         else if (activeQuest->DishID == "kopytka")    dishIcon = AssetManager::GetTexture("assets://UI/Gnocchi.png");
         else if (activeQuest->DishID == "babeczka")   dishIcon = AssetManager::GetTexture("assets://UI/Cupcake.png");
+        else if (activeQuest->DishID == "TomatoSoup") dishIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
+        else if (activeQuest->DishID == "Caprese")    dishIcon = AssetManager::GetTexture("assets://UI/caprese.png");
+        else if (activeQuest->DishID == "Baguette")   dishIcon = AssetManager::GetTexture("assets://UI/Baguette.png");
+        else if (activeQuest->DishID == "FriedEgg")   dishIcon = AssetManager::GetTexture("assets://UI/friedEgg.png");
+        else if (activeQuest->DishID == "EggWithHam") dishIcon = AssetManager::GetTexture("assets://UI/EggsAndBacon.png");
+        else if (activeQuest->DishID == "Shakshuka")  dishIcon = AssetManager::GetTexture("assets://UI/shakshuka.png");
+        else if (activeQuest->DishID == "Sandwich")   dishIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
 
         if (dishIcon) {
             float iconPadding = slotSize * 0.15f;
@@ -2042,7 +2095,7 @@ void GameGuiLayer::DrawSpeedUpButton(float gameX, float gameY, float gameW, floa
     float bookCloudH = 210.0f * baseScale * 1.3f;
     float buildBtnY = gameY + bookCloudH + 8.0f * baseScale;
     float buildBtnX = gameX + 35.0f * baseScale;
-    float centerBtnX = buildBtnX + buildBtnWidth * 0.5f; 
+    float centerBtnX = buildBtnX + buildBtnWidth * 0.5f;
 
     float iconHeight = 65.0f * baseScale;
     float iconAspect = (float)m_SpeedUpIcon->GetWidth() / (float)m_SpeedUpIcon->GetHeight();
@@ -2072,7 +2125,7 @@ void GameGuiLayer::DrawSpeedUpButton(float gameX, float gameY, float gameW, floa
     glm::vec4 tint = (inBounds && !isBlocked) ? glm::vec4(0.85f, 0.85f, 0.85f, 1.0f) : glm::vec4(1.0f);
 
     if (isHeld) {
-        tint *= glm::vec4(0.75f, 1.0f, 0.75f, 1.0f); 
+        tint *= glm::vec4(0.75f, 1.0f, 0.75f, 1.0f);
     }
 
     glm::vec2 scaledSize = baseSize * s_scale;
@@ -2083,7 +2136,7 @@ void GameGuiLayer::DrawSpeedUpButton(float gameX, float gameY, float gameW, floa
 
     Renderer2D::DrawQuad(scaledPos, scaledSize, m_SpeedUpIcon, tint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
 
-    std::string label = "[X]"; 
+    std::string label = "[X]";
     float textScale = 0.85f * baseScale * s_scale;
     float tw = Gui::MeasureTextWidth(label, textScale);
 

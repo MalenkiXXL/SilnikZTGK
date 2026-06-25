@@ -46,6 +46,7 @@ public:
     std::size_t m_ServedSubId = 0;
     std::size_t m_OrderSubId = 0;
     float OrderPrice = 50.0f;
+    float AwardedTip = 0.0f;
 
     // Zmienne do efekt�w na wej�cie
     float m_SpawnTimer = 0.0f;
@@ -89,20 +90,30 @@ public:
             };
 
             std::vector<Combo> combos = {
-                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Garnek", "assets://UI/pot.png" } },
-                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Patelnia", "assets://UI/pan.png" } },
-                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Cheese, "", "" } },
-                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Ham, "", "" } },
-
-                { IngredientType::Cheese, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Tomato, "", "" } },
-
-                { IngredientType::Ham, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Patelnia", "assets://UI/pan.png" } },
-
-                { IngredientType::Flour, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Milk, "", "" } },
-                { IngredientType::Flour, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Mikser", "assets://UI/blender.png" } },
-                { IngredientType::Milk, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Mikser", "assets://UI/blender.png" } },
-                { IngredientType::Flour, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Piekarnik", "assets://UI/oven.png" } }
+                { IngredientType::Tomato,      { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Garnek",   "assets://UI/pot.png"     } },
+                { IngredientType::Tomato,      { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Patelnia", "assets://UI/pan.png"     } },
+                { IngredientType::Tomato,      { OrderSecondaryRequirement::Type::Ingredient,  IngredientType::Ham,         "",         ""                        } },
+                { IngredientType::Cheese,      { OrderSecondaryRequirement::Type::Ingredient,  IngredientType::Tomato,      "",         ""                        } },
+                { IngredientType::Ham,         { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Patelnia", "assets://UI/pan.png"     } },
+                { IngredientType::Flour,       { OrderSecondaryRequirement::Type::Ingredient,  IngredientType::Milk,        "",         ""                        } },
+                { IngredientType::Milk,        { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Mikser",   "assets://UI/blender.png" } },
+                { IngredientType::Flour,       { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Piekarnik","assets://UI/oven.png"    } },
+                { IngredientType::Tomato,      { OrderSecondaryRequirement::Type::Ingredient,  IngredientType::Mozzarella,  "",         ""                        } },
+                { IngredientType::Egg,         { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Patelnia", "assets://UI/pan.png"     } },
             };
+
+            if (GameManagerScript::s_GrandmaServed) {
+                combos.insert(combos.end(), {
+                    { IngredientType::Apple,       { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Flour,      "",         ""                        } },
+                    { IngredientType::Strawberry,  { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
+                    { IngredientType::CoffeeBeans, { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
+                    { IngredientType::Raspberry,   { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
+                    { IngredientType::Raspberry,   { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Piekarnik","assets://UI/oven.png"    } },
+                    { IngredientType::CoffeeBeans, { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Ekspres",  "assets://UI/coffeBean.png"} },
+                    { IngredientType::Raspberry,   { OrderSecondaryRequirement::Type::Ingredient, IngredientType::SleepyDust, "",         ""                        } },
+                    { IngredientType::Potato,      { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
+                    });
+            }
 
             std::uniform_int_distribution<> distCombo(0, (int)combos.size() - 1);
             Combo selected = combos[distCombo(gen)];
@@ -135,7 +146,9 @@ public:
             });
 
         m_ValidationResponseSubId = bus.Subscribe<ValidateOrderResponseEvent>([this](const ValidateOrderResponseEvent& e) {
-            if (e.Customer.id == m_Entity.id) { this->ReceiveFood(e.IsCorrect); }
+            if (e.Customer.id == m_Entity.id) {
+                this->ReceiveFood(e.IsCorrect, e.HasExtraIngredients); 
+            }
             });
 
         m_OrderSubId = bus.Subscribe<OrderTakenEvent>([this](const OrderTakenEvent& e) {
@@ -461,8 +474,7 @@ public:
         return false;
     }
 
-    virtual void ReceiveFood(bool isCorrectOrder = true)
-    {
+    virtual void ReceiveFood(bool isCorrectOrder = true, bool hasExtraIngredients = false) {
         if (State == CustomerState::LeavingReaction || IsPendingDestroy) return;
         IsServed = true;
 
@@ -488,7 +500,24 @@ public:
             }
             if (tagComp) tagComp->Tag = "ZadowolonyKlient";
             highlightColor = { 0.1f, 1.0f, 0.2f };
-            if (GameManagerScript::s_Instance) GetScene()->GetWorld().GetEventBus().Publish(OrderFulfilledEvent(OrderPrice));
+            float finalReward = OrderPrice;
+     
+
+            if (hasExtraIngredients) {
+                std::vector<float> tips = { 15.0f, 25.0f, 50.0f };
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::uniform_int_distribution<> tipDist(0, (int)tips.size() - 1);
+
+                float tipAmount = tips[tipDist(gen)];
+                finalReward += tipAmount;
+                AwardedTip = tipAmount;
+
+                spdlog::info("Klient zadowolony z EKSTRA skladnikow! Przyznano napiwek: {}", tipAmount);
+            }
+            if (GameManagerScript::s_Instance) {
+                GetScene()->GetWorld().GetEventBus().Publish(OrderFulfilledEvent(finalReward));
+            }
         }
         else {
             if (tagComp) tagComp->Tag = "ZlyKlient";
