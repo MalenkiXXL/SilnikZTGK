@@ -44,7 +44,7 @@ private:
     int m_DialogIndex = 0;
     float m_TypewriterTimer = 0.0f;
     std::vector<TutorialDialogLine> m_Dialogues;
-
+    bool m_DialogAudioPlayed = false;
     Entity m_Floor;        
     Entity m_Pot;
     Entity m_Burner;

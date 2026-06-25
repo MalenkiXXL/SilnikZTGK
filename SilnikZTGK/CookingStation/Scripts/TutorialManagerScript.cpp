@@ -5,6 +5,7 @@
 #include "CookingStation/Core/Input.h" 
 #include "CookingStation/Scripts/PoofEmitterScript.h"
 #include "CookingStation/Scripts/ParticleEmitterScript.h"
+#include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Scripts/CrateScript.h" 
 #include <algorithm>
 #include <limits> 
@@ -257,6 +258,12 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             GameManagerScript::s_ShowTutorialDialog = true;
             auto& line = m_Dialogues[m_DialogIndex];
 
+            if (!m_DialogAudioPlayed) {
+                if (m_DialogIndex == 0) AudioEngine::PlayDialogue("assets://sounds/WalterWypowiedz1.wav");
+                else if (m_DialogIndex == 2) AudioEngine::PlayDialogue("assets://sounds/WalterWypowiedz2.wav");
+                m_DialogAudioPlayed = true;
+            }
+
             GameManagerScript::s_TutorialSpeaker = line.Speaker;
             GameManagerScript::s_TutorialSpeakerColor = line.SpeakerColor;
             GameManagerScript::s_TutorialText = line.Text;
@@ -282,12 +289,15 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             if (Input::IsMouseButtonJustPressed(0)) {
                 if (GameManagerScript::s_TutorialCharsRevealed < fullLength) {
                     GameManagerScript::s_TutorialCharsRevealed = fullLength;
+                    AudioEngine::StopDialogue();
                 }
                 else {
                     m_DialogIndex++;
                     GameManagerScript::s_TutorialCharsRevealed = 0;
                     GameManagerScript::s_TutorialIconAlpha = 0.0f;
                     m_TypewriterTimer = 0.0f;
+
+                    m_DialogAudioPlayed = false; 
                 }
             }
         }
@@ -1035,6 +1045,11 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                 }
             }
 
+            if (!m_DialogAudioPlayed) {
+                AudioEngine::PlayDialogue("assets://sounds/WalterWypowiedz3.wav");
+                m_DialogAudioPlayed = true;
+            }
+
             GameManagerScript::s_ShowTutorialDialog = true;
             GameManagerScript::s_TutorialSpeaker = "Walter:";
             GameManagerScript::s_TutorialSpeakerColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f);
@@ -1068,6 +1083,8 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                     endPhase = 4;
                     m_StateTimer = 0.0f;
                     PlayPoofAt(waiterTf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
+
+                    m_DialogAudioPlayed = false; 
                 }
             }
         }
@@ -1114,6 +1131,12 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             }
         }
         else if (endPhase == 5) {
+
+            if (!m_DialogAudioPlayed) {
+                AudioEngine::PlayDialogue("assets://sounds/WalterWypowiedz4.wav");
+                m_DialogAudioPlayed = true;
+            }
+
             GameManagerScript::s_ShowTutorialDialog = true;
             GameManagerScript::s_TutorialSpeaker = "Walter the Waiter:";
             GameManagerScript::s_TutorialSpeakerColor = glm::vec4(0.75f, 0.4f, 0.9f, 1.0f); 
@@ -1141,6 +1164,7 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
             if (isActionPressed) {
                 if (GameManagerScript::s_TutorialCharsRevealed < (int)text.length()) {
                     GameManagerScript::s_TutorialCharsRevealed = (int)text.length();
+                    AudioEngine::StopDialogue();
                 }
                 else {
                     GameManagerScript::s_ShowTutorialDialog = false;
@@ -1151,6 +1175,9 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
                         if (newTf) PlayPoofAt(newTf->GetPosition() + glm::vec3(0.0f, 1.0f, 0.0f));
                     }
                     endPhase = 6;
+
+                    AudioEngine::StopDialogue();
+                    m_DialogAudioPlayed = false;
                 }
             }
         }
@@ -1176,11 +1203,12 @@ void TutorialManagerScript::OnUpdate(Timestep ts) {
 
 void TutorialManagerScript::ResetTutorial()
 {
-    m_State = TutorialState::Start; 
+    m_State = TutorialState::Start;
     m_StateTimer = 0.0f;
     m_DialogIndex = 0;
 
+    m_DialogAudioPlayed = false;
+
     GameManagerScript::s_ShowTutorialDialog = false;
     GameManagerScript::s_TutorialCharsRevealed = 0;
-
 }

@@ -8,6 +8,7 @@
 
 ma_engine* AudioEngine::s_Engine = nullptr;
 ma_sound* AudioEngine::s_BackgroundMusic = nullptr;
+ma_sound* AudioEngine::s_DialogueSound = nullptr;
 bool AudioEngine::s_IsMusicPlaying = false;
 bool AudioEngine::s_MusicEnabled = true;
 bool AudioEngine::s_SoundsEnabled = true;
@@ -157,6 +158,14 @@ void AudioEngine::Shutdown()
         s_BackgroundMusic = nullptr;
     }
     s_IsMusicPlaying = false;
+
+    if (s_DialogueSound)
+    {
+        ma_sound_stop(s_DialogueSound);
+        ma_sound_uninit(s_DialogueSound);
+        delete s_DialogueSound;
+        s_DialogueSound = nullptr;
+    }
 
     if (s_Engine)
     {
@@ -315,4 +324,43 @@ void AudioEngine::StopLoopingSound(ma_sound* sound)
     ma_sound_stop(sound);
     ma_sound_uninit(sound);
     delete sound;
+}
+
+void AudioEngine::PlayDialogue(const std::string& filepath, float volume)
+{
+    if (!s_Engine || !s_SoundsEnabled) return;
+
+    StopDialogue();
+
+    s_DialogueSound = new ma_sound();
+
+    std::string vfsPath = filepath;
+    std::replace(vfsPath.begin(), vfsPath.end(), '\\', '/');
+
+    const std::string prefix = "CookingStation/Assets/";
+    if (vfsPath.find(prefix) == 0) {
+        vfsPath = "assets://" + vfsPath.substr(prefix.length());
+    }
+
+    ma_result result = ma_sound_init_from_file(s_Engine, vfsPath.c_str(), 0, NULL, NULL, s_DialogueSound);
+    if (result != MA_SUCCESS)
+    {
+        std::cerr << "[AudioEngine] Blad ladowania dialogu: " << vfsPath << std::endl;
+        delete s_DialogueSound;
+        s_DialogueSound = nullptr;
+        return;
+    }
+
+    ma_sound_set_volume(s_DialogueSound, volume);
+    ma_sound_start(s_DialogueSound);
+}
+
+void AudioEngine::StopDialogue()
+{
+    if (!s_DialogueSound) return;
+
+    ma_sound_stop(s_DialogueSound);
+    ma_sound_uninit(s_DialogueSound);
+    delete s_DialogueSound;
+    s_DialogueSound = nullptr;
 }

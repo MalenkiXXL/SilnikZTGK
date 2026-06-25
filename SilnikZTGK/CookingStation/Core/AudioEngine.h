@@ -10,6 +10,9 @@ public:
     static void Init();
     static void Shutdown();
 
+    static void PlayDialogue(const std::string& filepath, float volume = 1.0f);
+    static void StopDialogue();
+
     static void Play(const std::string& filepath);
 
     static void PlayMusic(const std::string& filepath, bool loop = true, float volume = 1.0f);
@@ -28,7 +31,7 @@ public:
 
 private:
     static ma_engine* s_Engine;
-
+    static ma_sound* s_DialogueSound;
     static ma_sound* s_BackgroundMusic;
     static bool s_IsMusicPlaying;
 

@@ -1,6 +1,7 @@
 #include "LevelCompletedPanel.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Renderer2D.h"
+#include "CookingStation/Core/AudioEngine.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Gui.h"
 #include "CookingStation/Core/Application.h"
 #include "CookingStation/Events/GameEvents.h"
@@ -30,6 +31,8 @@ void LevelCompletedPanel::Show(int earnedMoney, int stars) {
     m_IsOpen = true;
     m_DisplayMoney = 0.0f;
     m_AnimationTimer = 0.0f;
+
+    AudioEngine::Play("assets://sounds/level_completed.mp3");
 }
 
 void LevelCompletedPanel::OnUpdate(float dt) {
