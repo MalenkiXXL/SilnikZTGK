@@ -79,7 +79,7 @@ void RendererLayer::OnAttach() {
     rampShader->use();
     rampShader->setInt("rampTex", 10);
 
-    LoadQuestFromFile("C:\\Inzynierka\\PlikPython\\wygenerowane_quests.json");
+    LoadQuestFromFile("assets/wygenerowane_quests.json");
 }
 
 void RendererLayer::LoadQuestFromFile(const std::string& filepath) {
@@ -106,7 +106,7 @@ void RendererLayer::LoadQuestFromFile(const std::string& filepath) {
 
 void RendererLayer::OnUpdate(Timestep ts) {
     if (m_GenerationDone) {
-        LoadQuestFromFile("C:\\Inzynierka\\PlikPython\\wygenerowane_quests.json");
+        LoadQuestFromFile("assets/wygenerowane_quests.json");
         m_IsGenerating = false;
         m_GenerationDone = false;
     }

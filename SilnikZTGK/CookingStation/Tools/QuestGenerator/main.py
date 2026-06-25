@@ -21,7 +21,7 @@ cache_expiry_seconds = 3600
 
 # Twardy słownik dozwolonych dań w grze
 ALLOWED_DISHES = [
-    "pomidorowa", "kanapka", 
+    "TomatoSoup", "Caprese", "Baguette", "FriedEgg", "EggWithHam", "Shakshuka",
 ]
 
 client = genai.Client(api_key=gemini_key)
@@ -68,7 +68,7 @@ def generate_quests(news_context, feedback=""):
 
     prompt = f"""
     You are a brilliant comedy writer for an absurd, cozy cooking game (Monty Python style).
-    You will receive a list of real news headlines. Use them as inspiration to generate exactly 15 culinary quests in English.
+    You will receive a list of real news headlines. Use them as inspiration to generate exactly 100 culinary quests in English.
     
     TONE GUIDELINES:
     - The humor must make logical sense within its own absurd premise.
@@ -78,7 +78,7 @@ def generate_quests(news_context, feedback=""):
     ENGINE RESTRICTIONS:
     1. Language: English only.
     2. "dish_id" MUST be exactly from this list: {ALLOWED_DISHES}.
-    3. "reward_flag" MUST be a 2-letter ISO country code. CRITICAL RULE: You must use at least 10 DIFFERENT country codes across the 15 quests. Do NOT use "US" or "UN" more than twice per batch. If the news origin is unknown, creatively invent a funny international destination for the order!
+    3. "reward_flag" MUST be a 2-letter ISO country code. CRITICAL RULE: You must use at least 10 DIFFERENT country codes across the 100 quests. If the news origin is unknown, creatively invent a funny international destination for the order!
     4. "reward_coins" must be an integer.
     5. Output valid JSON (an array of objects).
 
