@@ -56,6 +56,7 @@ void GameGuiLayer::OnAttach()
     m_QuestionMarkIcon = AssetManager::GetTexture("assets://UI/QuestionMark.png");
     m_CustomerOrderTex = AssetManager::GetTexture("assets://UI/customerOrder.png");
     m_HelperOrderTex = AssetManager::GetTexture("assets://UI/helperOrder.png");
+    m_GrandmaOrderTex = AssetManager::GetTexture("assets://UI/grandmaOrder.png");
     m_BookCloudIcon = AssetManager::GetTexture("assets://UI/bookCloud.png");
     m_QuestCloudTex = AssetManager::GetTexture("assets://UI/Events/ChooseEventCloud.png");
     m_AcceptButtonTex = AssetManager::GetTexture("assets://UI/Events/AcceptButton.png");
@@ -393,8 +394,9 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
         bool isFirst = (i == 0);
         float targetHeight = isFirst ? (220.0f * baseScale) : (140.0f * baseScale);
         bool isHelper = (tagComp->Tag.find("HelperCustomer") != std::string::npos);
+        bool isGrandma = (tagComp->Tag == "GrandmaCustomer");
 
-        std::shared_ptr<Texture> ticketTex = isHelper ? m_HelperOrderTex : m_CustomerOrderTex;
+        std::shared_ptr<Texture> ticketTex = isGrandma ? m_GrandmaOrderTex : (isHelper ? m_HelperOrderTex : m_CustomerOrderTex);
         if (!ticketTex) ticketTex = m_BookCloudIcon;
 
         if (ticketTex) {
