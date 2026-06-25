@@ -347,8 +347,6 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
     glm::vec2 mouse = Gui::GetMappedMousePos();
     int currentMoney = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetMoney() : 0;
 
-    // Ta sama zasada odblokowania co w RecipeBookPanel: dostepne po rozpoczeciu/
-    // zakonczeniu ekspansji mapy przez babcie.
     bool isGrandmaUnlocked = false;
     if (GameManagerScript::s_Instance &&
         (GameManagerScript::s_Instance->m_IsMapExpanding || GameManagerScript::s_Instance->m_MapExpandProgress > 0.0f)) {
@@ -393,8 +391,6 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         glm::vec4 bg = { 0.0f, 0.0f, 0.0f, 0.0f };
 
         if (isLocked) {
-            // Ten sam plaski, ciemny tint co dla zablokowanych dan w RecipeBookPanel -
-            // niezalezny od hover/afford, bo zamek nie reaguje na te stany.
             iconColor = { 0.12f, 0.12f, 0.12f, 1.0f };
         }
         else if (canAfford) {
@@ -433,8 +429,6 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
             Renderer2D::DrawQuad(lockPos, lockSize, m_LockClosedIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
 
-        // Zablokowana maszyna nie pokazuje ceny - tak samo jak zablokowany przepis
-        // nie pokazuje nazwy (tylko "???").
         if (!isLocked) {
             float priceTextScale = 0.8f * baseScale;
             std::string priceStr = std::to_string(entry.Price);
