@@ -47,7 +47,6 @@ public:
     std::string GetBoneName() const { return m_Name; }
     int GetBoneID() const { return m_ID; }
 
-    // Nowe metody zwracające wyliczone wektory dla danego czasu
     glm::vec3 GetInterpolatedPosition(float animationTime) {
         if (m_Positions.empty()) return glm::vec3(0.0f);
         if (1 == m_NumPositions) return m_Positions[0].position;
@@ -64,7 +63,7 @@ public:
         int p1Index = p0Index + 1;
         float scaleFactor = GetScaleFactor(m_Rotations[p0Index].timeStamp, m_Rotations[p1Index].timeStamp, animationTime);
         glm::quat finalRotation = glm::slerp(m_Rotations[p0Index].orientation, m_Rotations[p1Index].orientation, scaleFactor);
-        return glm::degrees(glm::eulerAngles(glm::normalize(finalRotation))); // Zwracamy stopnie dla Twojego TransformComponent
+        return glm::degrees(glm::eulerAngles(glm::normalize(finalRotation))); 
     }
 
     glm::vec3 GetInterpolatedScale(float animationTime) {
@@ -94,7 +93,6 @@ private:
     int GetPositionIndex(float animationTime) {
         for (int index = 0; index < m_NumPositions - 1; ++index)
             if (animationTime < m_Positions[index + 1].timeStamp) return index;
-        // ZMIANA: Zwracamy przedostatni indeks zamiast 0, gdy czas minął!
         return std::max(0, m_NumPositions - 2);
     }
 

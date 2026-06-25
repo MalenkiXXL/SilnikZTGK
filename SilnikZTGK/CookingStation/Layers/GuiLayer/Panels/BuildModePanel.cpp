@@ -681,7 +681,7 @@ int BuildModePanel::GetCellState(std::shared_ptr<Scene>& activeScene, const glm:
     if (!transforms) return 0;
 
     glm::ivec2 targetCell = GridSystem::WorldToCell(snappedPos);
-    int state = 0; // 0 = empty
+    int state = 0; 
 
     for (size_t i = 0; i < transforms->dense.size(); ++i) {
         Entity e = transforms->reverse[i];

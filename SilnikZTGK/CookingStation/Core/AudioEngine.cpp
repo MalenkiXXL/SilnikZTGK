@@ -170,7 +170,6 @@ void AudioEngine::Shutdown()
 
 void AudioEngine::Play(const std::string& filepath)
 {
-    // BARDZO WAŻNE: Odcinamy odtwarzanie dźwięków jeśli są wyłączone
     if (!s_Engine || !s_SoundsEnabled) return;
 
     std::string vfsPath = filepath;
@@ -215,13 +214,11 @@ void AudioEngine::PlayMusic(const std::string& filepath, bool loop, float volume
     {
         std::cerr << "[AudioEngine] Blad ladowania muzyki tla: " << vfsPath << " Kod: " << result << std::endl;
 
-        // NAPRAWA WYJĄTKU (CRASHA): Usuwamy zepsuty wskaźnik jeśli plik nie istnieje!
         delete s_BackgroundMusic;
         s_BackgroundMusic = nullptr;
         return;
     }
 
-    // Od razu wyciszamy, jeśli muzyka jest globalnie wyłączona
     s_MusicBaseVolume = volume;
     float finalVolume = s_MusicEnabled ? volume : 0.0f;
     ma_sound_set_volume(s_BackgroundMusic, finalVolume);
@@ -254,9 +251,7 @@ void AudioEngine::SetMusicEnabled(bool enabled)
 {
     s_MusicEnabled = enabled;
 
-    // Bezpieczne sprawdzanie zanim przekażemy do miniaudio
     if (s_BackgroundMusic && s_IsMusicPlaying) {
-        // Zamiast 1.0f (100%), wracamy do zapamiętanej bazowej głośności:
         ma_sound_set_volume(s_BackgroundMusic, enabled ? s_MusicBaseVolume : 0.0f);
     }
 }

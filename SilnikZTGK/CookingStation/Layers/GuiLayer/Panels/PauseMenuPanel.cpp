@@ -40,11 +40,11 @@ void PauseMenuPanel::TogglePause() {
     else {
         if (!m_IsPaused) {
             Application::Get().GetEventBus().Publish(GamePausedEvent{});
-            Application::Get().GetEventBus().Publish(PlayPauseSoundEvent{}); // event do audio
+            Application::Get().GetEventBus().Publish(PlayPauseSoundEvent{}); 
         }
         else {
             Application::Get().GetEventBus().Publish(GameResumedEvent{});
-            Application::Get().GetEventBus().Publish(PlayUnpauseSoundEvent{}); // event do audio
+            Application::Get().GetEventBus().Publish(PlayUnpauseSoundEvent{}); 
         }
     }
 }

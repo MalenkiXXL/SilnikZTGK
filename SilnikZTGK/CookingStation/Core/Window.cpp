@@ -80,7 +80,6 @@ void Window::Init()
     glfwSetWindowCloseCallback(window, WindowCloseCallback);
     glfwSetWindowSizeCallback(window, WindowResizeCallback);
 
-    // NOWE: Podpięcie callbacku do przycisku maksymalizacji okna
     glfwSetWindowMaximizeCallback(window, WindowMaximizeCallback);
 }
 
@@ -159,7 +158,6 @@ void Window::ProcessWindowResize(int width, int height)
     m_EventCallbackFn(event);
 }
 
-// NOWE: Funkcja obsługująca maksymalizację
 void Window::WindowMaximizeCallback(GLFWwindow* window, int maximized)
 {
     Window* myWindow = static_cast<Window*>(glfwGetWindowUserPointer(window));

@@ -67,17 +67,14 @@ void EditorLayer::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos,
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    // 1. Podswietlenie hover kafelka
     glm::vec3 hoverCenter = { (hoverCell.x + 0.5f) * cell, 0.0f, (hoverCell.y + 0.5f) * cell };
     Renderer2D::DrawQuad(FlatQuadTransform(hoverCenter, cell, cell), hoverColor);
 
-    // 2. Linie poziome
     for (int cz = startZ; cz <= endZ; cz++) {
         float z = cz * cell;
         Renderer2D::DrawQuad(FlatQuadTransform({ centerX, 0.0f, z }, gridLenX, t), borderColor);
     }
 
-    // 3. Linie pionowe
     for (int cx = startX; cx <= endX; cx++) {
         float x = cx * cell;
         Renderer2D::DrawQuad(FlatQuadTransform({ x, 0.0f, centerZ }, t, gridLenZ), borderColor);
@@ -87,7 +84,6 @@ void EditorLayer::DrawGrid(const glm::mat4& viewProj3D, const glm::vec3& camPos,
     glEnable(GL_DEPTH_TEST);
 }
 
-// Obliczanie przeciecia promienia z podloga
 void EditorLayer::UpdateGridPlacement(float localMouseX, float localMouseY, const glm::vec2& viewportSize, const glm::mat4& projection3D, const glm::mat4& view3D)
 {
     Ray ray = Physics::CastRayFromMouse(localMouseX, localMouseY, viewportSize.x, viewportSize.y, projection3D, view3D);
@@ -174,7 +170,6 @@ void EditorLayer::OnUpdate(Timestep ts)
         m_IsPlacing = true;
         request.Active = false;
 
-        //automatycznie włączamy siatkę przy wyjęciu prefab
         gridReq.Active = true;
     }
 
@@ -205,7 +200,6 @@ void EditorLayer::OnUpdate(Timestep ts)
         }
     }
 
-    //anulowanie stawiania modeli
     if (m_IsPlacing && Input::IsMouseButtonJustPressed(1) && isMouseInViewport)
     {
         m_IsPlacing = false;
@@ -270,7 +264,6 @@ void EditorLayer::OnUpdate(Timestep ts)
 
         Entity closestEntity = Physics::GetHoveredEntity(ray, activeScene, false, s_UseSSA);
 
-        //wybiera rodzica przy kliknięciu dziecka
         if (closestEntity.id != std::numeric_limits<std::size_t>::max())
         {
             Entity rootEntity = closestEntity;

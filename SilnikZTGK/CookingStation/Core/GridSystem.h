@@ -2,13 +2,11 @@
 #include <glm/glm.hpp>
 #include <cmath>
 
-// w jaki sposob silnik ma hashowac ivec2
 struct IVec2Hash
 {
     std::size_t operator()(const glm::ivec2& v) const
     {
-        //bierzemy standardowa funkcje hashujaca inty i wrzucamy x i y
-        //korzystamy z przesuniecia bitowego poniewaz gdybysmy mieli np komorke (2,2) to wynik x bylby identyczny z y. Operator XOR bierze hash z x i y i skleja je w jenda liczbe size_t
+      
         return std::hash<int>()(v.x) ^ (std::hash<int>()(v.y << 1));
     }
 };
@@ -17,13 +15,10 @@ struct IVec2Hash
 class GridSystem
 {
 public:
-    // Rozmiar jednego kafelka w jednostkach swiata 
     static float CELL_SIZE;
 
-    // Przelicza dowolna pozycje w swiecie na srodek najblizszego kafelka
     static glm::vec3 SnapToGrid(const glm::vec3& worldPos)
     {
-        // Snap do CENTRUM kafelka, nie do jego rogu
         int cellX = (int)std::floor(worldPos.x / CELL_SIZE);
         int cellZ = (int)std::floor(worldPos.z / CELL_SIZE);
         float snappedX = (cellX + 0.5f) * CELL_SIZE;

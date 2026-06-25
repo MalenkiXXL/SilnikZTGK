@@ -170,17 +170,14 @@ void SettingsMenuPanel::Draw(float baseScale) {
         Gui::DrawGuiText(text, { centerX - textW * 0.5f, rowCenterY - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
         };
 
-    // --- RZĄD 1: ROZDZIELCZOŚĆ ---
     float row1Y = startY;
     Gui::DrawGuiText("Resolution:", { leftColX, row1Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
-    // NOWE: Jeśli włączono Fullscreen, wymuszamy najwyższą obsługiwaną rozdzielczość
     if (m_PendingFullscreen) {
         m_PendingResIndex = m_MaxResIndex;
     }
 
     glm::vec2 resLeftPos = { rightColX, row1Y - arrowYOffset };
-    // Zablokowanie zmiany w lewo, gdy jest Fullscreen
     bool canGoLeft = (m_PendingResIndex > 0) && !m_PendingFullscreen;
     bool hovResL = isHov(resLeftPos, arrowSize) && canGoLeft;
     if (drawImageBtn(leftArrowTex, resLeftPos, arrowSize, m_ResLeftBtnScale, hovResL, canGoLeft)) {
@@ -191,14 +188,12 @@ void SettingsMenuPanel::Draw(float baseScale) {
     drawCenteredValue(resText, row1Y);
 
     glm::vec2 resRightPos = { rightColX + distanceBetweenArrows, row1Y - arrowYOffset };
-    // Zablokowanie zmiany w prawo, gdy jest Fullscreen
     bool canGoRight = (m_PendingResIndex < m_MaxResIndex) && !m_PendingFullscreen;
     bool hovResR = isHov(resRightPos, arrowSize) && canGoRight;
     if (drawImageBtn(rightArrowTex, resRightPos, arrowSize, m_ResRightBtnScale, hovResR, canGoRight)) {
         m_PendingResIndex++;
     }
 
-    // --- RZĄD 2: ANTI-ALIASING ---
     float row2Y = startY + rowGap;
     Gui::DrawGuiText("Antialiasing:", { leftColX, row2Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
@@ -219,12 +214,11 @@ void SettingsMenuPanel::Draw(float baseScale) {
         m_PendingMsaaIndex++;
     }
 
-    // --- RZĄD 3: FULLSCREEN ---
     float row3Y = startY + rowGap * 2.0f;
     Gui::DrawGuiText("Fullscreen:", { leftColX, row3Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
     glm::vec2 fsLeftPos = { rightColX, row3Y - arrowYOffset };
-    bool canFsGoLeft = m_PendingFullscreen == true; // Lewa strzałka = chcemy wyłączyć (czyli musi być aktualnie włączony)
+    bool canFsGoLeft = m_PendingFullscreen == true; 
     bool hovFsL = isHov(fsLeftPos, arrowSize) && canFsGoLeft;
     if (drawImageBtn(leftArrowTex, fsLeftPos, arrowSize, m_FsLeftBtnScale, hovFsL, canFsGoLeft)) {
         m_PendingFullscreen = false;
@@ -234,13 +228,12 @@ void SettingsMenuPanel::Draw(float baseScale) {
     drawCenteredValue(fsText, row3Y);
 
     glm::vec2 fsRightPos = { rightColX + distanceBetweenArrows, row3Y - arrowYOffset };
-    bool canFsGoRight = m_PendingFullscreen == false; // Prawa strzałka = chcemy włączyć
+    bool canFsGoRight = m_PendingFullscreen == false; 
     bool hovFsR = isHov(fsRightPos, arrowSize) && canFsGoRight;
     if (drawImageBtn(rightArrowTex, fsRightPos, arrowSize, m_FsRightBtnScale, hovFsR, canFsGoRight)) {
         m_PendingFullscreen = true;
     }
 
-    // --- RZĄD 4: MUZYKA ---
     float row4Y = startY + rowGap * 3.0f;
     Gui::DrawGuiText("Music:", { leftColX, row4Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
@@ -261,7 +254,6 @@ void SettingsMenuPanel::Draw(float baseScale) {
         m_PendingMusicEnabled = true;
     }
 
-    // --- RZĄD 5: DŹWIĘKI ---
     float row5Y = startY + rowGap * 4.0f;
     Gui::DrawGuiText("Sounds:", { leftColX, row5Y - textYOffset }, textScale, { 1.0f, 1.0f, 1.0f, 1.0f });
 
@@ -282,7 +274,6 @@ void SettingsMenuPanel::Draw(float baseScale) {
         m_PendingSoundsEnabled = true;
     }
 
-    // --- DOLNY PANEL ---
     float btnHeight = 90.0f * baseScale;
     glm::vec2 backBtnSize = getAspectSize(backBtnTex, btnHeight);
     glm::vec2 applyBtnSize = getAspectSize(applyBtnTex, btnHeight);

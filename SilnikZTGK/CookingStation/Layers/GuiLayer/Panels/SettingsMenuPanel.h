@@ -14,10 +14,9 @@ public:
 private:
     int m_PendingResIndex = 0;
     int m_PendingMsaaIndex = 0;
-    int m_MaxResIndex = 3; // NOWE: Ogranicznik dla rozdzielczości
+    int m_MaxResIndex = 3; 
     std::vector<int> m_MsaaOptions = { 1, 2, 4, 8 };
 
-    // Zmienne dla dźwięków i muzyki
     bool m_PendingMusicEnabled = true;
     bool m_PendingSoundsEnabled = true;
     bool m_PendingFullscreen = false;
@@ -29,7 +28,6 @@ private:
     float m_MsaaLeftBtnScale = 1.0f;
     float m_MsaaRightBtnScale = 1.0f;
 
-    // Skale animacji dla nowych przycisków
     float m_MusicLeftBtnScale = 1.0f;
     float m_MusicRightBtnScale = 1.0f;
     float m_SoundsLeftBtnScale = 1.0f;

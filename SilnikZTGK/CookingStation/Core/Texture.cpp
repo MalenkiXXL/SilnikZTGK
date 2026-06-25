@@ -18,7 +18,7 @@ Texture::Texture(const std::string& path) : m_FilePath(path), m_RendererID(0) {
     std::vector<uint8_t> fileData = VFS::ReadFile(path);
     if (fileData.empty()) {
         spdlog::error("[Texture_GUI] Brak pliku lub blad VFS dla tekstury: {}", path);
-        return; // m_RendererID = 0, bezpiecznie
+        return; 
     }
 
     unsigned char* data = stbi_load_from_memory(

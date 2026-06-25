@@ -328,7 +328,6 @@ void RecipeBookPanel::Draw(float gameX, float gameY, float gameWidth, float game
                 { col4, row3 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked);
         }
         else if (m_CurrentPage == 1) {
-            // ZMIANA: Przesuwamy kaw� w PRAWO (dodatnia warto�� X offsetu)
             DrawRecipeIcon("Coffee", "Coffee", m_CoffeeIcon, m_CoffeeRecipeTex,
                 { col1, row1 }, recipeW, insidePos, insideSize, dt, isBlocked, activeTooltipTex, activeTooltipPos, activeTooltipSize, !isGrandmaUnlocked, 0.8f, { 8.0f * baseScale, 0.0f });
 

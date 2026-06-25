@@ -13,8 +13,7 @@ public:
     PhysicalFileSystem(const std::string& rootDir) : m_RootDirectory(rootDir) {}
 
     std::vector<uint8_t> ReadFile(const std::string& filepath) override {
-        // Ręczne łączenie ścieżek z pominięciem std::filesystem
-        // (Omija to problem z uszkodzeniem sterty przy zwalnianiu std::wstring)
+        
         std::string fullPath = m_RootDirectory;
         if (!fullPath.empty() && fullPath.back() != '/' && fullPath.back() != '\\') {
             fullPath += '/';
@@ -29,7 +28,6 @@ public:
         }
 
         std::streamsize size = file.tellg();
-        // Zabezpieczenie przed błędnym odczytem rozmiaru
         if (size <= 0) {
             spdlog::error("[PhysicalFS] Plik jest pusty lub rozmiar uszkodzony: {}", fullPath);
             return {};
@@ -37,7 +35,6 @@ public:
 
         file.seekg(0, std::ios::beg);
 
-        // Maksymalnie bezpieczna alokacja bufora
         std::vector<uint8_t> buffer;
         buffer.resize(static_cast<size_t>(size));
 

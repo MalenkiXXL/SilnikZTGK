@@ -155,11 +155,9 @@ struct BuildModeToggledEvent {
 struct GamePausedEvent {};
 struct GameResumedEvent {};
 
-// Audio pause
 struct PlayPauseSoundEvent {};
 struct PlayUnpauseSoundEvent {};
 
-//UI
 struct TriggerHighlightEvent {
     Entity TargetEntity;
     glm::vec3 Color;
