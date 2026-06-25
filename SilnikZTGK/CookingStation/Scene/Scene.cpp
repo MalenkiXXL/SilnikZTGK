@@ -538,7 +538,15 @@ void Scene::DestroyEntityRecursive(Entity entity)
             auto* childRel = m_ECSWorld.GetComponentByID<RelationshipComponent>(currentChildId);
             std::size_t nextSibling = childRel ? childRel->NextSibling : NULL_ENTITY;
 
-            DestroyEntityRecursive({ currentChildId, 0 });
+            auto* relStorage = m_ECSWorld.GetComponentVector<RelationshipComponent>();
+            if (relStorage && currentChildId < relStorage->sparse.size())
+            {
+                std::size_t index = relStorage->sparse[currentChildId];
+                if (index != std::numeric_limits<std::size_t>::max())
+                {
+                    DestroyEntityRecursive(relStorage->reverse[index]);
+                }
+            }
 
             currentChildId = nextSibling;
         }
