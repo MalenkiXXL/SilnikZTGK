@@ -355,21 +355,18 @@ protected:
         return { std::numeric_limits<std::size_t>::max(), 0 };
     }
 
-    // ==========================================
-    // NOWY SILNIK ABSOLUTNEGO, SUROWEGO FIFO!
-    // ZERO OMIJANIA PĘTLAMI.
-    // ==========================================
+
     void CheckForTasks()
     {
         if (m_TaskQueue.empty()) return;
 
         auto task = m_TaskQueue.front();
 
-        if (task.Type == 0) // KLIENT USIADŁ (ZBIERZ ZAMÓWIENIE)
+        if (task.Type == 0) 
         {
             if (!IsValidEntity(task.Target)) {
                 m_TaskQueue.erase(m_TaskQueue.begin());
-                CheckForTasks(); // Jeśli podmiot usunięto, sprawdźmy następny z brzegu
+                CheckForTasks(); 
                 return;
             }
 
@@ -378,7 +375,7 @@ protected:
             m_CurrentState = State::MOVING_TO_TAKE_ORDER;
             m_TaskQueue.erase(m_TaskQueue.begin());
         }
-        else if (task.Type == 1) // TALERZ WYSZEDŁ NA WYDAWKĘ (WYDAJ JEDZENIE)
+        else if (task.Type == 1) 
         {
             bool plateValid = IsValidEntity(task.Target);
             if (plateValid) {
@@ -390,11 +387,10 @@ protected:
 
             if (!plateValid) {
                 m_TaskQueue.erase(m_TaskQueue.begin());
-                CheckForTasks(); // Gracz zjadł/wyrzucił talerz z wydawki, sprawdzamy następne polecenie
+                CheckForTasks();
                 return;
             }
 
-            // SZUKAMY KLIENTA GOTOWEGO DO JEDZENIA
             Entity cust = FindCustomerWaitingForFood();
             if (IsValidEntity(cust)) {
                 auto* pTag = GetScene()->GetWorld().GetComponent<TagComponent>(task.Target);
@@ -406,9 +402,6 @@ protected:
                 m_CurrentState = State::MOVING_TO_FOOD;
                 m_TaskQueue.erase(m_TaskQueue.begin());
             }
-            // ZAUWAŻ: Brak else. 
-            // Jeśli kelner trafił na talerz, ale nie ma jeszcze komu go wydać, po prostu WYCHODZI Z FUNKCJI.
-            // Zablokuje się w trybie IDLE i będzie czekał na klienta w nieskończoność. CZYSTE FIFO.
         }
     }
 

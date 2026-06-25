@@ -325,9 +325,6 @@ protected:
 
         glm::ivec2 myCell = GridSystem::WorldToCell(myTransform->GetPosition());
 
-        // --- ARCHITEKTONICZNA BLOKADA CELU (STICKY LOCK) ---
-        // Je�li maszyna ma ju� namierzony talerz, najpierw sprawdzamy jego aktualn� pozycj�.
-        // Zapobiega to chaotycznemu prze��czaniu cel�w, gdy inny talerz podjedzie bli�ej.
         if (m_LastHighlightedPlate.id != std::numeric_limits<std::size_t>::max())
         {
             auto* plateTransform = GetScene()->GetWorld().GetComponent<TransformComponent>(m_LastHighlightedPlate);
@@ -335,16 +332,13 @@ protected:
             {
                 glm::ivec2 plateCell = GridSystem::WorldToCell(plateTransform->GetPosition());
 
-                // Sprawdzamy, czy ten konkretny talerz nadal znajduje si� w zasi�gu s�siednich kratek (promie� 1)
                 if (std::abs(myCell.x - plateCell.x) <= 1 && std::abs(myCell.y - plateCell.y) <= 1)
                 {
-                    // Talerz wci�� jest w zasi�gu! Zwracamy go natychmiast i ignorujemy reszt� �wiata.
                     return m_LastHighlightedPlate;
                 }
             }
         }
 
-        // Je�li nie by�o zablokowanego talerza lub stary uciek� z zasi�gu, szukamy nowego:
         Entity closestPlate = { std::numeric_limits<std::size_t>::max(), 0 };
         float closestDist = 999.0f;
 

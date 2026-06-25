@@ -92,6 +92,7 @@ namespace {
         case IngredientType::RaspberryShake: return "RaspberryShake";
         case IngredientType::StrawberryShake: return "StrawberryShake";
         case IngredientType::CoffeeShake: return "CoffeeShake";
+        case IngredientType::Coffee: return "Coffee";
         default: return "Nieznany(" + std::to_string(static_cast<int>(type)) + ")";
         }
     }
