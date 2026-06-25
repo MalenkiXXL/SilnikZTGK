@@ -88,12 +88,13 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.clear();
     m_CoinIcon = coinIcon;
 
-    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   0 });
-    m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/cuttingBoardMachine.png"), 0 });
-    m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   0 });
-    m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  0 });
-    m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/pan.png"), 0 });
-    m_MachineEntries.push_back({ "Ekspres", "assets://prefabs/coffee_maker.json", AssetManager::GetTexture("assets://UI/coffeeMachine.png"), 0, true });
+
+    m_MachineEntries.push_back({ "Garnek",    "assets://prefabs/pot_station.json",   AssetManager::GetTexture("assets://UI/pot.png"),   50 });
+    m_MachineEntries.push_back({ "Deska",     "assets://prefabs/board_station.json", AssetManager::GetTexture("assets://UI/cuttingBoardMachine.png"), 25 });
+    m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   75 });
+    m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  75 });
+    m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/pan.png"), 100 });
+    m_MachineEntries.push_back({ "Ekspres", "assets://prefabs/coffee_maker.json", AssetManager::GetTexture("assets://UI/coffeeMachine.png"), 150 });
 
     m_LeftMouseIcon = AssetManager::GetTexture("assets://UI/leftMouse.png");
     m_RightMouseIcon = AssetManager::GetTexture("assets://UI/rightMouse.png");

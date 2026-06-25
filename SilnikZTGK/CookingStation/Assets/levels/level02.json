@@ -1961,7 +1961,7 @@
                     1.0
                 ]
             },
-            "id": 189,
+            "id": 67,
             "model_path": "assets://models/przybory_kuchenne/tasma/switch/base.gltf",
             "name": "switch_1",
             "position": [
@@ -1984,10 +1984,10 @@
             ]
         },
         {
-            "id": 190,
+            "id": 68,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
             "name": "swtich_pas_1",
-            "parent_id": 189,
+            "parent_id": 67,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -3888,7 +3888,7 @@
             "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
             "name": "SkrzynkaMleko",
             "position": [
-                -11.0,
+                3.0,
                 0.0,
                 13.0
             ],
@@ -4326,9 +4326,9 @@
             "model_path": "assets://models/przybory_kuchenne/mikser/blender.gltf",
             "name": "NewMap_Mixer_165",
             "position": [
-                15.0,
+                13.0,
                 0.0,
-                5.0
+                3.0
             ],
             "rotation": [
                 0.0,
@@ -4463,7 +4463,7 @@
             "id": 153,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
             "name": "swtich_pas_144",
-            "parent_id": 249,
+            "parent_id": 190,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -5522,7 +5522,7 @@
             ]
         },
         {
-            "id": 248,
+            "id": 189,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
             "name": "tasma_pas_140",
             "parent_id": 247,
@@ -5558,7 +5558,7 @@
                     1.0
                 ]
             },
-            "id": 249,
+            "id": 190,
             "model_path": "assets://models/przybory_kuchenne/tasma/switch/base.gltf",
             "name": "NewMap_switch_144",
             "position": [
@@ -7313,7 +7313,7 @@
                     1.0
                 ]
             },
-            "id": 67,
+            "id": 248,
             "model_path": "assets://models/przybory_kuchenne/tasma/base/conveyor_base.gltf",
             "name": "tasma_2",
             "position": [
@@ -7336,10 +7336,10 @@
             ]
         },
         {
-            "id": 68,
+            "id": 249,
             "model_path": "assets://models/przybory_kuchenne/tasma/belt/conveyor_belt.gltf",
             "name": "tasma_pas_2",
-            "parent_id": 67,
+            "parent_id": 248,
             "position": [
                 0.0,
                 0.009999999776482582,
@@ -7376,7 +7376,7 @@
             "model_path": "assets://models/wystroj/skrzynka/skrzynka.gltf",
             "name": "NewMap_SkrzynkaZiemniak",
             "position": [
-                3.0,
+                -11.0,
                 0.0,
                 13.0
             ],
@@ -7427,6 +7427,167 @@
             ],
             "scripts": [
                 "CrateScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    -0.3499999940395355,
+                    0.5,
+                    -0.5
+                ],
+                "size": [
+                    1.5499999523162842,
+                    1.149999976158142,
+                    1.600000023841858
+                ]
+            },
+            "id": 252,
+            "model_path": "assets://models/przybory_kuchenne/ekspres/ekspres.gltf",
+            "name": "NewMap_Expressrrr",
+            "position": [
+                15.0,
+                0.0,
+                -1.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.4000000059604645,
+                0.4000000059604645,
+                0.5
+            ],
+            "scripts": [
+                "CoffeeMakerScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.2000000476837158,
+                    1.2000000476837158,
+                    1.2000000476837158
+                ]
+            },
+            "id": 253,
+            "model_path": "assets://models/przybory_kuchenne/patelka/pan.gltf",
+            "name": "Patelnia_4",
+            "position": [
+                3.0,
+                1.0,
+                3.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.699999988079071,
+                0.699999988079071,
+                0.699999988079071
+            ],
+            "scripts": [
+                "PanScript",
+                "SteamEmitterScript"
+            ]
+        },
+        {
+            "id": 254,
+            "model_path": "assets://models/wystroj/palnik/palnik.gltf",
+            "name": "Palnik_4",
+            "position": [
+                3.0,
+                0.0,
+                3.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                1.0,
+                1.0,
+                1.0
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            },
+            "id": 256,
+            "model_path": "assets://models/przybory_kuchenne/piekarnik/piekarnik.gltf",
+            "name": "Mixer_8",
+            "position": [
+                -3.0,
+                1.0,
+                1.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.6000000238418579,
+                0.6000000238418579,
+                0.699999988079071
+            ],
+            "scripts": [
+                "OvenScript"
+            ]
+        },
+        {
+            "collider": {
+                "offset": [
+                    0.0,
+                    0.5,
+                    0.0
+                ],
+                "size": [
+                    1.0,
+                    1.7999999523162842,
+                    2.299999952316284
+                ]
+            },
+            "id": 258,
+            "model_path": "assets://models/przybory_kuchenne/mikser/blender.gltf",
+            "name": "Mixer_9",
+            "position": [
+                -7.0,
+                0.0,
+                1.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": [
+                0.4000000059604645,
+                0.4000000059604645,
+                0.4000000059604645
+            ],
+            "scripts": [
+                "MixerScript"
             ]
         }
     ]
