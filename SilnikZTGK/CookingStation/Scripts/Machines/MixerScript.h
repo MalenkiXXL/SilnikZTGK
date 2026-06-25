@@ -60,7 +60,6 @@ private:
 public:
     bool CanAcceptIngredient(IngredientType type) override
     {
-
         bool incomingIsRaw = IsRaw(type);
         bool incomingIsChopped = IsChopped(type);
 
@@ -75,7 +74,6 @@ public:
 
         if (m_IsReady) {
             if (GetMixerResult() == IngredientType::RawDough &&
-                // Dodane type == IngredientType::Yawn
                 (type == IngredientType::ChoppedApple || type == IngredientType::SleepyDust || type == IngredientType::ChoppedRaspberry || type == IngredientType::Yawn)) return true;
             return false;
         }
@@ -114,7 +112,7 @@ public:
                 type == IngredientType::Raspberry || type == IngredientType::Strawberry ||
                 type == IngredientType::CoffeeBeans || type == IngredientType::SleepyDust ||
                 type == IngredientType::ChoppedRaspberry || type == IngredientType::ChoppedPotato ||
-                type == IngredientType::Yawn; 
+                type == IngredientType::Yawn;
         }
 
         return false;
@@ -206,7 +204,7 @@ public:
         {
             GetScene()->GetWorld().GetEventBus().Publish(MachineNeedsMoreIngredientsEvent{
                     m_Entity, 0.5f
-            });
+                });
         }
 
         return true;
@@ -218,7 +216,7 @@ public:
         {
             GetScene()->GetWorld().GetEventBus().Publish(MachineNeedsMoreIngredientsEvent{
                     m_Entity, 0.2f
-            });
+                });
         }
     }
 
@@ -252,7 +250,17 @@ public:
                     pScript->m_MachineHistory.insert(pScript->m_MachineHistory.end(), m_MachineHistory.begin(), m_MachineHistory.end());
                     pScript->m_MachineHistory.push_back("Mixer");
 
-                    spdlog::info("Mikser: Produkt logicznie przeniesiony na talerz (z pełną historią)!");
+                    if (!pScript->m_VisualModels.empty()) {
+                        Entity newVisualOnPlate = pScript->m_VisualModels.back(); 
+
+                        DishHistory history;
+                        history.BaseIngredients = pScript->m_DeepHistory;
+                        history.MachineHistory = pScript->m_MachineHistory;
+                        history.OriginMachine = "Mixer";
+
+                        GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ newVisualOnPlate, history });
+                        spdlog::info("Mikser: Zarejestrowano poprawnie jedzenie ID: {} w GameManagerze", newVisualOnPlate.id);
+                    }
                     ClearHighlight();
                     if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
                         GetScene()->DestroyEntity(m_SpawnedFood);
@@ -298,7 +306,7 @@ protected:
             auto* myTransform = GetComponent<TransformComponent>();
             if (!myTransform) return;
 
-            m_SpawnedFood = SpawnMachineFood(GetMixerResult(), "GotowyProduktZMiksera");
+            m_SpawnedFood = SpawnMachineFood(resultDish, "GotowyProduktZMiksera");
 
             auto* foodTf = GetScene()->GetWorld().GetComponent<TransformComponent>(m_SpawnedFood);
             if (foodTf)
@@ -313,11 +321,33 @@ protected:
                     m_Entity, glm::vec3(1.0f, 0.2f, 0.6f), 1.5f, false
                 });
 
+   
             DishHistory history;
-            history.BaseIngredients = m_DeepHistory;
-            history.MachineHistory = m_MachineHistory; 
-            history.MachineHistory.push_back("Mixer"); 
+
+            if (resultDish == IngredientType::StrawberryShake) {
+                history.BaseIngredients = { IngredientType::Strawberry, IngredientType::Milk };
+            }
+            else if (resultDish == IngredientType::RaspberryShake) {
+                history.BaseIngredients = { IngredientType::Raspberry, IngredientType::Milk };
+            }
+            else if (resultDish == IngredientType::CoffeeShake) {
+                history.BaseIngredients = { IngredientType::CoffeeBeans, IngredientType::Milk };
+            }
+            else if (resultDish == IngredientType::AppleShake) {
+                history.BaseIngredients = { IngredientType::Apple, IngredientType::Milk };
+            }
+            else {
+                // Domyślne zachowanie dla reszty 
+                history.BaseIngredients = m_DeepHistory;
+                for (auto ing : m_Ingredients) {
+                    history.BaseIngredients.push_back(ing);
+                }
+            }
+
+            history.MachineHistory = m_MachineHistory;
+            history.MachineHistory.push_back("Mixer");
             history.OriginMachine = "Mixer";
+
             GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ m_SpawnedFood, history });
 
             spdlog::info("Mikser: Gotowe!");

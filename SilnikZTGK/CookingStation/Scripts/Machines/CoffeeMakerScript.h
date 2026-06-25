@@ -182,10 +182,29 @@ protected:
         if (pScript && pScript->AddIngredient(IngredientType::Coffee))
         {
             spdlog::info("CoffeeMaker: Kawa przeniesiona na talerz/kubek!");
-            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max()) {
+
+            pScript->m_DeepHistory.insert(pScript->m_DeepHistory.end(), m_DeepHistory.begin(), m_DeepHistory.end());
+            pScript->m_MachineHistory.insert(pScript->m_MachineHistory.end(), m_MachineHistory.begin(), m_MachineHistory.end());
+            pScript->m_MachineHistory.push_back("CoffeeMaker"); 
+
+            if (!pScript->m_VisualModels.empty()) {
+                Entity newVisualInCup = pScript->m_VisualModels.back();
+
+                DishHistory history;
+                history.BaseIngredients = pScript->m_DeepHistory;
+                history.MachineHistory = pScript->m_MachineHistory;
+                history.OriginMachine = "CoffeeMaker";
+
+                GetScene()->GetWorld().GetEventBus().Publish(DishCreatedEvent{ newVisualInCup, history });
+            }
+    
+            if (m_SpawnedFood.id != std::numeric_limits<std::size_t>::max())
+            {
                 GetScene()->DestroyEntity(m_SpawnedFood);
                 m_SpawnedFood = { std::numeric_limits<std::size_t>::max(), 0 };
             }
+
+            StopBrewingSound();
         }
     }
 };

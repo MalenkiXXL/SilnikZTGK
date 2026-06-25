@@ -21,8 +21,8 @@ class DragAndDropScript : public ScriptableEntity
 public:
     static inline bool IsDragging = false;
     static inline IngredientType CurrentIngredient = IngredientType::None;
-    static inline std::vector<IngredientType> CurrentHistory; // PAMIĘĆ HISTORII W RĘKACH
-    static inline std::vector<std::string> CurrentMachineHistory; // NOWE: PAMIĘĆ MASZYN W RĘKACH
+    static inline std::vector<IngredientType> CurrentHistory; 
+    static inline std::vector<std::string> CurrentMachineHistory; 
     static inline Entity DraggedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
     static inline Scene* ActiveScene = nullptr;
 
@@ -35,7 +35,6 @@ public:
         ActiveScene = GetScene();
         m_DragSubId = GetScene()->GetWorld().GetEventBus().Subscribe<StartDragRequestEvent>(
             [this](const StartDragRequestEvent& e) {
-                // Nowe składniki z lodówki nie mają głębokiej historii
                 this->StartDrag(e.Type);
             }
         );
@@ -105,7 +104,6 @@ public:
         }
     }
 
-    // Dodano możliwość przekazywania historii
     static void StartDrag(IngredientType type, std::vector<IngredientType> history = {}, std::vector<std::string> machineHistory = {})
     {
         if (!ActiveScene) return;
@@ -117,7 +115,7 @@ public:
         IsDragging = true;
         CurrentIngredient = type;
         CurrentHistory = history;
-        CurrentMachineHistory = machineHistory; // Zapisujemy maszyny!
+        CurrentMachineHistory = machineHistory;
 
         auto builder = ActiveScene->GetWorld().BuildEntity();
         builder.With<TagComponent>({ "DraggedIngredient" });
@@ -157,7 +155,7 @@ public:
     {
         IsDragging = false;
         CurrentHistory.clear();
-        CurrentMachineHistory.clear(); // Czyścimy przy anulowaniu
+        CurrentMachineHistory.clear();
         if (DraggedEntity.id != std::numeric_limits<std::size_t>::max()) {
             ActiveScene->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ DraggedEntity });
             DraggedEntity = { std::numeric_limits<std::size_t>::max(), 0 };
@@ -366,7 +364,6 @@ private:
                 bool isActionPressed = Input::IsMouseButtonJustPressed(0) || (Input::IsGamepadPresent(0) && Input::IsGamepadButtonJustPressed(2, 0));
                 if (isActionPressed && !Input::IsUICapturingMouse()) {
                     if (!Input::IsKeyPressed(340)) {
-                        // Tutaj przekazujemy puste historie, bo przedmiot z taśmy nie ma historii
                         if (hoveredMachineScript->AddIngredient(foundType, {}, {})) {
                             spdlog::info("Maszyna zassała składnik z taśmy!");
                             GetScene()->GetWorld().GetEventBus().Publish(EntityDestroyRequestEvent{ closestBeltItem });
@@ -457,7 +454,7 @@ private:
                     itemToTransfer = pScript->m_Ingredients.back();
                 }
 
-                if (itemToTransfer == IngredientType::None) return false; // Talerz jest pusty
+                if (itemToTransfer == IngredientType::None) return false; 
 
                 return hoveredMachineScript->CanAcceptIngredient(itemToTransfer);
             });
@@ -647,11 +644,9 @@ private:
                     GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
                     CancelDrag();
                 }
-                // TUTAJ ZMIANA: Wysyłamy do maszyny całą nową sygnaturę z historiami!
                 else if (targetMachineScript && targetMachineScript->AddIngredient(CurrentIngredient, CurrentHistory, CurrentMachineHistory)) {
                     spdlog::info("Wrzucono składnik do maszyny (wraz z zapisaną historią)!");
 
-                    // Usunąłem stąd ręczne nadpisywanie "m_DeepHistory", bo nowe AddIngredient maszyny robi to samo automatycznie!
 
                     GetScene()->GetWorld().GetEventBus().Publish(IngredientUsedEvent{ CurrentIngredient, 1 });
                     CancelDrag();

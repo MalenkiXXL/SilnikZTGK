@@ -109,7 +109,7 @@ public:
                     { IngredientType::CoffeeBeans, { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
                     { IngredientType::Raspberry,   { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
                     { IngredientType::Raspberry,   { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Piekarnik","assets://UI/oven.png"    } },
-                    { IngredientType::CoffeeBeans, { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Ekspres",  "assets://UI/coffeBean.png"} },
+                    { IngredientType::CoffeeBeans, { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Ekspres",  "assets://UI/coffeeMachine.png"} },
                     { IngredientType::Raspberry,   { OrderSecondaryRequirement::Type::Ingredient, IngredientType::SleepyDust, "",         ""                        } },
                     { IngredientType::Potato,      { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
                     });
