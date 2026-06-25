@@ -163,7 +163,7 @@ public:
             SetSmoking(false);
             StopFryingSound();
         }
-
+        AudioEngine::Play("assets://sounds/put_on_conveyor.mp3");
         return true;
     }
 

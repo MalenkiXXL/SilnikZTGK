@@ -102,10 +102,12 @@ public:
                 meshComp->ModelPtr = AssetManager::GetModel(meshComp->Path);
             }
 
+            AudioEngine::Play("assets://sounds/put_on_conveyor.mp3");
             return true;
         }
 
         spdlog::warn("Piekarnik: Do piekarnika wrzucaj tylko wyrobione ciasto!");
+        AudioEngine::Play("assets://sounds/error.mp3");
         return false;
     }
 
@@ -128,6 +130,7 @@ public:
         else if (!m_IsAutomated)
         {
             spdlog::warn("Piekarnik: Brak talerza w zasiegu!");
+            AudioEngine::Play("assets://sounds/error.mp3");
         }
     }
 

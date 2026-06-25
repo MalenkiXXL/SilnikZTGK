@@ -282,7 +282,7 @@ void GameLayer::SubscribeToGameplayEvents(std::shared_ptr<Scene> scene)
         });
 
     eventBus.Subscribe<StartDragRequestEvent>([](const StartDragRequestEvent& e) {
-        AudioEngine::Play("assets://sounds/drag_start.mp3");
+        AudioEngine::Play("assets://sounds/put_on_conveyor.mp3");
         });
 
     eventBus.Subscribe<PlateGrabbedEvent>([](const PlateGrabbedEvent& e) {

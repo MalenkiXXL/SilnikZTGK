@@ -367,6 +367,7 @@ public:
         m_AutoChopTimer = 0.0f;
         UpdateVisuals();
         spdlog::info("Położono składnik na desce do krojenia.");
+        AudioEngine::Play("assets://sounds/put_on_conveyor.mp3");
         return true;
     }
 
