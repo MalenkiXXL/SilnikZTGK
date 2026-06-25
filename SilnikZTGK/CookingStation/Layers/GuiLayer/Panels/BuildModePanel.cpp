@@ -93,10 +93,11 @@ void BuildModePanel::Init(std::shared_ptr<Texture> coinIcon) {
     m_MachineEntries.push_back({ "Mikser",    "assets://prefabs/mixer.json",         AssetManager::GetTexture("assets://UI/blender.png"),   0 });
     m_MachineEntries.push_back({ "Piekarnik", "assets://prefabs/oven.json",          AssetManager::GetTexture("assets://UI/oven.png"),  0 });
     m_MachineEntries.push_back({ "Patelnia", "assets://prefabs/pan_station.json", AssetManager::GetTexture("assets://UI/pan.png"), 0 });
-    m_MachineEntries.push_back({ "Ekspres", "assets://prefabs/coffee_maker.json", AssetManager::GetTexture("assets://UI/coffeeMachine.png"), 0 });
+    m_MachineEntries.push_back({ "Ekspres", "assets://prefabs/coffee_maker.json", AssetManager::GetTexture("assets://UI/coffeeMachine.png"), 0, true });
 
     m_LeftMouseIcon = AssetManager::GetTexture("assets://UI/leftMouse.png");
     m_RightMouseIcon = AssetManager::GetTexture("assets://UI/rightMouse.png");
+    m_LockClosedIcon = AssetManager::GetTexture("assets://UI/lockClosed.png");
 }
 
 void BuildModePanel::ForceReset() {
@@ -161,7 +162,7 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
     if (!isBlocked && !m_IsActive) {
         m_GameTime += dt;
         if (!m_HasShownBuildHint && m_GameTime >= 120.0f) {
-            m_BuildHintTimer = 10.0f; 
+            m_BuildHintTimer = 10.0f;
             m_HasShownBuildHint = true;
         }
     }
@@ -229,7 +230,7 @@ void BuildModePanel::DrawButton(float gameX, float gameY, float gameW, float gam
             float wave = (std::sin(timeNow * 6.0f) + 1.0f) * 0.5f;
             float flashSpike = std::pow(wave, 4.0f);
 
-            float glowScale = 1.0f + (flashSpike * 0.15f); 
+            float glowScale = 1.0f + (flashSpike * 0.15f);
             glm::vec2 glowSize = scaledSize * glowScale;
             glm::vec2 glowPos = {
                 scaledPos.x - (glowSize.x - scaledSize.x) * 0.5f,
@@ -346,12 +347,19 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
     glm::vec2 mouse = Gui::GetMappedMousePos();
     int currentMoney = GameManagerScript::s_Instance ? GameManagerScript::s_Instance->GetMoney() : 0;
 
+    bool isGrandmaUnlocked = false;
+    if (GameManagerScript::s_Instance &&
+        (GameManagerScript::s_Instance->m_IsMapExpanding || GameManagerScript::s_Instance->m_MapExpandProgress > 0.0f)) {
+        isGrandmaUnlocked = true;
+    }
+
     int currentlyHoveredSlot = -1;
     static int s_lastHoveredMachineSlot = -1;
 
     for (int i = 0; i < count; ++i) {
         auto& entry = m_MachineEntries[i];
         bool canAfford = currentMoney >= entry.Price;
+        bool isLocked = entry.IsGrandmaLocked && !isGrandmaUnlocked;
 
         float actualIconW = iconH;
         if (entry.Icon && entry.Icon->GetRendererID() != 0) {
@@ -382,7 +390,10 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
         glm::vec4 unaffordableColorHover = { 0.75f, 0.35f, 0.35f, 0.95f };
         glm::vec4 bg = { 0.0f, 0.0f, 0.0f, 0.0f };
 
-        if (canAfford) {
+        if (isLocked) {
+            iconColor = { 0.12f, 0.12f, 0.12f, 1.0f };
+        }
+        else if (canAfford) {
             if (isHeld) {
                 iconColor = { 0.5f, 0.7f, 1.0f, 1.0f };
                 bg = { 0.30f, 0.60f, 1.0f, 0.50f };
@@ -410,36 +421,50 @@ void BuildModePanel::DrawPanel(float gameX, float gameY, float gameWidth, float 
             Renderer2D::DrawQuad({ ix, iy }, { actualIconW, iconH }, entry.Icon, iconColor, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
 
-        float priceTextScale = 0.8f * baseScale;
-        std::string priceStr = std::to_string(entry.Price);
-        float tw = Gui::MeasureTextWidth(priceStr, priceTextScale);
-
-        float coinSize = 36.0f * baseScale;
-        float gap = 6.0f * baseScale;
-        float totalPriceW = coinSize + gap + tw;
-
-        float priceStartX = slotCenterX - totalPriceW * 0.5f;
-        float priceY = iy + iconH + 18.0f * baseScale;
-
-        glm::vec4 coinTint = canAfford ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : (inIcon ? unaffordableColorHover : unaffordableColorNormal);
-
-        if (m_CoinIcon && m_CoinIcon->GetRendererID() != 0) {
-            Renderer2D::DrawQuad({ priceStartX, priceY - 6.0f * baseScale }, { coinSize, coinSize }, m_CoinIcon, coinTint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
-        }
-        else {
-            Renderer2D::DrawQuad({ priceStartX, priceY - 6.0f * baseScale }, { coinSize, coinSize }, coinTint, coinSize * 0.5f);
+        if (isLocked && m_LockClosedIcon) {
+            float lockH = iconH * 0.5f;
+            float lockAspect = (float)m_LockClosedIcon->GetWidth() / (float)m_LockClosedIcon->GetHeight();
+            glm::vec2 lockSize = { lockH * lockAspect, lockH };
+            glm::vec2 lockPos = { slotCenterX - lockSize.x * 0.5f, iy + (iconH - lockSize.y) * 0.5f };
+            Renderer2D::DrawQuad(lockPos, lockSize, m_LockClosedIcon, { 1.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 0.0f });
         }
 
-        glm::vec4 affordableTextColor = { 144.0f / 255.0f, 94.0f / 255.0f, 169.0f / 255.0f, 1.0f };
-        glm::vec4 priceTextColor = canAfford ? affordableTextColor : coinTint;
+        if (!isLocked) {
+            float priceTextScale = 0.8f * baseScale;
+            std::string priceStr = std::to_string(entry.Price);
+            float tw = Gui::MeasureTextWidth(priceStr, priceTextScale);
 
-        Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap + 1.5f * baseScale, priceY + 1.5f * baseScale }, priceTextScale, { 0.0f, 0.0f, 0.0f, 0.8f });
-        Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap, priceY }, priceTextScale, priceTextColor);
+            float coinSize = 36.0f * baseScale;
+            float gap = 6.0f * baseScale;
+            float totalPriceW = coinSize + gap + tw;
+
+            float priceStartX = slotCenterX - totalPriceW * 0.5f;
+            float priceY = iy + iconH + 18.0f * baseScale;
+
+            glm::vec4 coinTint = canAfford ? glm::vec4(1.0f, 1.0f, 1.0f, 1.0f) : (inIcon ? unaffordableColorHover : unaffordableColorNormal);
+
+            if (m_CoinIcon && m_CoinIcon->GetRendererID() != 0) {
+                Renderer2D::DrawQuad({ priceStartX, priceY - 6.0f * baseScale }, { coinSize, coinSize }, m_CoinIcon, coinTint, { 0.0f, 1.0f }, { 1.0f, 0.0f });
+            }
+            else {
+                Renderer2D::DrawQuad({ priceStartX, priceY - 6.0f * baseScale }, { coinSize, coinSize }, coinTint, coinSize * 0.5f);
+            }
+
+            glm::vec4 affordableTextColor = { 144.0f / 255.0f, 94.0f / 255.0f, 169.0f / 255.0f, 1.0f };
+            glm::vec4 priceTextColor = canAfford ? affordableTextColor : coinTint;
+
+            Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap + 1.5f * baseScale, priceY + 1.5f * baseScale }, priceTextScale, { 0.0f, 0.0f, 0.0f, 0.8f });
+            Gui::DrawGuiText(priceStr, { priceStartX + coinSize + gap, priceY }, priceTextScale, priceTextColor);
+        }
 
         if (inIcon && m_IsActive) {
             Input::SetUICaptureMouse(true);
             if (Input::IsMouseButtonJustPressed(0) && m_HeldMachineIndex == -1) {
-                if (canAfford) {
+                if (isLocked) {
+                    spdlog::warn("BuildMode: Ta maszyna jest jeszcze zablokowana!");
+                    AudioEngine::Play("assets://sounds/error.mp3");
+                }
+                else if (canAfford) {
                     AudioEngine::Play("assets://sounds/button_click_in_game.mp3");
                     m_HeldMachineIndex = i;
                     m_JustSelectedFromPanel = true;
