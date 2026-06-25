@@ -96,6 +96,16 @@ private:
     std::shared_ptr<Texture> m_SpeedUpIcon;
     std::shared_ptr<Texture> m_EventCloudTex;
     std::shared_ptr<Texture> m_EventRewardTex;
+    std::shared_ptr<Texture> m_AppleIcon;
+    std::shared_ptr<Texture> m_CoffeeBeanIcon;
+    std::shared_ptr<Texture> m_CoffeeMachineIcon;
+    std::shared_ptr<Texture> m_RaspberryIcon;
+    std::shared_ptr<Texture> m_StrawberryIcon;
+    std::shared_ptr<Texture> m_StarPowderIcon;
+    std::shared_ptr<Texture> m_MozzarellaIcon;
+    std::shared_ptr<Texture> m_YawnIcon;
+    std::shared_ptr<Texture> m_PotatoIcon;
+    std::shared_ptr<Texture> m_EggIcon;
     std::size_t m_GameStartedSubId = 0;
     std::size_t m_InventorySubId = 0;
     std::size_t m_MoneySubId = 0;

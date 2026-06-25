@@ -90,18 +90,30 @@ public:
             };
 
             std::vector<Combo> combos = {
-                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Garnek", "assets://UI/pot.png" } },
-                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Patelnia", "assets://UI/pan.png" } },
-                { IngredientType::Tomato, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Ham, "", "" } },
-
-                { IngredientType::Cheese, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Tomato, "", "" } },
-
-                { IngredientType::Ham, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Patelnia", "assets://UI/pan.png" } },
-
-                { IngredientType::Flour, { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Milk, "", "" } },
-                { IngredientType::Milk, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Mikser", "assets://UI/blender.png" } },
-                { IngredientType::Flour, { OrderSecondaryRequirement::Type::Machine, IngredientType::None, "Piekarnik", "assets://UI/oven.png" } }
+                { IngredientType::Tomato,      { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Garnek",   "assets://UI/pot.png"     } },
+                { IngredientType::Tomato,      { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Patelnia", "assets://UI/pan.png"     } },
+                { IngredientType::Tomato,      { OrderSecondaryRequirement::Type::Ingredient,  IngredientType::Ham,         "",         ""                        } },
+                { IngredientType::Cheese,      { OrderSecondaryRequirement::Type::Ingredient,  IngredientType::Tomato,      "",         ""                        } },
+                { IngredientType::Ham,         { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Patelnia", "assets://UI/pan.png"     } },
+                { IngredientType::Flour,       { OrderSecondaryRequirement::Type::Ingredient,  IngredientType::Milk,        "",         ""                        } },
+                { IngredientType::Milk,        { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Mikser",   "assets://UI/blender.png" } },
+                { IngredientType::Flour,       { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Piekarnik","assets://UI/oven.png"    } },
+                { IngredientType::Tomato,      { OrderSecondaryRequirement::Type::Ingredient,  IngredientType::Mozzarella,  "",         ""                        } },
+                { IngredientType::Egg,         { OrderSecondaryRequirement::Type::Machine,     IngredientType::None,        "Patelnia", "assets://UI/pan.png"     } },
             };
+
+            if (GameManagerScript::s_GrandmaServed) {
+                combos.insert(combos.end(), {
+                    { IngredientType::Apple,       { OrderSecondaryRequirement::Type::Ingredient, IngredientType::Flour,      "",         ""                        } },
+                    { IngredientType::Strawberry,  { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
+                    { IngredientType::CoffeeBeans, { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
+                    { IngredientType::Raspberry,   { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
+                    { IngredientType::Raspberry,   { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Piekarnik","assets://UI/oven.png"    } },
+                    { IngredientType::CoffeeBeans, { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Ekspres",  "assets://UI/coffeBean.png"} },
+                    { IngredientType::Raspberry,   { OrderSecondaryRequirement::Type::Ingredient, IngredientType::SleepyDust, "",         ""                        } },
+                    { IngredientType::Potato,      { OrderSecondaryRequirement::Type::Machine,    IngredientType::None,       "Mikser",   "assets://UI/blender.png" } },
+                    });
+            }
 
             std::uniform_int_distribution<> distCombo(0, (int)combos.size() - 1);
             Combo selected = combos[distCombo(gen)];

@@ -63,6 +63,16 @@ void GameGuiLayer::OnAttach()
     m_SpeedUpIcon = AssetManager::GetTexture("assets://UI/speedUp.png");
     m_EventCloudTex = AssetManager::GetTexture("assets://UI/Events/EventCloud.png");
     m_EventRewardTex = AssetManager::GetTexture("assets://UI/Events/EventReward.png");
+    m_AppleIcon = AssetManager::GetTexture("assets://UI/Apple.png");
+    m_CoffeeBeanIcon = AssetManager::GetTexture("assets://UI/coffeBean.png");
+    m_CoffeeMachineIcon = AssetManager::GetTexture("assets://UI/coffeeMachine.png");
+    m_RaspberryIcon = AssetManager::GetTexture("assets://UI/raspberry.png");
+    m_StrawberryIcon = AssetManager::GetTexture("assets://UI/strawberry.png");
+    m_StarPowderIcon = AssetManager::GetTexture("assets://UI/StarPowder.png");
+    m_MozzarellaIcon = AssetManager::GetTexture("assets://UI/mozarella.png");
+    m_YawnIcon = AssetManager::GetTexture("assets://UI/yawn.png");
+    m_PotatoIcon = AssetManager::GetTexture("assets://UI/potato.png");
+    m_EggIcon = AssetManager::GetTexture("assets://UI/egg.png");
     m_BuildModePanel.Init(m_CoinIcon);
     m_IngredientsCarousel.Init(true);
     m_MachinesCarousel.Init(false);
@@ -455,12 +465,19 @@ void GameGuiLayer::DrawOrderTickets(float gameX, float gameY, float gameWidth, f
                 // --- LAMBDA POMOCNICZA DO IKON SK�ADNIK�W ---
                 auto getIngredientIcon = [&](IngredientType type) -> std::shared_ptr<Texture> {
                     switch (type) {
-                    case IngredientType::Tomato: return m_TomatoIcon;
-                    case IngredientType::Cheese: return m_CheeseIcon;
-                    case IngredientType::Ham:    return m_HamIcon;
-                    case IngredientType::Milk:   return m_MilkIcon;
-                    case IngredientType::Flour:  return m_FlourIcon;
-                    case IngredientType::Sandwich:   return AssetManager::GetTexture("assets://UI/sandwich.png");
+                    case IngredientType::Tomato:      return m_TomatoIcon;
+                    case IngredientType::Cheese:      return m_CheeseIcon;
+                    case IngredientType::Ham:         return m_HamIcon;
+                    case IngredientType::Milk:        return m_MilkIcon;
+                    case IngredientType::Flour:       return m_FlourIcon;
+                    case IngredientType::Mozzarella:  return m_MozzarellaIcon;
+                    case IngredientType::Egg:         return m_EggIcon;
+                    case IngredientType::Apple:       return m_AppleIcon;
+                    case IngredientType::Strawberry:  return m_StrawberryIcon;
+                    case IngredientType::CoffeeBeans: return m_CoffeeBeanIcon;
+                    case IngredientType::Raspberry:   return m_RaspberryIcon;
+                    case IngredientType::SleepyDust:  return m_StarPowderIcon;
+                    case IngredientType::Potato:      return m_PotatoIcon;
                     default: return m_QuestionMarkIcon;
                     }
                     };
