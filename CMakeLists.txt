@@ -4,11 +4,18 @@ project(SilnikZTGK C CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Wyciszenie ostrzeżeń o polskich znakach (C4828)
+# ==========================================
+# USTAWIENIA KOMPILATORA
+# ==========================================
 if(MSVC)
-    add_compile_options(/utf-8 /wd4828)
+    # Windows (Visual Studio) - polskie znaki i podstawowe ostrzeżenia
+    add_compile_options(/utf-8 /wd4828 /W3)
+else()
+    # Linux/MacOS (GCC/Clang) - standardowe ostrzeżenia
+    add_compile_options(-Wall -Wextra)
 endif()
 
+# Zbieranie plików źródłowych
 file(GLOB_RECURSE SOURCES
         "*.cpp"
         "*.c"
@@ -16,11 +23,28 @@ file(GLOB_RECURSE SOURCES
         "*.hpp"
 )
 
-list(FILTER SOURCES EXCLUDE REGEX "cmake-build-.*")
-list(FILTER SOURCES EXCLUDE REGEX "out/.*")
-list(FILTER SOURCES EXCLUDE REGEX "build/.*")
-list(FILTER SOURCES EXCLUDE REGEX ".*venv.*")
-list(FILTER SOURCES EXCLUDE REGEX "tests/.*")
+# Filtrowanie śmieci i testów (złączone w jeden czytelny Regex)
+list(FILTER SOURCES EXCLUDE REGEX "(cmake-build-.*|out/.*|build/.*|.*venv.*|tests/.*)")
+
+# ==========================================
+# ZALEŻNOŚCI (Cross-Platform: dnf/apt / vcpkg)
+# ==========================================
+find_package(OpenGL REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(glm REQUIRED)
+find_package(assimp REQUIRED)
+
+# Szukamy nagłówków STB w systemie/vcpkg (rozwiązuje problem sztywnych ścieżek)
+find_path(STB_INCLUDE_DIR stb_image.h PATH_SUFFIXES stb stb_image)
+
+# Automatyczny wybór targetu spdlog (naprawia błąd ABI na Linuksie, działa na Windows)
+if(TARGET spdlog::spdlog_header_only)
+    set(SPDLOG_TARGET spdlog::spdlog_header_only)
+else()
+    set(SPDLOG_TARGET spdlog::spdlog)
+endif()
 
 # ==========================================
 # GŁÓWNY PROGRAM
@@ -33,20 +57,15 @@ target_include_directories(${PROJECT_NAME} PRIVATE
         ${CMAKE_SOURCE_DIR}/SilnikZTGK
 )
 
-# VCPKG Zależności
-find_package(OpenGL REQUIRED)
-find_package(glfw3 CONFIG REQUIRED)
-find_package(spdlog CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(glm CONFIG REQUIRED)
-find_package(assimp CONFIG REQUIRED)
-find_package(glad CONFIG REQUIRED)
+# Jeśli znaleziono STB, dodajemy jego folder do ścieżek
+if(STB_INCLUDE_DIR)
+    target_include_directories(${PROJECT_NAME} PRIVATE ${STB_INCLUDE_DIR})
+endif()
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         OpenGL::GL
         glfw
-        glad::glad
-        spdlog::spdlog
+        ${SPDLOG_TARGET}
         nlohmann_json::nlohmann_json
         glm::glm
         assimp::assimp
@@ -96,15 +115,18 @@ target_include_directories(SilnikZTGK_Tests PRIVATE
         ${CMAKE_SOURCE_DIR}/SilnikZTGK
 )
 
+if(STB_INCLUDE_DIR)
+    target_include_directories(SilnikZTGK_Tests PRIVATE ${STB_INCLUDE_DIR})
+endif()
+
 # Podpinamy GTest oraz niezbędne biblioteki
 target_link_libraries(SilnikZTGK_Tests PRIVATE
         gtest
         gtest_main
         glm::glm
-        spdlog::spdlog
+        ${SPDLOG_TARGET}
         nlohmann_json::nlohmann_json
         OpenGL::GL
         glfw
-        glad::glad
         assimp::assimp
 )

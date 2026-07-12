@@ -17,7 +17,7 @@ struct QuadVertex {
 struct Renderer2D::Renderer2DData {
     static const uint32_t MaxQuads = 10000;
     static const uint32_t MaxVertices = MaxQuads * 4;
-    static const uint32_t MaxIndices = MaxQuads * 6;
+    static constexpr uint32_t MaxIndices = MaxQuads * 6;
     static const uint32_t MaxTextureSlots = 16;
 
     std::unique_ptr<Shader> UI_Shader;
