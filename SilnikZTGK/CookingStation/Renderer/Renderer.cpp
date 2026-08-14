@@ -80,7 +80,7 @@ void Renderer::Submit(const std::shared_ptr<Shader>& shader, const std::shared_p
     shader->setMat4("u_Transform", transform);
     for (auto& mesh : model->meshes) {
         AABB worldAABB = mesh.GetWorldAABB(transform);
-        if (IsOnFrustum(s_SceneData->ActiveFrustum, worldAABB)) {
+        if (!FrustumCullingEnabled || IsOnFrustum(s_SceneData->ActiveFrustum, worldAABB)) {
             mesh.Draw(*shader);
             s_Stats.DrawCalls3D++;
             s_Stats.TriangleCount3D += (mesh.indices.size() / 3);

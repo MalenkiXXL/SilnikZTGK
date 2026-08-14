@@ -78,6 +78,9 @@ public:
 
     static std::string ActiveShader;
 
+    static inline bool FrustumCullingEnabled = true;
+    static inline bool InstancingEnabled = true;
+
 private:
     struct SceneData
     {

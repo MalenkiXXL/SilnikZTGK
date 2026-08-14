@@ -180,15 +180,24 @@ void RendererLayer::OnUpdate(Timestep ts) {
 
                 if (transform && meshComp.ModelPtr) {
                     bool isVisible = false;
-                    for (auto& mesh : meshComp.ModelPtr->meshes) {
-                        AABB worldAABB = mesh.GetWorldAABB(transform->WorldMatrix);
-                        if (IsOnFrustum(activeFrustum, worldAABB)) {
-                            isVisible = true; break;
+
+                    if (!Renderer::FrustumCullingEnabled) {
+                        isVisible = true;
+                    }
+                    else {
+                        for (auto& mesh : meshComp.ModelPtr->meshes) {
+                            AABB worldAABB = mesh.GetWorldAABB(transform->WorldMatrix);
+                            if (IsOnFrustum(activeFrustum, worldAABB)) {
+                                isVisible = true;
+                                break;
+                            }
                         }
                     }
 
+                    // Jeœli obiekt nie jest widoczny, podbijamy statystykê odrzuconych i pomijamy jego rysowanie
                     if (!isVisible) {
-                        Renderer::GetStats().CulledObjects3D++; continue;
+                        Renderer::GetStats().CulledObjects3D++;
+                        continue;
                     }
 
                     UVScrollComponent* scroll = scrollStorage ? scrollStorage->Get(owner) : nullptr;
@@ -236,7 +245,16 @@ void RendererLayer::OnUpdate(Timestep ts) {
             }
             shadowShader->use();
             shadowShader->setBool("u_Animated", false);
-            Renderer::SubmitInstanced(shadowShader, modelPtr, allInstances);
+            if (Renderer::InstancingEnabled) {
+                Renderer::SubmitInstanced(shadowShader, modelPtr, allInstances);
+            }
+            else {
+                // Brak instancingu = wymuszenie pojedynczych Draw Calli
+                for (const auto& instance : allInstances) {
+                    std::vector<InstanceData> singleInstance = { instance };
+                    Renderer::SubmitInstanced(shadowShader, modelPtr, singleInstance);
+                }
+            }
         }
 
         for (auto& animDraw : animatedDraws) {
@@ -261,7 +279,16 @@ void RendererLayer::OnUpdate(Timestep ts) {
                 shaderPtr->use();
                 shaderPtr->setBool("u_Animated", false);
                 shaderPtr->setInt("shadowMap", 15);
-                Renderer::SubmitInstanced(shaderPtr, modelPtr, batchData);
+                if (Renderer::InstancingEnabled) {
+                    Renderer::SubmitInstanced(shaderPtr, modelPtr, batchData);
+                }
+                else {
+                    // Brak instancingu = wymuszenie pojedynczych Draw Calli
+                    for (const auto& instance : batchData) {
+                        std::vector<InstanceData> singleInstance = { instance };
+                        Renderer::SubmitInstanced(shaderPtr, modelPtr, singleInstance);
+                    }
+                }
             }
         }
 

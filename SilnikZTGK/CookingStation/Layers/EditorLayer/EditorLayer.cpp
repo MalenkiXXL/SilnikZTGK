@@ -4,6 +4,7 @@
 #include "CookingStation/Events/KeyEvent.h"
 #include "CookingStation/Layers/AssetLayer/AssetManager.h"
 #include "CookingStation/Layers/CameraLayer/Camera.h"
+#include "CookingStation/Renderer/Renderer.h"
 #include "CookingStation/Scene/ecs.h"
 #include "CookingStation/Scene/Scene.h"
 #include "CookingStation/Layers/GuiLayer/Utils/Gui.h" 
@@ -403,6 +404,18 @@ bool EditorLayer::OnKeyPressed(KeyPressedEvent& e) {
             }
             return true;
         }
+    }
+
+    if (e.GetKeyCode() == GLFW_KEY_F7) {
+        Renderer::InstancingEnabled = !Renderer::InstancingEnabled;
+        spdlog::info("Eksperyment A/B: Instancing {}", Renderer::InstancingEnabled ? "ON" : "OFF");
+        return true;
+    }
+
+    if (e.GetKeyCode() == GLFW_KEY_F8) {
+        Renderer::FrustumCullingEnabled = !Renderer::FrustumCullingEnabled;
+        spdlog::info("Eksperyment A/B: Frustum Culling {}", Renderer::FrustumCullingEnabled ? "ON" : "OFF");
+        return true;
     }
 
     if (e.GetKeyCode() == GLFW_KEY_ESCAPE && activeScene)
