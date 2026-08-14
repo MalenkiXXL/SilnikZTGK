@@ -448,7 +448,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
             m_StatsUpdateTimer = 0.0f;
         }
 
-        glm::vec2 panelSize(300.0f, 350.0f);
+        glm::vec2 panelSize(300.0f, 450.0f);
         glm::vec2 panelPos = GetAnchoredPosition(Anchor::BottomRight, 0.0f, 10.0f, panelSize.x, panelSize.y, m_ViewportWidth, m_ViewportHeight);
 
         Gui::Panel(panelPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.85f }, 15.0f);
@@ -468,9 +468,25 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         Gui::DrawGuiText(m_MatrixCalcText, { textX, textY }, scale, optColor);      textY += lineOffset;
         Gui::DrawGuiText(m_CpuSavingsText, { textX, textY }, scale, optColor);      textY += lineOffset;
         Gui::DrawGuiText(m_Tris3DText, { textX, textY }, scale, textColor);     textY += lineOffset;
-        Gui::DrawGuiText(m_Culled3DText, { textX, textY }, scale, textColor);     textY += lineOffset;
         Gui::DrawGuiText(m_DrawCallsUIText, { textX, textY }, scale, textColor);     textY += lineOffset;
         Gui::DrawGuiText(m_TrisUIText, { textX, textY }, scale, textColor);
+
+        textY += 30.0f; // Dodatkowy odstęp
+
+        // NOWE PRZYCISKI DO OPTYMALIZACJI:
+        Gui::DrawGuiText("Opcje Renderera (Eksperyment A/B):", { textX, textY }, scale + 0.05f, { 1.0f, 0.8f, 0.2f, 1.0f });
+        textY += lineOffset;
+
+        std::string instancingText = Renderer::InstancingEnabled ? "Instancing: ON" : "Instancing: OFF";
+        if (Gui::Button(instancingText, { textX, textY }, { 200.0f, 25.0f })) {
+            Renderer::InstancingEnabled = !Renderer::InstancingEnabled;
+        }
+        textY += 30.0f;
+
+        std::string cullingText = Renderer::FrustumCullingEnabled ? "Frustum Culling: ON" : "Frustum Culling: OFF";
+        if (Gui::Button(cullingText, { textX, textY }, { 200.0f, 25.0f })) {
+            Renderer::FrustumCullingEnabled = !Renderer::FrustumCullingEnabled;
+        }
     }
 
     if (m_ShowEnvironmentPanel) {
