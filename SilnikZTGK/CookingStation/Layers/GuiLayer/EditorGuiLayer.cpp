@@ -419,17 +419,43 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         }
     }
     
-    if (m_ShowDiagnosticPanel) {
+if (m_ShowDiagnosticPanel) {
+        static float s_MinFPS = 99999.0f;
+        static float s_MaxFPS = 0.0f;
+        static double s_TotalFPS = 0.0;
+        static int s_FrameCount = 0;
+        static bool s_ResetPomiary = false;
+
+        if (s_ResetPomiary) {
+            s_MinFPS = 99999.0f;
+            s_MaxFPS = 0.0f;
+            s_TotalFPS = 0.0;
+            s_FrameCount = 0;
+            s_ResetPomiary = false;
+        }
+
+        float currentFPS = 1.0f / ts.GetSeconds();
+
+        if (currentFPS < s_MinFPS) s_MinFPS = currentFPS;
+        if (currentFPS > s_MaxFPS) s_MaxFPS = currentFPS;
+        s_TotalFPS += currentFPS;
+        s_FrameCount++;
+
+        static std::string s_FpsMinMaxText = "";
+
         m_StatsUpdateTimer += ts.GetSeconds();
         if (m_StatsUpdateTimer >= 0.25f) {
             auto stats = Renderer::GetStats();
-            float fps = 1.0f / ts.GetSeconds();
             float frameTime = ts.GetMilliSeconds();
+            float avgFPS = (s_FrameCount > 0) ? (float)(s_TotalFPS / s_FrameCount) : currentFPS;
+
             auto formatFloat = [](float v) {
                 char buffer[32]; snprintf(buffer, sizeof(buffer), "%.2f", v); return std::string(buffer);
-                };
+            };
 
-            m_FpsText = "FPS: " + std::to_string((int)fps);
+            m_FpsText = "FPS: " + std::to_string((int)currentFPS) + " | Avg: " + std::to_string((int)avgFPS);
+            s_FpsMinMaxText = "Min: " + std::to_string((int)s_MinFPS) + "   | Max: " + std::to_string((int)s_MaxFPS);
+
             m_FrameTimeText = "Frame Time: " + formatFloat(frameTime) + " ms";
             m_CpuText = "CPU Logika: " + formatFloat(stats.CPULogicTime) + " ms";
             m_GpuText = "GPU Render: " + formatFloat(stats.GPURenderTime) + " ms";
@@ -460,6 +486,7 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
 
         Gui::DrawGuiText("Diagnostyka Projektu:", { textX, textY }, scale + 0.1f, { 0.2f, 0.8f, 0.2f, 1.0f }); textY += lineOffset + 5.0f;
         Gui::DrawGuiText(m_FpsText, { textX, textY }, scale, textColor);     textY += lineOffset;
+        Gui::DrawGuiText(s_FpsMinMaxText, { textX, textY }, scale, textColor); textY += lineOffset; // NOWA LINIJKA
         Gui::DrawGuiText(m_FrameTimeText, { textX, textY }, scale, textColor);     textY += lineOffset;
         Gui::DrawGuiText(m_CpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
         Gui::DrawGuiText(m_GpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
@@ -471,24 +498,24 @@ void EditorGuiLayer::OnUpdate(Timestep ts) {
         Gui::DrawGuiText(m_DrawCallsUIText, { textX, textY }, scale, textColor);     textY += lineOffset;
         Gui::DrawGuiText(m_TrisUIText, { textX, textY }, scale, textColor);
 
-        textY += 30.0f; // Dodatkowy odstęp
+        textY += 15.0f;
 
-        // NOWE PRZYCISKI DO OPTYMALIZACJI:
         Gui::DrawGuiText("Opcje Renderera (Eksperyment A/B):", { textX, textY }, scale + 0.05f, { 1.0f, 0.8f, 0.2f, 1.0f });
         textY += lineOffset;
 
         std::string instancingText = Renderer::InstancingEnabled ? "Instancing: ON" : "Instancing: OFF";
         if (Gui::Button(instancingText, { textX, textY }, { 200.0f, 25.0f })) {
             Renderer::InstancingEnabled = !Renderer::InstancingEnabled;
+            s_ResetPomiary = true;
         }
         textY += 30.0f;
 
         std::string cullingText = Renderer::FrustumCullingEnabled ? "Frustum Culling: ON" : "Frustum Culling: OFF";
         if (Gui::Button(cullingText, { textX, textY }, { 200.0f, 25.0f })) {
             Renderer::FrustumCullingEnabled = !Renderer::FrustumCullingEnabled;
+            s_ResetPomiary = true;
         }
     }
-
     if (m_ShowEnvironmentPanel) {
         glm::vec2 envSize = { 180.f, 350.f };
         glm::vec2 envPos = GetAnchoredPosition(Anchor::BottomLeft, 10.f, 10.f, envSize.x, envSize.y, m_ViewportWidth, m_ViewportHeight);

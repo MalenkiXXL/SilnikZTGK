@@ -46,7 +46,7 @@ void GameGuiLayer::OnAttach()
     m_SmileFaceIcon = AssetManager::GetTexture("assets://UI/smileFace.png");
     m_AngryFaceIcon = AssetManager::GetTexture("assets://UI/angryFace.png");
     m_CornerIcon = AssetManager::GetTexture("assets://UI/bottomCornerClouds.png");
-    m_TomatoIcon = AssetManager::GetTexture("assets://UI/tomato.png");
+    m_TomatoIcon = AssetManager::GetTexture("assets://UI/Tomato.png");
     m_CheeseIcon = AssetManager::GetTexture("assets://UI/Cheese.png");
     m_HamIcon = AssetManager::GetTexture("assets://UI/ham.png");
     m_CoinIcon = AssetManager::GetTexture("assets://UI/coin.png");

@@ -25,9 +25,9 @@ void RecipeBookPanel::Init() {
     m_TomatoSoupIcon = AssetManager::GetTexture("assets://UI/tomatoSoup.png");
     m_SandwichIcon = AssetManager::GetTexture("assets://UI/sandwich.png");
     m_FriedEggIcon = AssetManager::GetTexture("assets://UI/friedEgg.png");
-    m_EggsAndBaconIcon = AssetManager::GetTexture("assets://UI/eggsAndBacon.png");
+    m_EggsAndBaconIcon = AssetManager::GetTexture("assets://UI/EggsAndBacon.png");
     m_ShakshukaIcon = AssetManager::GetTexture("assets://UI/shakshuka.png");
-    m_BaguetteIcon = AssetManager::GetTexture("assets://UI/baguette.png");
+    m_BaguetteIcon = AssetManager::GetTexture("assets://UI/Baguette.png");
 
     m_CapreseIcon = AssetManager::GetTexture("assets://UI/caprese.png");
     m_ShakeIcon = AssetManager::GetTexture("assets://UI/shake.png");
@@ -37,7 +37,7 @@ void RecipeBookPanel::Init() {
     m_CroissantIcon = AssetManager::GetTexture("assets://UI/croissant.png");
 
     m_CoffeeIcon = AssetManager::GetTexture("assets://UI/coffeeCup.png");
-    m_CandyIcon = AssetManager::GetTexture("assets://UI/candy.png");
+    m_CandyIcon = AssetManager::GetTexture("assets://UI/Candy.png");
 
     m_TomatoSoupRecipeTex = AssetManager::GetTexture("assets://UI/TomatoSoupRecipe.png");
     m_SandwichRecipeTex = AssetManager::GetTexture("assets://UI/SandwichRecipe.png");
@@ -46,7 +46,7 @@ void RecipeBookPanel::Init() {
     m_ShakshukaRecipeTex = AssetManager::GetTexture("assets://UI/ShakshukaRecipe.png");
     m_BaguetteRecipeTex = AssetManager::GetTexture("assets://UI/BaguetteRecipe.png");
 
-    m_CapreseRecipeTex = AssetManager::GetTexture("assets://UI/capreseRecipe.png");
+    m_CapreseRecipeTex = AssetManager::GetTexture("assets://UI/CapreseRecipe.png");
     m_ShakeRecipeTex = AssetManager::GetTexture("assets://UI/ShakeRecipe.png");
     m_ApplePieRecipeTex = AssetManager::GetTexture("assets://UI/ApplePieRecipe.png");
     m_KopytkaRecipeTex = AssetManager::GetTexture("assets://UI/KopytkaRecipe.png");

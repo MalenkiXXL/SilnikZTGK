@@ -72,6 +72,8 @@ void Window::Init()
         spdlog::critical("Window::Init: gladLoadGLLoader() nie powiodlo sie! Kontekst OpenGL moze byc niepoprawny.");
     }
 
+    glfwSwapInterval(0);
+
     glfwSetKeyCallback(window, KeyCallBack);
     glfwSetCharCallback(window, CharCallback);
     glfwSetCursorPosCallback(window, MouseMoveCallback);

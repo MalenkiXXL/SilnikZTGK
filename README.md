@@ -1,29 +1,40 @@
-# CookingStation - Custom 3D Game Engine
+# Cook me back
+> Sweet dreams are made of greens...
 
-Autorski silnik gier 3D tworzony w C++ z wykorzystaniem API OpenGL. Projekt skupia się na wydajnej, niskopoziomowej architekturze oraz modularności, rozwijany jako główny projekt w ramach konkursu ZTGK.
+**This game was created for the ZTGK 2026 competition in the Game Development category.**
 
-## 🚀 Kluczowe Funkcjonalności
+## About the Game
+**Cook me back** is a relaxing tower defense game in which a frustrated chef, trapped in a deep sleep, automates his restaurant and recruits vegetable guests as helpers. Through culinary experiments, he must discover all recipes to awaken and return to reality.
 
-* **Architektura Entity Component System (ECS):** Autorska implementacja systemu encji.
-* **System Fizyki i Kolizji:** Implementacja detekcji kolizji dla brył **AABB** oraz algorytmów sprawdzających przecięcia.
-* **Zaawansowany Raycasting:** System rzucania promieni z kamery, umożliwiający precyzyjną interakcję z obiektami w przestrzeni 3D.
-* **Renderer 3D:** Warstwa renderująca zarządzająca buforami oraz shaderami, wyposażona w system zbierania statystyk wydajnościowych w czasie rzeczywistym.
-* **Natywne Skryptowanie:** System pozwalający na podpinanie logiki w C++ bezpośrednio pod encje w silniku.
+## Gameplay
+![Gameplay](readme_assets/gameplay.webp)
 
-## 🛠️ Stack Techniczny
+## Editor
+![Editor](readme_assets/editor.webp)
 
-* **Język:** C++ (standard 17/20)
-* **Grafika:** OpenGL 4.x
-* **Matematyka:** GLM (OpenGL Mathematics)
-* **Zależności:** GLFW (zarządzanie oknem), Glad (ładowanie rozszerzeń), spdlog (logowanie), nlohmann/json (serializacja scen).
+## AI Quest Generation
+*Our custom generative system leverages LLMs to fetch real-world news and transform them into unique, surreal quests. This ensures an endless pool of absurd and engaging tasks that fit the game's dreamlike atmosphere.*
 
-## 📂 Struktura Projektu
+![AI Quest Generation](readme_assets/quest.webp)
 
-* `Core/` – Jądro silnika, obsługa okna, wejścia i fizyki.
-* `Scene/` – Zarządzanie światem, ECS i serializacja.
-* `Renderer/` – Abstrakcja API graficznego i systemy renderowania.
-* `Layers/` – System warstw aplikacji (Editor, Gameplay, UI).
-* `Events/` – System zdarzeń (klawiatura, mysz, okno).
+## Tech Stack
+The game is built on a custom engine called **CookingStation**.
+* **Programming Language:** C++ 17
+* **Graphics Engine / API:** OpenGL
+* **Physics:** Custom system (AABB collision detection and raycasting)
+* **Audio:** Miniaudio
+* **Other Libraries:** GLFW, Glad, Assimp, Spdlog, Nlohmann/json
 
-## 🚧 Status Projektu
-Projekt jest w fazie aktywnego rozwoju. Obecnie pracujemy nad rozbudową narzędzi edytorskich oraz optymalizacją systemu ładowania zasobów.
+## Features
+* ECS (Entity Component System) architecture
+* Virtual File System (VFS)
+* 3D rendering and animation system with skeletal animation support
+* Dynamic Pathfinding (A-Star) for AI
+* Drag-and-Drop system with grid snapping
+* Generative system based on LLMs to create unique quests from real-world news
+* Native C++ scripting
+
+## Play the Game
+You can download and play the latest version of the game on our itch.io page:
+
+**[Play "Cook me back" on itch.io](https://raspberrycola.itch.io/cook-me-back)**
