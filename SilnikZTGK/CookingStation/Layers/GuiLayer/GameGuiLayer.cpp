@@ -1044,22 +1044,78 @@ void GameGuiLayer::OnUpdate(Timestep ts)
     }
 
 
-    if (m_ShowFPS) {
-        static float s_FpsUpdateTimer = 0.0f;
-        static int s_LastFPS = 0;
+    if (m_ShowDiagnostics) {
+        static float s_MinFPS = 99999.0f;
+        static float s_MaxFPS = 0.0f;
+        static double s_TotalFPS = 0.0;
+        static int s_FrameCount = 0;
 
-        s_FpsUpdateTimer += dt;
-        if (s_FpsUpdateTimer > 0.5f) {
-            s_LastFPS = (int)(1.0f / dt);
-            s_FpsUpdateTimer = 0.0f;
+        float currentFPS = 1.0f / dt;
+        if (currentFPS < s_MinFPS) s_MinFPS = currentFPS;
+        if (currentFPS > s_MaxFPS) s_MaxFPS = currentFPS;
+        s_TotalFPS += currentFPS;
+        s_FrameCount++;
+
+        static std::string s_FpsMinMaxText = "";
+
+        m_StatsUpdateTimer += dt;
+        if (m_StatsUpdateTimer >= 0.25f) {
+            auto stats = Renderer::GetStats();
+            float frameTime = ts.GetMilliSeconds();
+            float avgFPS = (s_FrameCount > 0) ? (float)(s_TotalFPS / s_FrameCount) : currentFPS;
+
+            auto formatFloat = [](float v) {
+                char buffer[32]; snprintf(buffer, sizeof(buffer), "%.2f", v); return std::string(buffer);
+                };
+
+            m_FpsText = "FPS: " + std::to_string((int)currentFPS) + " | Avg: " + std::to_string((int)avgFPS);
+            s_FpsMinMaxText = "Min: " + std::to_string((int)s_MinFPS) + "   | Max: " + std::to_string((int)s_MaxFPS);
+            m_FrameTimeText = "Frame Time: " + formatFloat(frameTime) + " ms";
+            m_CpuText = "CPU Logika: " + formatFloat(stats.CPULogicTime) + " ms";
+            m_GpuText = "GPU Render: " + formatFloat(stats.GPURenderTime) + " ms";
+            m_DrawCalls3DText = "Draw Calls (3D): " + std::to_string(stats.DrawCalls3D);
+            m_InstanceBatchesText = "Instanced Batches: " + std::to_string(stats.InstanceBatches);
+            m_MatrixCalcText = "CPU Matrix Calcs: " + std::to_string(stats.MatrixCalculations);
+
+            float totalMatrix = (float)(stats.MatrixCalculations + stats.SkippedCalculations);
+            float savings = totalMatrix > 0 ? ((float)stats.SkippedCalculations / totalMatrix) * 100.0f : 0.0f;
+            m_CpuSavingsText = "CPU Savings: " + formatFloat(savings) + "%";
+
+            m_Tris3DText = "Triangles (3D): " + std::to_string(stats.TriangleCount3D);
+            m_Culled3DText = "Culled: " + std::to_string(stats.CulledObjects3D);
+            m_DrawCallsUIText = "Draw Calls (UI): " + std::to_string(stats.DrawCallsUI);
+            m_TrisUIText = "Triangles (UI): " + std::to_string(stats.TriangleCountUI);
+
+            m_StatsUpdateTimer = 0.0f;
         }
 
-        std::string fpsText = "FPS: " + std::to_string(s_LastFPS);
-        float textScale = 0.65f * baseScale;
-        glm::vec2 textPos = { gameX + 15.0f * baseScale, gameY + 25.0f * baseScale };
+        glm::vec2 panelSize(300.0f * baseScale, 370.0f * baseScale);
+        glm::vec2 panelPos = { gameX + 15.0f * baseScale, gameY + 15.0f * baseScale };
 
-        Gui::DrawGuiText(fpsText, { textPos.x + 2.0f, textPos.y + 2.0f }, textScale, { 0.0f, 0.0f, 0.0f, 0.8f });
-        Gui::DrawGuiText(fpsText, textPos, textScale, { 0.2f, 0.9f, 0.2f, 1.0f });
+        Gui::Panel(panelPos, panelSize, { 0.12f, 0.12f, 0.12f, 0.85f }, 15.0f * baseScale);
+
+        float textX = panelPos.x + 15.0f * baseScale;
+        float textY = panelPos.y + 10.0f * baseScale;
+        float lineOffset = 25.0f * baseScale;
+        float scale = 0.6f * baseScale;
+
+        glm::vec4 textColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glm::vec4 highlightColor(1.0f, 0.8f, 0.2f, 1.0f);
+        glm::vec4 optColor(0.2f, 0.9f, 0.8f, 1.0f);
+
+        Gui::DrawGuiText("Diagnostics:", { textX, textY }, scale + 0.1f * baseScale, { 0.2f, 0.8f, 0.2f, 1.0f }); textY += lineOffset + 5.0f * baseScale;
+        Gui::DrawGuiText(m_FpsText, { textX, textY }, scale, textColor); textY += lineOffset;
+        Gui::DrawGuiText(s_FpsMinMaxText, { textX, textY }, scale, textColor); textY += lineOffset;
+        Gui::DrawGuiText(m_FrameTimeText, { textX, textY }, scale, textColor); textY += lineOffset;
+        Gui::DrawGuiText(m_CpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
+        Gui::DrawGuiText(m_GpuText, { textX, textY }, scale, highlightColor); textY += lineOffset;
+        Gui::DrawGuiText(m_DrawCalls3DText, { textX, textY }, scale, textColor); textY += lineOffset;
+        Gui::DrawGuiText(m_InstanceBatchesText, { textX, textY }, scale, optColor); textY += lineOffset;
+        Gui::DrawGuiText(m_MatrixCalcText, { textX, textY }, scale, optColor); textY += lineOffset;
+        Gui::DrawGuiText(m_CpuSavingsText, { textX, textY }, scale, optColor); textY += lineOffset;
+        Gui::DrawGuiText(m_Tris3DText, { textX, textY }, scale, textColor); textY += lineOffset;
+        Gui::DrawGuiText(m_DrawCallsUIText, { textX, textY }, scale, textColor); textY += lineOffset;
+        Gui::DrawGuiText(m_TrisUIText, { textX, textY }, scale, textColor);
     }
 
     Renderer2D::EndScene();
@@ -1221,7 +1277,7 @@ void GameGuiLayer::OnEvent(Event& e)
         });
 
     dispatcher.Dispatch<KeyPressedEvent>([this](KeyPressedEvent& ev) {
-        if (ev.GetKeyCode() == 292 && ev.GetRepeatCode() == 0) m_ShowFPS = !m_ShowFPS;
+        if (ev.GetKeyCode() == 292 && ev.GetRepeatCode() == 0) m_ShowDiagnostics = !m_ShowDiagnostics; 
         if (ev.GetKeyCode() == 258 && ev.GetRepeatCode() == 0) {
             if (GameManagerScript::s_IsTutorialMode) return true;
             m_BuildModePanel.Toggle();
