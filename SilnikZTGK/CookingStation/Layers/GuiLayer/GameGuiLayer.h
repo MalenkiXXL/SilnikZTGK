@@ -1,5 +1,6 @@
 #pragma once
 #include "CookingStation/Core/Layer.h"
+#include "CookingStation/Renderer/Renderer.h"
 #include "CookingStation/Events/WindowEvent.h"
 #include "CookingStation/Events/MouseEvent.h"
 #include "CookingStation/Core/Timestep.h"
@@ -134,6 +135,22 @@ private:
 
     std::vector<Entity> m_ActiveOrderTickets;
     bool m_ShowFPS = false;
+    bool m_ShowDiagnostics = false;
+    float m_StatsUpdateTimer = 1.0f;
+
+    std::string m_FpsText = "FPS: 0";
+    std::string m_FrameTimeText = "Frame Time: 0.00 ms";
+    std::string m_CpuText = "CPU Logika: 0.00 ms";
+    std::string m_GpuText = "GPU Render: 0.00 ms";
+    std::string m_DrawCalls3DText = "Draw Calls (3D): 0";
+    std::string m_InstanceBatchesText = "Instanced Batches: 0";
+    std::string m_MatrixCalcText = "CPU Matrix Calcs: 0";
+    std::string m_CpuSavingsText = "CPU Savings: 0.00%";
+    std::string m_Tris3DText = "Trojkaty (3D): 0";
+    std::string m_Culled3DText = "Odrzucone (Culled): 0";
+    std::string m_DrawCallsUIText = "Draw Calls (UI): 0";
+    std::string m_TrisUIText = "Trojkaty (UI): 0";
+
     bool m_IsGamePaused = false;
     bool m_ShowMushroomBubble = false;
 

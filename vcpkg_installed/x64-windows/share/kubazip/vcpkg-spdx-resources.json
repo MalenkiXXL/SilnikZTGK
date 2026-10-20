@@ -1,0 +1,19 @@
+{
+  "packages": [
+{
+  "SPDXID" : "SPDXRef-resource-0",
+  "checksums" : 
+  [
+    {
+      "algorithm" : "SHA512",
+      "checksumValue" : "817da7dd6f477adeb4986d542c20b6f28bed24895b09d3a69cfddf28cc78a7259db3a5e8f879ac263b6bda11c7bb70d00d1d8b626e33b4280366c769bb30bf50"
+    }
+  ],
+  "copyrightText" : "NOASSERTION",
+  "downloadLocation" : "git+https://github.com/kuba--/zip@v0.3.15",
+  "licenseConcluded" : "NOASSERTION",
+  "licenseDeclared" : "NOASSERTION",
+  "name" : "kuba--/zip"
+}
+  ]
+}

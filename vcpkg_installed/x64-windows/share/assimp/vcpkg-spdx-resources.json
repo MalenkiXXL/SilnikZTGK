@@ -1,0 +1,35 @@
+{
+  "packages": [
+{
+  "SPDXID" : "SPDXRef-resource-0",
+  "checksums" : 
+  [
+    {
+      "algorithm" : "SHA512",
+      "checksumValue" : "209d79e2366567cc8090e06684ef2da795a317c81d17694590e95051a62123219ab9b700bd0640e5ae0dd0d8bb9d8c9377dadc9168f08968d3b970244dbdc353"
+    }
+  ],
+  "copyrightText" : "NOASSERTION",
+  "downloadLocation" : "https://github.com/assimp/assimp/commit/9a486a72e43f92222969bfac7054554f97dd253f.patch?full_index=1",
+  "licenseConcluded" : "NOASSERTION",
+  "licenseDeclared" : "NOASSERTION",
+  "name" : "assimp_pr_6627.patch",
+  "packageFileName" : "assimp_pr_6627.patch"
+},
+{
+  "SPDXID" : "SPDXRef-resource-1",
+  "checksums" : 
+  [
+    {
+      "algorithm" : "SHA512",
+      "checksumValue" : "57326194bf3a8e2ae793c739878231067fdd6d031531e910d4d20fc8a673eacf48f75e11bd21ca2e6421682f78585d445bffb647bdcb52e01b2cd4d3ff0e2c62"
+    }
+  ],
+  "copyrightText" : "NOASSERTION",
+  "downloadLocation" : "git+https://github.com/assimp/assimp@v6.0.5",
+  "licenseConcluded" : "NOASSERTION",
+  "licenseDeclared" : "NOASSERTION",
+  "name" : "assimp/assimp"
+}
+  ]
+}

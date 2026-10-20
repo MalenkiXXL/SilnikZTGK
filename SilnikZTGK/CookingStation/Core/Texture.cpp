@@ -1,5 +1,5 @@
 #include "Texture.h"
-#include <stb_image.h>
+#include <CookingStation/stb_image.h>
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 #include <glad/glad.h> 
